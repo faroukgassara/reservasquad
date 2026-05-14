@@ -1,0 +1,60 @@
+export interface IEnv {
+  DATABASE_URL: string
+
+  JWT_SECRET: string
+  JWT_SECRET_EXPIRES_IN: string
+  JWT_REFRESH_SECRET: string
+  JWT_REFRESH_SECRET_EXPIRES_IN: string
+  JWT_RESET_SECRET: string
+  JWT_RESET_SECRET_EXPIRES_IN: string
+
+  ENVIRONMENT: string
+  PORT: string
+  HOST: string
+
+  INVITATION_CODE_EXPIRES_IN: string
+
+  SMTP_HOST_ADDRESS: string
+  SMTP_PORT: string
+  SMTP_USER: string
+  SMTP_PASSWORD: string
+  MAIL_ENCRYPTION: string
+  SMTP_SEND: string
+  MAIL_SECURE: string
+  NEST_NEXT_STARTER_CONTACT_EMAIL: string
+
+  FRONT_URL: string
+
+  INACTIVITY_DAYS_BEFORE_ARCHIVE: string
+}
+export const env = () => ({
+  env: {
+    DATABASE_URL: process.env.DATABASE_URL,
+
+    JWT_SECRET: process.env.JWT_SECRET,
+    JWT_SECRET_EXPIRES_IN: process.env.JWT_SECRET_EXPIRES_IN,
+    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
+    JWT_REFRESH_SECRET_EXPIRES_IN: process.env.JWT_REFRESH_SECRET_EXPIRES_IN,
+    JWT_RESET_SECRET: process.env.JWT_RESET_SECRET,
+    JWT_RESET_SECRET_EXPIRES_IN: process.env.JWT_RESET_SECRET_EXPIRES_IN,
+
+    ENVIRONMENT: process.env.ENVIRONMENT,
+    PORT: process.env.PORT,
+    HOST: process.env.HOST,
+
+    INVITATION_CODE_EXPIRES_IN: process.env.INVITATION_CODE_EXPIRES_IN,
+
+    SMTP_HOST_ADDRESS: process.env.SMTP_HOST_ADDRESS,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    MAIL_ENCRYPTION: process.env.MAIL_ENCRYPTION,
+    SMTP_SEND: process.env.SMTP_SEND,
+    MAIL_SECURE: process.env.MAIL_SECURE,
+    NEST_NEXT_STARTER_CONTACT_EMAIL_CONTACT_EMAIL: process.env.NEST_NEXT_STARTER_CONTACT_EMAIL,
+
+    FRONT_URL: process.env.FRONT_URL,
+
+    INACTIVITY_DAYS_BEFORE_ARCHIVE: process.env.INACTIVITY_DAYS_BEFORE_ARCHIVE,
+  }
+});

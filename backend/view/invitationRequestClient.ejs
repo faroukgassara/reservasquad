@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Invitation to join Nexera</title>
+    <style>
+        @media screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+            }
+
+            .content {
+                padding: 24px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin:0;padding:0;background-color:#F4F7F9;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+        You've been invited to join Nexera.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+        style="background-color:#F4F7F9;padding:40px 10px;">
+        <tr>
+            <td align="center">
+                <table class="container" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                    style="max-width:580px;">
+                    <tr>
+                        <td style="padding-bottom: 30px;" align="center">
+                            <img src="<%= frontUrl %>/assets/images/nexera-logo.svg" width="300"
+                                alt="Nexera" style="display:block; border:0; outline:none; height:auto;" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content"
+                            style="background:#FFFFFF; border-radius:12px; padding:40px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;">
+                            <h1
+                                style="margin:0 0 20px 0; font-size:24px; color:#1a1a1a; font-weight:700; text-align:center;">
+                                You're invited to join Nexera
+                            </h1>
+                            <p
+                                style="margin:0 0 16px 0; font-size:16px; line-height:1.6; color:#4a4a4a; text-align:center;">
+                                <%= inviterName %> has invited you to join Nexera.
+                                    Click the button below to accept your invitation and create your account.
+                            </p>
+
+                            <div
+                                style="background:#f8f9fa; border-radius:8px; padding:20px; margin:24px 0; text-align:center;">
+                                <p
+                                    style="margin:0 0 8px 0; font-size:13px; color:#6c757d; text-transform:uppercase; letter-spacing:0.5px;">
+                                    Your Invitation Code
+                                </p>
+                                <p
+                                    style="margin:0; font-size:28px; font-weight:700; color:#1a1a1a; letter-spacing:2px; font-family:monospace;">
+                                    <%= invitationCode %>
+                                </p>
+                            </div>
+
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0"
+                                style="margin: 30px auto;">
+                                <tr>
+                                    <td align="center" bgcolor="#86BC26" style="border-radius:6px;">
+                                        <a href="<%= invitationLink %>" target="_blank"
+                                            style="display:inline-block; padding:16px 32px; font-size:16px; font-weight:bold; color:#FFFFFF; text-decoration:none; border-radius:6px;">
+                                            Accept Invitation
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p
+                                style="margin:20px 0 0 0; font-size:13px; line-height:1.5; color:#9b9b9b; text-align:center;">
+                                This invitation will expire in 7 days. If you did not expect this invitation,
+                                please ignore this email or contact support.
+                            </p>
+
+                            <div style="margin-top:30px; padding-top:20px; border-top:1px solid #e0e0e0;">
+                                <p
+                                    style="margin:0 0 8px 0; font-size:13px; line-height:1.5; color:#6c757d; text-align:center;">
+                                    Or copy and paste this link into your browser:
+                                </p>
+                                <p
+                                    style="margin:0; font-size:12px; color:#86BC26; text-align:center; word-break:break-all;">
+                                    <%= invitationLink %>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

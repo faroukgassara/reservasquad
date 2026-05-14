@@ -1,0 +1,47 @@
+'use client';
+
+import { Link } from '@/i18n/navigation';
+import { Routes } from '@/lib/routes';
+import Image from 'next/image';
+
+const NAVY = '#253165';
+const RED = '#E5191D';
+
+export default function HomePage() {
+    return (
+        <main className="flex min-h-[70vh] flex-col items-center justify-center gap-8 px-4 py-16 text-center">
+            <Image
+                src="/branding/reservasquad-logo.png"
+                alt="Reserva Squad"
+                width={220}
+                height={120}
+                className="h-auto w-[200px]"
+                priority
+            />
+            <div>
+                <h1 className="text-3xl font-semibold md:text-4xl" style={{ color: NAVY }}>
+                    Réservez vos salles d&apos;étude
+                </h1>
+                <p className="mx-auto mt-3 max-w-md text-slate-600">
+                    Calendrier partagé, validation par l&apos;administration, équipements par salle.
+                </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                    href={Routes.Login}
+                    className="rounded-lg px-6 py-3 font-semibold text-white shadow"
+                    style={{ backgroundColor: NAVY }}
+                >
+                    Connexion
+                </Link>
+                <Link
+                    href={Routes.Register}
+                    className="rounded-lg border-2 px-6 py-3 font-semibold"
+                    style={{ borderColor: RED, color: RED }}
+                >
+                    Inscription professeur
+                </Link>
+            </div>
+        </main>
+    );
+}

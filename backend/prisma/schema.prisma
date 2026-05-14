@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String               @id @default(uuid())
+  name         String
+  email        String               @unique
+  password     String
+  tokenVersion Int                  @default(0)
+  role         Role                 @default(TEACHER)
+  reservations Reservation[]
+  resetTokens  PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  usedAt    DateTime?
+  revokedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  @@index([userId])
+}
+
+model Seeder {
+  id   String @id @default(uuid())
+  name String @unique
+}
+
+model Room {
+  id           String @id @default(uuid())
+  name         String @unique
+  capacity     Int
+  color        String
+  description  String?
+  equipment    String[] @default([])
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reservation {
+  id             String             @id @default(uuid())
+  userId         String
+  roomId         String
+  date           DateTime           @db.Date
+  startMinutes   Int
+  endMinutes     Int
+  numberOfPeople Int
+  purpose        String
+  status         ReservationStatus  @default(PENDING)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roomId, date])
+  @@index([userId, date])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}

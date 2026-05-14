@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "test",
+    "dist",
+    "**/*spec.ts",
+    "src/component/blog/**/*",
+    "src/component/categoryFormation/**/*",
+    "src/component/contactMessage/**/*",
+    "src/component/formation/**/*",
+    "src/component/user/**/*",
+    "src/component/cron/**/*",
+    "src/dto/blog/**/*",
+    "src/dto/formation/**/*",
+    "src/dto/formationCategory/**/*",
+    "src/dto/user/**/*",
+    "src/dto/contactMessage/**/*"
+  ]
+}
