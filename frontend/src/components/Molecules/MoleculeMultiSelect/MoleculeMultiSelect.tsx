@@ -81,7 +81,7 @@ const MoleculeMultiSelect = ({
         <Label color="text-gray-900" className="mb-1" variant={EVariantLabel.bodySmall}>
           {label}
           {required && (
-            <Label color="text-primary-10" className="ml-1 align-middle" variant={EVariantLabel.bodySmall}>*</Label>
+            <Label color="text-accent-500" className="ml-1 align-middle" variant={EVariantLabel.bodySmall}>*</Label>
           )}
         </Label>
       )}

@@ -27,7 +27,7 @@ const MoleculeFormField = ({
           {label}
           {required && (
             <Label
-              className="ml-1 text-primary-10 align-middle"
+              className="ml-1 text-accent-500 align-middle"
               variant={EVariantLabel.bodySmall}
               color="text-primary-600"
             >

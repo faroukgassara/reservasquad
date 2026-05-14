@@ -19,12 +19,10 @@ const BACKOFFICE_AND_AUTH_PREFIXES = [
     '/archive',
     '/projects',
     '/calendar',
-    '/my-reservations',
     '/admin',
     '/notifications',
     '/configuration',
     '/login',
-    '/register',
     '/forgot-password',
     '/reset-password',
 ] as const;

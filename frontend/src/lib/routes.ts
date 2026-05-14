@@ -2,15 +2,15 @@ const CLIENTS_BASE = '/clients';
 
 export const Routes = {
     Login: '/login',
-    Register: '/register',
     ForgotPassword: '/forgot-password',
     ResetPassword: '/reset-password',
     Home: '/',
 
     Calendar: '/calendar',
-    MyReservations: '/my-reservations',
+    AdminCalendar: '/admin/calendar',
     AdminReservations: '/admin/reservations',
     AdminRooms: '/admin/rooms',
+    AdminTeachers: '/admin/teachers',
 
     Dashboard: '/dashboard',
     Formations: {
@@ -41,15 +41,15 @@ export const Routes = {
 
 export const PublicRoutes = [
     Routes.Login,
-    Routes.Register,
     Routes.ForgotPassword,
     Routes.ResetPassword,
     Routes.Home,
+    Routes.Calendar,
 ] as const;
 
 export const PrivateRoutes = [
-    Routes.Calendar,
-    Routes.MyReservations,
+    Routes.AdminCalendar,
     Routes.AdminReservations,
     Routes.AdminRooms,
+    Routes.AdminTeachers,
 ] as const;

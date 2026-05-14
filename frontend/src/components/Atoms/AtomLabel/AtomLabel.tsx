@@ -52,7 +52,7 @@ const AtomLabel: React.FC<LabelProps> = ({
             {...rest}
         >
             {children}
-            {required && <label className="ml-1 ${fontClass} text-primary-10">*</label>}
+            {required && <span className={`ml-1 ${fontClass} text-accent-500`}>*</span>}
         </label>
     )
 }

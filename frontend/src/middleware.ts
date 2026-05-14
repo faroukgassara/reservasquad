@@ -47,15 +47,15 @@ export default async function middleware(req: NextRequest) {
     const isAuthLanding =
       pathWithoutLocale === Routes.Login ||
       pathWithoutLocale.startsWith(`${Routes.Login}/`) ||
-      pathWithoutLocale === Routes.Register ||
-      pathWithoutLocale.startsWith(`${Routes.Register}/`) ||
       pathWithoutLocale === Routes.ForgotPassword ||
       pathWithoutLocale.startsWith(`${Routes.ForgotPassword}/`) ||
       pathWithoutLocale === '/reset-password' ||
       pathWithoutLocale.startsWith('/reset-password/');
 
     if (token && isAuthLanding) {
-      return NextResponse.redirect(new URL(`/${locale}${Routes.Calendar}`, req.url));
+      const role = (token as { user?: { role?: string } }).user?.role;
+      const dest = role === 'ADMIN' ? Routes.AdminReservations : Routes.Home;
+      return NextResponse.redirect(new URL(`/${locale}${dest}`, req.url));
     }
     return intlMiddleware(req);
   } else {

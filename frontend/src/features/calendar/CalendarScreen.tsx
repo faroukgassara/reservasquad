@@ -1,6 +1,9 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { Link } from '@/i18n/navigation';
+import { Routes } from '@/lib/routes';
+import { ApiError, backendFetchPublic } from '@/lib/reservasquad-api';
+import { endTimeOptions, startTimeOptions, validEndsForStart } from '@/lib/time-slots';
 import {
     addMonths,
     eachDayOfInterval,
@@ -8,13 +11,12 @@ import {
     endOfWeek,
     format,
     isSameMonth,
+    parseISO,
     startOfMonth,
     startOfWeek,
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ApiError, backendFetch } from '@/lib/reservasquad-api';
-import { endTimeOptions, startTimeOptions, validEndsForStart } from '@/lib/time-slots';
 
 const NAVY = '#253165';
 const RED = '#E5191D';
@@ -36,6 +38,7 @@ export type CalendarReservation = {
 };
 
 type Room = { id: string; name: string; capacity: number; color: string; equipment: string[] };
+type TeacherOption = { id: string; name: string };
 
 type CalendarPayload = { from: string; to: string; byDay: Record<string, CalendarReservation[]> };
 
@@ -45,46 +48,60 @@ function statusPill(status: CalendarReservation['status']) {
     return 'bg-red-100 text-red-900';
 }
 
-export default function CalendarScreen() {
-    const { data: session, status } = useSession();
-    const accessToken = session?.accessToken;
+export type CalendarScreenProps = {
+    /** `admin`: inside back-office shell; same grid, contextual links for validation workflow */
+    variant?: 'public' | 'admin';
+};
+
+export default function CalendarScreen({ variant = 'public' }: CalendarScreenProps) {
     const [monthCursor, setMonthCursor] = useState(() => new Date());
     const [byDay, setByDay] = useState<Record<string, CalendarReservation[]>>({});
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [teachers, setTeachers] = useState<TeacherOption[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selected, setSelected] = useState<CalendarReservation | null>(null);
     const [showForm, setShowForm] = useState(false);
 
+    const [bookTeacherId, setBookTeacherId] = useState('');
     const [bookDate, setBookDate] = useState('');
     const [bookRoomId, setBookRoomId] = useState('');
     const [bookStart, setBookStart] = useState(startTimeOptions()[0]);
-    const [bookEnd, setBookEnd] = useState(validEndsForStart(startTimeOptions()[0])[0] ?? endTimeOptions()[0]);
+    const [bookEnd, setBookEnd] = useState(
+        validEndsForStart(startTimeOptions()[0])[0] ?? endTimeOptions()[0],
+    );
     const [bookPeople, setBookPeople] = useState(1);
     const [bookPurpose, setBookPurpose] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     const loadRooms = useCallback(async () => {
-        if (!accessToken) return;
         try {
-            const list = await backendFetch<Room[]>(accessToken, '/rooms');
+            const list = await backendFetchPublic<Room[]>('/rooms');
             setRooms(Array.isArray(list) ? list : []);
             const firstId = Array.isArray(list) && list[0]?.id ? list[0].id : '';
             setBookRoomId((prev) => prev || firstId);
         } catch {
             setRooms([]);
         }
-    }, [accessToken]);
+    }, []);
+
+    const loadTeachers = useCallback(async () => {
+        try {
+            const list = await backendFetchPublic<TeacherOption[]>('/public/teachers');
+            setTeachers(Array.isArray(list) ? list : []);
+            setBookTeacherId((prev) => prev || list[0]?.id || '');
+        } catch {
+            setTeachers([]);
+        }
+    }, []);
 
     const loadCalendar = useCallback(async () => {
-        if (!accessToken) return;
         setLoading(true);
         setError(null);
         try {
             const y = monthCursor.getFullYear();
             const m = monthCursor.getMonth() + 1;
-            const res = await backendFetch<CalendarPayload>(
-                accessToken,
+            const res = await backendFetchPublic<CalendarPayload>(
                 `/reservations/calendar?year=${y}&month=${m}`,
             );
             setByDay(res?.byDay || {});
@@ -94,15 +111,16 @@ export default function CalendarScreen() {
         } finally {
             setLoading(false);
         }
-    }, [accessToken, monthCursor]);
+    }, [monthCursor]);
 
     useEffect(() => {
-        if (accessToken) void loadRooms();
-    }, [accessToken, loadRooms]);
+        void loadRooms();
+        void loadTeachers();
+    }, [loadRooms, loadTeachers]);
 
     useEffect(() => {
-        if (accessToken) void loadCalendar();
-    }, [accessToken, loadCalendar]);
+        void loadCalendar();
+    }, [loadCalendar]);
 
     const selectedRoomCapacity = useMemo(() => rooms.find((r) => r.id === bookRoomId)?.capacity ?? 999, [
         rooms,
@@ -130,17 +148,22 @@ export default function CalendarScreen() {
         setBookEnd(firstEnds[0] ?? endTimeOptions()[0]);
         setBookPeople(1);
         setBookRoomId((prev) => prev || rooms[0]?.id || '');
+        setBookTeacherId((prev) => prev || teachers[0]?.id || '');
         setShowForm(true);
     };
 
     const submitBooking = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!accessToken) return;
+        if (!bookTeacherId) {
+            alert('Choisissez un professeur dans la liste (gérée par l’administration).');
+            return;
+        }
         setSubmitting(true);
         try {
-            await backendFetch(accessToken, '/reservations', {
+            await backendFetchPublic('/reservations/book', {
                 method: 'POST',
                 body: JSON.stringify({
+                    teacherUserId: bookTeacherId,
                     roomId: bookRoomId,
                     date: bookDate,
                     startTime: bookStart,
@@ -151,39 +174,65 @@ export default function CalendarScreen() {
             });
             setShowForm(false);
             await loadCalendar();
+            alert(
+                'Demande enregistrée. Elle sera affichée en « pending » jusqu’à validation par un administrateur.',
+            );
         } catch (err) {
             const msg =
-                err instanceof ApiError
-                    ? (typeof err.body === 'object' && err.body !== null &&
-                      'message' in err.body &&
-                      Array.isArray((err.body as { message: unknown }).message)
-                          ? ((err.body as { message: string[] }).message).join(', ')
-                          : err.message)
-                    : 'Échec de la réservation';
+                err instanceof ApiError ?
+                    typeof err.body === 'object' && err.body !== null && 'message' in err.body
+                    && Array.isArray((err.body as { message: unknown }).message)
+                    ? ((err.body as { message: string[] }).message).join(', ')
+                    : err.message
+                : 'Échec de la réservation';
             alert(msg);
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (status === 'loading' || status === 'unauthenticated') {
-        return (
-            <div className="flex min-h-[40vh] items-center justify-center text-slate-600">
-                Connexion...
-            </div>
-        );
-    }
-
     const weekDays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
     return (
         <div className="p-4 lg:p-8">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                {variant === 'public' ? (
+                    <>
+                        <p className="text-sm text-slate-600">
+                            Réservation sans compte · statut{' '}
+                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs">
+                                PENDING
+                            </span>{' '}
+                            jusqu’à accord admin.
+                        </p>
+                        <Link href={Routes.Login} className="text-sm underline" style={{ color: NAVY }}>
+                            Connexion administration
+                        </Link>
+                    </>
+                ) : (
+                    <>
+                        <p className="text-sm text-slate-600">
+                            Vue calendrier — même planning que la page publique. Confirmer ou refuser
+                            les demandes depuis la liste détaillée.
+                        </p>
+                        <Link
+                            href={Routes.AdminReservations}
+                            className="text-sm font-medium underline"
+                            style={{ color: NAVY }}
+                        >
+                            Liste & validation
+                        </Link>
+                    </>
+                )}
+            </div>
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight" style={{ color: NAVY }}>
                         Planning des salles d&apos;étude
                     </h1>
-                    <p className="text-sm text-slate-600">Vue mensuelle — cliquez un créneau pour les détails</p>
+                    <p className="text-sm text-slate-600">
+                        Vue mensuelle — cliquez un créneau pour les détails
+                    </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <button
@@ -211,11 +260,11 @@ export default function CalendarScreen() {
                 </div>
             </div>
 
-            {error && (
+            {error ? (
                 <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800">
                     {error}
                 </div>
-            )}
+            ) : null}
 
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="border-b border-slate-100 px-4 py-3 font-medium capitalize" style={{ color: NAVY }}>
@@ -302,8 +351,8 @@ export default function CalendarScreen() {
                         <dd>{selected.room.name}</dd>
                         <dt className="text-slate-500">Horaire</dt>
                         <dd>
-                            {format(new Date(selected.date), 'dd/MM/yyyy')} · {selected.startTime} –{' '}
-                            {selected.endTime}
+                            {format(parseISO(String(selected.date).slice(0, 10)), 'dd/MM/yyyy')} ·{' '}
+                            {selected.startTime} – {selected.endTime}
                         </dd>
                         <dt className="text-slate-500">Participants</dt>
                         <dd>{selected.numberOfPeople}</dd>
@@ -316,11 +365,7 @@ export default function CalendarScreen() {
                             </span>
                         </dd>
                     </dl>
-                    <button
-                        type="button"
-                        className="mt-4 text-sm underline"
-                        onClick={() => setSelected(null)}
-                    >
+                    <button type="button" className="mt-4 text-sm underline" onClick={() => setSelected(null)}>
                         Fermer le panneau
                     </button>
                 </div>
@@ -330,16 +375,29 @@ export default function CalendarScreen() {
                 <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
                     <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
                         <h3 className="mb-4 text-lg font-semibold" style={{ color: NAVY }}>
-                            Nouvelle réservation
+                            Nouvelle demande de réservation
                         </h3>
-                        <form className="flex flex-col gap-3 text-sm" onSubmit={submitBooking}>
+                        <form className="flex flex-col gap-3 text-sm" onSubmit={(e) => void submitBooking(e)}>
                             <label className="flex flex-col gap-1">
-                                <span>Nom affiché</span>
-                                <input
-                                    className="rounded border border-slate-200 px-3 py-2 text-slate-400"
-                                    readOnly
-                                    value={session?.user?.name || ''}
-                                />
+                                <span>Professeur</span>
+                                <select
+                                    required
+                                    className="rounded border border-slate-200 px-3 py-2"
+                                    value={bookTeacherId}
+                                    onChange={(e) => setBookTeacherId(e.target.value)}
+                                >
+                                    <option value="" disabled>
+                                        {teachers.length ? '— Choisir —' : 'Aucun professeur (admin)'}
+                                    </option>
+                                    {teachers.map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <span className="text-xs text-slate-500">
+                                    La liste est mise à jour par l’administration.
+                                </span>
                             </label>
                             <label className="flex flex-col gap-1">
                                 <span>Date</span>
@@ -409,7 +467,9 @@ export default function CalendarScreen() {
                                     onChange={(e) => setBookPeople(Number(e.target.value))}
                                     className="rounded border border-slate-200 px-3 py-2"
                                 />
-                                <span className="text-xs text-slate-500">Max {selectedRoomCapacity} pour cette salle</span>
+                                <span className="text-xs text-slate-500">
+                                    Capacité max {selectedRoomCapacity} pour cette salle
+                                </span>
                             </label>
                             <label className="flex flex-col gap-1">
                                 <span>Objet / description</span>
@@ -432,11 +492,11 @@ export default function CalendarScreen() {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={submitting || !bookRoomId}
+                                    disabled={submitting || !bookRoomId || teachers.length === 0}
                                     className="flex-1 rounded-lg py-2 font-semibold text-white"
                                     style={{ backgroundColor: NAVY }}
                                 >
-                                    {submitting ? 'Envoi…' : 'Réserver'}
+                                    {submitting ? 'Envoi…' : 'Envoyer la demande'}
                                 </button>
                             </div>
                         </form>

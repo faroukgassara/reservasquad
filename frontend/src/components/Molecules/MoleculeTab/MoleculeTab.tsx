@@ -41,7 +41,7 @@ const MoleculeTab = ({ options, value, onChange, size = ESize.lg, buttonClassNam
 
                 const buttonBaseClassName = `
                     font-medium transition-all duration-200 rounded-lg border-none cursor-pointer
-                    ${isActive ? 'bg-primary-10 text-white hover:opacity-[90%]' : 'text-black hover:bg-primary-10/20'}
+                    ${isActive ? 'bg-primary-900 text-white hover:opacity-[90%]' : 'text-black hover:bg-primary-10/20'}
                     ${sizeClasses.button}
                     ${buttonClassName}
                 `;

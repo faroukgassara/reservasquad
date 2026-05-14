@@ -35,11 +35,11 @@ export default function HomePage() {
                     Connexion
                 </Link>
                 <Link
-                    href={Routes.Register}
+                    href={Routes.Calendar}
                     className="rounded-lg border-2 px-6 py-3 font-semibold"
                     style={{ borderColor: RED, color: RED }}
                 >
-                    Inscription professeur
+                    Réserver une salle
                 </Link>
             </div>
         </main>

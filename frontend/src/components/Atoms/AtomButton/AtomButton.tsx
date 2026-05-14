@@ -21,7 +21,7 @@ const AtomButton = memo(function AtomButton({
             TYPE_VARIANT_CLASSES[type],
             !disabled && 'cursor-pointer',
             disabled && '!cursor-not-allowed opacity-50',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2',
             className,
         ]
             .filter((c): c is string => Boolean(c))

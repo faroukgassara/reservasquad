@@ -1,11 +1,6 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Role, User } from 'src/generated/prisma/client';
+import { User } from 'src/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { CommonFunctionService } from 'src/common/common-services/common-function';
@@ -17,7 +12,6 @@ import { AuthUserPayloadDto } from 'src/dto/login/authUserPayload.dto';
 import { LoginDTO } from 'src/dto/login/login.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { normalizeEmail } from 'src/common/utils/email.util';
-import { RegisterDto } from 'src/dto/auth/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -48,35 +42,12 @@ export class AuthService {
     });
   }
 
-  async register(dto: RegisterDto): Promise<AuthResponseDto> {
-    const email = normalizeEmail(dto.email);
-    const exists = await this.prismaService.user.findUnique({
-      where: { email },
-    });
-    if (exists) throw new ConflictException('Email already in use.');
-    const passwordHash = await bcrypt.hash(dto.password, 12);
-    const created = await this.prismaService.user.create({
-      data: {
-        name: dto.name,
-        email,
-        password: passwordHash,
-        role: Role.TEACHER,
-      },
-    });
-
-    const { password, ...safeUser } = created;
-    return {
-      ...safeUser,
-      ...this.commonFunction.generateToken({ ...created }, true),
-    } as AuthResponseDto;
-  }
-
   async login(dto: LoginDTO): Promise<AuthResponseDto> {
     const user = await this.prismaService.user.findFirst({
       where: { email: normalizeEmail(dto.email) },
     });
 
-    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
+    if (!user || !user.password || !(await bcrypt.compare(dto.password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 

@@ -9,8 +9,7 @@ import {
 } from "@/interfaces";
 import { SidebarContext } from "@/contexts/SidebarContext";
 import { useSidebar } from "@/hooks/useSidebar";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Icon, Label } from "@/components/Atoms";
 import AtomButton from "@/components/Atoms/AtomButton/AtomButton";
 import { EButtonType, ESize, EVariantLabel, IconComponentsEnum } from "@/Enum/Enum";
@@ -26,7 +25,7 @@ const MoleculeSidebar = ({
     <SidebarContext.Provider value={{ open, setOpen }}>
         <aside {...props} className={twMerge(
                 [
-                    "flex flex-col h-screen overflow-hidden transition-colors duration-200",
+                    "flex h-auto max-h-[45vh] min-h-0 flex-col overflow-hidden transition-colors duration-200 md:h-full md:max-h-none",
                     className,
                     !open && "bg-primary-900",
                 ]
@@ -86,10 +85,10 @@ const SidebarContent = ({
                                     open ? "pl-5 py-2.5 rounded-lg" : "justify-center h-12 w-12 mx-auto rounded-full",
                                     isActive
                                         ? open
-                                            ? "text-gray-25 bg-primary-500"
-                                            : "text-white bg-primary-300"
+                                            ? "text-gray-25 bg-accent-500"
+                                            : "text-white bg-accent-400"
                                         : open
-                                          ? "text-primary-400 hover:bg-gray-100"
+                                          ? "text-primary-600 hover:bg-primary-50"
                                           : "text-primary-100 hover:bg-primary-800",
                                 ].join(" ")
                             )}
@@ -103,7 +102,7 @@ const SidebarContent = ({
                                     isActive
                                         ? 'text-white'
                                         : open
-                                          ? 'text-primary-400'
+                                          ? 'text-primary-600'
                                           : 'text-primary-100'
                                 }
                             />
@@ -111,7 +110,7 @@ const SidebarContent = ({
                             {open && (
                                 <Label
                                     variant={EVariantLabel.bodySmall}
-                                    color={isActive ? 'text-white' : 'text-gray-800'}
+                                    color={isActive ? 'text-white' : 'text-primary-900'}
                                     className="ml-3 cursor-pointer truncate"
                                 >
                                     {item.label}
@@ -164,7 +163,7 @@ const SidebarTrigger = ({ className, ...props }: IMoleculeSidebarTrigger) => {
             <Icon
                 name={IconComponentsEnum.collapse}
                 size="w-5 h-5"
-                color={!open ? "text-primary-100" : "text-primary-400"}
+                color={!open ? "text-primary-100" : "text-primary-600"}
             />
         </AtomButton>
     );

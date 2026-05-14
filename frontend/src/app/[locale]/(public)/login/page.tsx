@@ -56,7 +56,8 @@ export default function LoginPage() {
                 failedAttemptsRef.current = 0;
                 const session = await getSession();
                 if (session) {
-                    router.push(Routes.Calendar);
+                    const role = session.user?.role;
+                    router.push(role === 'ADMIN' ? Routes.AdminReservations : Routes.Home);
                 }
             }
         } catch (error) {

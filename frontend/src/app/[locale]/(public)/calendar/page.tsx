@@ -1,4 +1,4 @@
-import CalendarScreen from './CalendarScreen';
+import CalendarScreen from '@/features/calendar/CalendarScreen';
 
 export default function CalendarPage() {
     return <CalendarScreen />;

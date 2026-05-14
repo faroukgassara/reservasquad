@@ -13,7 +13,7 @@ export default function ClientPage() {
                         {/* Welcome Header */}
                         <div className="mb-10">
                             <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                                Welcome to <span className="text-primary-10">Nexera</span> Dashboard
+                                Welcome to <span className="text-primary-900">Nexera</span> Dashboard
                             </h1>
                             <p className="mt-2 text-lg text-gray-600">
                                 Manage your staff and clients efficiently from one central place.

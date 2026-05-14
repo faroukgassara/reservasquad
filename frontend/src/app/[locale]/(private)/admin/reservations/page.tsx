@@ -1,6 +1,6 @@
 'use client';
 
-import type { CalendarReservation } from '../../calendar/CalendarScreen';
+import type { CalendarReservation } from '@/features/calendar/CalendarScreen';
 import { ApiError, backendFetch } from '@/lib/reservasquad-api';
 import { startTimeOptions, validEndsForStart } from '@/lib/time-slots';
 import { useSession } from 'next-auth/react';

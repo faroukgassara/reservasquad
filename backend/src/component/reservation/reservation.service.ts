@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ReservationStatus, Role, Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { BookReservationDto } from 'src/dto/reservation/book-reservation.dto';
 import { CreateReservationDto } from 'src/dto/reservation/create-reservation.dto';
 import { UpdateReservationDto } from 'src/dto/reservation/update-reservation.dto';
 import { ListReservationsQueryDto } from 'src/dto/reservation/list-reservations-query.dto';
@@ -109,21 +110,10 @@ export class ReservationService {
     };
   }
 
-  async list(user: IAuthUser, q: ListReservationsQueryDto) {
+  async list(q: ListReservationsQueryDto) {
     const where: Prisma.ReservationWhereInput = {};
 
-    if (user.role === Role.TEACHER) {
-      if (q.mine !== true) {
-        throw new ForbiddenException('Teachers must pass mine=true');
-      }
-      if (q.userId && q.userId !== user.id) {
-        throw new ForbiddenException();
-      }
-      where.userId = user.id;
-    } else if (user.role === Role.ADMIN && q.userId) {
-      where.userId = q.userId;
-    }
-
+    if (q.userId) where.userId = q.userId;
     if (q.roomId) where.roomId = q.roomId;
     if (q.status) where.status = q.status;
     if (q.date) where.date = parseDayOnly(q.date.slice(0, 10));
@@ -149,7 +139,12 @@ export class ReservationService {
     return rows.map((r) => this.enrichRow(r));
   }
 
-  async create(dto: CreateReservationDto, user: IAuthUser) {
+  async createPublicBooking(dto: BookReservationDto) {
+    const teacher = await this.prisma.user.findUnique({ where: { id: dto.teacherUserId } });
+    if (!teacher || teacher.role !== Role.TEACHER) {
+      throw new BadRequestException('Invalid teacher.');
+    }
+
     const day = dto.date.slice(0, 10);
     const today = localIsoCalendarDate(new Date());
     if (day < today) {
@@ -170,26 +165,18 @@ export class ReservationService {
       throw new BadRequestException(`This room accepts at most ${room.capacity} people.`);
     }
 
-    let status: ReservationStatus = ReservationStatus.PENDING;
-    if (dto.status) {
-      if (user.role !== Role.ADMIN || dto.status !== ReservationStatus.CONFIRMED) {
-        throw new ForbiddenException('Only an admin may create a reservation with status CONFIRMED.');
-      }
-      status = ReservationStatus.CONFIRMED;
-    }
-
     await this.assertNoOverlap(dto.roomId, day, startM, endM, undefined);
 
     const created = await this.prisma.reservation.create({
       data: {
-        userId: user.id,
+        userId: teacher.id,
         roomId: dto.roomId,
         date: parseDayOnly(day),
         startMinutes: startM,
         endMinutes: endM,
         numberOfPeople: dto.numberOfPeople,
-        purpose: dto.purpose,
-        status,
+        purpose: dto.purpose.trim(),
+        status: ReservationStatus.PENDING,
       },
       select: selectReservation,
     });
@@ -259,60 +246,29 @@ export class ReservationService {
     }
   }
 
-  async updateReservation(id: string, dto: UpdateReservationDto, user: IAuthUser) {
-    const res = await this.prisma.reservation.findUnique({
+  async updateReservation(id: string, dto: UpdateReservationDto) {
+    const found = await this.prisma.reservation.findUnique({
       where: { id },
-      select: selectReservation,
+      select: { id: true },
     });
-    if (!res) throw new NotFoundException('Reservation not found');
+    if (!found) throw new NotFoundException('Reservation not found');
 
     if (!dto.status) {
       throw new BadRequestException('Nothing to update');
     }
 
-    if (user.role === Role.ADMIN) {
-      if (
-        dto.status !== ReservationStatus.CONFIRMED &&
-        dto.status !== ReservationStatus.CANCELLED
-      ) {
-        throw new BadRequestException('Invalid status.');
-      }
-      const updated = await this.prisma.reservation.update({
-        where: { id },
-        data: { status: dto.status },
-        select: selectReservation,
-      });
-      return this.enrichRow(updated);
-    }
-
-    if (user.role === Role.TEACHER && res.userId !== user.id) {
-      throw new ForbiddenException();
-    }
-
-    if (dto.status !== ReservationStatus.CANCELLED) {
-      throw new ForbiddenException('Teachers may only cancel a reservation.');
-    }
-
-    const ud = new Date(res.date);
-    const day = localIsoDateFromParts(ud.getUTCFullYear(), ud.getUTCMonth(), ud.getUTCDate());
-    const today = localIsoCalendarDate(new Date());
     if (
-      day < today ||
-      (day === today && res.endMinutes <= snapshotNowMinutes())
+      dto.status !== ReservationStatus.CONFIRMED &&
+      dto.status !== ReservationStatus.CANCELLED
     ) {
-      throw new BadRequestException('You can only cancel upcoming reservations.');
+      throw new BadRequestException('Invalid status.');
     }
 
-    const cancelled = await this.prisma.reservation.update({
+    const updated = await this.prisma.reservation.update({
       where: { id },
-      data: { status: ReservationStatus.CANCELLED },
+      data: { status: dto.status },
       select: selectReservation,
     });
-    return this.enrichRow(cancelled);
+    return this.enrichRow(updated);
   }
-}
-
-function snapshotNowMinutes(): number {
-  const n = new Date();
-  return n.getHours() * 60 + n.getMinutes();
 }

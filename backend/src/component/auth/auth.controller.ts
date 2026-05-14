@@ -13,7 +13,6 @@ import { ResetPasswordDto } from 'src/dto/login/resetPassword.dto';
 import * as swagger from '@nestjs/swagger';
 import { ApiBearerAuth, ApiOperation, ApiHeader } from '@nestjs/swagger';
 import { normalizeEmail } from 'src/common/utils/email.util';
-import { RegisterDto } from 'src/dto/auth/register.dto';
 
 @swagger.ApiTags('auth')
 @Controller('auth')
@@ -28,39 +27,6 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
     ) { }
-
-    @Post('register')
-    @Public(true)
-    @swagger.ApiBody({ type: RegisterDto })
-    @ApiOperation({
-        summary: 'Teacher self-registration',
-        description: 'Creates a TEACHER account and returns JWT tokens.',
-    })
-    async register(
-        @Body() dto: RegisterDto,
-        @Res() res: Response,
-    ) {
-        try {
-            const response = await this.authService.register(dto);
-            return res.status(HttpStatus.CREATED).json({
-                statusCode: HttpStatus.CREATED,
-                data: response,
-            });
-        } catch (error) {
-            if (error instanceof HttpException) {
-                return res.status(error.getStatus()).json({
-                    statusCode: error.getStatus(),
-                    ...(typeof error.getResponse() === 'object' && error.getResponse() !== null
-                        ? error.getResponse() as Record<string, unknown>
-                        : { message: error.getResponse() }),
-                });
-            }
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                error,
-            });
-        }
-    }
 
     @Post('login')
     @Public(true)

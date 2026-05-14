@@ -1,63 +1,73 @@
-import { Body, Controller, Get, Patch, Param, Post, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorator/public.decorator';
 import { ReservationService } from './reservation.service';
-import { CreateReservationDto } from 'src/dto/reservation/create-reservation.dto';
 import { AdminCreateReservationDto } from 'src/dto/reservation/admin-create-reservation.dto';
-import { UpdateReservationDto } from 'src/dto/reservation/update-reservation.dto';
+import { BookReservationDto } from 'src/dto/reservation/book-reservation.dto';
 import { ListReservationsQueryDto } from 'src/dto/reservation/list-reservations-query.dto';
+import { UpdateReservationDto } from 'src/dto/reservation/update-reservation.dto';
 import { IRequest } from 'src/interface/request/request.interface';
 import { Roles } from 'src/common/decorator/roles.decorator';
 
 @ApiTags('reservations')
-@ApiBearerAuth('Authorization')
 @Controller('reservations')
 export class ReservationController {
   constructor(private readonly reservationService: ReservationService) {}
 
+  @Public(true)
   @Get('calendar')
   @ApiOperation({
-    summary: 'Reservations grouped by calendar day',
-    description: 'All roles see every reservation in the requested month.',
+    summary: 'Monthly calendar view (public)',
+    description: 'All reservations grouped by calendar day.',
   })
   calendar(@Query('year') yearStr: string, @Query('month') monthStr: string) {
     return this.reservationService.calendar(Number(yearStr), Number(monthStr));
   }
 
-  @Get()
-  @ApiOperation({ summary: 'List reservations (admin: filters; teachers: mine=true)' })
-  list(@Req() req: IRequest, @Query() query: ListReservationsQueryDto) {
-    const user = { id: req.user!.id, role: req.user!.role };
-    return this.reservationService.list(user, query);
+  @Public(true)
+  @Post('book')
+  @ApiOperation({
+    summary: 'Anonymous booking — always PENDING',
+    description:
+      'Links the reservation to a teacher profile chosen from the dropdown. Requires admin acceptance.',
+  })
+  book(@Body() dto: BookReservationDto) {
+    return this.reservationService.createPublicBooking(dto);
   }
 
-  @Post()
-  @ApiOperation({
-    summary: 'Create reservation',
-    description: 'Teacher: PENDING by default; admin may force CONFIRMED via body.status.',
-  })
-  create(@Req() req: IRequest, @Body() dto: CreateReservationDto) {
-    const user = { id: req.user!.id, role: req.user!.role };
-    return this.reservationService.create(dto, user);
+  @Get()
+  @ApiBearerAuth('Authorization')
+  @Roles({ roles: ['ADMIN'] })
+  @ApiOperation({ summary: 'List reservations (admin only)', description: 'Filter by room, status, date.' })
+  list(@Query() query: ListReservationsQueryDto) {
+    return this.reservationService.list(query);
   }
 
   @Post('admin')
+  @ApiBearerAuth('Authorization')
   @Roles({ roles: ['ADMIN'] })
-  @ApiOperation({ summary: 'Create confirmed reservation on behalf of a teacher' })
+  @ApiOperation({ summary: 'Create confirmed reservation for a teacher' })
   adminCreate(@Req() req: IRequest, @Body() dto: AdminCreateReservationDto) {
     const acting = { id: req.user!.id, role: req.user!.role };
     return this.reservationService.adminCreateForTeacher(dto, acting);
   }
 
   @Patch(':id')
+  @ApiBearerAuth('Authorization')
+  @Roles({ roles: ['ADMIN'] })
   @ApiOperation({
-    summary: 'Update reservation (admin: confirm/reject; teacher: cancel own)',
+    summary: 'Update reservation status (approve / refuse / cancel)',
   })
-  update(
-    @Req() req: IRequest,
-    @Param('id') id: string,
-    @Body() dto: UpdateReservationDto,
-  ) {
-    const user = { id: req.user!.id, role: req.user!.role };
-    return this.reservationService.updateReservation(id, dto, user);
+  update(@Param('id') id: string, @Body() dto: UpdateReservationDto) {
+    return this.reservationService.updateReservation(id, dto);
   }
 }

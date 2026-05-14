@@ -2,6 +2,7 @@ import colors from './colors'
 
 type GrayShade = keyof typeof colors.gray
 type PrimaryShade = keyof typeof colors.primary
+type AccentShade = keyof typeof colors.accent
 type DangerShade = keyof typeof colors.danger
 type SuccessShade = keyof typeof colors.success
 type WarningShade = keyof typeof colors.warning
@@ -13,6 +14,7 @@ export type ELabelColor =
     | 'text-error'
     | `text-gray-${GrayShade}`
     | `text-primary-${PrimaryShade}`
+    | `text-accent-${AccentShade}`
     | `text-danger-${DangerShade}`
     | `text-success-${SuccessShade}`
     | `text-warning-${WarningShade}`
