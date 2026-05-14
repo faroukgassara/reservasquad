@@ -1,7 +1,6 @@
 const typography = {
   fontFamily: {
-    sans: "'Inter', sans-serif",
-    display: "'Bebas Neue', sans-serif",
+    display: "'Lato', sans-serif",
   },
 
   fontSize: {

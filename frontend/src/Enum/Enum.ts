@@ -63,8 +63,8 @@ enum ESort {
 }
 
 enum EFontFamily {
-    Sans = 'sans',      // Inter
-    Display = 'display', // Bebas Neue
+    Sans = 'sans', // Lato (via font-sans)
+    Display = 'display', // Lato (same stack as sans)
 }
 
 enum EVariantLabel {

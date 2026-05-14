@@ -5,20 +5,16 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
 import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import type { Metadata } from 'next';
-import { Bebas_Neue, Inter } from 'next/font/google';
+import { Lato } from 'next/font/google';
 import '@/app/globals.css';
 import RouteProviders from '@/components/providers/RouteProviders';
 import LocaleMarketingShell from '@/components/Layouts/LocaleMarketingShell';
 
-const inter = Inter({
+const lato = Lato({
+  weight: ['400', '700'],
   subsets: ['latin'],
   display: 'swap',
-});
-
-const bebasNeue = Bebas_Neue({
-  weight: '400',
-  subsets: ['latin'],
-  display: 'swap',
+  variable: '--font-sans',
 });
 
 export const metadata: Metadata = {
@@ -46,7 +42,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
-      <body className={`${inter.className} ${bebasNeue.className} antialiased`}>
+      <body className={`${lato.variable} font-sans antialiased`}>
         <RouteProviders session={session} locale={locale} messages={messages}>
           <LocaleMarketingShell>{children}</LocaleMarketingShell>
         </RouteProviders>

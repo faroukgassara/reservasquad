@@ -12,8 +12,7 @@ const config: Config = {
       colors,
       spacing,
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Bebas Neue', 'sans-serif'],
+        display: ['var(--font-sans)', 'sans-serif'],
       },
       fontSize: typography.fontSize,
       borderRadius: ui.radius,
