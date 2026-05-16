@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { twMerge } from "tailwind-merge";
-import { Icon } from "..";
 import { IconComponentsEnum } from "@/Enum/Enum";
+import AtomIcon from "../AtomIcon/AtomIcon";
+import AtomDiv from "../AtomDiv/AtomDiv";
 
 interface DropdownContextType {
     isOpen: boolean;
@@ -77,9 +78,9 @@ export const DropdownRoot = ({
 export const DropdownTrigger = ({ children, className }: { children: React.ReactNode, className?: string }) => {
     const { isOpen, setIsOpen } = useDropdown();
     return (
-        <div onClick={() => setIsOpen(!isOpen)} className={twMerge("inline-flex", className)}>
+        <AtomDiv onClick={() => setIsOpen(!isOpen)} className={twMerge("inline-flex", className)}>
             {children}
-        </div>
+        </AtomDiv>
     )
 }
 
@@ -122,17 +123,17 @@ export const DropdownItem = ({ children, value, className }: { children: React.R
     const { handleSelect, selectedValue } = useDropdown();
     const isSelected = selectedValue === value;
     return (
-        <div onClick={() => handleSelect(value)} className={twMerge("px-2.5 py-2 cursor-pointer hover:bg-gray-50", isSelected ? "bg-gray-50" : "", className)}>
+        <AtomDiv onClick={() => handleSelect(value)} className={twMerge("px-2.5 py-2 cursor-pointer hover:bg-gray-50", isSelected ? "bg-gray-50" : "", className)}>
             {isSelected ? (
-                <div className="flex items-center justify-between">
+                <AtomDiv className="flex items-center justify-between">
                     {children}
-                    <Icon name={IconComponentsEnum.check} size='text-large' color="text-gray-700" />
-                </div>
+                    <AtomIcon name={IconComponentsEnum.check} size='text-large' color="text-gray-700" />
+                </AtomDiv>
             ) : (
                 <>
                     {children}
                 </>
             )}
-        </div>
+        </AtomDiv>
     )
 }

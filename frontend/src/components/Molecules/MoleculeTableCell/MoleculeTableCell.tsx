@@ -1,5 +1,5 @@
 import { twMerge } from 'tailwind-merge'
-import { Label } from '@/components/Atoms'
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel'
 import { IMoleculeTableCell } from '@/interfaces/Molecules/IMoleculeTableCell/IMoleculeTableCell'
 import { EVariantLabel } from '@/Enum/Enum'
 
@@ -23,14 +23,14 @@ const MoleculeTableCell = ({
       {(mainText || supportingText) && (
         <div className="flex flex-col">
           {mainText && (
-            <Label color="text-gray-900" className="text-gray-900" variant={EVariantLabel.bodySmall}>
+            <AtomLabel color="text-gray-900" className="text-gray-900" variant={EVariantLabel.bodySmall}>
               {mainText}
-            </Label>
+            </AtomLabel>
           )}
           {supportingText && (
-            <Label color="text-gray-600" className="text-gray-600" variant={EVariantLabel.bodySmall}>
+            <AtomLabel color="text-gray-600" className="text-gray-600" variant={EVariantLabel.bodySmall}>
               {supportingText}
-            </Label>
+            </AtomLabel>
           )}
         </div>
       )}

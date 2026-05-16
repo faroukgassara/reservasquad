@@ -4,9 +4,6 @@ import { Link } from '@/i18n/navigation';
 import { Routes } from '@/lib/routes';
 import Image from 'next/image';
 
-const NAVY = '#253165';
-const RED = '#E5191D';
-
 export default function HomePage() {
     return (
         <main className="flex min-h-[70vh] flex-col items-center justify-center gap-8 px-4 py-16 text-center">
@@ -19,7 +16,7 @@ export default function HomePage() {
                 priority
             />
             <div>
-                <h1 className="text-3xl font-semibold md:text-4xl" style={{ color: NAVY }}>
+                <h1 className="text-3xl font-semibold md:text-4xl text-primary-900">
                     Réservez vos salles d&apos;étude
                 </h1>
                 <p className="mx-auto mt-3 max-w-md text-slate-600">
@@ -29,15 +26,13 @@ export default function HomePage() {
             <div className="flex flex-wrap justify-center gap-4">
                 <Link
                     href={Routes.Login}
-                    className="rounded-lg px-6 py-3 font-semibold text-white shadow"
-                    style={{ backgroundColor: NAVY }}
+                    className="rounded-lg px-6 py-3 font-semibold text-white shadow bg-primary-900"
                 >
                     Connexion
                 </Link>
                 <Link
                     href={Routes.Calendar}
-                    className="rounded-lg border-2 px-6 py-3 font-semibold"
-                    style={{ borderColor: RED, color: RED }}
+                    className="rounded-lg border-2 px-6 py-3 font-semibold text-accent-500 border-accent-500"
                 >
                     Réserver une salle
                 </Link>

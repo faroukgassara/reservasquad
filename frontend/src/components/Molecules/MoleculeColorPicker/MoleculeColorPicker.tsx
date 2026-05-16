@@ -1,16 +1,17 @@
 "use client"
 
-import { Label } from '@/components/Atoms'
 import { EButtonSize, EButtonType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum'
 import { useEyeDropper } from '@/hooks/useEyeDropper'
-import { IMoleculeColorPicker, TColorPickerFormat } from '@/interfaces'
 import { colord } from 'colord'
 import { useEffect, useId, useRef, useState } from 'react'
 import { HexAlphaColorPicker, HexColorInput, HslaStringColorPicker, RgbaStringColorPicker } from 'react-colorful'
 import { twMerge } from 'tailwind-merge'
-import type { TColorPickerOption } from '@/interfaces'
 import { toFormattedColor } from '@/lib/colorUtils'
-import { Button, Dropdown, Input } from '..'
+import { IMoleculeColorPicker, TColorPickerFormat, TColorPickerOption } from '@/interfaces/Molecules/IMoleculeColorPicker/IMoleculeColorPicker'
+import MoleculeInput from '../MoleculeInput/MoleculeInput'
+import MoleculeDropdown from '../MoleculeDropdown/MoleculeDropdown'
+import MoleculeButton from '../MoleculeButton/MoleculeButton'
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel'
 
 const FORMAT_OPTIONS: TColorPickerOption[] = [
     { label: 'HEX', value: 'hex' },
@@ -42,7 +43,7 @@ const MoleculeColorPicker = ({
     pickerClassName,
     onChange,
     onFormatChange,
-}: IMoleculeColorPicker) => {
+}: Readonly<IMoleculeColorPicker>) => {
     const fallbackId = useId()
     const inputId = id ?? `color-picker-${fallbackId}`
     const containerRef = useRef<HTMLDivElement>(null)
@@ -104,18 +105,18 @@ const MoleculeColorPicker = ({
     return (
         <div className={twMerge('relative w-full max-w-90', className)} ref={containerRef}>
             {label && (
-                <Label
+                <AtomLabel
                     className="mb-1.5 text-gray-700"
                     variant={EVariantLabel.bodySmall}
                     htmlFor={inputId}
                     color="text-gray-700"
                 >
                     {label}
-                </Label>
+                </AtomLabel>
             )}
 
             <div className="relative">
-                <Input
+                <MoleculeInput
                     id={inputId}
                     readOnly
                     disabled={disabled}
@@ -140,7 +141,7 @@ const MoleculeColorPicker = ({
             {isOpen && !disabled && (
                 <div className="absolute left-0 right-0 z-dropdown mt-2 rounded-xxl border border-gray-200 bg-white p-4 shadow-xxl shadow-gray-900/10">
                     <div className="mb-3 flex items-center gap-2">
-                        <Dropdown
+                        <MoleculeDropdown
                             className="h-10"
                             containerClassName="w-[88px]"
                             options={FORMAT_OPTIONS}
@@ -151,7 +152,7 @@ const MoleculeColorPicker = ({
                         <div className="flex-1" />
 
                         {enableEyeDropper && (
-                            <Button
+                            <MoleculeButton
                                 id={`${inputId}-eyedropper`}
                                 icon={{
                                     name: IconComponentsEnum.drop,
@@ -184,7 +185,7 @@ const MoleculeColorPicker = ({
                                 className="h-11 w-full rounded-xl border border-transparent bg-gray-100 px-3 text-center text-lg font-semibold text-gray-700 outline-none focus:border-primary-300 focus:ring-4 focus:ring-primary-50"
                             />
                         ) : (
-                            <Input
+                            <MoleculeInput
                                 id={`${inputId}-${activeFormat}-value`}
                                 className="h-11 border border-transparent bg-gray-100 text-center text-lg font-semibold text-gray-700"
                                 value={pickerColor}

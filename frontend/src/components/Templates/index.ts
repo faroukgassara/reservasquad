@@ -1,9 +1,0 @@
-export { default as TemplateLogin } from "./TemplateLogin/TemplateLogin";
-export { default as TemplateForgotPassword } from "./TemplateForgotPassword/TemplateForgotPassword";
-export { default as TemplateResetPassword } from "./TemplateResetPassword/TemplateResetPassword";
-export { default as TemplateFormationForm } from "./TemplateFormationForm/TemplateFormationForm";
-export { default as TemplateHero } from "./TemplateHero/TemplateHero";
-export { default as TemplatePopularFormations } from "./TemplatePopularFormations/TemplatePopularFormations";
-export { default as TemplateRecentBlogs } from "./TemplateRecentBlogs/TemplateRecentBlogs";
-export { default as TemplateAboutUs } from "./TemplateAboutUs/TemplateAboutUs";
-export { default as TemplateContact } from "./TemplateContact/TemplateContact";

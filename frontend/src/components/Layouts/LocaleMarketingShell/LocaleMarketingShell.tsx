@@ -3,25 +3,14 @@
 import type { ReactNode } from 'react';
 import { usePathname } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
-import { Div } from '@/components/Atoms';
 import OrganismFrontofficeFooter from '@/components/Organisms/OrganismFrontofficeFooter';
 import OrganismFrontofficeHeader from '@/components/Organisms/OrganismFrontofficeHeader';
+import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 
-/** Back-office and auth: no marketing header/footer (private layout or login flows handle UI). */
-const BACKOFFICE_AND_AUTH_PREFIXES = [
-    '/dashboard',
-    '/formations',
-    '/formation-categories',
-    '/blogs',
-    '/contact-messages',
-    '/clients',
-    '/resources',
-    '/archive',
-    '/projects',
+/** No marketing chrome on auth flows, calendar app, or admin shell */
+const HIDE_MARKETING_PREFIXES = [
     '/calendar',
     '/admin',
-    '/notifications',
-    '/configuration',
     '/login',
     '/forgot-password',
     '/reset-password',
@@ -41,7 +30,7 @@ function normalizePathname(pathname: string): string {
 
 function shouldShowMarketingShell(pathname: string): boolean {
     const path = normalizePathname(pathname);
-    return !BACKOFFICE_AND_AUTH_PREFIXES.some(
+    return !HIDE_MARKETING_PREFIXES.some(
         (prefix) => path === prefix || path.startsWith(`${prefix}/`),
     );
 }
@@ -54,10 +43,10 @@ export default function LocaleMarketingShell({ children }: Readonly<{ children: 
     }
 
     return (
-        <Div className="flex min-h-screen flex-col bg-white">
+        <AtomDiv className="flex min-h-screen flex-col bg-white">
             <OrganismFrontofficeHeader />
-            <Div className="flex min-h-0 flex-1 flex-col">{children}</Div>
+            <AtomDiv className="flex min-h-0 flex-1 flex-col">{children}</AtomDiv>
             <OrganismFrontofficeFooter />
-        </Div>
+        </AtomDiv>
     );
 }

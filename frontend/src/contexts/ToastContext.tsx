@@ -10,10 +10,10 @@ import {
 import WithChildren from '@/types/WithChildren'
 import { ESize, EToastType, IconComponentsEnum } from '@/Enum/Enum'
 import type { ELabelColor } from '@/theme/labelColors'
-import { Icon } from '@/components/Atoms'
 import colors from '@/theme/colors'
 import { TToastContextProps, TToastOptions } from '@/types'
 import { DEFAULT_TOAST_DURATION_IN_MS } from '@/common'
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon'
 
 const toastConfigs: Record<
     EToastType,
@@ -126,7 +126,7 @@ const ToastProvider = ({ children }: WithChildren) => {
                             onClick={closeToast}
                             className="absolute right-2 top-2 z-10 flex p-1 text-gray-500 transition-colors hover:text-gray-700"
                         >
-                            <Icon
+                            <AtomIcon
                                 name={IconComponentsEnum.close}
                                 size="w-3.5 h-3.5"
                                 color="text-gray-500"
@@ -142,13 +142,13 @@ const ToastProvider = ({ children }: WithChildren) => {
             }
 
             const icon = options.icon ? (
-                <Icon
+                <AtomIcon
                     name={options.icon}
                     color={(options.iconColor as ELabelColor | undefined) || config.iconColorClass}
                     size={options.iconSize || ESize.sm}
                 />
             ) : (
-                <Icon
+                <AtomIcon
                     name={config.iconName}
                     color={config.iconColorClass}
                     size={ESize.sm}

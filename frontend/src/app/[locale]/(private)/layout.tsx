@@ -1,14 +1,6 @@
 'use client';
 
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { AtomButton, Icon, Label } from '@/components/Atoms';
-import {
-    MoleculeSidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarTrigger,
-} from '@/components/Molecules';
 import Image from 'next/image';
 import { Routes } from '@/lib/routes';
 import { IconComponentsEnum, EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
@@ -16,6 +8,10 @@ import type { INavigationItem } from '@/interfaces';
 import { signOut, useSession } from 'next-auth/react';
 import { twMerge } from 'tailwind-merge';
 import { useMemo, useState } from 'react';
+import { MoleculeSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger } from '@/components/Molecules/MoleculeSidebar/MoleculeSidebar';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
 
 export default function PrivateLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     const [open, setOpen] = useState(true);
@@ -69,7 +65,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                     setOpen={setOpen}
                     className={twMerge(
                         'shrink-0 self-stretch border-r transition-[width] duration-200 ease-out md:min-h-0',
-                        open ? 'w-[280px] border-gray-100 bg-white' : 'w-[4.75rem] border-primary-900 bg-primary-900',
+                        open ? 'w-[280px] border-gray-100 bg-white' : 'w-19 border-primary-900 bg-primary-900',
                     )}
                 >
                     <SidebarHeader
@@ -91,7 +87,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                                 height={48}
                                 className={twMerge(
                                     'h-auto object-contain',
-                                    open ? 'w-[120px]' : 'w-[4.25rem]',
+                                    open ? 'w-[120px]' : 'w-17',
                                 )}
                                 priority
                             />
@@ -107,19 +103,19 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                         {open ? (
                             <div className="flex flex-col gap-3">
                                 <div>
-                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500" className="block">
+                                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500" className="block">
                                         Connecté
-                                    </Label>
-                                    <Label variant={EVariantLabel.bodySmall} color="text-primary-900" className="block">
+                                    </AtomLabel>
+                                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-primary-900" className="block">
                                         {userName}
-                                    </Label>
-                                    <Label
+                                    </AtomLabel>
+                                    <AtomLabel
                                         variant={EVariantLabel.bodySmall}
                                         color="text-gray-600"
                                         className="mt-1 block truncate"
                                     >
                                         {userEmail}
-                                    </Label>
+                                    </AtomLabel>
                                 </div>
                                 <AtomButton
                                     id="private-layout-sign-out"
@@ -127,7 +123,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                                     className="justify-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent-50 hover:text-accent-700"
                                     onClick={() => signOut({ callbackUrl: '/' })}
                                 >
-                                    <Icon
+                                    <AtomIcon
                                         name={IconComponentsEnum.logOut}
                                         size={ESize.md}
                                         color="text-gray-700"
@@ -142,7 +138,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                                 className="flex size-10 items-center justify-center rounded-full bg-primary-800 text-white hover:bg-accent-500"
                                 onClick={() => signOut({ callbackUrl: '/' })}
                             >
-                                <Icon name={IconComponentsEnum.logOut} size={ESize.md} color="text-white" />
+                                <AtomIcon name={IconComponentsEnum.logOut} size={ESize.md} color="text-white" />
                             </AtomButton>
                         )}
                     </SidebarFooter>

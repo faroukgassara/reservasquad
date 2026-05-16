@@ -1,4 +1,3 @@
-import { Routes } from './routes';
 import { IAccessPolicy, IAuthzContext, canAccess } from './authz';
 
 interface IRoutePolicy {
@@ -7,12 +6,6 @@ interface IRoutePolicy {
 }
 
 export const ROUTE_POLICIES: IRoutePolicy[] = [
-    {
-        route: Routes.Configuration,
-        policy: {
-            anyRoles: ['ADMIN'],
-        },
-    },
     {
         route: '/admin',
         policy: {

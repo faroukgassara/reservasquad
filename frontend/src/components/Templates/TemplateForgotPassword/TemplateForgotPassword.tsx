@@ -2,9 +2,6 @@
 
 import React from 'react';
 import ResetPasswordImage from '@/assets/images/reset-password.jpg';
-import NexeraLogo from '@/assets/images/nexera-logo.png';
-import { Label } from '@/components/Atoms';
-import { Button, Input } from '@/components/Molecules';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,6 +9,9 @@ import { Routes } from '@/lib/routes';
 import { ITemplateForgotPassword } from '@/interfaces';
 import { EFontFamily, EVariantLabel } from '@/Enum/Enum';
 import colors from '@/theme/colors';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import MoleculeInput from '@/components/Molecules/MoleculeInput/MoleculeInput';
+import MoleculeButton from '@/components/Molecules/MoleculeButton/MoleculeButton';
 
 const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
     form,
@@ -26,30 +26,30 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
                     <div className="flex flex-col items-center text-center w-full mb-8">
                         <div className="relative mb-8">
                             <Image
-                                src={NexeraLogo}
-                                alt="Nexera Logo"
+                                src="/branding/reservasquad-logo.png"
+                                alt="Reserva Squad"
                                 width={200}
                                 height={50}
                                 className="object-contain"
                                 priority
                             />
                         </div>
-                        <Label
+                        <AtomLabel
                             color="text-primary-500"
                             className="text-primary-500 mb-2"
                             variant={EVariantLabel.h1}
                             fontFamily={EFontFamily.Display}
                         >
                             {t('auth.forgotPasswordTitle')}
-                        </Label>
+                        </AtomLabel>
                         {showMaxAttemptsHint && (
-                            <Label
+                            <AtomLabel
                                 color="text-danger-600"
                                 className="mt-2 text-danger-600"
                                 variant={EVariantLabel.hint}
                             >
                                 {t('auth.loginAttemptsExceeded')}
-                            </Label>
+                            </AtomLabel>
                         )}
                     </div>
 
@@ -63,7 +63,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
                     >
                         <form.Field name="email">
                             {({ state, handleChange }: any) => (
-                                <Input
+                                <MoleculeInput
                                     containerClassName="mb-4"
                                     label={t('auth.email')}
                                     placeholder={t('auth.enterYourEmail')}
@@ -93,7 +93,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
                             ]}
                         >
                             {([canSubmit, isSubmitting]: [boolean, boolean]) => (
-                                <Button
+                                <MoleculeButton
                                     id="forgot-password-submit-btn"
                                     className="group rounded-lg relative w-full flex justify-center"
                                     disabled={!canSubmit}

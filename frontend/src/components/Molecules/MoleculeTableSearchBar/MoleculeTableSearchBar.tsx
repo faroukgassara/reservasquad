@@ -3,8 +3,7 @@ import MoleculeInput from '@/components/Molecules/MoleculeInput/MoleculeInput'
 import { EButtonSize, EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum'
 import { IMoleculeTableSearchBar } from '@/interfaces/Molecules/IMoleculeTableSearchBar/IMoleculeTableSearchBar'
 import MoleculeTag from '../MoleculeTag/MoleculeTag'
-import { Button } from '..'
-
+import MoleculeButton from '../MoleculeButton/MoleculeButton'
 
 const MoleculeTableSearchBar = ({
     searchValue,
@@ -18,7 +17,7 @@ const MoleculeTableSearchBar = ({
     clearSearchOnAddTag,
     placeholder = 'Recherche',
     className,
-}: IMoleculeTableSearchBar) => (
+}: Readonly<IMoleculeTableSearchBar>) => (
     <div className={twMerge('flex flex-col gap-2.5', className)}>
 
         <div className="flex items-center gap-3">
@@ -52,7 +51,7 @@ const MoleculeTableSearchBar = ({
         {filterTags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
                 {onReset && (
-                    <Button
+                    <MoleculeButton
                         id="button-reset"
                         type={EButtonType.gray}
                         size={EButtonSize.small}

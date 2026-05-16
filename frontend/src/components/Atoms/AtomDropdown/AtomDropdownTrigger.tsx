@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
 import { twMerge } from "tailwind-merge";
-import { Icon } from "..";
 import { IconComponentsEnum } from "@/Enum/Enum";
 import { useDropdown } from "./AtomDropdownLogic";
+import AtomIcon from "../AtomIcon/AtomIcon";
 
 interface IAtomDropdownTrigger {
     placeholder?: string;
@@ -40,9 +40,9 @@ const AtomDropdownTrigger = forwardRef<HTMLButtonElement, IAtomDropdownTrigger>(
                 </div>
 
                 {isOpen ? (
-                    <Icon name={IconComponentsEnum.chevronUp} size='text-medium' color="text-gray-700" />
+                    <AtomIcon name={IconComponentsEnum.chevronUp} size='text-medium' color="text-gray-700" />
                 ) : (
-                    <Icon name={IconComponentsEnum.chevronDown} size='text-medium' color="text-gray-700" />
+                    <AtomIcon name={IconComponentsEnum.chevronDown} size='text-medium' color="text-gray-700" />
                 )}
             </button>
         )

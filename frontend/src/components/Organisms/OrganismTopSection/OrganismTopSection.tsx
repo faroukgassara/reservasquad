@@ -1,4 +1,5 @@
-import { Div, Label } from '@/components/Atoms';
+import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import { EVariantLabel } from '@/Enum/Enum';
 import { IOrganismTopSection } from '@/interfaces';
 
@@ -6,23 +7,23 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
 
     return (
         <header className="flex justify-between items-center h-[100px] px-8 bg-white border-b border-gray-100 sticky top-0 z-40">
-            <Div className="flex flex-row gap-4 items-center">
+            <AtomDiv className="flex flex-row gap-4 items-center">
                 {props?.leftActions}
-                <Div className="flex flex-col">
-                    <Label variant={EVariantLabel.h6} color="text-primary-500">
+                <AtomDiv className="flex flex-col">
+                    <AtomLabel variant={EVariantLabel.h6} color="text-primary-500">
                         {props?.title}
-                    </Label>
+                    </AtomLabel>
                     {props?.subTitle && (
-                        <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                        <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">
                             {props?.subTitle}
-                        </Label>
+                        </AtomLabel>
                     )}
-                </Div>
-            </Div>
+                </AtomDiv>
+            </AtomDiv>
 
-            <Div className="flex flex-row items-center gap-4">
+            <AtomDiv className="flex flex-row items-center gap-4">
                 {props?.rightActions}
-            </Div>
+            </AtomDiv>
         </header>
     );
 }

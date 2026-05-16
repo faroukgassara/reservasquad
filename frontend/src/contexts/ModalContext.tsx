@@ -12,7 +12,7 @@ import WithChildren from '@/types/WithChildren'
 import { useModals } from './ModalsContext'
 import { IModalContextProps } from '@/interfaces/Contexts/Modal/IModalContextProps'
 import { IUseModalProps } from '@/interfaces/Contexts/Modal/IUseModalProps'
-import { Div } from '@/components/Atoms'
+import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv'
 
 const Overlay = () => (
   <motion.div
@@ -43,7 +43,7 @@ const ModalPortal = ({ children }: WithChildren) => {
   return (
     <Portal node={document.getElementById('modal-portal')}>
       <Overlay />
-      <Div
+      <AtomDiv
         className={`fixed z-modal ${isDrawer ? `flex items-center ${isLeftDrawer ? 'justify-start' : 'justify-end'} top-0 right-0 w-full` : 'flex items-center justify-center inset-0'}`}
         onClickSelf={onClick}
         style={{
@@ -51,7 +51,7 @@ const ModalPortal = ({ children }: WithChildren) => {
         }}
       >
         {children}
-      </Div>
+      </AtomDiv>
     </Portal>
   )
 }

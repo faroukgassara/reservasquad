@@ -1,4 +1,5 @@
-import { Div, Icon } from '@/components/Atoms'
+import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv'
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon'
 import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDropdown'
 import { IMoleculeTableActionMenu } from '@/interfaces/Molecules/IMoleculeTableAction/IMoleculeTableAction'
 
@@ -17,12 +18,12 @@ const MoleculeTableActionMenu = <TRow,>({
     label: action.label,
     value: index,
     icon: action.iconName ? (
-      <Icon name={action.iconName} size="text-large" color="text-gray-600" />
+      <AtomIcon name={action.iconName} size="text-large" color="text-gray-600" />
     ) : undefined,
   }))
 
   return (
-    <Div onClick={(e) => e.stopPropagation()}>
+    <AtomDiv onClick={(e) => e.stopPropagation()}>
       <MoleculeDropdown
         options={options}
         placeholder=""
@@ -32,7 +33,7 @@ const MoleculeTableActionMenu = <TRow,>({
         }}
         containerClassName="inline-block w-auto"
       />
-    </Div>
+    </AtomDiv>
   )
 }
 

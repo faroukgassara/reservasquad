@@ -13,8 +13,6 @@ type Room = {
     equipment: string[];
 };
 
-const NAVY = '#253165';
-
 export default function AdminRoomsPage() {
     const { data: session, status } = useSession();
     const token = session?.accessToken;
@@ -106,7 +104,7 @@ export default function AdminRoomsPage() {
 
     return (
         <div className="p-4 lg:p-8">
-            <h1 className="mb-6 text-2xl font-semibold" style={{ color: NAVY }}>
+            <h1 className="mb-6 text-2xl font-semibold text-primary-900">
                 Gestion des salles
             </h1>
 
@@ -182,7 +180,7 @@ export default function AdminRoomsPage() {
                     <button
                         type="submit"
                         className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
-                        style={{ backgroundColor: NAVY }}
+                        style={{ backgroundColor: 'bg-primary-900' }}
                     >
                         {editing ? 'Mettre à jour' : 'Créer'}
                     </button>

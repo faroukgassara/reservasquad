@@ -2,7 +2,7 @@ import { twMerge } from "tailwind-merge";
 import { IconComponentsEnum } from "@/Enum/Enum";
 import IMoleculeDateRange from "@/interfaces/Molecules/IMoleculeDateRange/IMoleculeDateRange";
 import MoleculeFormField from "@/components/Molecules/MoleculeFormField/MoleculeFormField";
-import { Icon } from "@/components/Atoms";
+import AtomIcon from "@/components/Atoms/AtomIcon/AtomIcon";
 
 const DateField = ({
   prefix,
@@ -34,7 +34,7 @@ const DateField = ({
       onChange={(e) => onChange?.(e.target.value)}
       className="flex-1 text-sm text-gray-900 bg-transparent outline-none min-w-0 cursor-pointer"
     />
-    <Icon
+    <AtomIcon
       name={IconComponentsEnum.eye}
       size="text-large"
       color={error ? "text-danger-600" : "text-gray-500"}

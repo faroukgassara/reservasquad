@@ -4,7 +4,6 @@ import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from '@/i18n/navigation';
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
-import { TemplateLogin } from '@/components/Templates';
 import { FormSchema } from '@/common/Data/FormSchema';
 import { FormDefaultData } from '@/common/Data/FormDefaultData';
 import { useTranslations } from 'next-intl';
@@ -12,6 +11,7 @@ import { Routes } from '@/lib/routes';
 import { useRef } from 'react';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
+import TemplateLogin from '@/components/Templates/TemplateLogin/TemplateLogin';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -77,8 +77,6 @@ export default function LoginPage() {
     };
 
     return (
-        <div>
-    
-        <TemplateLogin form={form} /></div>
+        <TemplateLogin form={form} />
     );
 }

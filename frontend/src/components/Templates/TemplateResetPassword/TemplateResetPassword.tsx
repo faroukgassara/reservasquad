@@ -2,9 +2,6 @@
 
 import React from 'react';
 import ResetPasswordImage from '@/assets/images/reset-password.jpg';
-import NexeraLogo from '@/assets/images/nexera-logo.png';
-import { Label } from '@/components/Atoms';
-import { Button, Input } from '@/components/Molecules';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,6 +9,9 @@ import { Routes } from '@/lib/routes';
 import { ITemplateResetPassword } from '@/interfaces';
 import { EButtonType, EFontFamily, EVariantLabel } from '@/Enum/Enum';
 import colors from '@/theme/colors';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import MoleculeButton from '@/components/Molecules/MoleculeButton/MoleculeButton';
+import MoleculeInput from '@/components/Molecules/MoleculeInput/MoleculeInput';
 
 const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
     variant,
@@ -48,24 +48,24 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                         <div className="flex flex-col items-center text-center w-full mb-8">
                             <div className="relative mb-8">
                                 <Image
-                                    src={NexeraLogo}
-                                    alt="Nexera Logo"
+                                    src="/branding/reservasquad-logo.png"
+                                    alt="Reserva Squad"
                                     width={200}
                                     height={50}
                                     className="object-contain"
                                     priority
                                 />
                             </div>
-                            <Label
+                            <AtomLabel
                                 color="text-primary-500"
                                 className="text-primary-500 mb-4"
                                 variant={EVariantLabel.h1}
                                 fontFamily={EFontFamily.Display}
                             >
                                 {t('auth.invalidResetToken')}
-                            </Label>
+                            </AtomLabel>
                         </div>
-                        <Button
+                        <MoleculeButton
                             id="invalid-token-back-forgot-password-btn"
                             className="group rounded-lg relative w-full flex justify-center"
                             onClick={onBackToForgotPassword}
@@ -85,22 +85,22 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                     <div className="flex flex-col items-center text-center w-full mb-8">
                         <div className="relative mb-8">
                             <Image
-                                src={NexeraLogo}
-                                alt="Nexera Logo"
+                                src="/branding/reservasquad-logo.png"
+                                alt="Reserva Squad"
                                 width={200}
                                 height={50}
                                 className="object-contain"
                                 priority
                             />
                         </div>
-                        <Label
+                        <AtomLabel
                             color="text-primary-500"
                             className="text-primary-500 mb-2"
                             variant={EVariantLabel.h1}
                             fontFamily={EFontFamily.Display}
                         >
                             {t('auth.resetPasswordTitle')}
-                        </Label>
+                        </AtomLabel>
                     </div>
 
                     <form
@@ -113,7 +113,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                     >
                         <form.Field name="newPassword">
                             {({ state, handleChange }: any) => (
-                                <Input
+                                <MoleculeInput
                                     containerClassName="mb-4"
                                     label={t('auth.newPassword')}
                                     placeholder={t('auth.enterYourNewPassword')}
@@ -133,7 +133,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
 
                         <form.Field name="confirmPassword">
                             {({ state, handleChange }: any) => (
-                                <Input
+                                <MoleculeInput
                                     containerClassName="mb-4"
                                     label={t('auth.confirmPassword')}
                                     placeholder={t('auth.confirmYourPassword')}
@@ -171,7 +171,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                                 boolean,
                             ]) => (
                                 <div className="flex items-center gap-3 w-full">
-                                    <Button
+                                    <MoleculeButton
                                         id="reset-password-cancel-btn"
                                         className="group rounded-lg relative w-full flex justify-center"
                                         type={EButtonType.secondary}
@@ -181,7 +181,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                                         }}
                                         text={t('common.cancel')}
                                     />
-                                    <Button
+                                    <MoleculeButton
                                         id="reset-password-submit-btn"
                                         className="group rounded-lg relative w-full flex justify-center"
                                         disabled={

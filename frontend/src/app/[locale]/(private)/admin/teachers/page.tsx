@@ -13,8 +13,6 @@ type TeacherRow = {
     _count: { reservations: number };
 };
 
-const NAVY = '#253165';
-
 export default function AdminTeachersPage() {
     const { data: session, status } = useSession();
     const token = session?.accessToken;
@@ -97,7 +95,7 @@ export default function AdminTeachersPage() {
 
     return (
         <div className="p-4 lg:p-8">
-            <h1 className="mb-2 text-2xl font-semibold" style={{ color: NAVY }}>
+            <h1 className="mb-2 text-2xl font-semibold text-primary-900">
                 Professeurs (liste de réservation)
             </h1>
             <p className="mb-6 max-w-2xl text-sm text-slate-600">
@@ -148,7 +146,7 @@ export default function AdminTeachersPage() {
                     <button
                         type="submit"
                         className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
-                        style={{ backgroundColor: NAVY }}
+                        style={{ backgroundColor: 'bg-primary-900' }}
                     >
                         {editing ? 'Mettre à jour' : 'Créer'}
                     </button>

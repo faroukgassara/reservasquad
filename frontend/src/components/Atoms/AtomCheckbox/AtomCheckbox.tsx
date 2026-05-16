@@ -1,7 +1,8 @@
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { twMerge } from 'tailwind-merge';
-import { Icon, Label } from '..';
-import { IAtomCheckbox } from '@/interfaces';
+import { IAtomCheckbox } from '@/interfaces/Atoms/IAtomCheckbox/IAtomCheckbox';
+import AtomIcon from '../AtomIcon/AtomIcon';
+import AtomLabel from '../AtomLabel/AtomLabel';
 
 const AtomCheckbox = ({ id, disabled = false, checked = false, label, onChange, ...props }: IAtomCheckbox) => {
     const baseClasses = [
@@ -34,7 +35,7 @@ const AtomCheckbox = ({ id, disabled = false, checked = false, label, onChange, 
                 />
                 {checked && (
                     <div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
-                        <Icon
+                        <AtomIcon
                             className='w-2 h-2'
                             name={IconComponentsEnum.check}
                             size={ESize.sm}
@@ -43,7 +44,7 @@ const AtomCheckbox = ({ id, disabled = false, checked = false, label, onChange, 
                     </div>
                 )}
             </div>
-            <Label htmlFor={id} className='ml-2 cursor-pointer' variant={EVariantLabel.bodySmall} color="text-gray-900">{label}</Label>
+            <AtomLabel htmlFor={id} className='ml-2 cursor-pointer' variant={EVariantLabel.bodySmall} color="text-gray-900">{label}</AtomLabel>
         </div>
     )
 }

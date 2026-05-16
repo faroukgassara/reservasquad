@@ -1,4 +1,4 @@
-import { Label } from "@/components/Atoms";
+import AtomLabel from "@/components/Atoms/AtomLabel/AtomLabel";
 import { EVariantLabel } from "@/Enum/Enum";
 
 interface ILicenseCardProps {
@@ -17,23 +17,23 @@ export default function MoleculeLicenseCard({
     return (
         <div className={"rounded-lg border-[0.5px] border-gray-800 p-4"}>
             <div className="flex justify-between items-center mb-3">
-                <Label variant={EVariantLabel.h1} color="text-gray-900">{name}</Label>
-                <Label variant={EVariantLabel.bodySmall} color="text-gray-900" >Packs
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900">{packs}</Label>
-                </Label>
+                <AtomLabel variant={EVariantLabel.h1} color="text-gray-900">{name}</AtomLabel>
+                <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900" >Packs
+                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900">{packs}</AtomLabel>
+                </AtomLabel>
             </div>
             <div className="space-y-2">
                 <div className="flex justify-between">
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" >
+                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900" >
                         Licences distribuées
-                    </Label>
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900">{distributed}</Label>
+                    </AtomLabel>
+                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900">{distributed}</AtomLabel>
                 </div>
                 <div className="flex justify-between">
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" >
+                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900" >
                         Licences actives
-                    </Label>
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900">{active}</Label>
+                    </AtomLabel>
+                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900">{active}</AtomLabel>
                 </div>
             </div>
         </div>

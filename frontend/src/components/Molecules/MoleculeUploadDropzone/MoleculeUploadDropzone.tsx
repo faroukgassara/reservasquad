@@ -4,8 +4,10 @@ import { twMerge } from 'tailwind-merge';
 import IMoleculeUploadDropzone from '@/interfaces/Molecules/IMoleculeUploadDropzone/IMoleculeUploadDropzone';
 import { toast } from "react-toastify";
 import { validateFileSignature, ACCEPTED_TYPES } from '@/common/upload/acceptedTypes';
-import { Div, Icon, Label } from '@/components/Atoms';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
+import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
 const ACCEPT_ATTRIBUTE = Object.values(ACCEPTED_TYPES).flat().join(',');
 
 export default function MoleculeUploadDropzone({
@@ -14,7 +16,7 @@ export default function MoleculeUploadDropzone({
   multiple = true,
   className,
   description
-}: IMoleculeUploadDropzone) {
+}: Readonly<IMoleculeUploadDropzone>) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const matchesMime = (fileType: string, rule: string) => {
@@ -28,57 +30,57 @@ export default function MoleculeUploadDropzone({
     }
     return ft === r;
   };
- 
+
   const handleFiles = useCallback(
-  async (files: FileList | null) => {
-    if (!files) return;
-    const selected = Array.from(files);
+    async (files: FileList | null) => {
+      if (!files) return;
+      const selected = Array.from(files);
 
-    const mimeAccepted = selected.filter((file) =>
-      Object.values(ACCEPTED_TYPES).some((list) =>
-        list.some((rule) => matchesMime(file.type, rule))
-      )
-    );
-    const mimeRejected = selected.filter((f) => !mimeAccepted.includes(f));
-    const results = await Promise.all(
-      mimeAccepted.map(async (file) => {
-        const result = await validateFileSignature(file);
-        return { file, ...result };
-      })
-    );
-
-    const acceptedFiles = results.filter((r) => r.valid).map((r) => r.file);
-
-    const spoofedFiles = results
-      .filter((r) => !r.valid && r.reason === 'signature_mismatch')
-      .map((r) => r.file);
-
-    const unsupportedFiles = [
-      ...mimeRejected,
-      ...results
-        .filter((r) => !r.valid && r.reason !== 'signature_mismatch')
-        .map((r) => r.file),
-    ];
-
-    if (unsupportedFiles.length > 0) {
-      toast.error(
-        `Type de fichier non supporté: ${unsupportedFiles.map((f) => f.name).join(', ')}`,
-        { position: 'top-right' }
+      const mimeAccepted = selected.filter((file) =>
+        Object.values(ACCEPTED_TYPES).some((list) =>
+          list.some((rule) => matchesMime(file.type, rule))
+        )
       );
-    }
-
-    if (spoofedFiles.length > 0) {
-      toast.error(
-        `Fichier corrompu ou falsifié: ${spoofedFiles.map((f) => f.name).join(', ')}`,
-        { position: 'top-right' }
+      const mimeRejected = selected.filter((f) => !mimeAccepted.includes(f));
+      const results = await Promise.all(
+        mimeAccepted.map(async (file) => {
+          const result = await validateFileSignature(file);
+          return { file, ...result };
+        })
       );
-    }
 
-    if (acceptedFiles.length === 0) return;
-    onFilesSelected(acceptedFiles);
-  },
-  [onFilesSelected]
-);
+      const acceptedFiles = results.filter((r) => r.valid).map((r) => r.file);
+
+      const spoofedFiles = results
+        .filter((r) => !r.valid && r.reason === 'signature_mismatch')
+        .map((r) => r.file);
+
+      const unsupportedFiles = [
+        ...mimeRejected,
+        ...results
+          .filter((r) => !r.valid && r.reason !== 'signature_mismatch')
+          .map((r) => r.file),
+      ];
+
+      if (unsupportedFiles.length > 0) {
+        toast.error(
+          `Type de fichier non supporté: ${unsupportedFiles.map((f) => f.name).join(', ')}`,
+          { position: 'top-right' }
+        );
+      }
+
+      if (spoofedFiles.length > 0) {
+        toast.error(
+          `Fichier corrompu ou falsifié: ${spoofedFiles.map((f) => f.name).join(', ')}`,
+          { position: 'top-right' }
+        );
+      }
+
+      if (acceptedFiles.length === 0) return;
+      onFilesSelected(acceptedFiles);
+    },
+    [onFilesSelected]
+  );
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -88,7 +90,7 @@ export default function MoleculeUploadDropzone({
 
 
   return (
-    <Div
+    <AtomDiv
       onClick={() => inputRef.current?.click()}
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
@@ -108,18 +110,18 @@ export default function MoleculeUploadDropzone({
         onChange={(e) => handleFiles(e.target.files)}
       />
 
-      <Div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-        <Icon name={IconComponentsEnum.uplaod} size={ESize.md} color="text-gray-600" />
-      </Div>
+      <AtomDiv className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+        <AtomIcon name={IconComponentsEnum.uplaod} size={ESize.md} color="text-gray-600" />
+      </AtomDiv>
 
-      <Label variant={EVariantLabel.bodySmall} color="text-primary-500" className="font-semibold cursor-pointer hover:underline text-center">
+      <AtomLabel variant={EVariantLabel.bodySmall} color="text-primary-500" className="font-semibold cursor-pointer hover:underline text-center">
         Parcourir
-      </Label>
+      </AtomLabel>
       {description && (
-        <Label variant={EVariantLabel.hint} color="text-gray-600">
+        <AtomLabel variant={EVariantLabel.hint} color="text-gray-600">
           {description}
-        </Label>
+        </AtomLabel>
       )}
-    </Div>
+    </AtomDiv>
   );
 }

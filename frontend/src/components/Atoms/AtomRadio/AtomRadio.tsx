@@ -1,8 +1,9 @@
 import { twMerge } from 'tailwind-merge';
-import { Icon, Label } from '..';
 import { EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { useRadioGroup } from '@/components/Molecules/MoleculeRadioGroup/MoleculeRadioGroup';
 import { IAtomRadio } from '@/interfaces/Atoms/IAtomRadio/IAtomRadio';
+import AtomIcon from '../AtomIcon/AtomIcon';
+import AtomLabel from '../AtomLabel/AtomLabel';
 
 const AtomRadio = ({ value, label, id, disabled: disabledProp, ...props }: IAtomRadio) => {
     const { name, value: groupValue, onChange, disabled: groupDisabled } = useRadioGroup();
@@ -49,7 +50,7 @@ const AtomRadio = ({ value, label, id, disabled: disabledProp, ...props }: IAtom
                 />
                 {checked && (
                     <div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
-                        <Icon
+                        <AtomIcon
                             name={IconComponentsEnum.dot}
                             color={'text-primary-500'}
                             size='w-2 h-2'
@@ -57,7 +58,7 @@ const AtomRadio = ({ value, label, id, disabled: disabledProp, ...props }: IAtom
                     </div>
                 )}
             </div>
-            {label && <Label htmlFor={id} className='ml-2 cursor-pointer' variant={EVariantLabel.hint} color="text-gray-900">{label}</Label>}
+            {label && <AtomLabel htmlFor={id} className='ml-2 cursor-pointer' variant={EVariantLabel.hint} color="text-gray-900">{label}</AtomLabel>}
         </div>
     );
 };

@@ -1,7 +1,7 @@
 
 import { EButtonSize, EButtonType } from "@/Enum/Enum";
 import IMoleculeTabs from "@/interfaces/Molecules/IMoleculeTabs/IMoleculeTabs";
-import { Button } from "..";
+import MoleculeButton from "../MoleculeButton/MoleculeButton";
 
 const MoleculeTabs = ({
   options,
@@ -10,7 +10,7 @@ const MoleculeTabs = ({
   variant = 'underline',
   disabled = false,
   className = "",
-}: IMoleculeTabs) => {
+}: Readonly<IMoleculeTabs>) => {
 
   if (variant === 'underline') {
     return (
@@ -18,7 +18,7 @@ const MoleculeTabs = ({
         {options.map((opt) => {
           const isActive = opt.value === value;
           return (
-            <Button
+            <MoleculeButton
               id={`tab-button-${opt.value}`}
               key={opt.value}
               text={opt.label}
@@ -45,7 +45,7 @@ const MoleculeTabs = ({
       {options.map((opt) => {
         const isActive = opt.value === value;
         return (
-          <Button
+          <MoleculeButton
             id={`tab-button-${opt.value}`}
             key={opt.value}
             text={opt.label}

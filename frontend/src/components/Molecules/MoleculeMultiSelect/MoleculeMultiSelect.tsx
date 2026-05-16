@@ -4,7 +4,8 @@ import AtomInput from "@/components/Atoms/AtomInput/AtomInput";
 import MoleculeTag from "@/components/Molecules/MoleculeTag/MoleculeTag";
 import { IconComponentsEnum, EBadgeColor, EBadgeSize, EVariantLabel } from "@/Enum/Enum";
 import AtomButton from "@/components/Atoms/AtomButton/AtomButton";
-import { Icon, Label } from "@/components/Atoms";
+import AtomLabel from "@/components/Atoms/AtomLabel/AtomLabel";
+import AtomIcon from "@/components/Atoms/AtomIcon/AtomIcon";
 
 export interface MultiSelectOption {
   label: string;
@@ -78,12 +79,12 @@ const MoleculeMultiSelect = ({
       className={twMerge("flex flex-col", containerClassName)}
     >
       {label && (
-        <Label color="text-gray-900" className="mb-1" variant={EVariantLabel.bodySmall}>
+        <AtomLabel color="text-gray-900" className="mb-1" variant={EVariantLabel.bodySmall}>
           {label}
           {required && (
-            <Label color="text-accent-500" className="ml-1 align-middle" variant={EVariantLabel.bodySmall}>*</Label>
+            <AtomLabel color="text-accent-500" className="ml-1 align-middle" variant={EVariantLabel.bodySmall}>*</AtomLabel>
           )}
-        </Label>
+        </AtomLabel>
       )}
 
       <div className="relative">
@@ -105,7 +106,7 @@ const MoleculeMultiSelect = ({
           <span className={lastSelected ? "text-gray-900" : "text-gray-500 text-sm"}>
             {lastSelected ? lastSelected.label : placeholder}
           </span>
-          <Icon
+          <AtomIcon
             name={IconComponentsEnum.chevronDown}
             size="text-large"
             color="text-gray-500"
@@ -171,18 +172,18 @@ const MoleculeMultiSelect = ({
 
       {hintText && (
         <div className="flex items-center mt-1 gap-1">
-          <Icon
+          <AtomIcon
             color={error ? "text-danger-600" : "text-gray-600"}
             name={IconComponentsEnum.info}
             size="text-large"
           />
-          <Label
+          <AtomLabel
             color={error ? "text-danger-600" : "text-gray-600"}
             className="mt-1"
             variant={EVariantLabel.bodySmall}
           >
             {hintText}
-          </Label>
+          </AtomLabel>
         </div>
       )}
     </div>

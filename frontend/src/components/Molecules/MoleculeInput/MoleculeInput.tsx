@@ -1,7 +1,9 @@
-import { AtomInput, Icon, Label } from '@/components/Atoms/'
 import AtomButton from '@/components/Atoms/AtomButton/AtomButton'
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon'
+import AtomInput from '@/components/Atoms/AtomInput/AtomInput'
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel'
 import { EInputType, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum'
-import { IMoleculeInput } from '@/interfaces'
+import { IMoleculeInput } from '@/interfaces/Molecules/IMoleculeInput/IMoleculeInput'
 import { forwardRef, useState, useRef } from 'react'
 
 const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
@@ -76,7 +78,7 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
         const renderHintText = () => {
             return <div className='flex flex-row items-center mt-1 gap-1'>
                 <div>
-                    <Icon
+                    <AtomIcon
                         color={error ? 'text-danger-600' : 'text-gray-600'}
                         className={''}
                         name={IconComponentsEnum.info}
@@ -85,13 +87,13 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
                 </div>
 
                 <div>
-                    <Label
+                    <AtomLabel
                         className={hintClassName.join(' ')}
                         variant={EVariantLabel.hint}
                         color="text-gray-600"
                     >
                         {hintText}
-                    </Label>
+                    </AtomLabel>
                 </div>
 
             </div>
@@ -101,16 +103,16 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
             return (
                 <div className={`w-full flex flex-col ${containerClassName}`}>
                     {label && (
-                        <Label
+                        <AtomLabel
                             className={'mb-1'}
                             variant={EVariantLabel.bodySmall}
                             color="text-gray-900"
                         >
                             {label}
                             {required && (
-                                <Label color="text-primary-500" className="align-middle" variant={EVariantLabel.bodySmall}>*</Label>
+                                <AtomLabel color="text-primary-500" className="align-middle" variant={EVariantLabel.bodySmall}>*</AtomLabel>
                             )}
-                        </Label>
+                        </AtomLabel>
                     )}
                     <div className="relative">
                         <input
@@ -139,7 +141,7 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
                                     {value || placeholder || 'Choose a file...'}
                                 </span>
                                 {rightIcon && (
-                                    <Icon
+                                    <AtomIcon
                                         color={error ? 'text-danger-600' : 'text-primary-600'}
                                         name={rightIcon}
                                         size="text-large"
@@ -157,16 +159,16 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
         return (
             <div className={`w-full flex flex-col ${containerClassName}`}>
                 {label && (
-                    <Label
+                    <AtomLabel
                         className={'mb-1'}
                         variant={EVariantLabel.bodySmall}
                         color="text-gray-900"
                     >
                         {label}
                         {required && (
-                            <Label color="text-primary-500" className="align-middle" variant={EVariantLabel.bodySmall}>*</Label>
+                            <AtomLabel color="text-primary-500" className="align-middle" variant={EVariantLabel.bodySmall}>*</AtomLabel>
                         )}
-                    </Label>
+                    </AtomLabel>
                 )}
                 <div className="relative flex items-center">
                     <AtomInput
@@ -190,7 +192,7 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
                         value={value}
                     />
                     {isPassword && !rightIcon && (
-                        <Icon
+                        <AtomIcon
                             color={error ? 'text-danger-600' : 'text-gray-600'}
                             className={defaultIconClassName.join(' ')}
                             handleClick={() =>
@@ -201,7 +203,7 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
                         />
                     )}
                     {leftIcon && (
-                        <Icon
+                        <AtomIcon
                             color={error ? 'text-danger-600' : 'text-gray-600'}
                             className={defaultLeftIconClassName.join(' ')}
                             name={leftIcon}
@@ -209,7 +211,7 @@ const MoleculeInput = forwardRef<HTMLInputElement, IMoleculeInput>(
                         />
                     )}
                     {rightIcon && (
-                        <Icon
+                        <AtomIcon
                             color={error ? 'text-danger-600' : 'text-gray-600'}
                             className={defaultIconClassName.join(' ')}
                             name={rightIcon}

@@ -28,15 +28,9 @@ export default async function middleware(req: NextRequest) {
   const pathWithoutLocale = localeMatch?.[2] || pathname;
 
   const isHomePage = !pathWithoutLocale || pathWithoutLocale === '/' || pathWithoutLocale === `/${locale}`;
-  const isBlogPath =
-    pathWithoutLocale === '/blog' || pathWithoutLocale.startsWith('/blog/');
-  const isAboutUsPath =
-    pathWithoutLocale === '/aboutus' || pathWithoutLocale.startsWith('/aboutus/');
   const publicPagesWithoutHome = PublicRoutes.filter((route) => route !== '/');
   const isPublicPage =
     isHomePage ||
-    isBlogPath ||
-    isAboutUsPath ||
     publicPagesWithoutHome.some(
       (route) => pathWithoutLocale === route || pathWithoutLocale.startsWith(route + '/'),
     );

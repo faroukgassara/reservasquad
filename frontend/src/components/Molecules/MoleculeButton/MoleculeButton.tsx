@@ -1,11 +1,13 @@
 import { memo, type ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { Icon, Label, Spinner } from '@/components/Atoms';
 import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import { EButtonSize, EButtonType, EFontFamily, EVariantLabel } from '@/Enum/Enum';
 import IMoleculeButton from '@/interfaces/Molecules/IMoleculeButton/IMoleculeButton';
 import type { ELabelColor } from '@/theme/labelColors';
 import { BUTTON_LABEL_COLOR, BUTTON_SIZES, ICON_ONLY_SIZES, ICON_SIZES } from '@/common';
+import AtomSpinner from '@/components/Atoms/AtomSpinner/AtomSpinner';
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 
 const MoleculeButton = memo(function MoleculeButton({
   text,
@@ -42,14 +44,14 @@ const MoleculeButton = memo(function MoleculeButton({
   let content: ReactNode;
   if (isLoading) {
     content = (
-      <Spinner
+      <AtomSpinner
         size={spinnerSize}
         color={spinnerColor as ELabelColor}
       />
     );
   } else if (isIconOnly && icon) {
     content = (
-      <Icon
+      <AtomIcon
         name={icon.name}
         size={ICON_SIZES[size]}
         color={icon.color}
@@ -59,21 +61,21 @@ const MoleculeButton = memo(function MoleculeButton({
     content = (
       <>
         {icon ? (
-          <Icon
+          <AtomIcon
             name={icon.name}
             size={ICON_SIZES[size]}
             color={icon.color}
           />
         ) : null}
         {text ? (
-          <Label
+          <AtomLabel
             fontFamily={EFontFamily.Display}
             variant={EVariantLabel.bodySmall}
             color={BUTTON_LABEL_COLOR[type]}
             className={disabled ? "cursor-not-allowed" : 'cursor-pointer'}
           >
             {text}
-          </Label>
+          </AtomLabel>
         ) : null}
       </>
     );

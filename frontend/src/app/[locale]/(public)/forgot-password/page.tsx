@@ -5,7 +5,6 @@ import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { TemplateForgotPassword } from '@/components/Templates';
 import { FormSchema } from '@/common/Data/FormSchema';
 import { FormDefaultData } from '@/common/Data/FormDefaultData';
 import { CommonFunction } from '@/common';
@@ -14,6 +13,7 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 import { Routes } from '@/lib/routes';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
+import TemplateForgotPassword from '@/components/Templates/TemplateForgotPassword/TemplateForgotPassword';
 
 export default function ForgotPasswordPage() {
     const t = useTranslations();

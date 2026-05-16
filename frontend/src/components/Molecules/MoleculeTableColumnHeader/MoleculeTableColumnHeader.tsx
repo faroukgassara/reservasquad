@@ -1,5 +1,6 @@
 import { twMerge } from 'tailwind-merge'
-import { Icon, Label } from '@/components/Atoms'
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon'
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel'
 import { EVariantLabel, IconComponentsEnum } from '@/Enum/Enum'
 import { IMoleculeTableColumnHeader } from '@/interfaces/Molecules/IMoleculeTableColumn/IMoleculeTableColumn'
 
@@ -30,11 +31,11 @@ const MoleculeTableColumnHeader = ({
             )}
         >
             <div className="flex items-center gap-1 whitespace-nowrap">
-                <Label color="text-gray-600" className="text-gray-600" variant={EVariantLabel.bodySmall}>
+                <AtomLabel color="text-gray-600" className="text-gray-600" variant={EVariantLabel.bodySmall}>
                     {label}
-                </Label>
+                </AtomLabel>
                 {sortable && (
-                    <Icon
+                    <AtomIcon
                         name={sortIconName as IconComponentsEnum}
                         size="text-sm"
                         color={currentSortDirection ? 'text-primary-600' : 'text-gray-300'}

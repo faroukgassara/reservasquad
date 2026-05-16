@@ -1,19 +1,14 @@
 "use client";
 
-import {
-    IMoleculeSidebar,
-    IMoleculeSidebarContent,
-    IMoleculeSidebarFooter,
-    IMoleculeSidebarHeader,
-    IMoleculeSidebarTrigger,
-} from "@/interfaces";
 import { SidebarContext } from "@/contexts/SidebarContext";
 import { useSidebar } from "@/hooks/useSidebar";
 import { Link, usePathname } from "@/i18n/navigation";
-import { Icon, Label } from "@/components/Atoms";
 import AtomButton from "@/components/Atoms/AtomButton/AtomButton";
 import { EButtonType, ESize, EVariantLabel, IconComponentsEnum } from "@/Enum/Enum";
 import { twMerge } from "tailwind-merge";
+import { IMoleculeSidebar, IMoleculeSidebarContent, IMoleculeSidebarFooter, IMoleculeSidebarHeader, IMoleculeSidebarTrigger } from "@/interfaces/Molecules/IMoleculeSidebar/IMoleculeSidebar";
+import AtomIcon from "@/components/Atoms/AtomIcon/AtomIcon";
+import AtomLabel from "@/components/Atoms/AtomLabel/AtomLabel";
 
 const MoleculeSidebar = ({
     children,
@@ -24,14 +19,14 @@ const MoleculeSidebar = ({
 }: IMoleculeSidebar) => (
     <SidebarContext.Provider value={{ open, setOpen }}>
         <aside {...props} className={twMerge(
-                [
-                    "flex h-auto max-h-[45vh] min-h-0 flex-col overflow-hidden transition-colors duration-200 md:h-full md:max-h-none",
-                    className,
-                    !open && "bg-primary-900",
-                ]
-                    .filter((c): c is string => Boolean(c))
-                    .join(" ")
-            )}>
+            [
+                "flex h-auto max-h-[45vh] min-h-0 flex-col overflow-hidden transition-colors duration-200 md:h-full md:max-h-none",
+                className,
+                !open && "bg-primary-900",
+            ]
+                .filter((c): c is string => Boolean(c))
+                .join(" ")
+        )}>
             {children}
         </aside>
     </SidebarContext.Provider>
@@ -88,13 +83,13 @@ const SidebarContent = ({
                                             ? "text-gray-25 bg-accent-500"
                                             : "text-white bg-accent-400"
                                         : open
-                                          ? "text-primary-600 hover:bg-primary-50"
-                                          : "text-primary-100 hover:bg-primary-800",
+                                            ? "text-primary-600 hover:bg-primary-50"
+                                            : "text-primary-100 hover:bg-primary-800",
                                 ].join(" ")
                             )}
                             title={!open ? item.label : undefined}
                         >
-                            <Icon
+                            <AtomIcon
                                 name={item.iconName}
                                 size={ESize.md}
                                 className="m-0"
@@ -102,19 +97,19 @@ const SidebarContent = ({
                                     isActive
                                         ? 'text-white'
                                         : open
-                                          ? 'text-primary-600'
-                                          : 'text-primary-100'
+                                            ? 'text-primary-600'
+                                            : 'text-primary-100'
                                 }
                             />
 
                             {open && (
-                                <Label
+                                <AtomLabel
                                     variant={EVariantLabel.bodySmall}
                                     color={isActive ? 'text-white' : 'text-primary-900'}
                                     className="ml-3 cursor-pointer truncate"
                                 >
                                     {item.label}
-                                </Label>
+                                </AtomLabel>
                             )}
                         </Link>
                     );
@@ -160,10 +155,10 @@ const SidebarTrigger = ({ className, ...props }: IMoleculeSidebarTrigger) => {
             {...props}
             onClick={() => setOpen(!open)}
         >
-            <Icon
+            <AtomIcon
                 name={IconComponentsEnum.collapse}
                 size="w-5 h-5"
-                color={!open ? "text-primary-100" : "text-primary-600"}
+                color={open ? "text-primary-600" : "text-primary-100"}
             />
         </AtomButton>
     );

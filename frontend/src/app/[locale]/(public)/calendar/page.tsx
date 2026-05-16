@@ -1,5 +1,5 @@
-import CalendarScreen from '@/features/calendar/CalendarScreen';
+import TemplateReservationCalendar from "@/components/Templates/TemplateReservationCalendar/TemplateReservationCalendar";
 
 export default function CalendarPage() {
-    return <CalendarScreen />;
+    return <TemplateReservationCalendar />;
 }

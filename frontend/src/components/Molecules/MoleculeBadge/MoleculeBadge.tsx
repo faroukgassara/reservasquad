@@ -1,4 +1,4 @@
-import { AtomBadge } from "@/components/Atoms"
+import AtomBadge from "@/components/Atoms/AtomBadge/AtomBadge"
 import AtomButton from "@/components/Atoms/AtomButton/AtomButton"
 import { useState } from "react"
 

@@ -2,9 +2,9 @@
 
 import React from 'react';
 import LoginImage from '@/assets/images/login-image.jpg';
-import NexeraLogo from '@/assets/images/nexera-logo.png';
-import { Label } from '@/components/Atoms';
-import { Button, Input } from '@/components/Molecules';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import MoleculeButton from '@/components/Molecules/MoleculeButton/MoleculeButton';
+import MoleculeInput from '@/components/Molecules/MoleculeInput/MoleculeInput';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,22 +24,22 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                     <div className="flex flex-col items-center text-center w-full mb-8">
                         <div className="relative mb-8">
                             <Image
-                                src={NexeraLogo}
-                                alt="Nexera Logo"
+                                src="/branding/reservasquad-logo.png"
+                                alt="Reserva Squad"
                                 width={200}
                                 height={50}
                                 className="object-contain"
                                 priority
                             />
                         </div>
-                        <Label
+                        <AtomLabel
                             color="text-primary-500"
                             className='text-primary-500 mb-2'
                             variant={EVariantLabel.h1}
                             fontFamily={EFontFamily.Display}
                         >
                             {t('auth.login')}
-                        </Label>
+                        </AtomLabel>
                     </div>
 
                     <form
@@ -52,7 +52,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                     >
                         <form.Field name="email">
                             {({ state, handleChange }: any) => (
-                                <Input
+                                <MoleculeInput
                                     containerClassName='mb-4'
                                     label={t('auth.email')}
                                     placeholder={t('auth.enterYourEmail')}
@@ -68,7 +68,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
 
                         <form.Field name="password">
                             {({ state, handleChange }: any) => (
-                                <Input
+                                <MoleculeInput
                                     containerClassName='mb-2'
                                     label={t('auth.password')}
                                     isPassword={true}
@@ -100,7 +100,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                             selector={(state: any) => [state.canSubmit, state.isSubmitting]}
                         >
                             {([canSubmit, isSubmitting]: [boolean, boolean]) => (
-                                <Button
+                                <MoleculeButton
                                     id={"login-submit-btn"}
                                     className="group rounded-lg relative w-full flex justify-center"
                                     disabled={!canSubmit}
@@ -121,16 +121,6 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                 }}
             >
                 <div className="absolute inset-0 pointer-events-none rounded-xl m-4"></div>
-                {/* <div className="flex items-center justify-center absolute top-1/21 left-1/21 -translate-x-1/21 -translate-y-1/21">
-                    <Image
-                        src={NexeraLogo}
-                        alt="Nexera Logo"
-                        width={157}
-                        height={42}
-                        className="object-contain"
-                        priority
-                    />
-                </div> */}
                 <Image
                     src={LoginImage}
                     alt="Field"

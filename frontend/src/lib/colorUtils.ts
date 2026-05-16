@@ -1,12 +1,12 @@
+import { TColorPickerFormat } from '@/interfaces/Molecules/IMoleculeColorPicker/IMoleculeColorPicker'
 import { colord } from 'colord'
-import type { TColorPickerFormat } from '@/interfaces'
 
 /**
  * Convert a color string into the specified format, using a fallback if the input is invalid.
  */
 export const toFormattedColor = (
     input: string,
-    targetFormat: TColorPickerFormat,
+    targetFormat: Readonly<TColorPickerFormat>,
     fallback: string
 ): string => {
     const parsed = colord(input)

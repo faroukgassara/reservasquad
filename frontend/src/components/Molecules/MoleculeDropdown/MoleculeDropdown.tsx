@@ -3,7 +3,8 @@ import AtomDropdownTrigger from "@/components/Atoms/AtomDropdown/AtomDropdownTri
 import { EVariantLabel, IconComponentsEnum } from "@/Enum/Enum";
 import { twMerge } from "tailwind-merge";
 import { IMoleculeDropdownMulti } from "@/interfaces/Molecules/IMoleculeDropdown/IMoleculeDropdown";
-import { Icon, Label } from "@/components/Atoms";
+import AtomLabel from "@/components/Atoms/AtomLabel/AtomLabel";
+import AtomIcon from "@/components/Atoms/AtomIcon/AtomIcon";
 
 const MoleculeDropdown = ({
     label,
@@ -56,18 +57,18 @@ const MoleculeDropdown = ({
         >
 
             {label && (
-                <Label className="mb-1" variant={EVariantLabel.bodySmall} color="text-gray-900">
+                <AtomLabel className="mb-1" variant={EVariantLabel.bodySmall} color="text-gray-900">
                     {label}
                     {required && (
-                        <Label
+                        <AtomLabel
                             className="ml-1 text-accent-500 align-middle"
                             variant={EVariantLabel.bodySmall}
                             color="text-primary-600"
                         >
                             *
-                        </Label>
+                        </AtomLabel>
                     )}
-                </Label>
+                </AtomLabel>
             )}
             <div className="relative">
                 <DropdownTrigger className={twMerge("w-full", disabled ? 'pointer-events-none' : '')}>
@@ -100,7 +101,7 @@ const MoleculeDropdown = ({
                                                 <span>{opt.label}</span>
                                             </div>
                                             {isChecked && (
-                                                <Icon
+                                                <AtomIcon
                                                     name={IconComponentsEnum.check}
                                                     size="text-large"
                                                     color="text-gray-700"
@@ -126,10 +127,10 @@ const MoleculeDropdown = ({
             </div>
             {hintText && (
                 <div className="flex items-center mt-1 gap-1">
-                    <Icon color={error ? 'text-error' : 'text-gray-700'} name={IconComponentsEnum.info} size="text-large" />
-                    <Label color={error ? 'text-danger-700' : 'text-gray-700'} className={`mt-1`} variant={EVariantLabel.hint}>
+                    <AtomIcon color={error ? 'text-error' : 'text-gray-700'} name={IconComponentsEnum.info} size="text-large" />
+                    <AtomLabel color={error ? 'text-danger-700' : 'text-gray-700'} className={`mt-1`} variant={EVariantLabel.hint}>
                         {hintText}
-                    </Label>
+                    </AtomLabel>
                 </div>
             )}
         </DropdownRoot>

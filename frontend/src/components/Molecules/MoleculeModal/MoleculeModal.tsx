@@ -3,10 +3,10 @@ import { motion } from 'framer-motion'
 import { useCurrentModal } from '@/contexts/ModalContext'
 import WithChildren from '@/types/WithChildren'
 import { twMerge } from 'tailwind-merge'
-import { IMoleculeModal } from '@/interfaces'
 import { EButtonSize, EButtonType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum'
-import { Label } from '@/components/Atoms'
-import { Button } from '..'
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel'
+import MoleculeButton from '@/components/Molecules/MoleculeButton/MoleculeButton'
+import { IMoleculeModal } from '@/interfaces/Molecules/IMoleculeModal/IMoleculeModal'
 
 const MoleculeModal = forwardRef<HTMLDivElement, WithChildren<IMoleculeModal>>(
   (
@@ -45,7 +45,7 @@ const MoleculeModal = forwardRef<HTMLDivElement, WithChildren<IMoleculeModal>>(
     return (
       <motion.div
         className={twMerge(
-          "fixed inset-0 z-[9999] flex items-center justify-center bg-black/40",
+          "fixed inset-0 z-9999 flex items-center justify-center bg-black/40",
           isDrawer && "items-stretch justify-end"
         )}
         onClick={canCloseOnClickOutisde ? closeModal : undefined}
@@ -72,7 +72,7 @@ const MoleculeModal = forwardRef<HTMLDivElement, WithChildren<IMoleculeModal>>(
           {canClose && (
             <div className="flex justify-between items-center rounded-t-lg py-1 pl-0 pr-5 text-color-background bg-color-primary z-modal">
               {isDrawer ? (
-                <Button
+                <MoleculeButton
                   id="button-close"
                   type={EButtonType.iconButton}
                   size={EButtonSize.small}
@@ -89,8 +89,8 @@ const MoleculeModal = forwardRef<HTMLDivElement, WithChildren<IMoleculeModal>>(
                 <div className="w-8 mr-3" />
               )}
               <div className="flex flex-col flex-1">
-                <Label color="text-gray-900" variant={EVariantLabel.h5}>{title}</Label>
-                <Label color="text-gray-900" variant={EVariantLabel.bodySmall}>{subTitle}</Label>
+                <AtomLabel color="text-gray-900" variant={EVariantLabel.h5}>{title}</AtomLabel>
+                <AtomLabel color="text-gray-900" variant={EVariantLabel.bodySmall}>{subTitle}</AtomLabel>
               </div>
             </div>
           )}

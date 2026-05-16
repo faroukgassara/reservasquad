@@ -1,6 +1,6 @@
 
-import { Icon } from '@/components/Atoms';
 import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
+import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
 import AtomProgressBar from '@/components/Atoms/AtomProgressBar/AtomProgressBar';
 import { ESize, IconComponentsEnum } from '@/Enum/Enum';
 import IMoleculeFileUploadItem from '@/interfaces/Molecules/IMoleculeFileUploadItem/IMoleculeFileUploadItem';
@@ -12,7 +12,7 @@ export default function MoleculeFileUploadItem({
     fileType,
     onDelete,
     showPercent 
-}: IMoleculeFileUploadItem) {
+}: Readonly<IMoleculeFileUploadItem>) {
     const getIconByFileType = () => {
         switch (fileType) {
             case "image":
@@ -29,7 +29,7 @@ export default function MoleculeFileUploadItem({
     return (
         <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 bg-white w-full">
 
-            <Icon name={getIconByFileType()} size={ESize.md} color="text-primary-500" />
+            <AtomIcon name={getIconByFileType()} size={ESize.md} color="text-primary-500" />
 
             <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 ">

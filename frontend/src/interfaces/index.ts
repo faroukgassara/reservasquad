@@ -4,6 +4,6 @@ export * from './Api/index'
 export * from './Layouts/index'
 export * from "./Common/ICommon"
 export * from './Atoms/index'
-export * from './Molecules/index'
+export type { INavigationItem } from './Molecules/IMoleculeSidebar/IMoleculeSidebar'
 export * from './Organisms/index'
 export * from './Templates/index'

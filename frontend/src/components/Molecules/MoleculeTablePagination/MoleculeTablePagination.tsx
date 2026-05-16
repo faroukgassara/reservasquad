@@ -1,8 +1,7 @@
 import { twMerge } from 'tailwind-merge'
 import { EButtonSize, EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum'
 import { IMoleculeTablePagination } from '@/interfaces/Molecules/IMoleculeTablePagination/IMoleculeTablePagination'
-import { Button } from '..'
-
+import MoleculeButton from '../MoleculeButton/MoleculeButton'
 
 const MoleculeTablePagination = ({
   page,
@@ -20,7 +19,7 @@ const MoleculeTablePagination = ({
       )}
     >
       {/* Prev */}
-      <Button
+      <MoleculeButton
         id={`button-${labelPrev}`}
         text={labelPrev}
         icon={{ name: IconComponentsEnum.arrowLeft, size: ESize.sm, color: 'text-gray-700' }}
@@ -33,7 +32,7 @@ const MoleculeTablePagination = ({
 
 
       {/* Next */}
-      <Button
+      <MoleculeButton
         id={`button-${labelNext}`}
         text={labelNext}
         icon={{ name: IconComponentsEnum.arrowRight, size: ESize.sm, color: 'text-gray-700' }}

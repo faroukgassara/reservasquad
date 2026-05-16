@@ -1,5 +1,3 @@
-const CLIENTS_BASE = '/clients';
-
 export const Routes = {
     Login: '/login',
     ForgotPassword: '/forgot-password',
@@ -11,32 +9,6 @@ export const Routes = {
     AdminReservations: '/admin/reservations',
     AdminRooms: '/admin/rooms',
     AdminTeachers: '/admin/teachers',
-
-    Dashboard: '/dashboard',
-    Formations: {
-        index: '/formations',
-        new: '/formations/new',
-        edit: (id: string) => `/formations/${id}`,
-    },
-    FormationCategories: {
-        index: '/formation-categories',
-    },
-    Blogs: {
-        index: '/blogs',
-        post: (slug: string) => `/blog/${slug}`,
-    },
-    ContactMessages: {
-        index: '/contact-messages',
-    },
-    Contact: '/contact',
-    Clients: {
-        index: CLIENTS_BASE,
-    },
-    Resources: '/resources',
-    Archive: '/archive',
-    Projects: '/projects',
-    Notifications: '/notifications',
-    Configuration: '/configuration',
 } as const;
 
 export const PublicRoutes = [

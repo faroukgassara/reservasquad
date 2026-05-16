@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { Spinner, Label } from '@/components/Atoms'
 import MoleculeTableSearchBar from '@/components/Molecules/MoleculeTableSearchBar/MoleculeTableSearchBar'
 import MoleculeTableColumnHeader from '@/components/Molecules/MoleculeTableColumnHeader/MoleculeTableColumnHeader'
 import MoleculeTableRow from '@/components/Molecules/MoleculeTableRow/MoleculeTableRow'
@@ -10,6 +9,8 @@ import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDr
 import { IOrganismTable, ITableSortConfig, TTableSortDirection, } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable'
 import { TSortDirection } from '@/interfaces/Molecules/IMoleculeTableColumn/IMoleculeTableColumn'
 import { EVariantLabel } from '@/Enum/Enum'
+import AtomSpinner from '@/components/Atoms/AtomSpinner/AtomSpinner'
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel'
 const OrganismTable = <TRow,>({
   columns,
   rows,
@@ -168,7 +169,7 @@ const OrganismTable = <TRow,>({
 
       {isLoading ? (
         <div className="flex w-full items-center justify-center py-16">
-          <Spinner color="text-gray-900" size="lg" />
+          <AtomSpinner color="text-gray-900" size="lg" />
         </div>
       ) : (
         <div className={twMerge(
@@ -179,14 +180,14 @@ const OrganismTable = <TRow,>({
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <div className="flex items-center gap-2.5">
                 {title && (
-                  <Label color="text-gray-900" variant={EVariantLabel.h5}>
+                  <AtomLabel color="text-gray-900" variant={EVariantLabel.h5}>
                     {title}
-                  </Label>
+                  </AtomLabel>
                 )}
                 {resolvedBadge !== null && resolvedBadge !== undefined && (
-                  <Label className="rounded-full bg-primary-50 px-3 py-1 text-primary-500" color="text-primary-500" variant={EVariantLabel.bodySmall}>
+                  <AtomLabel className="rounded-full bg-primary-50 px-3 py-1 text-primary-500" color="text-primary-500" variant={EVariantLabel.bodySmall}>
                     {resolvedBadge}
-                  </Label>
+                  </AtomLabel>
                 )}
               </div>
 
@@ -262,9 +263,9 @@ const OrganismTable = <TRow,>({
                       colSpan={visibleFlatColumns.length + (actions ? 1 : 0)}
                       className="py-12 text-center"
                     >
-                      <Label color="text-gray-500" variant={EVariantLabel.bodySmall}>
+                      <AtomLabel color="text-gray-500" variant={EVariantLabel.bodySmall}>
                         {emptyMessage}
-                      </Label>
+                      </AtomLabel>
                     </td>
                   </tr>
                 )}
