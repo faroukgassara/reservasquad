@@ -6,6 +6,7 @@ import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import type { CalendarReservation } from '@/types/calendar';
 import { EBadgeColor, EButtonType, EVariantLabel } from '@/Enum/Enum';
+import { formatTnd, reservationPriceModeCaptionFr } from '@/lib/reservation-pricing';
 import { format, parseISO } from 'date-fns';
 
 function statusBadgeColor(status: CalendarReservation['status']): EBadgeColor {
@@ -53,6 +54,17 @@ export default function OrganismReservationReadPanel({
                 <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900">
                     {selected.numberOfPeople}
                 </AtomLabel>
+                <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">
+                    Prix (TND)
+                </AtomLabel>
+                <AtomDiv className="flex flex-col gap-0.5">
+                    <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium">
+                        {formatTnd(Number(selected.price ?? 0))} TND
+                    </AtomLabel>
+                    <AtomLabel variant={EVariantLabel.caption} color="text-gray-500">
+                        {reservationPriceModeCaptionFr(selected.priceMode)}
+                    </AtomLabel>
+                </AtomDiv>
                 <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">
                     Motif
                 </AtomLabel>

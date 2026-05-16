@@ -18,6 +18,9 @@ const zIndex = {
   modal: 410,
   drawer: 420,
 
+  /** Floating menus rendered via Portal (above modals) */
+  portalDropdown: 450,
+
   toast: 500,
   notification: 510,
 } as const

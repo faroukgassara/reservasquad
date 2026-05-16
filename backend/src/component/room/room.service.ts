@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRoomDto } from 'src/dto/room/create-room.dto';
 import { UpdateRoomDto } from 'src/dto/room/update-room.dto';
+import { Prisma } from 'src/generated/prisma/client';
 
 @Injectable()
 export class RoomService {
@@ -24,6 +25,7 @@ export class RoomService {
         capacity: dto.capacity,
         color: dto.color,
         description: dto.description ?? null,
+        pricePerHour: new Prisma.Decimal(dto.pricePerHour ?? 0),
         equipment: dto.equipment,
       },
     });
@@ -38,6 +40,8 @@ export class RoomService {
         capacity: dto.capacity,
         color: dto.color,
         description: dto.description === undefined ? undefined : dto.description,
+        pricePerHour:
+          dto.pricePerHour === undefined ? undefined : new Prisma.Decimal(dto.pricePerHour),
         equipment: dto.equipment,
       },
     });

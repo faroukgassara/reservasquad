@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
 import { ReservationStatus } from 'src/generated/prisma/client';
 
 export class UpdateReservationDto {
@@ -8,4 +8,10 @@ export class UpdateReservationDto {
   @IsOptional()
   @IsEnum(ReservationStatus)
   status?: ReservationStatus;
+
+  @ApiPropertyOptional({ description: 'Marquer la réservation comme payée (admin uniquement)' })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  paid?: boolean;
 }

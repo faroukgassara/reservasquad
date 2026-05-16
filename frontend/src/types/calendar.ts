@@ -1,3 +1,5 @@
+import type { ReservationPriceMode } from '@/lib/reservation-pricing';
+
 export type CalendarReservation = {
     id: string;
     userId: string;
@@ -10,8 +12,11 @@ export type CalendarReservation = {
     numberOfPeople: number;
     purpose: string;
     status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+    price: number;
+    priceMode: ReservationPriceMode;
+    paid: boolean;
     user: { id: string; name: string; email: string };
-    room: { id: string; name: string; capacity: number; color: string; equipment: string[] };
+    room: { id: string; name: string; capacity: number; color: string; equipment: string[]; pricePerHour: number };
 };
 
 export type ReservationRoom = {
@@ -20,6 +25,7 @@ export type ReservationRoom = {
     capacity: number;
     color: string;
     equipment: string[];
+    pricePerHour: number;
 };
 
 export type TeacherOption = { id: string; name: string };

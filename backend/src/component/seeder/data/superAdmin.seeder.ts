@@ -34,6 +34,7 @@ export const seedDefaultRooms = async (prisma: PrismaClient) => {
       color: '#22c55e',
       description: 'Small group study',
       equipment: ['projector', 'whiteboard'],
+      pricePerHour: 45,
     },
     {
       name: 'Salle B',
@@ -41,6 +42,7 @@ export const seedDefaultRooms = async (prisma: PrismaClient) => {
       color: '#3b82f6',
       description: 'Medium room',
       equipment: ['whiteboard', 'power outlets'],
+      pricePerHour: 60,
     },
     {
       name: 'Salle C',
@@ -48,6 +50,7 @@ export const seedDefaultRooms = async (prisma: PrismaClient) => {
       color: '#f59e0b',
       description: 'Quiet room',
       equipment: ['screen'],
+      pricePerHour: 35,
     },
     {
       name: 'Salle D',
@@ -55,6 +58,7 @@ export const seedDefaultRooms = async (prisma: PrismaClient) => {
       color: '#a855f7',
       description: 'Large workshop space',
       equipment: ['projector', 'whiteboard', 'video conference'],
+      pricePerHour: 95,
     },
   ];
 
@@ -66,6 +70,7 @@ export const seedDefaultRooms = async (prisma: PrismaClient) => {
         color: r.color,
         description: r.description,
         equipment: r.equipment,
+        pricePerHour: r.pricePerHour,
       },
       create: {
         name: r.name,
@@ -73,6 +78,7 @@ export const seedDefaultRooms = async (prisma: PrismaClient) => {
         color: r.color,
         description: r.description,
         equipment: r.equipment,
+        pricePerHour: r.pricePerHour,
       },
     });
   }

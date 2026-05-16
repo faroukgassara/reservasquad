@@ -16,6 +16,11 @@ import {
   minutesToLabel,
   timeLabelToMinutes,
 } from './reservation-time.util';
+import {
+  prismaDecimalLikeToNumber,
+  reservationPriceDecimal,
+  resolveReservationPriceTnd,
+} from './reservation-price.util';
 
 interface IAuthUser {
   id: string;
@@ -32,6 +37,9 @@ const selectReservation = {
   numberOfPeople: true,
   purpose: true,
   status: true,
+  price: true,
+  priceMode: true,
+  paid: true,
   createdAt: true,
   updatedAt: true,
   user: { select: { id: true, name: true, email: true } },
@@ -62,9 +70,15 @@ type ReservationSelected = Prisma.ReservationGetPayload<{
   select: typeof selectReservation;
 }>;
 
-type EnrichedReservation = ReservationSelected & {
+type EnrichedRoom = Omit<ReservationSelected['room'], 'pricePerHour'> & {
+  pricePerHour: number;
+};
+
+type EnrichedReservation = Omit<ReservationSelected, 'price' | 'room'> & {
   startTime: string;
   endTime: string;
+  price: number;
+  room: EnrichedRoom;
 };
 
 @Injectable()
@@ -103,8 +117,14 @@ export class ReservationService {
   }
 
   private enrichRow(r: ReservationSelected): EnrichedReservation {
+    const { price: priceRaw, room, ...rest } = r;
     return {
-      ...r,
+      ...rest,
+      price: prismaDecimalLikeToNumber(priceRaw),
+      room: {
+        ...room,
+        pricePerHour: prismaDecimalLikeToNumber(room.pricePerHour),
+      },
       startTime: minutesToLabel(r.startMinutes),
       endTime: minutesToLabel(r.endMinutes),
     };
@@ -167,6 +187,15 @@ export class ReservationService {
 
     await this.assertNoOverlap(dto.roomId, day, startM, endM, undefined);
 
+    const resolvedPrice = resolveReservationPriceTnd({
+      mode: dto.priceMode,
+      roomPricePerHour: room.pricePerHour,
+      startMinutes: startM,
+      endMinutes: endM,
+      numberOfPeople: dto.numberOfPeople,
+      manualPrice: dto.manualPrice,
+    });
+
     const created = await this.prisma.reservation.create({
       data: {
         userId: teacher.id,
@@ -177,6 +206,8 @@ export class ReservationService {
         numberOfPeople: dto.numberOfPeople,
         purpose: dto.purpose.trim(),
         status: ReservationStatus.PENDING,
+        priceMode: dto.priceMode,
+        price: reservationPriceDecimal(resolvedPrice),
       },
       select: selectReservation,
     });
@@ -206,6 +237,15 @@ export class ReservationService {
 
     await this.assertNoOverlap(dto.roomId, day, startM, endM, undefined);
 
+    const resolvedPrice = resolveReservationPriceTnd({
+      mode: dto.priceMode,
+      roomPricePerHour: room.pricePerHour,
+      startMinutes: startM,
+      endMinutes: endM,
+      numberOfPeople: dto.numberOfPeople,
+      manualPrice: dto.manualPrice,
+    });
+
     const created = await this.prisma.reservation.create({
       data: {
         userId: dto.teacherUserId,
@@ -216,6 +256,8 @@ export class ReservationService {
         numberOfPeople: dto.numberOfPeople,
         purpose: dto.purpose,
         status: ReservationStatus.CONFIRMED,
+        priceMode: dto.priceMode,
+        price: reservationPriceDecimal(resolvedPrice),
       },
       select: selectReservation,
     });
@@ -253,20 +295,26 @@ export class ReservationService {
     });
     if (!found) throw new NotFoundException('Reservation not found');
 
-    if (!dto.status) {
-      throw new BadRequestException('Nothing to update');
+    const data: Prisma.ReservationUpdateInput = {};
+
+    if (dto.status !== undefined) {
+      if (dto.status !== ReservationStatus.CONFIRMED && dto.status !== ReservationStatus.CANCELLED) {
+        throw new BadRequestException('Invalid status.');
+      }
+      data.status = dto.status;
     }
 
-    if (
-      dto.status !== ReservationStatus.CONFIRMED &&
-      dto.status !== ReservationStatus.CANCELLED
-    ) {
-      throw new BadRequestException('Invalid status.');
+    if (dto.paid !== undefined) {
+      data.paid = dto.paid;
+    }
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException('Nothing to update');
     }
 
     const updated = await this.prisma.reservation.update({
       where: { id },
-      data: { status: dto.status },
+      data,
       select: selectReservation,
     });
     return this.enrichRow(updated);

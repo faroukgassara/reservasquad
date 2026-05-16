@@ -6,6 +6,7 @@ import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDropdown';
 import MoleculeInput from '@/components/Molecules/MoleculeInput/MoleculeInput';
 import MoleculeModal from '@/components/Molecules/MoleculeModal/MoleculeModal';
+import MoleculeReservationPricingBlock from '@/components/Molecules/MoleculeReservationPricingBlock/MoleculeReservationPricingBlock';
 import type IAdminTeacherReservationModalProps from '@/interfaces/Modals/IAdminTeacherReservationModalProps/IAdminTeacherReservationModalProps';
 import { EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import type { ChangeEvent } from 'react';
@@ -26,6 +27,9 @@ export default function AdminTeacherReservationModal({
     bookEnd,
     bookPeople,
     bookPurpose,
+    bookPriceMode,
+    bookManualPriceTnd,
+    computedBookingPriceTnd,
     roomCapacityMax,
     submitting,
     onTeacherIdChange,
@@ -35,6 +39,8 @@ export default function AdminTeacherReservationModal({
     onEndChange,
     onPeopleChange,
     onPurposeChange,
+    onPriceModeChange,
+    onManualPriceChange,
     onClose,
     onSubmit,
 }: Readonly<IAdminTeacherReservationModalProps>) {
@@ -106,6 +112,13 @@ export default function AdminTeacherReservationModal({
                     type={EInputType.text}
                     value={bookPurpose}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => onPurposeChange(e.target.value)}
+                />
+                <MoleculeReservationPricingBlock
+                    priceMode={bookPriceMode}
+                    manualPriceTnd={bookManualPriceTnd}
+                    computedTotalTnd={computedBookingPriceTnd}
+                    onPriceModeChange={onPriceModeChange}
+                    onManualPriceChange={onManualPriceChange}
                 />
                 <AtomDiv className="mt-4 flex gap-2">
                     <AtomButton

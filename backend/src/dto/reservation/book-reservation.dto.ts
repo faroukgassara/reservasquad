@@ -1,8 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsString, Matches, Max, Min, MinLength } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsString,
+  Matches,
+  Max,
+  Min,
+  MinLength,
+} from 'class-validator';
+import { ReservationPricingFieldsDto } from './reservation-pricing-fields.dto';
 
-export class BookReservationDto {
+export class BookReservationDto extends ReservationPricingFieldsDto {
   @ApiProperty({ description: 'Teacher id (managed by admin)' })
   @IsString()
   @MinLength(1)

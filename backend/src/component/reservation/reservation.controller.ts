@@ -65,7 +65,9 @@ export class ReservationController {
   @ApiBearerAuth('Authorization')
   @Roles({ roles: ['ADMIN'] })
   @ApiOperation({
-    summary: 'Update reservation status (approve / refuse / cancel)',
+    summary: 'Mettre à jour une réservation (admin)',
+    description:
+      'Approuver / refuser (statut), et/ou indiquer si le paiement a été reçu (`paid`). Au moins un champ requis.',
   })
   update(@Param('id') id: string, @Body() dto: UpdateReservationDto) {
     return this.reservationService.updateReservation(id, dto);

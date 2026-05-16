@@ -8,6 +8,7 @@ type TeacherRow = {
     id: string;
     name: string;
     email: string;
+    phone: string | null;
     createdAt: string;
     updatedAt: string;
     _count: { reservations: number };
@@ -21,6 +22,7 @@ export default function AdminTeachersPage() {
     const [rows, setRows] = useState<TeacherRow[]>([]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [editing, setEditing] = useState<TeacherRow | null>(null);
 
     const load = useCallback(async () => {
@@ -47,6 +49,7 @@ export default function AdminTeachersPage() {
                     body: JSON.stringify({
                         name: name.trim(),
                         email: email.trim(),
+                        phone: phone.trim(),
                     }),
                 });
             } else {
@@ -55,11 +58,13 @@ export default function AdminTeachersPage() {
                     body: JSON.stringify({
                         name: name.trim(),
                         email: email.trim(),
+                        ...(phone.trim() ? { phone: phone.trim() } : {}),
                     }),
                 });
             }
             setName('');
             setEmail('');
+            setPhone('');
             setEditing(null);
             await load();
         } catch (err) {
@@ -71,6 +76,7 @@ export default function AdminTeachersPage() {
         setEditing(t);
         setName(t.name);
         setEmail(t.email);
+        setPhone(t.phone ?? '');
     };
 
     const remove = async (id: string) => {
@@ -129,6 +135,16 @@ export default function AdminTeachersPage() {
                         onChange={(e) => setEmail(e.target.value)}
                     />
                 </label>
+                <label className="flex flex-col gap-1 text-sm">
+                    Téléphone
+                    <input
+                        type="tel"
+                        className="rounded border px-3 py-2"
+                        placeholder="+33 …"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                    />
+                </label>
                 <div className="flex gap-2 md:col-span-2">
                     {editing ? (
                         <button
@@ -138,6 +154,7 @@ export default function AdminTeachersPage() {
                                 setEditing(null);
                                 setName('');
                                 setEmail('');
+                                setPhone('');
                             }}
                         >
                             Annuler édition
@@ -145,8 +162,7 @@ export default function AdminTeachersPage() {
                     ) : null}
                     <button
                         type="submit"
-                        className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
-                        style={{ backgroundColor: 'bg-primary-900' }}
+                        className="rounded-lg bg-primary-900 px-4 py-2 text-sm font-semibold text-white"
                     >
                         {editing ? 'Mettre à jour' : 'Créer'}
                     </button>
@@ -159,6 +175,7 @@ export default function AdminTeachersPage() {
                         <tr>
                             <th className="px-4 py-3">Nom</th>
                             <th className="px-4 py-3">Email</th>
+                            <th className="px-4 py-3">Téléphone</th>
                             <th className="px-4 py-3">Réservations</th>
                             <th className="px-4 py-3">Actions</th>
                         </tr>
@@ -168,6 +185,7 @@ export default function AdminTeachersPage() {
                             <tr key={t.id} className="border-b border-slate-100">
                                 <td className="px-4 py-2">{t.name}</td>
                                 <td className="px-4 py-2">{t.email}</td>
+                                <td className="px-4 py-2 text-slate-600">{t.phone ?? '—'}</td>
                                 <td className="px-4 py-2">{t._count.reservations}</td>
                                 <td className="flex gap-2 px-4 py-2">
                                     <button

@@ -1,4 +1,19 @@
+import { signOut } from 'next-auth/react';
+import { routing } from '@/i18n/routing';
+import { Routes } from '@/lib/routes';
+
 const base = () => (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+
+/** Login path preserving active locale (`/login` vs `/en/login`). */
+function localizedLoginCallbackUrl(): string {
+  if (typeof window === 'undefined') return Routes.Login;
+  const localePrefix = window.location.pathname.match(/^\/([a-z]{2})(?=\/|$)/);
+  const loc = localePrefix?.[1];
+  if (!loc || loc === routing.defaultLocale) {
+    return Routes.Login;
+  }
+  return `/${loc}${Routes.Login}`;
+}
 
 export class ApiError extends Error {
   constructor(
@@ -38,7 +53,17 @@ export async function backendFetch<T>(
       typeof parsed === 'object' && parsed !== null && 'message' in parsed
         ? String((parsed as { message: unknown }).message)
         : res.statusText;
-    throw new ApiError(res.status, msg || 'Request failed', parsed);
+    const err = new ApiError(res.status, msg || 'Request failed', parsed);
+
+    /** Expired or invalid bearer token — end NextAuth session and send user to login. */
+    if (res.status === 401 && typeof window !== 'undefined') {
+      void signOut({
+        callbackUrl: localizedLoginCallbackUrl(),
+        redirect: true,
+      });
+    }
+
+    throw err;
   }
 
   return parsed as T;

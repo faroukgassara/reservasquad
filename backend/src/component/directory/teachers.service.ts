@@ -28,6 +28,7 @@ export class TeachersService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         createdAt: true,
         updatedAt: true,
         _count: { select: { reservations: true } },
@@ -40,10 +41,12 @@ export class TeachersService {
     const email = normalizeEmail(dto.email);
     const exists = await this.prisma.user.findUnique({ where: { email } });
     if (exists) throw new ConflictException('This email is already used.');
+    const phone = dto.phone?.trim() || null;
     return this.prisma.user.create({
       data: {
         name: dto.name.trim(),
         email,
+        phone,
         role: Role.TEACHER,
         password: null,
       },
@@ -51,6 +54,7 @@ export class TeachersService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -72,16 +76,21 @@ export class TeachersService {
       if (taken) throw new ConflictException('This email is already used.');
     }
 
+    const phone =
+      dto.phone === undefined ? undefined : dto.phone.trim() === '' ? null : dto.phone.trim();
+
     return this.prisma.user.update({
       where: { id },
       data: {
         name: dto.name === undefined ? undefined : dto.name.trim(),
         email,
+        phone,
       },
       select: {
         id: true,
         name: true,
         email: true,
+        phone: true,
         createdAt: true,
         updatedAt: true,
       },

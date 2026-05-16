@@ -104,7 +104,7 @@ export const DropdownContent = ({ children, className }: { children: React.React
         <div
             ref={contentRef}
             className={twMerge(
-                "fixed z-dropdown min-w-[160px] bg-white border border-gray-100 rounded-lg shadow-xxl max-h-60 overflow-auto",
+                "fixed z-portalDropdown min-w-[160px] bg-white border border-gray-100 rounded-lg shadow-xxl max-h-60 overflow-auto",
                 className
             )}
             style={{ top: position.top, left: position.left }}

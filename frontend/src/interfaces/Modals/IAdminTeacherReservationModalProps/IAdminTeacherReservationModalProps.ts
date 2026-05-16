@@ -1,3 +1,5 @@
+import type { ReservationPriceMode } from '@/lib/reservation-pricing';
+
 type DropdownOption = { value: string | number; label: string };
 
 export default interface IAdminTeacherReservationModalProps {
@@ -12,6 +14,9 @@ export default interface IAdminTeacherReservationModalProps {
     bookEnd: string;
     bookPeople: number;
     bookPurpose: string;
+    bookPriceMode: ReservationPriceMode;
+    bookManualPriceTnd: number;
+    computedBookingPriceTnd: number;
     roomCapacityMax: number;
     submitting: boolean;
     onTeacherIdChange: (id: string) => void;
@@ -21,6 +26,8 @@ export default interface IAdminTeacherReservationModalProps {
     onEndChange: (time: string) => void;
     onPeopleChange: (n: number) => void;
     onPurposeChange: (purpose: string) => void;
+    onPriceModeChange: (mode: ReservationPriceMode) => void;
+    onManualPriceChange: (amount: number) => void;
     onClose: () => void;
     onSubmit: () => void;
 }

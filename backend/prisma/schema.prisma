@@ -11,6 +11,7 @@ model User {
   id           String               @id @default(uuid())
   name         String
   email        String               @unique
+  phone        String?
   password     String?
   tokenVersion Int                  @default(0)
   role         Role                 @default(TEACHER)
@@ -39,12 +40,13 @@ model Seeder {
 }
 
 model Room {
-  id           String @id @default(uuid())
-  name         String @unique
-  capacity     Int
-  color        String
-  description  String?
-  equipment    String[] @default([])
+  id            String @id @default(uuid())
+  name          String @unique
+  capacity      Int
+  color         String
+  description   String?
+  equipment     String[] @default([])
+  pricePerHour  Decimal       @default(0) @db.Decimal(12, 2)
   reservations Reservation[]
 
   createdAt DateTime @default(now())
@@ -61,6 +63,9 @@ model Reservation {
   numberOfPeople Int
   purpose        String
   status         ReservationStatus  @default(PENDING)
+  price          Decimal                       @default(0) @db.Decimal(12, 2)
+  priceMode      ReservationPriceMode           @default(MANUAL)
+  paid           Boolean                        @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Restrict)
   room Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
@@ -81,4 +86,10 @@ enum ReservationStatus {
   PENDING
   CONFIRMED
   CANCELLED
+}
+
+enum ReservationPriceMode {
+  ROOM_HOURLY
+  PER_PARTICIPANT
+  MANUAL
 }

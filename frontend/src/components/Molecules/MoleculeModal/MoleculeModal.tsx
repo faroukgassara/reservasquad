@@ -45,7 +45,7 @@ const MoleculeModal = forwardRef<HTMLDivElement, WithChildren<IMoleculeModal>>(
     return (
       <motion.div
         className={twMerge(
-          "fixed inset-0 z-9999 flex items-center justify-center bg-black/40",
+          "fixed inset-0 z-modal flex items-center justify-center bg-black/40",
           isDrawer && "items-stretch justify-end"
         )}
         onClick={canCloseOnClickOutisde ? closeModal : undefined}

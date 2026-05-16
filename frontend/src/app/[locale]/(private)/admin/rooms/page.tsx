@@ -11,6 +11,7 @@ type Room = {
     color: string;
     description: string | null;
     equipment: string[];
+    pricePerHour: number;
 };
 
 export default function AdminRoomsPage() {
@@ -24,13 +25,21 @@ export default function AdminRoomsPage() {
     const [color, setColor] = useState('#22c55e');
     const [description, setDescription] = useState('');
     const [equipment, setEquipment] = useState('projector, whiteboard');
+    const [pricePerHour, setPricePerHour] = useState(0);
     const [editing, setEditing] = useState<Room | null>(null);
 
     const load = useCallback(async () => {
         if (!token) return;
         try {
             const list = await backendFetch<Room[]>(token, '/rooms');
-            setRooms(Array.isArray(list) ? list : []);
+            const normalized =
+                Array.isArray(list) ?
+                    list.map((room) => ({
+                        ...room,
+                        pricePerHour: Number(room.pricePerHour ?? 0),
+                    }))
+                :   [];
+            setRooms(normalized);
         } catch {
             setRooms([]);
         }
@@ -55,6 +64,7 @@ export default function AdminRoomsPage() {
             color,
             description: description.trim() || undefined,
             equipment: equipArray(),
+            pricePerHour,
         };
         try {
             if (editing) {
@@ -70,6 +80,7 @@ export default function AdminRoomsPage() {
             }
             setName('');
             setDescription('');
+            setPricePerHour(0);
             setEditing(null);
             await load();
         } catch (err) {
@@ -84,6 +95,7 @@ export default function AdminRoomsPage() {
         setColor(r.color);
         setDescription(r.description || '');
         setEquipment(r.equipment.join(', '));
+        setPricePerHour(Number(r.pricePerHour ?? 0));
     };
 
     const remove = async (id: string) => {
@@ -146,6 +158,17 @@ export default function AdminRoomsPage() {
                         onChange={(e) => setColor(e.target.value)}
                     />
                 </label>
+                <label className="flex flex-col gap-1 text-sm">
+                    Prix / heure (TND)
+                    <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        className="rounded border px-3 py-2"
+                        value={pricePerHour}
+                        onChange={(e) => setPricePerHour(Number(e.target.value))}
+                    />
+                </label>
                 <label className="flex flex-col gap-1 text-sm md:col-span-2">
                     Description
                     <input
@@ -172,6 +195,7 @@ export default function AdminRoomsPage() {
                                 setName('');
                                 setDescription('');
                                 setEquipment('projector, whiteboard');
+                                setPricePerHour(0);
                             }}
                         >
                             Annuler édition
@@ -193,6 +217,7 @@ export default function AdminRoomsPage() {
                         <tr>
                             <th className="px-4 py-3">Nom</th>
                             <th className="px-4 py-3">Cap.</th>
+                            <th className="px-4 py-3 text-right">TND/h</th>
                             <th className="px-4 py-3">Couleur</th>
                             <th className="px-4 py-3">Équipements</th>
                             <th className="px-4 py-3">Actions</th>
@@ -203,6 +228,12 @@ export default function AdminRoomsPage() {
                             <tr key={r.id} className="border-b border-slate-100">
                                 <td className="px-4 py-2">{r.name}</td>
                                 <td className="px-4 py-2">{r.capacity}</td>
+                                <td className="px-4 py-2 text-right tabular-nums">
+                                    {(r.pricePerHour ?? 0).toLocaleString('fr-TN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    })}
+                                </td>
                                 <td className="px-4 py-2">
                                     <span
                                         className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs"

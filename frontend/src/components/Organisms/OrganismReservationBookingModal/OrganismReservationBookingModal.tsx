@@ -3,7 +3,9 @@
 import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import MoleculeReservationPricingBlock from '@/components/Molecules/MoleculeReservationPricingBlock/MoleculeReservationPricingBlock';
 import type { ReservationRoom, TeacherOption } from '@/types/calendar';
+import type { ReservationPriceMode } from '@/lib/reservation-pricing';
 import { endTimeOptions, startTimeOptions, validEndsForStart } from '@/lib/time-slots';
 import { EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import { useMemo } from 'react';
@@ -27,6 +29,11 @@ type OrganismReservationBookingModalProps = {
     setBookPeople: (v: number) => void;
     bookPurpose: string;
     setBookPurpose: (v: string) => void;
+    bookPriceMode: ReservationPriceMode;
+    setBookPriceMode: (v: ReservationPriceMode) => void;
+    bookManualPriceTnd: number;
+    setBookManualPriceTnd: (v: number) => void;
+    computedBookingPriceTnd: number;
     selectedRoomCapacity: number;
     submitting: boolean;
     onSubmit: () => void;
@@ -50,6 +57,11 @@ export default function OrganismReservationBookingModal({
     setBookPeople,
     bookPurpose,
     setBookPurpose,
+    bookPriceMode,
+    setBookPriceMode,
+    bookManualPriceTnd,
+    setBookManualPriceTnd,
+    computedBookingPriceTnd,
     selectedRoomCapacity,
     submitting,
     onSubmit,
@@ -144,6 +156,13 @@ export default function OrganismReservationBookingModal({
                         maxLength={500}
                         value={bookPurpose}
                         onChange={(e) => setBookPurpose(e.target.value)}
+                    />
+                    <MoleculeReservationPricingBlock
+                        priceMode={bookPriceMode}
+                        manualPriceTnd={bookManualPriceTnd}
+                        computedTotalTnd={computedBookingPriceTnd}
+                        onPriceModeChange={setBookPriceMode}
+                        onManualPriceChange={setBookManualPriceTnd}
                     />
                     <AtomDiv className="mt-4 flex gap-3">
                         <AtomButton

@@ -11,9 +11,10 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { ReservationPricingFieldsDto } from './reservation-pricing-fields.dto';
 import { ReservationStatus } from 'src/generated/prisma/client';
 
-export class CreateReservationDto {
+export class CreateReservationDto extends ReservationPricingFieldsDto {
   @ApiProperty()
   @IsString()
   roomId: string;

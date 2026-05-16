@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateTeacherDto {
   @ApiProperty()
@@ -14,4 +14,14 @@ export class CreateTeacherDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+
+  @ApiProperty({
+    description: 'Contact phone (optional).',
+    required: false,
+    example: '+33 6 12 34 56 78',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  phone?: string;
 }

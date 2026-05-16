@@ -5,14 +5,21 @@ import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import type { CalendarReservation } from '@/types/calendar';
 import type { IMoleculeTableColumn } from '@/interfaces/Molecules/IMoleculeTableColumn/IMoleculeTableColumn';
 import { ApiError, backendFetch } from '@/lib/reservasquad-api';
+import {
+    formatTnd,
+    previewReservationTotalTnd,
+    reservationPriceModeCaptionFr,
+    type ReservationPriceMode,
+} from '@/lib/reservation-pricing';
 import { startTimeOptions, validEndsForStart } from '@/lib/time-slots';
-import { EBadgeColor, EBadgeSize, EButtonType, EVariantLabel } from '@/Enum/Enum';
+import { EBadgeColor, EBadgeSize, EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
 import { useSession } from 'next-auth/react';
 import { format, parseISO } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDropdown';
+import MoleculeTab from '@/components/Molecules/MoleculeTab/MoleculeTab';
 import AdminTeacherReservationModal from '@/components/Modals/AdminTeacherReservationModal/AdminTeacherReservationModal';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import { useModal } from '@/contexts/ModalContext';
@@ -26,16 +33,37 @@ type AdminReservationTableRow = {
     requester: string;
     places: number;
     motif: string;
+    priceText: string;
+    priceModeHint: string;
     statusLabel: string;
+    paidSort: number;
 };
 
-type Room = { id: string; name: string; capacity: number; color: string; equipment: string[] };
-type Teacher = { id: string; name: string; email: string };
+type Room = {
+    id: string;
+    name: string;
+    capacity: number;
+    color: string;
+    equipment: string[];
+    pricePerHour: number;
+};
+type Teacher = { id: string; name: string; email: string; phone?: string | null };
 
 function reservationStatusBadge(status: CalendarReservation['status']): EBadgeColor {
     if (status === 'CONFIRMED') return EBadgeColor.success;
     if (status === 'PENDING') return EBadgeColor.warning;
     return EBadgeColor.danger;
+}
+
+/** Local end timestamp for sorting / upcoming vs past (uses booking date + endTime). */
+function reservationEndsAtMs(r: CalendarReservation): number {
+    const ymd = String(r.date).slice(0, 10).split('-').map(Number);
+    if (ymd.length !== 3 || ymd.some((n) => Number.isNaN(n))) return 0;
+    const [y, mo, d] = ymd;
+    const [eh, em] = r.endTime.split(':').map((x) => Number.parseInt(x, 10));
+    const hh = Number.isFinite(eh) ? eh : 0;
+    const mm = Number.isFinite(em) ? em : 0;
+    return new Date(y, mo - 1, d, hh, mm, 0, 0).getTime();
 }
 
 export default function AdminReservationsPage() {
@@ -49,6 +77,7 @@ export default function AdminReservationsPage() {
     const [stat, setStat] = useState<'ALL' | 'PENDING' | 'CONFIRMED' | 'CANCELLED'>('ALL');
     const [loading, setLoading] = useState(true);
     const { openModal, closeModal, modalPortal } = useModal();
+    const [listTab, setListTab] = useState<'upcoming' | 'past'>('upcoming');
     const [bookTeacherId, setBookTeacherId] = useState('');
     const [bookDate, setBookDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [bookRoomId, setBookRoomId] = useState('');
@@ -56,6 +85,8 @@ export default function AdminReservationsPage() {
     const [bookEnd, setBookEnd] = useState(validEndsForStart(startTimeOptions()[0])[0] ?? '00:00');
     const [bookPeople, setBookPeople] = useState(1);
     const [bookPurpose, setBookPurpose] = useState('');
+    const [bookPriceMode, setBookPriceMode] = useState<ReservationPriceMode>('ROOM_HOURLY');
+    const [bookManualPrice, setBookManualPrice] = useState(0);
     const [submitting, setSubmitting] = useState(false);
 
     const roomFilterOptions = useMemo(
@@ -82,7 +113,14 @@ export default function AdminReservationsPage() {
             if (stat !== 'ALL') parts.push(`status=${encodeURIComponent(stat)}`);
             const suffix = parts.length ? `?${parts.join('&')}` : '';
             const list = await backendFetch<CalendarReservation[]>(token, `/reservations${suffix}`);
-            setRows(Array.isArray(list) ? list : []);
+            setRows(
+                Array.isArray(list) ?
+                    list.map((r) => ({
+                        ...r,
+                        paid: Boolean(r.paid),
+                    }))
+                :   [],
+            );
         } catch {
             setRows([]);
         } finally {
@@ -99,8 +137,12 @@ export default function AdminReservationsPage() {
         void backendFetch<Room[]>(token, '/rooms')
             .then((r) => {
                 const list = Array.isArray(r) ? r : [];
-                setRooms(list);
-                setBookRoomId((prev) => prev || list[0]?.id || '');
+                const normalized = list.map((room) => ({
+                    ...room,
+                    pricePerHour: Number(room.pricePerHour ?? 0),
+                }));
+                setRooms(normalized);
+                setBookRoomId((prev) => prev || normalized[0]?.id || '');
             })
             .catch(() => []);
         void backendFetch<Teacher[]>(token, '/directory/teachers')
@@ -116,6 +158,22 @@ export default function AdminReservationsPage() {
         const allowed = validEndsForStart(bookStart);
         setBookEnd((prev) => (allowed.includes(prev) ? prev : allowed.at(-1) ?? '00:00'));
     }, [bookStart]);
+
+    const patchPaid = useCallback(
+        async (id: string, paid: boolean) => {
+            if (!token) return;
+            try {
+                await backendFetch(token, `/reservations/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ paid }),
+                });
+                await load();
+            } catch (e) {
+                alert(e instanceof ApiError ? e.message : 'Erreur');
+            }
+        },
+        [token, load],
+    );
 
     const patch = useCallback(
         async (id: string, next: 'CONFIRMED' | 'CANCELLED') => {
@@ -133,9 +191,29 @@ export default function AdminReservationsPage() {
         [token, load],
     );
 
+    const adminBookingPricePreviewTnd = useMemo(
+        () =>
+            previewReservationTotalTnd({
+                mode: bookPriceMode,
+                pricePerHour: rooms.find((r) => r.id === bookRoomId)?.pricePerHour ?? 0,
+                startTime: bookStart,
+                endTime: bookEnd,
+                numberOfPeople: bookPeople,
+                manualPrice: bookManualPrice,
+            }),
+        [bookPriceMode, rooms, bookRoomId, bookStart, bookEnd, bookPeople, bookManualPrice],
+    );
+
+    const filteredRows = useMemo(() => {
+        const now = Date.now();
+        return rows.filter((r) =>
+            listTab === 'upcoming' ? reservationEndsAtMs(r) >= now : reservationEndsAtMs(r) < now,
+        );
+    }, [rows, listTab]);
+
     const tableRows: AdminReservationTableRow[] = useMemo(
         () =>
-            rows.map((r) => ({
+            filteredRows.map((r) => ({
                 reservation: r,
                 sortDate: String(r.date).slice(0, 10),
                 dateDisplay: format(parseISO(String(r.date).slice(0, 10)), 'dd/MM/yyyy'),
@@ -144,9 +222,12 @@ export default function AdminReservationsPage() {
                 requester: r.user.name,
                 places: r.numberOfPeople,
                 motif: r.purpose,
+                priceText: `${formatTnd(Number(r.price ?? 0))} TND`,
+                priceModeHint: reservationPriceModeCaptionFr(r.priceMode),
                 statusLabel: r.status,
+                paidSort: r.paid ? 1 : 0,
             })),
-        [rows],
+        [filteredRows],
     );
 
     const reservationColumns = useMemo<IMoleculeTableColumn<AdminReservationTableRow>[]>(
@@ -209,6 +290,24 @@ export default function AdminReservationsPage() {
             },
             {
                 headerElement: {
+                    value: 'priceText',
+                    label: 'Prix (TND)',
+                    sortable: true,
+                    headerClassName: 'uppercase text-xs',
+                    render: (_, row) => (
+                        <AtomDiv className="flex flex-col gap-0.5">
+                            <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium tabular-nums">
+                                {row.priceText}
+                            </AtomLabel>
+                            <AtomLabel variant={EVariantLabel.caption} color="text-gray-500" className="max-w-[9rem] leading-tight">
+                                {row.priceModeHint}
+                            </AtomLabel>
+                        </AtomDiv>
+                    ),
+                },
+            },
+            {
+                headerElement: {
                     value: 'motif',
                     label: 'Motif',
                     sortable: true,
@@ -232,6 +331,39 @@ export default function AdminReservationsPage() {
                             size={EBadgeSize.small}
                             color={reservationStatusBadge(row.reservation.status)}
                         />
+                    ),
+                },
+            },
+            {
+                headerElement: {
+                    value: 'paidSort',
+                    label: 'Paiement',
+                    sortable: true,
+                    headerClassName: 'uppercase text-xs',
+                    render: (_, row) => (
+                        <AtomDiv className="flex flex-col gap-1 py-1">
+                            <AtomBadge
+                                text={row.reservation.paid ? 'Payé' : 'Non payé'}
+                                size={EBadgeSize.small}
+                                color={row.reservation.paid ? EBadgeColor.success : EBadgeColor.warning}
+                            />
+                            <AtomDiv className="flex flex-wrap gap-1">
+                                <AtomButton
+                                    id={`admin-mark-paid-${row.reservation.id}`}
+                                    type={EButtonType.secondary}
+                                    className="rounded! px-2! py-0.5! text-[10px]!"
+                                    onClick={() => void patchPaid(row.reservation.id, true)}
+                                    text="Payé"
+                                />
+                                <AtomButton
+                                    id={`admin-mark-unpaid-${row.reservation.id}`}
+                                    type={EButtonType.secondary}
+                                    className="rounded! px-2! py-0.5! text-[10px]!"
+                                    onClick={() => void patchPaid(row.reservation.id, false)}
+                                    text="Non payé"
+                                />
+                            </AtomDiv>
+                        </AtomDiv>
                     ),
                 },
             },
@@ -267,7 +399,7 @@ export default function AdminReservationsPage() {
                 },
             },
         ],
-        [patch],
+        [patch, patchPaid],
     );
 
     const adminSubmit = async () => {
@@ -284,6 +416,8 @@ export default function AdminReservationsPage() {
                     endTime: bookEnd,
                     numberOfPeople: bookPeople,
                     purpose: bookPurpose.trim(),
+                    priceMode: bookPriceMode,
+                    ...(bookPriceMode === 'MANUAL' ? { manualPrice: bookManualPrice } : {}),
                 }),
             });
             closeModal();
@@ -297,7 +431,11 @@ export default function AdminReservationsPage() {
     };
 
     const teacherModalOptions = useMemo(
-        () => teachers.map((t) => ({ value: t.id, label: `${t.name} (${t.email})` })),
+        () =>
+            teachers.map((t) => ({
+                value: t.id,
+                label: t.phone ? `${t.name} (${t.email}) · ${t.phone}` : `${t.name} (${t.email})`,
+            })),
         [teachers],
     );
     const roomModalOptions = useMemo(
@@ -336,7 +474,11 @@ export default function AdminReservationsPage() {
                     id="admin-reservations-create"
                     type={EButtonType.primary}
                     className="font-semibold text-white bg-accent-500"
-                    onClick={() => openModal()}
+                    onClick={() => {
+                        setBookPriceMode('ROOM_HOURLY');
+                        setBookManualPrice(0);
+                        openModal();
+                    }}
                     text="Créer pour un professeur"
                 />
             </AtomDiv>
@@ -369,10 +511,22 @@ export default function AdminReservationsPage() {
                 />
             </AtomDiv>
 
+            <AtomDiv className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <MoleculeTab
+                    options={[
+                        { value: 'upcoming', label: 'À venir' },
+                        { value: 'past', label: 'Passées' },
+                    ]}
+                    value={listTab}
+                    onChange={(v) => setListTab(v as 'upcoming' | 'past')}
+                    size={ESize.sm}
+                />
+            </AtomDiv>
+
             <OrganismTable<AdminReservationTableRow>
                 badge={null}
                 columns={reservationColumns}
-                emptyMessage="Aucune réservation."
+                emptyMessage={listTab === 'upcoming' ? 'Aucune réservation à venir.' : 'Aucune réservation passée.'}
                 isLoading={loading}
                 pageSize={100}
                 rows={tableRows}
@@ -393,6 +547,9 @@ export default function AdminReservationsPage() {
                     bookEnd={bookEnd}
                     bookPeople={bookPeople}
                     bookPurpose={bookPurpose}
+                    bookPriceMode={bookPriceMode}
+                    bookManualPriceTnd={bookManualPrice}
+                    computedBookingPriceTnd={adminBookingPricePreviewTnd}
                     roomCapacityMax={capacity}
                     submitting={submitting}
                     onTeacherIdChange={setBookTeacherId}
@@ -402,6 +559,8 @@ export default function AdminReservationsPage() {
                     onEndChange={setBookEnd}
                     onPeopleChange={setBookPeople}
                     onPurposeChange={setBookPurpose}
+                    onPriceModeChange={setBookPriceMode}
+                    onManualPriceChange={setBookManualPrice}
                     onClose={closeModal}
                     onSubmit={adminSubmit}
                 />,

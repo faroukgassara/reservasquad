@@ -70,6 +70,11 @@ export default function TemplateReservationCalendar({ variant = 'public' }: Read
                     setBookPeople={cal.setBookPeople}
                     bookPurpose={cal.bookPurpose}
                     setBookPurpose={cal.setBookPurpose}
+                    bookPriceMode={cal.bookPriceMode}
+                    setBookPriceMode={cal.setBookPriceMode}
+                    bookManualPriceTnd={cal.bookManualPrice}
+                    setBookManualPriceTnd={cal.setBookManualPrice}
+                    computedBookingPriceTnd={cal.bookPricePreviewTnd}
                     selectedRoomCapacity={cal.selectedRoomCapacity}
                     submitting={cal.submitting}
                     onSubmit={() => void cal.submitBooking()}
