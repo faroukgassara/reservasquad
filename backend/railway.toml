@@ -1,0 +1,8 @@
+# Railway — backend service (set Root Directory to /backend in the dashboard)
+[build]
+buildCommand = "npm install && npm run build"
+
+[deploy]
+startCommand = "npm run start:deploy"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
