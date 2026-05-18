@@ -3,51 +3,81 @@
 import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
-import { EButtonType, EVariantLabel } from '@/Enum/Enum';
+import MoleculeTab from '@/components/Molecules/MoleculeTab/MoleculeTab';
+import type { CalendarViewMode } from '@/types/calendar';
+import { EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
 
 type OrganismReservationCalendarToolbarProps = {
-    onPrevMonth: () => void;
-    onNextMonth: () => void;
+    calendarView: CalendarViewMode;
+    onCalendarViewChange: (v: CalendarViewMode) => void;
+    periodTitle: string;
+    viewSubtitle: string;
+    navigatePrevLabel: string;
+    navigateNextLabel: string;
+    onNavigatePrev: () => void;
+    onNavigateNext: () => void;
     onNewBooking: () => void;
 };
 
 export default function OrganismReservationCalendarToolbar({
-    onPrevMonth,
-    onNextMonth,
+    calendarView,
+    onCalendarViewChange,
+    periodTitle,
+    viewSubtitle,
+    navigatePrevLabel,
+    navigateNextLabel,
+    onNavigatePrev,
+    onNavigateNext,
     onNewBooking,
 }: Readonly<OrganismReservationCalendarToolbarProps>) {
     return (
-        <AtomDiv className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <AtomDiv className="mb-6 flex flex-col gap-4">
             <AtomDiv>
                 <AtomLabel variant={EVariantLabel.h3} color="text-primary-900" className="font-semibold tracking-tight">
                     Planning des salles d&apos;étude
                 </AtomLabel>
+                <AtomLabel variant={EVariantLabel.body} color="text-primary-900" className="mt-2 block capitalize">
+                    {periodTitle}
+                </AtomLabel>
                 <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-600" className="mt-1 block">
-                    Vue mensuelle — cliquez un créneau pour les détails
+                    {viewSubtitle}
                 </AtomLabel>
             </AtomDiv>
-            <AtomDiv className="flex flex-wrap items-center gap-2">
-                <AtomButton
-                    id="calendar-toolbar-prev-month"
-                    type={EButtonType.secondary}
-                    className="px-3! py-2! text-sm"
-                    onClick={onPrevMonth}
-                    text="← Mois précédent"
+            <AtomDiv className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <MoleculeTab
+                    size={ESize.sm}
+                    buttonClassName="!px-3"
+                    options={[
+                        { value: 'month', label: 'Mois' },
+                        { value: 'week', label: 'Semaine' },
+                        { value: 'day', label: 'Jour' },
+                    ]}
+                    value={calendarView}
+                    onChange={(v) => onCalendarViewChange(v as CalendarViewMode)}
                 />
-                <AtomButton
-                    id="calendar-toolbar-next-month"
-                    type={EButtonType.secondary}
-                    className="px-3! py-2! text-sm"
-                    onClick={onNextMonth}
-                    text="Mois suivant →"
-                />
-                <AtomButton
-                    id="calendar-toolbar-new-booking"
-                    type={EButtonType.primary}
-                    className="px-4! py-2! text-sm font-semibold shadow bg-primary-900"
-                    onClick={onNewBooking}
-                    text="Nouvelle réservation"
-                />
+                <AtomDiv className="flex flex-wrap items-center gap-2">
+                    <AtomButton
+                        id="calendar-toolbar-nav-prev"
+                        type={EButtonType.secondary}
+                        className="px-3! py-2! text-sm"
+                        onClick={onNavigatePrev}
+                        text={navigatePrevLabel}
+                    />
+                    <AtomButton
+                        id="calendar-toolbar-nav-next"
+                        type={EButtonType.secondary}
+                        className="px-3! py-2! text-sm"
+                        onClick={onNavigateNext}
+                        text={navigateNextLabel}
+                    />
+                    <AtomButton
+                        id="calendar-toolbar-new-booking"
+                        type={EButtonType.primary}
+                        className="px-4! py-2! text-sm font-semibold shadow bg-primary-900"
+                        onClick={onNewBooking}
+                        text="Nouvelle réservation"
+                    />
+                </AtomDiv>
             </AtomDiv>
         </AtomDiv>
     );

@@ -2,13 +2,15 @@
 
 import OrganismReservationBookingModal from '@/components/Organisms/OrganismReservationBookingModal/OrganismReservationBookingModal';
 import OrganismReservationCalendarBanner from '@/components/Organisms/OrganismReservationCalendarBanner/OrganismReservationCalendarBanner';
+import OrganismReservationCalendarDayPanel from '@/components/Organisms/OrganismReservationCalendarDayPanel/OrganismReservationCalendarDayPanel';
 import OrganismReservationCalendarMonthGrid from '@/components/Organisms/OrganismReservationCalendarMonthGrid/OrganismReservationCalendarMonthGrid';
 import OrganismReservationCalendarToolbar from '@/components/Organisms/OrganismReservationCalendarToolbar/OrganismReservationCalendarToolbar';
+import OrganismReservationCalendarWeekGrid from '@/components/Organisms/OrganismReservationCalendarWeekGrid/OrganismReservationCalendarWeekGrid';
 import OrganismReservationReadPanel from '@/components/Organisms/OrganismReservationReadPanel/OrganismReservationReadPanel';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import { useReservationCalendar } from '@/hooks/useReservationCalendar';
 import { EVariantLabel } from '@/Enum/Enum';
-import { addMonths, format } from 'date-fns';
+import { format } from 'date-fns';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 
 export type { CalendarReservation } from '@/types/calendar';
@@ -25,9 +27,17 @@ export default function TemplateReservationCalendar({ variant = 'public' }: Read
             <OrganismReservationCalendarBanner variant={variant} />
 
             <OrganismReservationCalendarToolbar
-                onPrevMonth={() => cal.setMonthCursor((d) => addMonths(d, -1))}
-                onNextMonth={() => cal.setMonthCursor((d) => addMonths(d, 1))}
-                onNewBooking={() => cal.openBooking(format(new Date(), 'yyyy-MM-dd'))}
+                calendarView={cal.calendarView}
+                onCalendarViewChange={cal.setCalendarView}
+                periodTitle={cal.calendarPeriodTitle}
+                viewSubtitle={cal.calendarViewSubtitle}
+                navigatePrevLabel={cal.navigatePrevLabel}
+                navigateNextLabel={cal.navigateNextLabel}
+                onNavigatePrev={cal.navigateCalendarPrev}
+                onNavigateNext={cal.navigateCalendarNext}
+                onNewBooking={() =>
+                    cal.calendarView === 'day' ? cal.openBooking(cal.focusedDayIso) : cal.openBooking(format(new Date(), 'yyyy-MM-dd'))
+                }
             />
 
             {cal.error ? (
@@ -38,15 +48,33 @@ export default function TemplateReservationCalendar({ variant = 'public' }: Read
                 </AtomDiv>
             ) : null}
 
-            <OrganismReservationCalendarMonthGrid
-                monthCursor={cal.monthCursor}
-                gridDays={cal.gridDays}
-                weekDays={cal.weekDays}
-                byDay={cal.byDay}
-                loading={cal.loading}
-                onOpenBooking={cal.openBooking}
-                onSelectReservation={cal.setSelected}
-            />
+            {cal.calendarView === 'month' ?
+                <OrganismReservationCalendarMonthGrid
+                    monthCursor={cal.monthCursor}
+                    gridDays={cal.gridDays}
+                    weekDays={cal.weekDays}
+                    byDay={cal.byDay}
+                    loading={cal.loading}
+                    onOpenBooking={cal.openBooking}
+                    onSelectReservation={cal.setSelected}
+                />
+            : cal.calendarView === 'week' ?
+                <OrganismReservationCalendarWeekGrid
+                    daysInWeek={cal.daysInWeek}
+                    rowWeekdayLabels={cal.weekDays}
+                    byDay={cal.byDay}
+                    loading={cal.loading}
+                    onOpenBooking={cal.openBooking}
+                    onSelectReservation={cal.setSelected}
+                />
+            :   <OrganismReservationCalendarDayPanel
+                    reservationsSorted={cal.dayReservationsSorted}
+                    loading={cal.loading}
+                    dayIso={cal.focusedDayIso}
+                    onOpenBooking={cal.openBooking}
+                    onSelectReservation={cal.setSelected}
+                />
+            }
 
             {cal.selected ?
                 <OrganismReservationReadPanel selected={cal.selected} onClose={() => cal.setSelected(null)} />

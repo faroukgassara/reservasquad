@@ -94,11 +94,36 @@ export class ReservationService {
     const lastNum = new Date(Date.UTC(year, month, 0)).getUTCDate();
     const to = `${year}-${pad(month)}-${String(lastNum).padStart(2, '0')}`;
 
+    return this.calendarBetween(from, to);
+  }
+
+  /** Week / arbitrary views: inclusive YYYY-MM-DD (same semantics as calendar month). Max 100 days. */
+  async calendarRange(fromDay: string, toDay: string) {
+    const from = fromDay.slice(0, 10);
+    const to = toDay.slice(0, 10);
+    return this.calendarBetween(from, to);
+  }
+
+  private async calendarBetween(from: string, to: string) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) {
+      throw new BadRequestException('from and to must be YYYY-MM-DD');
+    }
+    const start = parseDayOnly(from);
+    const end = parseDayOnly(to);
+    if (start.getTime() > end.getTime()) {
+      throw new BadRequestException('from must be before or equal to to');
+    }
+    const spanDays = Math.floor((end.getTime() - start.getTime()) / (86400 * 1000)) + 1;
+    const maxDays = 100;
+    if (spanDays > maxDays) {
+      throw new BadRequestException(`Date range cannot exceed ${maxDays} days.`);
+    }
+
     const rows = await this.prisma.reservation.findMany({
       where: {
         date: {
-          gte: parseDayOnly(from),
-          lte: parseDayOnly(to),
+          gte: start,
+          lte: end,
         },
       },
       orderBy: [{ date: 'asc' }, { startMinutes: 'asc' }],

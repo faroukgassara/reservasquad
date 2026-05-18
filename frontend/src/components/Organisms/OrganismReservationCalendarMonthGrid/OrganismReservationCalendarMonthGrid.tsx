@@ -4,7 +4,6 @@ import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import type { CalendarReservation } from '@/types/calendar';
 import { EButtonType, EVariantLabel } from '@/Enum/Enum';
 import { format, isSameMonth } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import type { MouseEvent } from 'react';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
@@ -30,11 +29,6 @@ export default function OrganismReservationCalendarMonthGrid({
 }: Readonly<OrganismReservationCalendarMonthGridProps>) {
     return (
         <AtomDiv className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-            <AtomDiv className="border-b border-slate-100 px-4 py-3 capitalize">
-                <AtomLabel variant={EVariantLabel.body} color="text-primary-900" className="font-medium capitalize">
-                    {format(monthCursor, 'MMMM yyyy', { locale: fr })}
-                </AtomLabel>
-            </AtomDiv>
             {loading ? (
                 <AtomDiv className="p-8 text-center">
                     <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">

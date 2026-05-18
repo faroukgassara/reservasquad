@@ -1,5 +1,7 @@
 import type { ReservationPriceMode } from '@/lib/reservation-pricing';
 
+export type CalendarViewMode = 'month' | 'week' | 'day';
+
 export type CalendarReservation = {
     id: string;
     userId: string;

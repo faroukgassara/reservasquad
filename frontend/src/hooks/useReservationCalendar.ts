@@ -6,13 +6,21 @@ import { previewReservationTotalTnd, type ReservationPriceMode } from '@/lib/res
 import type {
     CalendarPayload,
     CalendarReservation,
+    CalendarViewMode,
     ReservationRoom,
     TeacherOption,
 } from '@/types/calendar';
 import {
+    calendarApiIsoRange,
+    formatCalendarPeriodTitle,
+    navigateCalendarCursor,
+    weekIntervalFromCursor,
+} from '@/lib/calendar.utils';
+import {
     eachDayOfInterval,
     endOfMonth,
     endOfWeek,
+    format,
     startOfMonth,
     startOfWeek,
 } from 'date-fns';
@@ -20,6 +28,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export function useReservationCalendar() {
     const [monthCursor, setMonthCursor] = useState(() => new Date());
+    const [calendarView, setCalendarView] = useState<CalendarViewMode>('month');
     const [byDay, setByDay] = useState<Record<string, CalendarReservation[]>>({});
     const [rooms, setRooms] = useState<ReservationRoom[]>([]);
     const [teachers, setTeachers] = useState<TeacherOption[]>([]);
@@ -73,10 +82,9 @@ export function useReservationCalendar() {
         setLoading(true);
         setError(null);
         try {
-            const y = monthCursor.getFullYear();
-            const m = monthCursor.getMonth() + 1;
+            const { from, to } = calendarApiIsoRange(calendarView, monthCursor);
             const res = await backendFetchPublic<CalendarPayload>(
-                `/reservations/calendar?year=${y}&month=${m}`,
+                `/reservations/calendar?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
             );
             const raw = res?.byDay ?? {};
             const next: Record<string, CalendarReservation[]> = {};
@@ -97,7 +105,7 @@ export function useReservationCalendar() {
         } finally {
             setLoading(false);
         }
-    }, [monthCursor]);
+    }, [calendarView, monthCursor]);
 
     useEffect(() => {
         void loadRooms();
@@ -107,6 +115,48 @@ export function useReservationCalendar() {
     useEffect(() => {
         void loadCalendar();
     }, [loadCalendar]);
+
+    const navigateCalendarPrev = useCallback(() => {
+        setMonthCursor((d) => navigateCalendarCursor(calendarView, d, -1));
+    }, [calendarView]);
+
+    const navigateCalendarNext = useCallback(() => {
+        setMonthCursor((d) => navigateCalendarCursor(calendarView, d, 1));
+    }, [calendarView]);
+
+    const calendarPeriodTitle = useMemo(
+        () => formatCalendarPeriodTitle(calendarView, monthCursor),
+        [calendarView, monthCursor],
+    );
+
+    const calendarViewSubtitle = useMemo(() => {
+        if (calendarView === 'week') {
+            return 'Vue semaine (lundi – dimanche). Utilisez + ou les pastilles pour agir.';
+        }
+        if (calendarView === 'day') return 'Vue jour — créneaux triés par heure de début.';
+        return 'Vue mensuelle — cliquez un jour pour réserver ou voir une réservation.';
+    }, [calendarView]);
+
+    const navigatePrevLabel = useMemo(() => {
+        if (calendarView === 'month') return '← Mois précédent';
+        if (calendarView === 'week') return '← Semaine préc.';
+        return '← Jour préc.';
+    }, [calendarView]);
+
+    const navigateNextLabel = useMemo(() => {
+        if (calendarView === 'month') return 'Mois suivant →';
+        if (calendarView === 'week') return 'Semaine suiv. →';
+        return 'Jour suivant →';
+    }, [calendarView]);
+
+    const daysInWeek = useMemo(() => weekIntervalFromCursor(monthCursor), [monthCursor]);
+
+    const focusedDayIso = useMemo(() => format(monthCursor, 'yyyy-MM-dd'), [monthCursor]);
+
+    const dayReservationsSorted = useMemo(() => {
+        const raw = byDay[focusedDayIso] || [];
+        return [...raw].sort((a, b) => a.startMinutes - b.startMinutes);
+    }, [byDay, focusedDayIso]);
 
     const selectedRoomCapacity = useMemo(
         () => rooms.find((r) => r.id === bookRoomId)?.capacity ?? 999,
@@ -219,6 +269,17 @@ export function useReservationCalendar() {
     return {
         monthCursor,
         setMonthCursor,
+        calendarView,
+        setCalendarView,
+        calendarPeriodTitle,
+        calendarViewSubtitle,
+        navigatePrevLabel,
+        navigateNextLabel,
+        navigateCalendarPrev,
+        navigateCalendarNext,
+        daysInWeek,
+        focusedDayIso,
+        dayReservationsSorted,
         byDay,
         rooms,
         teachers,

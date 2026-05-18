@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -26,10 +27,22 @@ export class ReservationController {
   @Public(true)
   @Get('calendar')
   @ApiOperation({
-    summary: 'Monthly calendar view (public)',
-    description: 'All reservations grouped by calendar day.',
+    summary: 'Calendar reservations (public)',
+    description:
+      'Reservations grouped by calendar day. Use either `year`+`month`, or inclusive `from`+`to` (YYYY-MM-DD, max ~100 days) for week/day views.',
   })
-  calendar(@Query('year') yearStr: string, @Query('month') monthStr: string) {
+  calendar(
+    @Query('year') yearStr?: string,
+    @Query('month') monthStr?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    if (from && to) {
+      return this.reservationService.calendarRange(from, to);
+    }
+    if (yearStr === undefined || monthStr === undefined) {
+      throw new BadRequestException('Provide year and month, or from and to');
+    }
     return this.reservationService.calendar(Number(yearStr), Number(monthStr));
   }
 
