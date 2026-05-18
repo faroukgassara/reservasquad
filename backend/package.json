@@ -8,10 +8,10 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "node dist/main",
+    "start": "node dist/src/main.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main.js",
     "prisma:migrate": "prisma migrate deploy && prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:setup": "prisma migrate dev && prisma generate",
@@ -25,7 +25,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node -r tsconfig-paths/register src/seed.ts",
     "seed:build": "nest build",
-    "seed:prod": "node dist/seed.js",
+    "seed:prod": "node dist/src/seed.js",
     "seed:test": "isTest=true ts-node -r tsconfig-paths/register src/seed.ts"
   },
   "prisma": {
