@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDropdown';
+import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import MoleculeTab from '@/components/Molecules/MoleculeTab/MoleculeTab';
 import AdminTeacherReservationModal from '@/components/Modals/AdminTeacherReservationModal/AdminTeacherReservationModal';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
@@ -473,74 +474,84 @@ export default function AdminReservationsPage() {
 
     const capacity = rooms.find((r) => r.id === bookRoomId)?.capacity ?? 99;
 
+    const createButton = (
+        <AtomButton
+            id="admin-reservations-create"
+            type={EButtonType.primary}
+            className="shrink-0 rounded-lg px-4! py-2.5! text-sm font-semibold text-white shadow-sm bg-primary-600 hover:bg-primary-700"
+            onClick={() => {
+                setBookPriceMode('ROOM_HOURLY');
+                setBookManualPrice(0);
+                openModal();
+            }}
+            text={`+ ${t('admin.reservations.createForTeacher')}`}
+        />
+    );
+
     return (
-        <AtomDiv className="p-4 lg:p-8">
-            <AtomDiv className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <AtomLabel variant={EVariantLabel.h3} color="text-primary-900" className="font-semibold">
-                    {t('admin.reservations.title')}
-                </AtomLabel>
-                <AtomButton
-                    id="admin-reservations-create"
-                    type={EButtonType.primary}
-                    className="font-semibold text-white bg-accent-500"
-                    onClick={() => {
-                        setBookPriceMode('ROOM_HOURLY');
-                        setBookManualPrice(0);
-                        openModal();
-                    }}
-                    text={t('admin.reservations.createForTeacher')}
-                />
-            </AtomDiv>
-
-            <AtomDiv className="mb-4 flex flex-wrap gap-3">
-                <AtomDiv className="min-w-[200px] flex-1 sm:flex-initial sm:min-w-[220px]">
-                    <MoleculeDropdown
-                        placeholder={t('admin.reservations.filterRoom')}
-                        options={roomFilterOptions}
-                        value={roomId}
-                        onChange={(v) => setRoomId(String(Array.isArray(v) ? v[0] ?? '' : v))}
+        <>
+            <LayoutWrapper
+                title={t('admin.reservations.title')}
+                subTitle={t('admin.reservations.subtitle')}
+                mainSection={
+                    <AtomDiv className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                <AtomDiv className="px-6 pt-2">
+                    <MoleculeTab
+                        variant="underline"
+                        options={[
+                            { value: 'upcoming', label: t('admin.reservations.tabs.upcoming') },
+                            { value: 'past', label: t('admin.reservations.tabs.past') },
+                        ]}
+                        value={listTab}
+                        onChange={(v) => setListTab(v as 'upcoming' | 'past')}
+                        size={ESize.md}
                     />
                 </AtomDiv>
-                <AtomDiv className="min-w-[200px] flex-1 sm:flex-initial sm:min-w-[200px]">
-                    <MoleculeDropdown
-                        placeholder={t('admin.reservations.filterStatus')}
-                        options={statFilterOptions}
-                        value={stat}
-                        onChange={(v) =>
-                            setStat((Array.isArray(v) ? v[0] : v) as typeof stat)
-                        }
+
+                <AtomDiv className="flex flex-col gap-4 px-6 pb-6 pt-4">
+                    <AtomDiv className="flex flex-wrap items-center gap-3">
+                        <AtomDiv className="min-w-[180px] flex-1 sm:max-w-[220px]">
+                            <MoleculeDropdown
+                                placeholder={t('admin.reservations.filterRoom')}
+                                options={roomFilterOptions}
+                                value={roomId}
+                                onChange={(v) => setRoomId(String(Array.isArray(v) ? v[0] ?? '' : v))}
+                            />
+                        </AtomDiv>
+                        <AtomDiv className="min-w-[160px] flex-1 sm:max-w-[200px]">
+                            <MoleculeDropdown
+                                placeholder={t('admin.reservations.filterStatus')}
+                                options={statFilterOptions}
+                                value={stat}
+                                onChange={(v) =>
+                                    setStat((Array.isArray(v) ? v[0] : v) as typeof stat)
+                                }
+                            />
+                        </AtomDiv>
+                        <AtomButton
+                            id="admin-reservations-refresh"
+                            type={EButtonType.secondary}
+                            className="px-3! py-2! text-sm"
+                            onClick={() => void load()}
+                            text={t('common.refresh')}
+                        />
+                    </AtomDiv>
+
+                    <OrganismTable<AdminReservationTableRow>
+                        columns={reservationColumns}
+                        emptyMessage={listTab === 'upcoming' ? t('admin.reservations.emptyUpcoming') : t('admin.reservations.emptyPast')}
+                        isLoading={loading}
+                        pageSize={10}
+                        rows={tableRows}
+                        searchable
+                        primaryAction={createButton}
+                        placeholder={t('table.search')}
+                        className="border-0 shadow-none"
+                        tableClassName="text-sm"
                     />
                 </AtomDiv>
-                <AtomButton
-                    id="admin-reservations-refresh"
-                    type={EButtonType.secondary}
-                    className="self-end px-3! py-2! text-sm"
-                    onClick={() => void load()}
-                    text={t('common.refresh')}
-                />
-            </AtomDiv>
-
-            <AtomDiv className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <MoleculeTab
-                    options={[
-                        { value: 'upcoming', label: t('admin.reservations.tabs.upcoming') },
-                        { value: 'past', label: t('admin.reservations.tabs.past') },
-                    ]}
-                    value={listTab}
-                    onChange={(v) => setListTab(v as 'upcoming' | 'past')}
-                    size={ESize.lg}
-                />
-            </AtomDiv>
-
-            <OrganismTable<AdminReservationTableRow>
-                badge={null}
-                columns={reservationColumns}
-                emptyMessage={listTab === 'upcoming' ? t('admin.reservations.emptyUpcoming') : t('admin.reservations.emptyPast')}
-                isLoading={loading}
-                pageSize={100}
-                rows={tableRows}
-                searchable={false}
-                tableClassName="text-sm"
+                    </AtomDiv>
+                }
             />
 
             {modalPortal(
@@ -574,6 +585,6 @@ export default function AdminReservationsPage() {
                     onSubmit={adminSubmit}
                 />,
             )}
-        </AtomDiv>
+        </>
     );
 }

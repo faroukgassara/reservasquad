@@ -288,7 +288,7 @@ const OrganismTable = <TRow,>({
             </div>
           )}
 
-          {totalPages > 1 && (
+          {(totalPages > 1 || paginatedRows.length > 0) && (
             <MoleculeTablePagination
               page={currentPage}
               totalPages={totalPages}

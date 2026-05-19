@@ -13,6 +13,7 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 import { EToastType } from '@/Enum/Enum';
 import { Routes } from '@/lib/routes';
 import { useToast } from '@/contexts/ToastContext';
+import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import TemplateResetPassword from '@/components/Templates/TemplateResetPassword/TemplateResetPassword';
 import { CommonFunction } from '@/common/Function/Function';
 
@@ -135,13 +136,17 @@ export default function ResetPasswordPage() {
         !token || (!isValidatingToken && !isTokenValid) ? 'invalid' : 'valid';
 
     return (
-        <TemplateResetPassword
-            variant={variant}
-            form={form}
-            isTokenValid={isTokenValid}
-            isValidatingToken={isValidatingToken}
-            onCancel={() => router.push(Routes.Login)}
-            onBackToForgotPassword={() => router.push(Routes.ForgotPassword)}
+        <LayoutWrapper
+            mainSection={
+                <TemplateResetPassword
+                    variant={variant}
+                    form={form}
+                    isTokenValid={isTokenValid}
+                    isValidatingToken={isValidatingToken}
+                    onCancel={() => router.push(Routes.Login)}
+                    onBackToForgotPassword={() => router.push(Routes.ForgotPassword)}
+                />
+            }
         />
     );
 }

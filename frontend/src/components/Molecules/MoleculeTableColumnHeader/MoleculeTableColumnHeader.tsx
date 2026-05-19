@@ -25,13 +25,17 @@ const MoleculeTableColumnHeader = ({
             style={width ? { width } : undefined}
             onClick={() => sortable && onSort(keyCol)}
             className={twMerge(
-                'border-b border-gray-200 bg-gray-50 px-6 py-3 text-left',
+                'border-b border-gray-200 bg-gray-50 px-5 py-3 text-left',
                 sortable ? 'cursor-pointer select-none' : '',
                 headerClassName
             )}
         >
             <div className="flex items-center gap-1 whitespace-nowrap">
-                <AtomLabel color="text-gray-600" className="text-gray-600" variant={EVariantLabel.bodySmall}>
+                <AtomLabel
+                    color="text-gray-500"
+                    className="text-[11px] font-semibold uppercase tracking-wider"
+                    variant={EVariantLabel.bodySmall}
+                >
                     {label}
                 </AtomLabel>
                 {sortable && (

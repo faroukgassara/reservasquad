@@ -12,6 +12,7 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 import { Routes } from '@/lib/routes';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
+import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import TemplateForgotPassword from '@/components/Templates/TemplateForgotPassword/TemplateForgotPassword';
 import { CommonFunction } from '@/common/Function/Function';
 
@@ -76,9 +77,13 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <TemplateForgotPassword
-            form={form}
-            showMaxAttemptsHint={showMaxAttemptsHint}
+        <LayoutWrapper
+            mainSection={
+                <TemplateForgotPassword
+                    form={form}
+                    showMaxAttemptsHint={showMaxAttemptsHint}
+                />
+            }
         />
     );
 }

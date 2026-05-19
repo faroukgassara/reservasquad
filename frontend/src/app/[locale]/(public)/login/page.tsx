@@ -11,6 +11,7 @@ import { Routes } from '@/lib/routes';
 import { useRef } from 'react';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
+import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import TemplateLogin from '@/components/Templates/TemplateLogin/TemplateLogin';
 
 export default function LoginPage() {
@@ -75,7 +76,5 @@ export default function LoginPage() {
         }
     };
 
-    return (
-        <TemplateLogin form={form} />
-    );
+    return <LayoutWrapper mainSection={<TemplateLogin form={form} />} />;
 }

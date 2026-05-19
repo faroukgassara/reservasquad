@@ -204,7 +204,8 @@
     "accessDenied": "Administrateurs uniquement.",
     "accessDeniedReservations": "Accès réservé aux administrateurs.",
     "rooms": {
-      "title": "Gestion des salles",
+      "title": "Salles",
+      "subtitle": "Gestion des salles d'étude et des équipements",
       "newRoom": "Nouvelle salle",
       "editRoom": "Modifier : {name}",
       "name": "Nom",
@@ -223,7 +224,8 @@
       "deleteFailed": "Suppression impossible (réservations liées)"
     },
     "teachers": {
-      "title": "Professeurs (liste de réservation)",
+      "title": "Professeurs",
+      "subtitle": "Liste de réservation pour le calendrier public",
       "description": "Les professeurs n'ont pas de mot de passe par défaut : ils sont choisis sur le calendrier public. Chaque réservation est liée au profil sélectionné.",
       "newTeacher": "Nouveau professeur",
       "editTeacher": "Modifier : {name}",
@@ -238,8 +240,10 @@
       "deleteFailed": "Suppression impossible : des réservations sont liées à ce profil."
     },
     "reservations": {
-      "title": "Réservations (admin)",
-      "createForTeacher": "Créer pour un professeur",
+      "title": "Réservations",
+      "subtitle": "Liste de toutes les réservations",
+      "createForTeacher": "Ajouter",
+      "createForTeacherLong": "Créer pour un professeur",
       "filterRoom": "Filtrer par salle",
       "filterStatus": "Statut",
       "allRooms": "Toutes les salles",

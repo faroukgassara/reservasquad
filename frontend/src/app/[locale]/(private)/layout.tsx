@@ -146,7 +146,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                     </SidebarFooter>
                 </MoleculeSidebar>
 
-                <main className="min-h-0 flex-1 overflow-y-auto bg-primary-25 md:min-h-0">
+                <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white md:min-h-0">
                     {children}
                 </main>
             </div>

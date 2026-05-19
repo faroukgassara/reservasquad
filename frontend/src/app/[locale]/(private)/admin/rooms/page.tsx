@@ -5,6 +5,7 @@ import { EToastType } from '@/Enum/Enum';
 import { ApiError, backendFetch } from '@/lib/reservasquad-api';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
+import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import { useTranslations } from 'next-intl';
 
 type Room = {
@@ -133,11 +134,11 @@ export default function AdminRoomsPage() {
     if (status === 'loading') return null;
 
     return (
-        <div className="p-4 lg:p-8">
-            <h1 className="mb-6 text-2xl font-semibold text-primary-900">
-                {t('admin.rooms.title')}
-            </h1>
-
+        <LayoutWrapper
+            title={t('admin.rooms.title')}
+            subTitle={t('admin.rooms.subtitle')}
+            mainSection={
+                <>
             <form
                 onSubmit={submit}
                 className="mb-8 grid gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2"
@@ -285,6 +286,8 @@ export default function AdminRoomsPage() {
                     </tbody>
                 </table>
             </div>
-        </div>
+                </>
+            }
+        />
     );
 }

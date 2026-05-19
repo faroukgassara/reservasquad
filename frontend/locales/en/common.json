@@ -204,7 +204,8 @@
     "accessDenied": "Administrators only.",
     "accessDeniedReservations": "Access restricted to administrators.",
     "rooms": {
-      "title": "Room management",
+      "title": "Rooms",
+      "subtitle": "Manage study rooms and equipment",
       "newRoom": "New room",
       "editRoom": "Edit: {name}",
       "name": "Name",
@@ -223,7 +224,8 @@
       "deleteFailed": "Cannot delete (linked reservations)"
     },
     "teachers": {
-      "title": "Teachers (booking list)",
+      "title": "Teachers",
+      "subtitle": "Booking directory for public calendar",
       "description": "Teachers have no password by default: they are selected on the public calendar. Each booking is linked to the selected profile.",
       "newTeacher": "New teacher",
       "editTeacher": "Edit: {name}",
@@ -238,8 +240,10 @@
       "deleteFailed": "Cannot delete: reservations are linked to this profile."
     },
     "reservations": {
-      "title": "Reservations (admin)",
-      "createForTeacher": "Create for a teacher",
+      "title": "Reservations",
+      "subtitle": "All reservations list",
+      "createForTeacher": "Add",
+      "createForTeacherLong": "Create for a teacher",
       "filterRoom": "Filter by room",
       "filterStatus": "Status",
       "allRooms": "All rooms",
