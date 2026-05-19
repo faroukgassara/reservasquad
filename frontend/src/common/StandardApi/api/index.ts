@@ -1,16 +1,16 @@
 
 
 import { ApiResponse } from "../types";
-import { CommonFunction, Config } from "@/common";
 import { IRefreshApiResponse } from "@/interfaces";
 import { IApi } from "../interfaces/IApi";
 import { HttpStatus } from "../interfaces/EHttpStatus";
 import { Method } from "../interfaces/EMethod";
+import { CommonFunction } from "@/common/Function/Function";
 
 export class Api implements IApi {
   private readonly apiURL: string;
 
-  constructor(apiURL = Config.getInstance().FRONT_URL) {
+  constructor(apiURL = process.env.NEXT_PUBLIC_FRONT_URL) {
     this.apiURL = `${apiURL}`;
     this.isFormData = this.isFormData.bind(this);
     this.standardApi = this.standardApi.bind(this);

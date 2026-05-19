@@ -6,7 +6,6 @@ import { randomUUID } from 'crypto';
 import { CommonFunctionService } from 'src/common/common-services/common-function';
 import { FileUploadService } from 'src/common/common-services/file-upload.service';
 import { EmailService } from 'src/common/email/email.service';
-import { IEnv } from 'src/common/env/env';
 import { AuthResponseDto } from 'src/dto/login/authResponse.dto';
 import { AuthUserPayloadDto } from 'src/dto/login/authUserPayload.dto';
 import { LoginDTO } from 'src/dto/login/login.dto';
@@ -15,7 +14,6 @@ import { normalizeEmail } from 'src/common/utils/email.util';
 
 @Injectable()
 export class AuthService {
-  readonly config: IEnv
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
@@ -24,7 +22,6 @@ export class AuthService {
     private readonly commonFunction: CommonFunctionService,
 
   ) {
-    this.config = this.configService.get<IEnv>('env');
   }
 
   private async findActiveResetToken(token: string) {
@@ -157,18 +154,18 @@ export class AuthService {
     const resetPasswordClientTemplate = await this.fileUploadService.renderTemplate(
       {
         link:
-          this.config.FRONT_URL +
+          process.env.FRONT_URL +
           '/reset-password/' +
           resetToken,
-        apiUrl: this.config.HOST + ':' + this.config.PORT,
-        frontUrl: this.config.FRONT_URL
+        apiUrl: process.env.HOST + ':' + process.env.PORT,
+        frontUrl: process.env.FRONT_URL
       },
       'resetPasswordClient.ejs',
     );
     if (resetToken) {
       this.emailService.sendMail({
         to: normalizedEmail,
-        from: this.config.SMTP_SEND,
+        from: process.env.SMTP_SEND,
         subject: 'Demande de réinitialisation de mot de passe',
         template: resetPasswordClientTemplate,
         attachments: [],

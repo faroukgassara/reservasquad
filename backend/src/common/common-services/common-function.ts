@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
-import { IEnv } from '../env/env';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as iconv from 'iconv-lite';
@@ -11,13 +10,11 @@ import { IJwtUserPayload } from 'src/interface/request/request.interface';
 @Injectable()
 export class CommonFunctionService {
     private readonly logger = new Logger();
-    readonly config?: IEnv
     constructor(
         readonly configService: ConfigService,
         readonly prisma: PrismaService,
         readonly jwtService: JwtService,
     ) {
-        this.config = this.configService.get<IEnv>('env');
     }
 
     public formatCode(code: string): string {
@@ -59,17 +56,17 @@ export class CommonFunctionService {
             tokenVersion: user.tokenVersion ?? 0,
         };
 
-        const accessExpiresIn = this.config.JWT_SECRET_EXPIRES_IN as any;
+        const accessExpiresIn = process.env.JWT_SECRET_EXPIRES_IN as any;
         const refreshExpiresIn = rememberMe
-            ? this.config.JWT_REFRESH_SECRET_EXPIRES_IN as any
+            ? process.env.JWT_REFRESH_SECRET_EXPIRES_IN as any
             : '1d';
 
         const access_token = this.jwtService.sign(payload, {
-            secret: this.config.JWT_SECRET,
+            secret: process.env.JWT_SECRET,
             expiresIn: accessExpiresIn,
         });
         const refresh_token = this.jwtService.sign(payload, {
-            secret: this.config.JWT_REFRESH_SECRET,
+            secret: process.env.JWT_REFRESH_SECRET,
             expiresIn: refreshExpiresIn,
         });
         return {
@@ -88,8 +85,8 @@ export class CommonFunctionService {
             jti,
         };
         return this.jwtService.sign(payload, {
-            secret: this.config.JWT_RESET_SECRET,
-            expiresIn: this.config.JWT_RESET_SECRET_EXPIRES_IN as any,
+            secret: process.env.JWT_RESET_SECRET,
+            expiresIn: process.env.JWT_RESET_SECRET_EXPIRES_IN as any,
         });
     }
 
@@ -100,7 +97,7 @@ export class CommonFunctionService {
     public verifyResetPasswordToken(token: string): { sub?: string; email?: string; exp?: number; jti?: string } | null {
         try {
             return this.jwtService.verify(token, {
-                secret: this.config.JWT_RESET_SECRET,
+                secret: process.env.JWT_RESET_SECRET,
             });
         } catch (_) {
             return null;
@@ -112,60 +109,6 @@ export class CommonFunctionService {
         const step2 = (iconv as any).decode(Buffer.from(step1, 'binary'), 'utf8');
         return step2;
     }
-
-    // public async fetchAndUploadFiles(endpoint: string, id: string, typeFile: EFileType, type: EType, token: string) {
-    //     const files = [];
-    //     let counter = 1;
-    //     try {
-    //         const url = `${this.config.ERP_API_URL}/${endpoint}`;
-    //         const response = await axios.get(url,
-    //             {
-    //                 headers: {
-    //                     Authorization: `Bearer ${token}`,
-    //                 },
-    //             }
-    //         );
-    //         if (!Array.isArray(response.data)) return files;
-    //         for (const fileData of response.data) {
-    //             const hexContent = fileData.hex || fileData.Img || fileData.FileDoss;
-    //             const buffer = this.convertHexToBuffer(hexContent);
-    //             if (!buffer) {
-    //                 this.logger.warn(`Invalid hex content, skipping file.`);
-    //                 continue;
-    //             }
-    //             const fileType = await fileTypeDetector.fromBuffer(buffer);
-    //             if (!fileType) {
-    //                 this.logger.warn(`Cannot detect file type, skipping file.`);
-    //                 continue;
-    //             }
-    //             const ext = fileType.ext;
-    //             const name = typeFile === EFileType.image ? `img${counter}.${ext}` : `doc${counter}.${ext}`;
-    //             counter++;
-    //             const key = type === EType.product
-    //                 ? (typeFile === EFileType.document
-    //                     ? formatProductDocumentKey(this.config.ENVIRONMENT, name, id)
-    //                     : formatProductImageKey(this.config.ENVIRONMENT, name, id))
-    //                 : (typeFile === EFileType.document
-    //                     ? formatPromoDocumentKey(this.config.ENVIRONMENT, name, id)
-    //                     : formatPromoImageKey(this.config.ENVIRONMENT, name, id));
-    //             const uploadStatus = await this.awsS3Service.uploadFile(key, buffer);
-    //             if (uploadStatus === 200 || uploadStatus === 201) {
-    //                 const fileRecord: any = {
-    //                     fileName: name,
-    //                     fileSize: `${(buffer.length / 1024).toFixed(2)} Ko`,
-    //                     fileFormat: ext,
-    //                     fileRef: key,
-    //                 };
-    //                 files.push(fileRecord);
-    //             } else {
-    //                 this.logger.warn(`Failed to upload file ${name} to S3`);
-    //             }
-    //         }
-    //     } catch (error) {
-    //         this.logger.error(`Error fetching or uploading ERP file from ${endpoint}:`, error);
-    //     }
-    //     return files;
-    // }
 
     public convertHexToBuffer(hex: string): Buffer | null {
         try {

@@ -1,6 +1,5 @@
 // find-many.proxy.ts
 
-import { DEFAULT_QUERY_LIMIT } from '../../config';
 import { PaginationData, ProxyFunctions } from './types';
 import { paginatedResponse, PaginatedResponse } from './proxy';
 
@@ -32,7 +31,7 @@ export function makeFindManyPaginated<T>(model: ProxyFunctions) {
             const limit =
                 paginationInfo?.perPage || paginationInfo?.perPage === 0
                     ? paginationInfo?.perPage
-                    : DEFAULT_QUERY_LIMIT;
+                    : 10;
 
             const query = data || {};
             query.take = limit === 0 ? undefined : limit;

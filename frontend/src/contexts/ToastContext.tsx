@@ -12,7 +12,6 @@ import { ESize, EToastType, IconComponentsEnum } from '@/Enum/Enum'
 import type { ELabelColor } from '@/theme/labelColors'
 import colors from '@/theme/colors'
 import { TToastContextProps, TToastOptions } from '@/types'
-import { DEFAULT_TOAST_DURATION_IN_MS } from '@/common'
 import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon'
 
 const toastConfigs: Record<
@@ -117,7 +116,7 @@ const ToastProvider = ({ children }: WithChildren) => {
 
             const toastOptions: ReactToastifyOptions = {
                 position: options.position || 'top-right',
-                autoClose: options.duration ?? DEFAULT_TOAST_DURATION_IN_MS,
+                autoClose: options.duration ?? 5000,
                 hideProgressBar: true,
                 closeButton: options.withoutCloseButton
                     ? false

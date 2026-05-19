@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { EButtonType } from '@/Enum/Enum';
 import { IAtomButton } from '@/interfaces';
-import { TYPE_VARIANT_CLASSES } from '@/common';
+import { TYPE_VARIANT_CLASSES } from '@/common/Data/Data';
 
 const AtomButton = memo(function AtomButton({
     className = '',

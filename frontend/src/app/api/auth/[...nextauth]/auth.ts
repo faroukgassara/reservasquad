@@ -1,10 +1,8 @@
 import { Routes } from '@/lib/routes';
 import { Api } from '@/common/StandardApi/api';
-import { Config } from '@/common';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-const config = Config.getInstance();
-const api = new Api(config.API_URL);
+const api = new Api(process.env.NEXT_PUBLIC_API_URL);
 
 export const authOptions = {
     secret: process.env.NEXTAUTH_SECRET,

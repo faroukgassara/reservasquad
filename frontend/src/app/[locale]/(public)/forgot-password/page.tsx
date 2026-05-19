@@ -7,13 +7,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormSchema } from '@/common/Data/FormSchema';
 import { FormDefaultData } from '@/common/Data/FormDefaultData';
-import { CommonFunction } from '@/common';
 import { Api } from '@/common/StandardApi/api';
 import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 import { Routes } from '@/lib/routes';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
 import TemplateForgotPassword from '@/components/Templates/TemplateForgotPassword/TemplateForgotPassword';
+import { CommonFunction } from '@/common/Function/Function';
 
 export default function ForgotPasswordPage() {
     const t = useTranslations();

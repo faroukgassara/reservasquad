@@ -4,10 +4,10 @@ import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import { EButtonSize, EButtonType, EFontFamily, EVariantLabel } from '@/Enum/Enum';
 import IMoleculeButton from '@/interfaces/Molecules/IMoleculeButton/IMoleculeButton';
 import type { ELabelColor } from '@/theme/labelColors';
-import { BUTTON_LABEL_COLOR, BUTTON_SIZES, ICON_ONLY_SIZES, ICON_SIZES } from '@/common';
 import AtomSpinner from '@/components/Atoms/AtomSpinner/AtomSpinner';
 import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import { BUTTON_LABEL_COLOR, BUTTON_SIZES, ICON_ONLY_SIZES, ICON_SIZES } from '@/common/Data/Data';
 
 const MoleculeButton = memo(function MoleculeButton({
   text,

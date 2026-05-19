@@ -8,13 +8,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
 import { FormSchema } from '@/common/Data/FormSchema';
 import { FormDefaultData } from '@/common/Data/FormDefaultData';
-import { CommonFunction } from '@/common';
 import { Api } from '@/common/StandardApi/api';
 import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 import { EToastType } from '@/Enum/Enum';
 import { Routes } from '@/lib/routes';
 import { useToast } from '@/contexts/ToastContext';
 import TemplateResetPassword from '@/components/Templates/TemplateResetPassword/TemplateResetPassword';
+import { CommonFunction } from '@/common/Function/Function';
 
 export default function ResetPasswordPage() {
     const t = useTranslations();

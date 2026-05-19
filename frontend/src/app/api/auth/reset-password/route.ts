@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { Api } from '@/common/StandardApi/api';
-import { CommonFunction, Config } from '@/common';
+import { CommonFunction } from '@/common/Function/Function';
 
 export async function POST(req: Request) {
     try {
-        const config = Config.getInstance();
-        const api = new Api(config.API_URL);
+        const api = new Api(process.env.NEXT_PUBLIC_API_URL);
         const { searchParams } = new URL(req.url);
         const lang = searchParams.get('lang') || 'fr';
         const body = await req.json();
