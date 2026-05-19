@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import MoleculeDropdown from "@/components/Molecules/MoleculeDropdown/MoleculeDropdown";
@@ -5,6 +7,7 @@ import MoleculeMultiSelect from "@/components/Molecules/MoleculeMultiSelect/Mole
 import MoleculeDateRange from "@/components/Molecules/Moleculedaterange/Moleculedaterange";
 import AtomButton from "@/components/Atoms/AtomButton/AtomButton";
 import IOrganismFiltersPanel, { FilterField } from "@/interfaces/Organisms/IOrganismFiltersPanel/IOrganismFiltersPanel";
+import { useTranslations } from "next-intl";
 
 export type FilterFieldType = "multiselect" | "dropdown" | "daterange";
 
@@ -41,6 +44,7 @@ const OrganismFiltersPanel = ({
   onCancel,
   className,
 }: IOrganismFiltersPanel) => {
+  const t = useTranslations();
   void _showSearch;
   const [draft, setDraft] = useState<FilterValues>(() =>
     buildDefaultDraft(fields, initialValues)
@@ -126,7 +130,7 @@ const OrganismFiltersPanel = ({
             "hover:bg-gray-50 transition-colors"
           )}
         >
-          Annuler
+          {t('common.cancel')}
         </AtomButton>
         <AtomButton 
         id="applyButton"
@@ -136,7 +140,7 @@ const OrganismFiltersPanel = ({
             "hover:bg-primary-700 transition-colors"
           )}
         >
-          Appliquer
+          {t('common.apply')}
         </AtomButton>
       </div>
     </div>

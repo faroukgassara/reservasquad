@@ -1,16 +1,23 @@
+'use client';
+
 import { twMerge } from 'tailwind-merge'
 import { EButtonSize, EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum'
 import { IMoleculeTablePagination } from '@/interfaces/Molecules/IMoleculeTablePagination/IMoleculeTablePagination'
 import MoleculeButton from '../MoleculeButton/MoleculeButton'
+import { useTranslations } from 'next-intl'
 
 const MoleculeTablePagination = ({
   page,
   totalPages,
   onChange,
-  labelPrev = 'Précédent',
-  labelNext = 'Suivant',
+  labelPrev,
+  labelNext,
   className,
 }: IMoleculeTablePagination) => {
+  const t = useTranslations();
+  const prevLabel = labelPrev ?? t('table.previous');
+  const nextLabel = labelNext ?? t('table.next');
+
   return (
     <div
       className={twMerge(
@@ -18,10 +25,9 @@ const MoleculeTablePagination = ({
         className
       )}
     >
-      {/* Prev */}
       <MoleculeButton
-        id={`button-${labelPrev}`}
-        text={labelPrev}
+        id={`button-${prevLabel}`}
+        text={prevLabel}
         icon={{ name: IconComponentsEnum.arrowLeft, size: ESize.sm, color: 'text-gray-700' }}
         iconPosition="left"
         type={EButtonType.gray}
@@ -30,11 +36,9 @@ const MoleculeTablePagination = ({
         onClick={() => onChange(page - 1)}
       />
 
-
-      {/* Next */}
       <MoleculeButton
-        id={`button-${labelNext}`}
-        text={labelNext}
+        id={`button-${nextLabel}`}
+        text={nextLabel}
         icon={{ name: IconComponentsEnum.arrowRight, size: ESize.sm, color: 'text-gray-700' }}
         iconPosition="right"
         type={EButtonType.gray}

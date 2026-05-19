@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useState, useMemo } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { useTranslations } from 'next-intl'
 import MoleculeTableSearchBar from '@/components/Molecules/MoleculeTableSearchBar/MoleculeTableSearchBar'
 import MoleculeTableColumnHeader from '@/components/Molecules/MoleculeTableColumnHeader/MoleculeTableColumnHeader'
 import MoleculeTableRow from '@/components/Molecules/MoleculeTableRow/MoleculeTableRow'
@@ -38,7 +41,7 @@ const OrganismTable = <TRow,>({
   actions,
   footer,
   isLoading = false,
-  emptyMessage = 'Aucune donnée disponible',
+  emptyMessage: emptyMessageProp,
   className,
   tableClassName,
   footerClassName,
@@ -46,6 +49,8 @@ const OrganismTable = <TRow,>({
   onAddTag,
   clearSearchOnAddTag,
 }: IOrganismTable<TRow>) => {
+  const t = useTranslations()
+  const emptyMessage = emptyMessageProp ?? t('table.noData')
 
   const [internalSearch, setInternalSearch] = useState('')
   const [internalSort, setInternalSort] = useState<ITableSortConfig | null>(null)
@@ -160,7 +165,7 @@ const OrganismTable = <TRow,>({
           filterTags={filterTags}
           onRemoveTag={onRemoveTag}
           onReset={onReset}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('table.search')}
           onAddTag={onAddTag}
           clearSearchOnAddTag={clearSearchOnAddTag}
           onClickFilter={onClickFilter}
@@ -194,7 +199,7 @@ const OrganismTable = <TRow,>({
               <div className="flex items-center gap-2">
                 {headerActions}
                 <MoleculeDropdown
-                  placeholder="Colonnes"
+                  placeholder={t('table.columns')}
                   multiSelect={true}
                   value={Object.keys(visibleCols).filter(k => visibleCols[k])}
                   options={flatColumns.map(c => ({ label: c.label, value: c.key }))}
@@ -288,8 +293,8 @@ const OrganismTable = <TRow,>({
               page={currentPage}
               totalPages={totalPages}
               onChange={handlePageChange}
-              labelPrev={labelPrev}
-              labelNext={labelNext}
+              labelPrev={labelPrev ?? t('table.previous')}
+              labelNext={labelNext ?? t('table.next')}
             />
           )}
         </div>

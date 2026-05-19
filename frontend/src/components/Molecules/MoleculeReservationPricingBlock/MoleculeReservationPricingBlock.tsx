@@ -7,10 +7,11 @@ import MoleculeInput from '@/components/Molecules/MoleculeInput/MoleculeInput';
 import { EInputType, EVariantLabel } from '@/Enum/Enum';
 import {
     formatTnd,
-    RESERVATION_PRICE_MODE_OPTIONS,
     type ReservationPriceMode,
 } from '@/lib/reservation-pricing';
 import type { ChangeEvent } from 'react';
+import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 
 function dropdownToString(value: string | number | string[]): string {
     return String(Array.isArray(value) ? value[0] ?? '' : value);
@@ -31,19 +32,30 @@ export default function MoleculeReservationPricingBlock({
     onPriceModeChange,
     onManualPriceChange,
 }: Props) {
+    const t = useTranslations();
+
+    const priceModeOptions = useMemo(
+        () =>
+            (['ROOM_HOURLY', 'PER_PARTICIPANT', 'MANUAL'] as ReservationPriceMode[]).map((mode) => ({
+                value: mode,
+                label: t(`reservation.priceMode.${mode}`),
+            })),
+        [t],
+    );
+
     return (
         <AtomDiv className="flex flex-col gap-3 border-t border-slate-100 pt-3">
             <MoleculeDropdown
-                label="Calcul du prix (TND)"
+                label={t('reservation.pricing.title')}
                 required
-                options={RESERVATION_PRICE_MODE_OPTIONS}
+                options={priceModeOptions}
                 value={priceMode}
                 onChange={(v) => onPriceModeChange(dropdownToString(v) as ReservationPriceMode)}
             />
             {priceMode === 'MANUAL' ?
                 <MoleculeInput
                     id="reservation-price-manual"
-                    label="Montant (TND)"
+                    label={t('reservation.pricing.amount')}
                     required
                     type={EInputType.number}
                     min={0}
@@ -55,7 +67,7 @@ export default function MoleculeReservationPricingBlock({
                 />
             : null}
             <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-600">
-                Total estimatif :{' '}
+                {t('reservation.pricing.estimatedTotal')}{' '}
                 <span className="font-semibold text-gray-900">
                     {formatTnd(computedTotalTnd)} TND
                 </span>

@@ -15,7 +15,23 @@
     "next": "Next",
     "previous": "Previous",
     "submit": "Submit",
-    "reset": "Reset"
+    "reset": "Reset",
+    "refresh": "Refresh",
+    "close": "Close",
+    "apply": "Apply",
+    "update": "Update",
+    "actions": "Actions",
+    "columns": "Columns",
+    "noData": "No data available",
+    "selectOption": "Select an option",
+    "noOptions": "No options",
+    "noResults": "No results",
+    "allSelected": "All selected",
+    "peopleShort": "people",
+    "connected": "Signed in",
+    "user": "User",
+    "cancelEdit": "Cancel editing",
+    "dash": "—"
   },
   "auth": {
     "login": "Login",
@@ -32,7 +48,7 @@
     "welcome": "Welcome",
     "enterYourEmail": "Enter your email",
     "enterYourPassword": "Enter your password",
-    "loginRequired": "You must sign in to access the license management area",
+    "loginRequired": "You must sign in to access the administration area",
     "noAccount": "Don't have an account yet?",
     "contactSupport": "Contact Support",
     "loginFailed": "Login failed. Please try again.",
@@ -60,19 +76,189 @@
     "requestResetSent": "A reset link has been sent if the email exists.",
     "requestResetFailed": "Failed to send reset password request. Please try again."
   },
-  "licenses": {
-    "title": "Licenses",
-    "subTitle": "Create, assign, and manage your clients’ licenses.",
-    "createNewLicensesBtn": "Create a new license",
-    "packsInProgress": "Ongoing Packs",
-    "distributedLicenses": "Distributed Licenses",
-    "activeLicenses": "Active Licenses"
+  "brand": {
+    "name": "Reserva Squad"
+  },
+  "metadata": {
+    "title": "Reserva Squad — Study rooms",
+    "description": "Study room booking application for teachers and administration."
+  },
+  "home": {
+    "title": "Book your study rooms",
+    "subtitle": "Shared calendar, admin validation, equipment per room.",
+    "bookRoom": "Book a room"
   },
   "navigation": {
     "home": "Home",
-    "licenses": "Licenses",
-    "profile": "Profile",
-    "settings": "Settings"
+    "bookRoom": "Book a room",
+    "book": "Book",
+    "administration": "Administration",
+    "adminLogin": "Admin login",
+    "navigation": "Navigation",
+    "footerTagline": "Study room booking: shared calendar and admin validation.",
+    "copyright": "© {year} Reserva Squad",
+    "calendar": "Calendar",
+    "bookWithoutAccount": "Book (no account)",
+    "reservationsAdmin": "Reservations (admin)",
+    "rooms": "Rooms",
+    "teachers": "Teachers"
+  },
+  "calendar": {
+    "title": "Study room schedule",
+    "views": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day"
+    },
+    "subtitles": {
+      "month": "Monthly view — click a day to book or view a reservation.",
+      "week": "Week view (Mon – Sun). Use + or chips to take action.",
+      "day": "Day view — slots sorted by start time."
+    },
+    "nav": {
+      "prevMonth": "← Previous month",
+      "nextMonth": "Next month →",
+      "prevWeek": "← Prev. week",
+      "nextWeek": "Next week →",
+      "prevDay": "← Previous day",
+      "nextDay": "Next day →"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "newBooking": "New booking",
+    "bookThisDay": "Book this day",
+    "noReservationsDay": "No reservations on this day. Click « Book this day » to add one.",
+    "loadFailed": "Unable to load",
+    "banner": {
+      "publicPrefix": "Booking without account · status",
+      "publicSuffix": "until admin approval.",
+      "adminLogin": "Admin login",
+      "adminHint": "Calendar view — same schedule as the public page. Confirm or reject requests from the detailed list.",
+      "adminListLink": "List & validation"
+    }
+  },
+  "reservation": {
+    "newRequest": "New booking request",
+    "detail": "Reservation details",
+    "closePanel": "Close panel",
+    "teacher": "Teacher",
+    "room": "Room",
+    "date": "Date",
+    "start": "Start",
+    "end": "End",
+    "participants": "Participants",
+    "peopleCount": "Number of people",
+    "purpose": "Purpose / description",
+    "schedule": "Schedule",
+    "priceTnd": "Price (TND)",
+    "status": "Status",
+    "motif": "Purpose",
+    "payment": "Payment",
+    "slot": "Time slot",
+    "requester": "Requester",
+    "places": "Seats",
+    "choosePlaceholder": "— Choose —",
+    "noTeacherAdmin": "No teacher (admin)",
+    "teacherListHint": "The list is updated by the administration.",
+    "roomCapacityHint": "Max capacity {capacity} for this room",
+    "roomOption": "{name} ({capacity} people)",
+    "submitting": "Sending…",
+    "sendRequest": "Send request",
+    "selectTeacherError": "Choose a teacher from the list (managed by the administration).",
+    "bookingSuccess": "Request saved. It will appear as pending until validated by an administrator.",
+    "bookingFailed": "Booking failed",
+    "statusLabels": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled"
+    },
+    "paid": "Paid",
+    "unpaid": "Not paid",
+    "confirm": "Confirm",
+    "refuse": "Reject",
+    "priceMode": {
+      "ROOM_HOURLY": "Room × duration (hourly rate)",
+      "PER_PARTICIPANT": "Participants × 2.5 TND",
+      "MANUAL": "Manual price"
+    },
+    "priceModeCaption": {
+      "ROOM_HOURLY": "Room hourly rate",
+      "PER_PARTICIPANT": "Participants × 2.5",
+      "MANUAL": "Manual"
+    },
+    "pricing": {
+      "title": "Price calculation (TND)",
+      "amount": "Amount (TND)",
+      "estimatedTotal": "Estimated total:"
+    },
+    "adminConfirmedBooking": "Confirmed booking (teacher)"
+  },
+  "admin": {
+    "accessDenied": "Administrators only.",
+    "accessDeniedReservations": "Access restricted to administrators.",
+    "rooms": {
+      "title": "Room management",
+      "newRoom": "New room",
+      "editRoom": "Edit: {name}",
+      "name": "Name",
+      "capacity": "Capacity",
+      "capacityShort": "Cap.",
+      "color": "Color (hex badge)",
+      "pricePerHour": "Price / hour (TND)",
+      "description": "Description",
+      "equipment": "Equipment (comma-separated)",
+      "tndPerHour": "TND/h",
+      "equipmentCol": "Equipment",
+      "updated": "Room updated successfully.",
+      "created": "Room created successfully.",
+      "deleted": "Room deleted successfully.",
+      "deleteConfirm": "Delete this room?",
+      "deleteFailed": "Cannot delete (linked reservations)"
+    },
+    "teachers": {
+      "title": "Teachers (booking list)",
+      "description": "Teachers have no password by default: they are selected on the public calendar. Each booking is linked to the selected profile.",
+      "newTeacher": "New teacher",
+      "editTeacher": "Edit: {name}",
+      "displayName": "Display name",
+      "emailUnique": "Email (unique)",
+      "phone": "Phone",
+      "phonePlaceholder": "+33 …",
+      "reservations": "Reservations",
+      "updated": "Teacher updated successfully.",
+      "created": "Teacher created successfully.",
+      "deleteConfirm": "Delete this teacher?",
+      "deleteFailed": "Cannot delete: reservations are linked to this profile."
+    },
+    "reservations": {
+      "title": "Reservations (admin)",
+      "createForTeacher": "Create for a teacher",
+      "filterRoom": "Filter by room",
+      "filterStatus": "Status",
+      "allRooms": "All rooms",
+      "allStatuses": "All statuses",
+      "tabs": {
+        "upcoming": "Upcoming",
+        "past": "Past"
+      },
+      "emptyUpcoming": "No upcoming reservations.",
+      "emptyPast": "No past reservations."
+    }
+  },
+  "table": {
+    "search": "Search",
+    "reset": "Reset",
+    "previous": "Previous",
+    "next": "Next",
+    "columns": "Columns",
+    "noData": "No data available"
   },
   "errors": {
     "internalServerError": "Internal server error",
@@ -80,6 +266,7 @@
     "failedToFetch": "Failed to fetch",
     "failedToCreate": "Failed to create",
     "unauthorized": "Unauthorized access",
-    "notFound": "Not found"
+    "notFound": "Not found",
+    "generic": "An error occurred"
   }
 }

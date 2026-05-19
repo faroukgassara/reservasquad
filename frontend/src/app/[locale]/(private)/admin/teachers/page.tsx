@@ -5,6 +5,7 @@ import { EToastType } from '@/Enum/Enum';
 import { ApiError, backendFetch } from '@/lib/reservasquad-api';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 type TeacherRow = {
     id: string;
@@ -21,6 +22,7 @@ export default function AdminTeachersPage() {
     const token = session?.accessToken;
     const role = session?.user?.role;
     const { openToast } = useToast();
+    const t = useTranslations();
     const [rows, setRows] = useState<TeacherRow[]>([]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -69,37 +71,41 @@ export default function AdminTeachersPage() {
             setPhone('');
             setEditing(null);
             await load();
-            openToast('Success', editing ? 'Professeur modifié avec succès.' : 'Professeur créé avec succès.', {
-                type: EToastType.SUCCESS,
-            });
+            openToast(
+                t('common.success'),
+                editing ? t('admin.teachers.updated') : t('admin.teachers.created'),
+                { type: EToastType.SUCCESS },
+            );
         } catch (err) {
-            openToast('Error', err instanceof ApiError ? err.message : 'Erreur', {
+            openToast(t('common.error'), err instanceof ApiError ? err.message : t('errors.generic'), {
                 type: EToastType.ERROR,
             });
         }
     };
 
-    const startEdit = (t: TeacherRow) => {
-        setEditing(t);
-        setName(t.name);
-        setEmail(t.email);
-        setPhone(t.phone ?? '');
+    const startEdit = (teacher: TeacherRow) => {
+        setEditing(teacher);
+        setName(teacher.name);
+        setEmail(teacher.email);
+        setPhone(teacher.phone ?? '');
     };
 
     const remove = async (id: string) => {
-        if (!token || !confirm('Supprimer ce professeur ?')) return;
+        if (!token || !confirm(t('admin.teachers.deleteConfirm'))) return;
         try {
             await backendFetch(token, `/directory/teachers/${id}`, { method: 'DELETE' });
             await load();
         } catch (e) {
-            openToast('Error', e instanceof ApiError ? e.message : 'Suppression impossible : des réservations sont liées à ce profil.', {
-                type: EToastType.ERROR,
-            });
+            openToast(
+                t('common.error'),
+                e instanceof ApiError ? e.message : t('admin.teachers.deleteFailed'),
+                { type: EToastType.ERROR },
+            );
         }
     };
 
     if (role !== 'ADMIN') {
-        return <div className="p-8 text-slate-600">Administrateurs uniquement.</div>;
+        return <div className="p-8 text-slate-600">{t('admin.accessDenied')}</div>;
     }
 
     if (status === 'loading') return null;
@@ -107,11 +113,10 @@ export default function AdminTeachersPage() {
     return (
         <div className="p-4 lg:p-8">
             <h1 className="mb-2 text-2xl font-semibold text-primary-900">
-                Professeurs (liste de réservation)
+                {t('admin.teachers.title')}
             </h1>
             <p className="mb-6 max-w-2xl text-sm text-slate-600">
-                Les professeurs n&apos;ont pas de mot de passe par défaut : ils sont choisis sur le
-                calendrier public. Chaque réservation est liée au profil sélectionné.
+                {t('admin.teachers.description')}
             </p>
 
             <form
@@ -119,10 +124,10 @@ export default function AdminTeachersPage() {
                 className="mb-8 grid gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2"
             >
                 <div className="md:col-span-2 font-medium text-slate-800">
-                    {editing ? `Modifier : ${editing.name}` : 'Nouveau professeur'}
+                    {editing ? t('admin.teachers.editTeacher', { name: editing.name }) : t('admin.teachers.newTeacher')}
                 </div>
                 <label className="flex flex-col gap-1 text-sm">
-                    Nom affiché
+                    {t('admin.teachers.displayName')}
                     <input
                         required
                         className="rounded border px-3 py-2"
@@ -131,7 +136,7 @@ export default function AdminTeachersPage() {
                     />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
-                    Email (unique)
+                    {t('admin.teachers.emailUnique')}
                     <input
                         type="email"
                         required
@@ -141,11 +146,11 @@ export default function AdminTeachersPage() {
                     />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
-                    Téléphone
+                    {t('admin.teachers.phone')}
                     <input
                         type="tel"
                         className="rounded border px-3 py-2"
-                        placeholder="+33 …"
+                        placeholder={t('admin.teachers.phonePlaceholder')}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                     />
@@ -162,14 +167,14 @@ export default function AdminTeachersPage() {
                                 setPhone('');
                             }}
                         >
-                            Annuler édition
+                            {t('common.cancelEdit')}
                         </button>
                     ) : null}
                     <button
                         type="submit"
                         className="rounded-lg bg-primary-900 px-4 py-2 text-sm font-semibold text-white"
                     >
-                        {editing ? 'Mettre à jour' : 'Créer'}
+                        {editing ? t('common.update') : t('common.create')}
                     </button>
                 </div>
             </form>
@@ -178,34 +183,34 @@ export default function AdminTeachersPage() {
                 <table className="min-w-full text-sm">
                     <thead className="border-b bg-slate-50 text-left text-xs uppercase text-slate-600">
                         <tr>
-                            <th className="px-4 py-3">Nom</th>
-                            <th className="px-4 py-3">Email</th>
-                            <th className="px-4 py-3">Téléphone</th>
-                            <th className="px-4 py-3">Réservations</th>
-                            <th className="px-4 py-3">Actions</th>
+                            <th className="px-4 py-3">{t('admin.rooms.name')}</th>
+                            <th className="px-4 py-3">{t('auth.email')}</th>
+                            <th className="px-4 py-3">{t('admin.teachers.phone')}</th>
+                            <th className="px-4 py-3">{t('admin.teachers.reservations')}</th>
+                            <th className="px-4 py-3">{t('common.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map((t) => (
-                            <tr key={t.id} className="border-b border-slate-100">
-                                <td className="px-4 py-2">{t.name}</td>
-                                <td className="px-4 py-2">{t.email}</td>
-                                <td className="px-4 py-2 text-slate-600">{t.phone ?? '—'}</td>
-                                <td className="px-4 py-2">{t._count.reservations}</td>
+                        {rows.map((teacher) => (
+                            <tr key={teacher.id} className="border-b border-slate-100">
+                                <td className="px-4 py-2">{teacher.name}</td>
+                                <td className="px-4 py-2">{teacher.email}</td>
+                                <td className="px-4 py-2 text-slate-600">{teacher.phone ?? t('common.dash')}</td>
+                                <td className="px-4 py-2">{teacher._count.reservations}</td>
                                 <td className="flex gap-2 px-4 py-2">
                                     <button
                                         type="button"
                                         className="text-xs underline"
-                                        onClick={() => startEdit(t)}
+                                        onClick={() => startEdit(teacher)}
                                     >
-                                        Éditer
+                                        {t('common.edit')}
                                     </button>
                                     <button
                                         type="button"
                                         className="text-xs text-red-700 underline"
-                                        onClick={() => void remove(t.id)}
+                                        onClick={() => void remove(teacher.id)}
                                     >
-                                        Supprimer
+                                        {t('common.delete')}
                                     </button>
                                 </td>
                             </tr>

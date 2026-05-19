@@ -8,7 +8,6 @@ import { ApiError, backendFetch } from '@/lib/reservasquad-api';
 import {
     formatTnd,
     previewReservationTotalTnd,
-    reservationPriceModeCaptionFr,
     type ReservationPriceMode,
 } from '@/lib/reservation-pricing';
 import { startTimeOptions, validEndsForStart } from '@/lib/time-slots';
@@ -24,6 +23,7 @@ import AdminTeacherReservationModal from '@/components/Modals/AdminTeacherReserv
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useTranslations } from 'next-intl';
 
 type AdminReservationTableRow = {
     reservation: CalendarReservation;
@@ -90,20 +90,21 @@ export default function AdminReservationsPage() {
     const [bookManualPrice, setBookManualPrice] = useState(0);
     const [submitting, setSubmitting] = useState(false);
     const { openToast } = useToast();
+    const t = useTranslations();
 
     const roomFilterOptions = useMemo(
-        () => [{ value: '', label: 'Toutes les salles' }, ...rooms.map((r) => ({ value: r.id, label: r.name }))],
-        [rooms],
+        () => [{ value: '', label: t('admin.reservations.allRooms') }, ...rooms.map((r) => ({ value: r.id, label: r.name }))],
+        [rooms, t],
     );
 
     const statFilterOptions = useMemo(
         () => [
-            { value: 'ALL', label: 'Tous statuts' },
-            { value: 'PENDING', label: 'Pending' },
-            { value: 'CONFIRMED', label: 'Confirmées' },
-            { value: 'CANCELLED', label: 'Annulées' },
+            { value: 'ALL', label: t('admin.reservations.allStatuses') },
+            { value: 'PENDING', label: t('reservation.statusLabels.PENDING') },
+            { value: 'CONFIRMED', label: t('reservation.statusLabels.CONFIRMED') },
+            { value: 'CANCELLED', label: t('reservation.statusLabels.CANCELLED') },
         ],
-        [],
+        [t],
     );
 
     const load = useCallback(async () => {
@@ -171,7 +172,7 @@ export default function AdminReservationsPage() {
                 });
                 await load();
             } catch (e) {
-                openToast('Error', e instanceof ApiError ? e.message : 'Erreur', {
+                openToast(t('common.error'), e instanceof ApiError ? e.message : t('errors.generic'), {
                     type: EToastType.ERROR,
                 });
             }
@@ -189,7 +190,7 @@ export default function AdminReservationsPage() {
                 });
                 await load();
             } catch (e) {
-                openToast('Error', e instanceof ApiError ? e.message : 'Erreur', {
+                openToast(t('common.error'), e instanceof ApiError ? e.message : t('errors.generic'), {
                     type: EToastType.ERROR,
                 });
             }
@@ -229,11 +230,11 @@ export default function AdminReservationsPage() {
                 places: r.numberOfPeople,
                 motif: r.purpose,
                 priceText: `${formatTnd(Number(r.price ?? 0))} TND`,
-                priceModeHint: reservationPriceModeCaptionFr(r.priceMode),
-                statusLabel: r.status,
+                priceModeHint: t(`reservation.priceModeCaption.${r.priceMode}`),
+                statusLabel: t(`reservation.statusLabels.${r.status}`),
                 paidSort: r.paid ? 1 : 0,
             })),
-        [filteredRows],
+        [filteredRows, t],
     );
 
     const reservationColumns = useMemo<IMoleculeTableColumn<AdminReservationTableRow>[]>(
@@ -241,7 +242,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'sortDate',
-                    label: 'Date',
+                    label: t('reservation.date'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                     render: (_v, row) => row.dateDisplay,
@@ -250,7 +251,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'slot',
-                    label: 'Créneau',
+                    label: t('reservation.slot'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                 },
@@ -258,7 +259,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'roomName',
-                    label: 'Salle',
+                    label: t('reservation.room'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                     render: (_, row) => (
@@ -276,7 +277,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'requester',
-                    label: 'Demandeur',
+                    label: t('reservation.requester'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                     render: (_, row) => (
@@ -289,7 +290,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'places',
-                    label: 'Places',
+                    label: t('reservation.places'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                 },
@@ -297,7 +298,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'priceText',
-                    label: 'Prix (TND)',
+                    label: t('reservation.priceTnd'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                     render: (_, row) => (
@@ -315,7 +316,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'motif',
-                    label: 'Motif',
+                    label: t('reservation.motif'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                     render: (_, row) => (
@@ -328,12 +329,12 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'statusLabel',
-                    label: 'Statut',
+                    label: t('reservation.status'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                     render: (_, row) => (
                         <AtomBadge
-                            text={row.reservation.status}
+                            text={row.statusLabel}
                             size={EBadgeSize.small}
                             color={reservationStatusBadge(row.reservation.status)}
                         />
@@ -343,13 +344,13 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: 'paidSort',
-                    label: 'Paiement',
+                    label: t('reservation.payment'),
                     sortable: true,
                     headerClassName: 'uppercase text-xs',
                     render: (_, row) => (
                         <AtomDiv className="flex flex-col gap-1 py-1">
                             <AtomBadge
-                                text={row.reservation.paid ? 'Payé' : 'Non payé'}
+                                text={row.reservation.paid ? t('reservation.paid') : t('reservation.unpaid')}
                                 size={EBadgeSize.small}
                                 color={row.reservation.paid ? EBadgeColor.success : EBadgeColor.warning}
                             />
@@ -359,14 +360,14 @@ export default function AdminReservationsPage() {
                                     type={EButtonType.secondary}
                                     className="rounded! px-2! py-0.5! text-[10px]!"
                                     onClick={() => void patchPaid(row.reservation.id, true)}
-                                    text="Payé"
+                                    text={t('reservation.paid')}
                                 />
                                 <AtomButton
                                     id={`admin-mark-unpaid-${row.reservation.id}`}
                                     type={EButtonType.secondary}
                                     className="rounded! px-2! py-0.5! text-[10px]!"
                                     onClick={() => void patchPaid(row.reservation.id, false)}
-                                    text="Non payé"
+                                    text={t('reservation.unpaid')}
                                 />
                             </AtomDiv>
                         </AtomDiv>
@@ -376,7 +377,7 @@ export default function AdminReservationsPage() {
             {
                 headerElement: {
                     value: '_actionsPlaceholder',
-                    label: 'Actions',
+                    label: t('common.actions'),
                     sortable: false,
                     headerClassName: 'uppercase text-xs',
                     render: (_, row) =>
@@ -388,7 +389,7 @@ export default function AdminReservationsPage() {
                                     className="rounded! px-2! py-1! text-[11px]! text-white!"
                                     style={{ backgroundColor: '#059669' }}
                                     onClick={() => void patch(row.reservation.id, 'CONFIRMED')}
-                                    text="Confirmer"
+                                    text={t('reservation.confirm')}
                                 />
                                 <AtomButton
                                     id={`admin-refuse-${row.reservation.id}`}
@@ -396,16 +397,16 @@ export default function AdminReservationsPage() {
                                     className="rounded! px-2! py-1! text-[11px]! text-white!"
                                     style={{ backgroundColor: '#dc2626' }}
                                     onClick={() => void patch(row.reservation.id, 'CANCELLED')}
-                                    text="Refuser"
+                                    text={t('reservation.refuse')}
                                 />
                             </AtomDiv>
                             : <AtomLabel variant={EVariantLabel.caption} color="text-gray-400">
-                                —
+                                {t('common.dash')}
                             </AtomLabel>,
                 },
             },
         ],
-        [patch, patchPaid],
+        [patch, patchPaid, t],
     );
 
     const adminSubmit = async () => {
@@ -430,7 +431,7 @@ export default function AdminReservationsPage() {
             setBookPurpose('');
             await load();
         } catch (err) {
-            openToast('Error', err instanceof ApiError ? err.message : 'Erreur', {
+            openToast(t('common.error'), err instanceof ApiError ? err.message : t('errors.generic'), {
                 type: EToastType.ERROR,
             });
         } finally {
@@ -460,7 +461,7 @@ export default function AdminReservationsPage() {
         return (
             <AtomDiv className="p-8">
                 <AtomLabel variant={EVariantLabel.body} color="text-gray-600">
-                    Accès réservé aux administrateurs.
+                    {t('admin.accessDeniedReservations')}
                 </AtomLabel>
             </AtomDiv>
         );
@@ -476,7 +477,7 @@ export default function AdminReservationsPage() {
         <AtomDiv className="p-4 lg:p-8">
             <AtomDiv className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <AtomLabel variant={EVariantLabel.h3} color="text-primary-900" className="font-semibold">
-                    Réservations (admin)
+                    {t('admin.reservations.title')}
                 </AtomLabel>
                 <AtomButton
                     id="admin-reservations-create"
@@ -487,14 +488,14 @@ export default function AdminReservationsPage() {
                         setBookManualPrice(0);
                         openModal();
                     }}
-                    text="Créer pour un professeur"
+                    text={t('admin.reservations.createForTeacher')}
                 />
             </AtomDiv>
 
             <AtomDiv className="mb-4 flex flex-wrap gap-3">
                 <AtomDiv className="min-w-[200px] flex-1 sm:flex-initial sm:min-w-[220px]">
                     <MoleculeDropdown
-                        placeholder="Filtrer par salle"
+                        placeholder={t('admin.reservations.filterRoom')}
                         options={roomFilterOptions}
                         value={roomId}
                         onChange={(v) => setRoomId(String(Array.isArray(v) ? v[0] ?? '' : v))}
@@ -502,7 +503,7 @@ export default function AdminReservationsPage() {
                 </AtomDiv>
                 <AtomDiv className="min-w-[200px] flex-1 sm:flex-initial sm:min-w-[200px]">
                     <MoleculeDropdown
-                        placeholder="Statut"
+                        placeholder={t('admin.reservations.filterStatus')}
                         options={statFilterOptions}
                         value={stat}
                         onChange={(v) =>
@@ -515,15 +516,15 @@ export default function AdminReservationsPage() {
                     type={EButtonType.secondary}
                     className="self-end px-3! py-2! text-sm"
                     onClick={() => void load()}
-                    text="Actualiser"
+                    text={t('common.refresh')}
                 />
             </AtomDiv>
 
             <AtomDiv className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <MoleculeTab
                     options={[
-                        { value: 'upcoming', label: 'À venir' },
-                        { value: 'past', label: 'Passées' },
+                        { value: 'upcoming', label: t('admin.reservations.tabs.upcoming') },
+                        { value: 'past', label: t('admin.reservations.tabs.past') },
                     ]}
                     value={listTab}
                     onChange={(v) => setListTab(v as 'upcoming' | 'past')}
@@ -534,7 +535,7 @@ export default function AdminReservationsPage() {
             <OrganismTable<AdminReservationTableRow>
                 badge={null}
                 columns={reservationColumns}
-                emptyMessage={listTab === 'upcoming' ? 'Aucune réservation à venir.' : 'Aucune réservation passée.'}
+                emptyMessage={listTab === 'upcoming' ? t('admin.reservations.emptyUpcoming') : t('admin.reservations.emptyPast')}
                 isLoading={loading}
                 pageSize={100}
                 rows={tableRows}

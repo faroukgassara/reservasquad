@@ -27,8 +27,11 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
+import { useLocale, useTranslations } from 'next-intl';
 
 export function useReservationCalendar() {
+    const t = useTranslations();
+    const locale = useLocale();
     const [monthCursor, setMonthCursor] = useState(() => new Date());
     const [calendarView, setCalendarView] = useState<CalendarViewMode>('month');
     const [byDay, setByDay] = useState<Record<string, CalendarReservation[]>>({});
@@ -103,12 +106,12 @@ export function useReservationCalendar() {
             }
             setByDay(next);
         } catch (e) {
-            setError(e instanceof ApiError ? e.message : 'Chargement impossible');
+            setError(e instanceof ApiError ? e.message : t('calendar.loadFailed'));
             setByDay({});
         } finally {
             setLoading(false);
         }
-    }, [calendarView, monthCursor]);
+    }, [calendarView, monthCursor, t]);
 
     useEffect(() => {
         void loadRooms();
@@ -128,29 +131,27 @@ export function useReservationCalendar() {
     }, [calendarView]);
 
     const calendarPeriodTitle = useMemo(
-        () => formatCalendarPeriodTitle(calendarView, monthCursor),
-        [calendarView, monthCursor],
+        () => formatCalendarPeriodTitle(calendarView, monthCursor, locale),
+        [calendarView, monthCursor, locale],
     );
 
     const calendarViewSubtitle = useMemo(() => {
-        if (calendarView === 'week') {
-            return 'Vue semaine (lundi – dimanche). Utilisez + ou les pastilles pour agir.';
-        }
-        if (calendarView === 'day') return 'Vue jour — créneaux triés par heure de début.';
-        return 'Vue mensuelle — cliquez un jour pour réserver ou voir une réservation.';
-    }, [calendarView]);
+        if (calendarView === 'week') return t('calendar.subtitles.week');
+        if (calendarView === 'day') return t('calendar.subtitles.day');
+        return t('calendar.subtitles.month');
+    }, [calendarView, t]);
 
     const navigatePrevLabel = useMemo(() => {
-        if (calendarView === 'month') return '← Mois précédent';
-        if (calendarView === 'week') return '← Semaine préc.';
-        return '← Jour préc.';
-    }, [calendarView]);
+        if (calendarView === 'month') return t('calendar.nav.prevMonth');
+        if (calendarView === 'week') return t('calendar.nav.prevWeek');
+        return t('calendar.nav.prevDay');
+    }, [calendarView, t]);
 
     const navigateNextLabel = useMemo(() => {
-        if (calendarView === 'month') return 'Mois suivant →';
-        if (calendarView === 'week') return 'Semaine suiv. →';
-        return 'Jour suivant →';
-    }, [calendarView]);
+        if (calendarView === 'month') return t('calendar.nav.nextMonth');
+        if (calendarView === 'week') return t('calendar.nav.nextWeek');
+        return t('calendar.nav.nextDay');
+    }, [calendarView, t]);
 
     const daysInWeek = useMemo(() => weekIntervalFromCursor(monthCursor), [monthCursor]);
 
@@ -218,7 +219,7 @@ export function useReservationCalendar() {
         async (e?: React.FormEvent) => {
             e?.preventDefault();
             if (!bookTeacherId) {
-                openToast('Error', 'Choisissez un professeur dans la liste (gérée par l’administration).', {
+                openToast(t('common.error'), t('reservation.selectTeacherError'), {
                     type: EToastType.ERROR,
                 });
                 return;
@@ -241,13 +242,15 @@ export function useReservationCalendar() {
                 });
                 setShowForm(false);
                 await loadCalendar();
-                openToast('Success', 'Demande enregistrée. Elle sera affichée en « pending » jusqu’à validation par un administrateur.', {
+                openToast(t('common.success'), t('reservation.bookingSuccess'), {
                     type: EToastType.SUCCESS,
                 });
             } catch (err) {
-                openToast('Error', err instanceof ApiError ? err.message : 'Échec de la réservation', {
-                    type: EToastType.ERROR,
-                });
+                openToast(
+                    t('common.error'),
+                    err instanceof ApiError ? err.message : t('reservation.bookingFailed'),
+                    { type: EToastType.ERROR },
+                );
             } finally {
                 setSubmitting(false);
             }
@@ -263,7 +266,23 @@ export function useReservationCalendar() {
             bookPriceMode,
             bookManualPrice,
             loadCalendar,
+            openToast,
+            t,
         ],
+    );
+
+    const weekDays = useMemo(
+        () =>
+            [
+                t('calendar.weekdays.mon'),
+                t('calendar.weekdays.tue'),
+                t('calendar.weekdays.wed'),
+                t('calendar.weekdays.thu'),
+                t('calendar.weekdays.fri'),
+                t('calendar.weekdays.sat'),
+                t('calendar.weekdays.sun'),
+            ] as const,
+        [t],
     );
 
     return {
@@ -314,6 +333,6 @@ export function useReservationCalendar() {
         submitBooking,
         gridDays,
         selectedRoomCapacity,
-        weekDays: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const,
+        weekDays,
     };
 }

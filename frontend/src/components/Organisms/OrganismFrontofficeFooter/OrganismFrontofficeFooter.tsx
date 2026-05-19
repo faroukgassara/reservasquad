@@ -6,14 +6,17 @@ import { EVariantLabel } from '@/Enum/Enum';
 import Image from 'next/image';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
-
-const footerLinks = [
-    { href: Routes.Home, label: 'Accueil' },
-    { href: Routes.Calendar, label: 'Réserver' },
-    { href: Routes.Login, label: 'Connexion administration' },
-] as const;
+import { useTranslations } from 'next-intl';
 
 export default function OrganismFrontofficeFooter() {
+    const t = useTranslations();
+
+    const footerLinks = [
+        { href: Routes.Home, label: t('navigation.home') },
+        { href: Routes.Calendar, label: t('navigation.book') },
+        { href: Routes.Login, label: t('navigation.adminLogin') },
+    ] as const;
+
     return (
         <AtomDiv role="contentinfo" className="w-full border-t border-gray-200 bg-primary-900 text-white">
             <AtomDiv className="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-12 sm:px-6 lg:flex-row lg:items-start lg:justify-between lg:px-8">
@@ -32,8 +35,7 @@ export default function OrganismFrontofficeFooter() {
                         color="text-primary-100"
                         className="block leading-relaxed"
                     >
-                        Réservation de salles d&apos;étude : calendrier partagé et validation par
-                        l&apos;administration.
+                        {t('navigation.footerTagline')}
                     </AtomLabel>
                 </AtomDiv>
 
@@ -43,7 +45,7 @@ export default function OrganismFrontofficeFooter() {
                         color="text-primary-200"
                         className="mb-3 block text-xs font-semibold uppercase tracking-wider"
                     >
-                        Navigation
+                        {t('navigation.navigation')}
                     </AtomLabel>
                     <ul className="flex flex-col gap-2">
                         {footerLinks.map(({ href, label }) => (
@@ -69,7 +71,7 @@ export default function OrganismFrontofficeFooter() {
                     color="text-primary-300"
                     className="block text-center"
                 >
-                    © {new Date().getFullYear()} Reserva Squad
+                    {t('navigation.copyright', { year: new Date().getFullYear() })}
                 </AtomLabel>
             </AtomDiv>
         </AtomDiv>

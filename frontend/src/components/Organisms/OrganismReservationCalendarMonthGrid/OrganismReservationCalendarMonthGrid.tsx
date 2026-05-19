@@ -7,6 +7,7 @@ import { format, isSameMonth, isToday } from 'date-fns';
 import type { MouseEvent } from 'react';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import { useTranslations } from 'next-intl';
 
 type OrganismReservationCalendarMonthGridProps = {
     monthCursor: Date;
@@ -27,12 +28,14 @@ export default function OrganismReservationCalendarMonthGrid({
     onOpenBooking,
     onSelectReservation,
 }: Readonly<OrganismReservationCalendarMonthGridProps>) {
+    const t = useTranslations();
+
     return (
         <AtomDiv className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
             {loading ? (
                 <AtomDiv className="p-8 text-center">
                     <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">
-                        Chargement...
+                        {t('common.loading')}
                     </AtomLabel>
                 </AtomDiv>
             ) : (

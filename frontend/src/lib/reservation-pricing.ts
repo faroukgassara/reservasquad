@@ -4,20 +4,8 @@ export type ReservationPriceMode = 'ROOM_HOURLY' | 'PER_PARTICIPANT' | 'MANUAL';
 
 export const PER_PARTICIPANT_TND_MULTIPLIER = 2.5;
 
-export const RESERVATION_PRICE_MODE_OPTIONS: { value: ReservationPriceMode; label: string }[] = [
-    { value: 'ROOM_HOURLY', label: 'Salle × durée (tarif horaire)' },
-    { value: 'PER_PARTICIPANT', label: 'Participants × 2,5 TND' },
-    { value: 'MANUAL', label: 'Prix manuel' },
-];
-
 export function formatTnd(amount: number): string {
     return amount.toLocaleString('fr-TN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-export function reservationPriceModeCaptionFr(mode: ReservationPriceMode): string {
-    if (mode === 'ROOM_HOURLY') return 'Tarif horaire salle';
-    if (mode === 'PER_PARTICIPANT') return 'Participants × 2,5';
-    return 'Manuel';
 }
 
 function roundTnd(n: number): number {

@@ -1,3 +1,5 @@
+'use client';
+
 import { DropdownContent, DropdownItem, DropdownRoot, DropdownTrigger } from "@/components/Atoms/AtomDropdown/AtomDropdownLogic";
 import AtomDropdownTrigger from "@/components/Atoms/AtomDropdown/AtomDropdownTrigger";
 import { EVariantLabel, IconComponentsEnum } from "@/Enum/Enum";
@@ -5,6 +7,7 @@ import { twMerge } from "tailwind-merge";
 import { IMoleculeDropdownMulti } from "@/interfaces/Molecules/IMoleculeDropdown/IMoleculeDropdown";
 import AtomLabel from "@/components/Atoms/AtomLabel/AtomLabel";
 import AtomIcon from "@/components/Atoms/AtomIcon/AtomIcon";
+import { useTranslations } from "next-intl";
 
 const MoleculeDropdown = ({
     label,
@@ -20,6 +23,8 @@ const MoleculeDropdown = ({
     onChange,
     multiSelect = false,
 }: IMoleculeDropdownMulti) => {
+    const t = useTranslations();
+    const resolvedPlaceholder = placeholder ?? t('common.selectOption');
 
     const selectedValues: (string | number)[] = multiSelect
         ? Array.isArray(value) ? value : (value !== undefined ? [value] : [])
@@ -76,7 +81,7 @@ const MoleculeDropdown = ({
                         className={className}
                         error={error}
                         disabled={disabled}
-                        placeholder={placeholder}
+                        placeholder={resolvedPlaceholder}
                         label={multiSelect ? multiLabel : selectedOption?.label}
                         icon={!multiSelect ? selectedOption?.icon : undefined}
                     />
@@ -121,7 +126,7 @@ const MoleculeDropdown = ({
                             );
                         })
                     ) : (
-                        <div className="px-4 py-3 text-gray-300 text-sm">No options</div>
+                        <div className="px-4 py-3 text-gray-300 text-sm">{t('common.noOptions')}</div>
                     )}
                 </DropdownContent>
             </div>

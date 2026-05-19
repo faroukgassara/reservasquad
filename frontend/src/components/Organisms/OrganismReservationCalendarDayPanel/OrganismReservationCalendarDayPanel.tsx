@@ -6,6 +6,7 @@ import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import type { CalendarReservation } from '@/types/calendar';
 import { EButtonType, EVariantLabel } from '@/Enum/Enum';
 import type { MouseEvent } from 'react';
+import { useTranslations } from 'next-intl';
 
 type Props = Readonly<{
     reservationsSorted: CalendarReservation[];
@@ -22,6 +23,8 @@ export default function OrganismReservationCalendarDayPanel({
     onOpenBooking,
     onSelectReservation,
 }: Props) {
+    const t = useTranslations();
+
     return (
         <AtomDiv className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <AtomDiv className="flex flex-col gap-2 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-end sm:justify-end">
@@ -29,7 +32,7 @@ export default function OrganismReservationCalendarDayPanel({
                     id="cal-day-new-booking"
                     type={EButtonType.secondary}
                     className="text-sm!"
-                    text="Réserver ce jour"
+                    text={t('calendar.bookThisDay')}
                     onClick={(e: MouseEvent) => {
                         e.stopPropagation();
                         onOpenBooking(dayIso);
@@ -39,13 +42,13 @@ export default function OrganismReservationCalendarDayPanel({
             {loading ? (
                 <AtomDiv className="p-8 text-center">
                     <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">
-                        Chargement...
+                        {t('common.loading')}
                     </AtomLabel>
                 </AtomDiv>
             ) : reservationsSorted.length === 0 ? (
                 <AtomDiv className="px-4 py-10 text-center">
                     <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">
-                        Aucune réservation ce jour. Cliquez sur « Réserver ce jour » pour en ajouter une.
+                        {t('calendar.noReservationsDay')}
                     </AtomLabel>
                 </AtomDiv>
             ) : (
@@ -73,7 +76,7 @@ export default function OrganismReservationCalendarDayPanel({
                                     onClick={() => onSelectReservation(r)}
                                 />
                                 <AtomLabel variant={EVariantLabel.caption} color="text-gray-500" className="mt-1 line-clamp-2 max-w-xl">
-                                    {r.purpose} · {r.numberOfPeople} pers. · {r.status}
+                                    {r.purpose} · {r.numberOfPeople} {t('common.peopleShort')} · {t(`reservation.statusLabels.${r.status}`)}
                                 </AtomLabel>
                             </AtomDiv>
                         </AtomDiv>

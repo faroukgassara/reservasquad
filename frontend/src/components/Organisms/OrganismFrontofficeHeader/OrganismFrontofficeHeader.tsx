@@ -7,15 +7,17 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
-
-const navLinks = [
-    { href: Routes.Home, label: 'Accueil' },
-    { href: Routes.Calendar, label: 'Réserver une salle' },
-] as const;
+import { useTranslations } from 'next-intl';
 
 export default function OrganismFrontofficeHeader() {
     const { data: session } = useSession();
     const isAdmin = session?.user?.role === 'ADMIN';
+    const t = useTranslations();
+
+    const navLinks = [
+        { href: Routes.Home, label: t('navigation.home') },
+        { href: Routes.Calendar, label: t('navigation.bookRoom') },
+    ] as const;
 
     return (
         <AtomDiv
@@ -26,7 +28,7 @@ export default function OrganismFrontofficeHeader() {
                 <Link href={Routes.Home} className="flex shrink-0 items-center">
                     <Image
                         src="/branding/reservasquad-logo.png"
-                        alt="Reserva Squad"
+                        alt={t('brand.name')}
                         width={160}
                         height={48}
                         className="h-10 w-auto object-contain"
@@ -55,7 +57,7 @@ export default function OrganismFrontofficeHeader() {
                                 href={Routes.AdminReservations}
                                 className="rounded-lg bg-primary-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-800"
                             >
-                                Administration
+                                {t('navigation.administration')}
                             </Link>
                         :   null
                     ) : (
@@ -63,7 +65,7 @@ export default function OrganismFrontofficeHeader() {
                             href={Routes.Login}
                             className="rounded-lg bg-primary-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-800"
                         >
-                            Connexion
+                            {t('auth.login')}
                         </Link>
                     )}
                 </AtomDiv>

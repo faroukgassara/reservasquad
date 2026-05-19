@@ -10,7 +10,7 @@ import {
     startOfMonth,
     startOfWeek,
 } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { dateFnsLocale } from '@/lib/date-locale';
 
 export function reservationStatusPillClass(status: CalendarReservation['status']): string {
     if (status === 'CONFIRMED') return 'bg-emerald-100 text-emerald-900';
@@ -45,12 +45,13 @@ export function weekIntervalFromCursor(cursor: Date): Date[] {
     return eachDayOfInterval({ start, end });
 }
 
-export function formatCalendarPeriodTitle(view: CalendarViewMode, cursor: Date): string {
-    if (view === 'month') return format(cursor, 'MMMM yyyy', { locale: fr });
+export function formatCalendarPeriodTitle(view: CalendarViewMode, cursor: Date, locale = 'fr'): string {
+    const dfLocale = dateFnsLocale(locale);
+    if (view === 'month') return format(cursor, 'MMMM yyyy', { locale: dfLocale });
     if (view === 'week') {
         const start = startOfWeek(cursor, { weekStartsOn: 1 });
         const end = endOfWeek(cursor, { weekStartsOn: 1 });
-        return `${format(start, 'd MMM', { locale: fr })} — ${format(end, 'd MMM yyyy', { locale: fr })}`;
+        return `${format(start, 'd MMM', { locale: dfLocale })} — ${format(end, 'd MMM yyyy', { locale: dfLocale })}`;
     }
-    return format(cursor, 'EEEE d MMMM yyyy', { locale: fr });
+    return format(cursor, 'EEEE d MMMM yyyy', { locale: dfLocale });
 }

@@ -11,6 +11,7 @@ import { EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import { useMemo } from 'react';
 import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDropdown';
 import MoleculeInput from '@/components/Molecules/MoleculeInput/MoleculeInput';
+import { useTranslations } from 'next-intl';
 
 type OrganismReservationBookingModalProps = {
     rooms: ReservationRoom[];
@@ -67,25 +68,31 @@ export default function OrganismReservationBookingModal({
     onSubmit,
     onClose,
 }: Readonly<OrganismReservationBookingModalProps>) {
+    const t = useTranslations();
+
     const teacherOptions = useMemo(
         () =>
             teachers.length ?
-                teachers.map((t) => ({ value: t.id, label: t.name }))
-            :   [{ value: '', label: 'Aucun professeur (admin)' }],
-        [teachers],
+                teachers.map((teacher) => ({ value: teacher.id, label: teacher.name }))
+            :   [{ value: '', label: t('reservation.noTeacherAdmin') }],
+        [teachers, t],
     );
 
     const roomOptions = useMemo(
-        () => rooms.map((r) => ({ value: r.id, label: `${r.name} (${r.capacity} pers.)` })),
-        [rooms],
+        () =>
+            rooms.map((r) => ({
+                value: r.id,
+                label: t('reservation.roomOption', { name: r.name, capacity: r.capacity }),
+            })),
+        [rooms, t],
     );
 
-    const startOpts = useMemo(() => startTimeOptions().map((t) => ({ value: t, label: t })), []);
+    const startOpts = useMemo(() => startTimeOptions().map((time) => ({ value: time, label: time })), []);
     const endOpts = useMemo(
         () =>
-            (bookStart ? validEndsForStart(bookStart) : endTimeOptions()).map((t) => ({
-                value: t,
-                label: t,
+            (bookStart ? validEndsForStart(bookStart) : endTimeOptions()).map((time) => ({
+                value: time,
+                label: time,
             })),
         [bookStart],
     );
@@ -94,28 +101,28 @@ export default function OrganismReservationBookingModal({
         <AtomDiv className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
             <AtomDiv className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
                 <AtomLabel variant={EVariantLabel.h4} color="text-primary-900" className="mb-4 block font-semibold">
-                    Nouvelle demande de réservation
+                    {t('reservation.newRequest')}
                 </AtomLabel>
                 <AtomDiv className="flex flex-col gap-3 text-sm">
                     <MoleculeDropdown
-                        label="Professeur"
+                        label={t('reservation.teacher')}
                         required
-                        placeholder={teachers.length ? '— Choisir —' : 'Aucun professeur (admin)'}
+                        placeholder={teachers.length ? t('reservation.choosePlaceholder') : t('reservation.noTeacherAdmin')}
                         options={teacherOptions}
                         value={bookTeacherId}
                         onChange={(v) => setBookTeacherId(String(v))}
-                        hintText="La liste est mise à jour par l’administration."
+                        hintText={t('reservation.teacherListHint')}
                     />
                     <MoleculeInput
                         id="booking-modal-date"
-                        label="Date"
+                        label={t('reservation.date')}
                         required
                         type={EInputType.date}
                         value={bookDate}
                         onChange={(e) => setBookDate(e.target.value)}
                     />
                     <MoleculeDropdown
-                        label="Salle"
+                        label={t('reservation.room')}
                         required
                         options={roomOptions}
                         value={bookRoomId}
@@ -124,14 +131,14 @@ export default function OrganismReservationBookingModal({
                     <AtomDiv className="flex gap-3">
                         <MoleculeDropdown
                             containerClassName="flex-1"
-                            label="Début"
+                            label={t('reservation.start')}
                             options={startOpts}
                             value={bookStart}
                             onChange={(v) => setBookStart(String(v))}
                         />
                         <MoleculeDropdown
                             containerClassName="flex-1"
-                            label="Fin"
+                            label={t('reservation.end')}
                             options={endOpts}
                             value={bookEnd}
                             onChange={(v) => setBookEnd(String(v))}
@@ -139,18 +146,18 @@ export default function OrganismReservationBookingModal({
                     </AtomDiv>
                     <MoleculeInput
                         id="booking-modal-people"
-                        label="Nombre de personnes"
+                        label={t('reservation.peopleCount')}
                         required
                         type={EInputType.intNumber}
                         min={1}
                         max={selectedRoomCapacity}
                         value={bookPeople}
                         onChange={(e) => setBookPeople(Number(e.target.value))}
-                        hintText={`Capacité max ${selectedRoomCapacity} pour cette salle`}
+                        hintText={t('reservation.roomCapacityHint', { capacity: selectedRoomCapacity })}
                     />
                     <MoleculeInput
                         id="booking-modal-purpose"
-                        label="Objet / description"
+                        label={t('reservation.purpose')}
                         required
                         type={EInputType.text}
                         maxLength={500}
@@ -171,7 +178,7 @@ export default function OrganismReservationBookingModal({
                             className="flex-1"
                             disabled={submitting}
                             onClick={onClose}
-                            text="Annuler"
+                            text={t('common.cancel')}
                         />
                         <AtomButton
                             id="booking-modal-submit"
@@ -180,7 +187,7 @@ export default function OrganismReservationBookingModal({
                             disabled={submitting || !bookRoomId || teachers.length === 0}
                             ariaBusy={submitting}
                             onClick={onSubmit}
-                            text={submitting ? 'Envoi…' : 'Envoyer la demande'}
+                            text={submitting ? t('reservation.submitting') : t('reservation.sendRequest')}
                         />
                     </AtomDiv>
                 </AtomDiv>

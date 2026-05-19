@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
 import { getMessages } from 'next-intl/server';
@@ -17,11 +18,19 @@ const lato = Lato({
   variable: '--font-sans',
 });
 
-export const metadata: Metadata = {
-    title: 'Reserva Squad — Salles d’étude',
-    description:
-        'Application de réservation de salles d’étude pour professeurs et administration.',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale: locale as 'fr' | 'en', namespace: 'metadata' });
+
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
 
 export default async function LocaleLayout({
   children,

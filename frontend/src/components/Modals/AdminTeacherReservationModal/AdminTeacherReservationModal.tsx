@@ -10,6 +10,7 @@ import MoleculeReservationPricingBlock from '@/components/Molecules/MoleculeRese
 import type IAdminTeacherReservationModalProps from '@/interfaces/Modals/IAdminTeacherReservationModalProps/IAdminTeacherReservationModalProps';
 import { EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import type { ChangeEvent } from 'react';
+import { useTranslations } from 'next-intl';
 
 function dropdownToString(value: string | number | string[]): string {
     return String(Array.isArray(value) ? value[0] ?? '' : value);
@@ -44,6 +45,8 @@ export default function AdminTeacherReservationModal({
     onClose,
     onSubmit,
 }: Readonly<IAdminTeacherReservationModalProps>) {
+    const t = useTranslations();
+
     return (
         <MoleculeModal
             title=""
@@ -55,10 +58,10 @@ export default function AdminTeacherReservationModal({
         >
             <AtomDiv className="flex flex-col gap-3 text-sm">
                 <AtomLabel variant={EVariantLabel.h4} color="text-gray-900" className="mb-1 block font-semibold">
-                    Réservation confirmée (professeur)
+                    {t('reservation.adminConfirmedBooking')}
                 </AtomLabel>
                 <MoleculeDropdown
-                    label="Professeur"
+                    label={t('reservation.teacher')}
                     required
                     options={teacherOptions}
                     value={bookTeacherId}
@@ -66,14 +69,14 @@ export default function AdminTeacherReservationModal({
                 />
                 <MoleculeInput
                     id="admin-modal-date"
-                    label="Date"
+                    label={t('reservation.date')}
                     required
                     type={EInputType.date}
                     value={bookDate}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => onDateChange(e.target.value)}
                 />
                 <MoleculeDropdown
-                    label="Salle"
+                    label={t('reservation.room')}
                     required
                     options={roomOptions}
                     value={bookRoomId}
@@ -82,14 +85,14 @@ export default function AdminTeacherReservationModal({
                 <AtomDiv className="flex gap-2">
                     <MoleculeDropdown
                         containerClassName="flex-1"
-                        label="Début"
+                        label={t('reservation.start')}
                         options={startOptions}
                         value={bookStart}
                         onChange={(v) => onStartChange(dropdownToString(v))}
                     />
                     <MoleculeDropdown
                         containerClassName="flex-1"
-                        label="Fin"
+                        label={t('reservation.end')}
                         options={endOptions}
                         value={bookEnd}
                         onChange={(v) => onEndChange(dropdownToString(v))}
@@ -97,7 +100,7 @@ export default function AdminTeacherReservationModal({
                 </AtomDiv>
                 <MoleculeInput
                     id="admin-modal-people"
-                    label="Participants"
+                    label={t('reservation.participants')}
                     required
                     type={EInputType.intNumber}
                     min={1}
@@ -107,7 +110,7 @@ export default function AdminTeacherReservationModal({
                 />
                 <MoleculeInput
                     id="admin-modal-purpose"
-                    label="Motif"
+                    label={t('reservation.motif')}
                     required
                     type={EInputType.text}
                     value={bookPurpose}
@@ -127,7 +130,7 @@ export default function AdminTeacherReservationModal({
                         className="flex-1"
                         disabled={submitting}
                         onClick={onClose}
-                        text="Fermer"
+                        text={t('common.close')}
                     />
                     <AtomButton
                         id="admin-modal-submit"
@@ -136,7 +139,7 @@ export default function AdminTeacherReservationModal({
                         disabled={submitting || !bookTeacherId}
                         ariaBusy={submitting}
                         onClick={() => void onSubmit()}
-                        text="Enregistrer"
+                        text={t('common.save')}
                     />
                 </AtomDiv>
             </AtomDiv>

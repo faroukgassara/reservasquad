@@ -5,6 +5,7 @@ import { EToastType } from '@/Enum/Enum';
 import { ApiError, backendFetch } from '@/lib/reservasquad-api';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 type Room = {
     id: string;
@@ -21,6 +22,7 @@ export default function AdminRoomsPage() {
     const token = session?.accessToken;
     const role = session?.user?.role;
     const { openToast } = useToast();
+    const t = useTranslations();
     const [rooms, setRooms] = useState<Room[]>([]);
     const [name, setName] = useState('');
     const [capacity, setCapacity] = useState(8);
@@ -85,11 +87,13 @@ export default function AdminRoomsPage() {
             setPricePerHour(0);
             setEditing(null);
             await load();
-            openToast('Success', editing ? 'Salle modifiée avec succès.' : 'Salle créée avec succès.', {
-                type: EToastType.SUCCESS,
-            });
+            openToast(
+                t('common.success'),
+                editing ? t('admin.rooms.updated') : t('admin.rooms.created'),
+                { type: EToastType.SUCCESS },
+            );
         } catch (err) {
-            openToast('Error', err instanceof ApiError ? err.message : 'Erreur', {
+            openToast(t('common.error'), err instanceof ApiError ? err.message : t('errors.generic'), {
                 type: EToastType.ERROR,
             });
         }
@@ -106,22 +110,24 @@ export default function AdminRoomsPage() {
     };
 
     const remove = async (id: string) => {
-        if (!token || !confirm('Supprimer cette salle ?')) return;
+        if (!token || !confirm(t('admin.rooms.deleteConfirm'))) return;
         try {
             await backendFetch(token, `/rooms/${id}`, { method: 'DELETE' });
             await load();
-            openToast('Success', 'Salle supprimée avec succès.', {
+            openToast(t('common.success'), t('admin.rooms.deleted'), {
                 type: EToastType.SUCCESS,
             });
         } catch (e) {
-            openToast('Error', e instanceof ApiError ? e.message : 'Suppression impossible (réservations liées)', {
-                type: EToastType.ERROR,
-            });
+            openToast(
+                t('common.error'),
+                e instanceof ApiError ? e.message : t('admin.rooms.deleteFailed'),
+                { type: EToastType.ERROR },
+            );
         }
     };
 
     if (role !== 'ADMIN') {
-        return <div className="p-8 text-slate-600">Administrateurs uniquement.</div>;
+        return <div className="p-8 text-slate-600">{t('admin.accessDenied')}</div>;
     }
 
     if (status === 'loading') return null;
@@ -129,7 +135,7 @@ export default function AdminRoomsPage() {
     return (
         <div className="p-4 lg:p-8">
             <h1 className="mb-6 text-2xl font-semibold text-primary-900">
-                Gestion des salles
+                {t('admin.rooms.title')}
             </h1>
 
             <form
@@ -137,10 +143,10 @@ export default function AdminRoomsPage() {
                 className="mb-8 grid gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-2"
             >
                 <div className="md:col-span-2 font-medium text-slate-800">
-                    {editing ? `Modifier : ${editing.name}` : 'Nouvelle salle'}
+                    {editing ? t('admin.rooms.editRoom', { name: editing.name }) : t('admin.rooms.newRoom')}
                 </div>
                 <label className="flex flex-col gap-1 text-sm">
-                    Nom
+                    {t('admin.rooms.name')}
                     <input
                         required
                         className="rounded border px-3 py-2"
@@ -149,7 +155,7 @@ export default function AdminRoomsPage() {
                     />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
-                    Capacité
+                    {t('admin.rooms.capacity')}
                     <input
                         type="number"
                         min={1}
@@ -160,7 +166,7 @@ export default function AdminRoomsPage() {
                     />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
-                    Couleur (hex badge)
+                    {t('admin.rooms.color')}
                     <input
                         type="text"
                         pattern="^#([0-9A-Fa-f]{6})$"
@@ -171,7 +177,7 @@ export default function AdminRoomsPage() {
                     />
                 </label>
                 <label className="flex flex-col gap-1 text-sm">
-                    Prix / heure (TND)
+                    {t('admin.rooms.pricePerHour')}
                     <input
                         type="number"
                         min={0}
@@ -182,7 +188,7 @@ export default function AdminRoomsPage() {
                     />
                 </label>
                 <label className="flex flex-col gap-1 text-sm md:col-span-2">
-                    Description
+                    {t('admin.rooms.description')}
                     <input
                         className="rounded border px-3 py-2"
                         value={description}
@@ -190,7 +196,7 @@ export default function AdminRoomsPage() {
                     />
                 </label>
                 <label className="flex flex-col gap-1 text-sm md:col-span-2">
-                    Équipement (virgules)
+                    {t('admin.rooms.equipment')}
                     <input
                         className="rounded border px-3 py-2"
                         value={equipment}
@@ -210,7 +216,7 @@ export default function AdminRoomsPage() {
                                 setPricePerHour(0);
                             }}
                         >
-                            Annuler édition
+                            {t('common.cancelEdit')}
                         </button>
                     ) : null}
                     <button
@@ -218,7 +224,7 @@ export default function AdminRoomsPage() {
                         className="rounded-lg px-4 py-2 text-sm font-semibold text-white"
                         style={{ backgroundColor: 'bg-primary-900' }}
                     >
-                        {editing ? 'Mettre à jour' : 'Créer'}
+                        {editing ? t('common.update') : t('common.create')}
                     </button>
                 </div>
             </form>
@@ -227,12 +233,12 @@ export default function AdminRoomsPage() {
                 <table className="min-w-full text-sm">
                     <thead className="border-b bg-slate-50 text-left text-xs uppercase text-slate-600">
                         <tr>
-                            <th className="px-4 py-3">Nom</th>
-                            <th className="px-4 py-3">Cap.</th>
-                            <th className="px-4 py-3 text-right">TND/h</th>
-                            <th className="px-4 py-3">Couleur</th>
-                            <th className="px-4 py-3">Équipements</th>
-                            <th className="px-4 py-3">Actions</th>
+                            <th className="px-4 py-3">{t('admin.rooms.name')}</th>
+                            <th className="px-4 py-3">{t('admin.rooms.capacityShort')}</th>
+                            <th className="px-4 py-3 text-right">{t('admin.rooms.tndPerHour')}</th>
+                            <th className="px-4 py-3">{t('admin.rooms.color')}</th>
+                            <th className="px-4 py-3">{t('admin.rooms.equipmentCol')}</th>
+                            <th className="px-4 py-3">{t('common.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -264,14 +270,14 @@ export default function AdminRoomsPage() {
                                         className="text-xs underline"
                                         onClick={() => startEdit(r)}
                                     >
-                                        Éditer
+                                        {t('common.edit')}
                                     </button>
                                     <button
                                         type="button"
                                         className="text-xs text-red-700 underline"
                                         onClick={() => void remove(r.id)}
                                     >
-                                        Supprimer
+                                        {t('common.delete')}
                                     </button>
                                 </td>
                             </tr>

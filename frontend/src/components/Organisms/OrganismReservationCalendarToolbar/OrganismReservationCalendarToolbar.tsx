@@ -6,6 +6,7 @@ import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import MoleculeTab from '@/components/Molecules/MoleculeTab/MoleculeTab';
 import type { CalendarViewMode } from '@/types/calendar';
 import { EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
+import { useTranslations } from 'next-intl';
 
 type OrganismReservationCalendarToolbarProps = {
     calendarView: CalendarViewMode;
@@ -30,11 +31,13 @@ export default function OrganismReservationCalendarToolbar({
     onNavigateNext,
     onNewBooking,
 }: Readonly<OrganismReservationCalendarToolbarProps>) {
+    const t = useTranslations();
+
     return (
         <AtomDiv className="mb-6 flex flex-col gap-4">
             <AtomDiv>
                 <AtomLabel variant={EVariantLabel.h3} color="text-primary-900" className="font-semibold tracking-tight">
-                    Planning des salles d&apos;étude
+                    {t('calendar.title')}
                 </AtomLabel>
                 <AtomLabel variant={EVariantLabel.body} color="text-primary-900" className="mt-2 block capitalize">
                     {periodTitle}
@@ -48,9 +51,9 @@ export default function OrganismReservationCalendarToolbar({
                     size={ESize.lg}
                     buttonClassName="!px-3"
                     options={[
-                        { value: 'month', label: 'Mois' },
-                        { value: 'week', label: 'Semaine' },
-                        { value: 'day', label: 'Jour' },
+                        { value: 'month', label: t('calendar.views.month') },
+                        { value: 'week', label: t('calendar.views.week') },
+                        { value: 'day', label: t('calendar.views.day') },
                     ]}
                     value={calendarView}
                     onChange={(v) => onCalendarViewChange(v as CalendarViewMode)}
@@ -75,7 +78,7 @@ export default function OrganismReservationCalendarToolbar({
                         type={EButtonType.primary}
                         className="px-4! py-2! text-sm font-semibold shadow bg-primary-900"
                         onClick={onNewBooking}
-                        text="Nouvelle réservation"
+                        text={t('calendar.newBooking')}
                     />
                 </AtomDiv>
             </AtomDiv>

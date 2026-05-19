@@ -12,13 +12,15 @@ import { MoleculeSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarT
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
+import { useTranslations } from 'next-intl';
 
 export default function PrivateLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     const [open, setOpen] = useState(true);
     const { data: session } = useSession();
     const role = session?.user?.role;
+    const t = useTranslations();
 
-    const userName = session?.user?.name || 'Utilisateur';
+    const userName = session?.user?.name || t('common.user');
     const userEmail = session?.user?.email || '';
 
     const navigation: INavigationItem[] = useMemo(() => {
@@ -26,36 +28,36 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
         return [
             {
                 id: 'admin-calendar',
-                label: 'Calendrier',
+                label: t('navigation.calendar'),
                 href: Routes.AdminCalendar,
                 iconName: IconComponentsEnum.calendar,
             },
             {
                 id: 'public-booking',
-                label: 'Réserver (sans compte)',
+                label: t('navigation.bookWithoutAccount'),
                 href: Routes.Calendar,
                 iconName: IconComponentsEnum.plus,
             },
             {
                 id: 'admin-reservations',
-                label: 'Réservations (admin)',
+                label: t('navigation.reservationsAdmin'),
                 href: Routes.AdminReservations,
                 iconName: IconComponentsEnum.layers,
             },
             {
                 id: 'admin-rooms',
-                label: 'Salles',
+                label: t('navigation.rooms'),
                 href: Routes.AdminRooms,
                 iconName: IconComponentsEnum.squaresFour,
             },
             {
                 id: 'admin-teachers',
-                label: 'Professeurs',
+                label: t('navigation.teachers'),
                 href: Routes.AdminTeachers,
                 iconName: IconComponentsEnum.users,
             },
         ];
-    }, [role]);
+    }, [role, t]);
 
     return (
         <ProtectedRoute>
@@ -82,7 +84,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                         >
                             <Image
                                 src="/branding/reservasquad-logo-horiz.png"
-                                alt="Reserva Squad"
+                                alt={t('brand.name')}
                                 width={140}
                                 height={48}
                                 className={twMerge(
@@ -104,7 +106,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                             <div className="flex flex-col gap-3">
                                 <div>
                                     <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500" className="block">
-                                        Connecté
+                                        {t('common.connected')}
                                     </AtomLabel>
                                     <AtomLabel variant={EVariantLabel.bodySmall} color="text-primary-900" className="block">
                                         {userName}
@@ -128,7 +130,7 @@ export default function PrivateLayout({ children }: Readonly<{ children: React.R
                                         size={ESize.md}
                                         color="text-gray-700"
                                     />
-                                    Déconnexion
+                                    {t('auth.signOut')}
                                 </AtomButton>
                             </div>
                         ) : (

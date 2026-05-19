@@ -7,6 +7,7 @@ import type { CalendarReservation } from '@/types/calendar';
 import { EButtonType, EVariantLabel } from '@/Enum/Enum';
 import { format, isToday } from 'date-fns';
 import type { MouseEvent } from 'react';
+import { useTranslations } from 'next-intl';
 
 type Props = Readonly<{
     daysInWeek: Date[];
@@ -25,12 +26,14 @@ export default function OrganismReservationCalendarWeekGrid({
     onOpenBooking,
     onSelectReservation,
 }: Props) {
+    const t = useTranslations();
+
     return (
         <AtomDiv className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
             {loading ? (
                 <AtomDiv className="p-8 text-center">
                     <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500">
-                        Chargement...
+                        {t('common.loading')}
                     </AtomLabel>
                 </AtomDiv>
             ) : (
