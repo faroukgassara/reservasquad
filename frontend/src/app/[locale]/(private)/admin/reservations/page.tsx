@@ -12,7 +12,7 @@ import {
     type ReservationPriceMode,
 } from '@/lib/reservation-pricing';
 import { startTimeOptions, validEndsForStart } from '@/lib/time-slots';
-import { EBadgeColor, EBadgeSize, EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
+import { EBadgeColor, EBadgeSize, EButtonType, ESize, EToastType, EVariantLabel } from '@/Enum/Enum';
 import { useSession } from 'next-auth/react';
 import { format, parseISO } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -23,6 +23,7 @@ import MoleculeTab from '@/components/Molecules/MoleculeTab/MoleculeTab';
 import AdminTeacherReservationModal from '@/components/Modals/AdminTeacherReservationModal/AdminTeacherReservationModal';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import { useModal } from '@/contexts/ModalContext';
+import { useToast } from '@/contexts/ToastContext';
 
 type AdminReservationTableRow = {
     reservation: CalendarReservation;
@@ -88,6 +89,7 @@ export default function AdminReservationsPage() {
     const [bookPriceMode, setBookPriceMode] = useState<ReservationPriceMode>('ROOM_HOURLY');
     const [bookManualPrice, setBookManualPrice] = useState(0);
     const [submitting, setSubmitting] = useState(false);
+    const { openToast } = useToast();
 
     const roomFilterOptions = useMemo(
         () => [{ value: '', label: 'Toutes les salles' }, ...rooms.map((r) => ({ value: r.id, label: r.name }))],
@@ -119,7 +121,7 @@ export default function AdminReservationsPage() {
                         ...r,
                         paid: Boolean(r.paid),
                     }))
-                :   [],
+                    : [],
             );
         } catch {
             setRows([]);
@@ -169,7 +171,9 @@ export default function AdminReservationsPage() {
                 });
                 await load();
             } catch (e) {
-                alert(e instanceof ApiError ? e.message : 'Erreur');
+                openToast('Error', e instanceof ApiError ? e.message : 'Erreur', {
+                    type: EToastType.ERROR,
+                });
             }
         },
         [token, load],
@@ -185,7 +189,9 @@ export default function AdminReservationsPage() {
                 });
                 await load();
             } catch (e) {
-                alert(e instanceof ApiError ? e.message : 'Erreur');
+                openToast('Error', e instanceof ApiError ? e.message : 'Erreur', {
+                    type: EToastType.ERROR,
+                });
             }
         },
         [token, load],
@@ -393,7 +399,7 @@ export default function AdminReservationsPage() {
                                     text="Refuser"
                                 />
                             </AtomDiv>
-                        :   <AtomLabel variant={EVariantLabel.caption} color="text-gray-400">
+                            : <AtomLabel variant={EVariantLabel.caption} color="text-gray-400">
                                 —
                             </AtomLabel>,
                 },
@@ -424,7 +430,9 @@ export default function AdminReservationsPage() {
             setBookPurpose('');
             await load();
         } catch (err) {
-            alert(err instanceof ApiError ? err.message : 'Erreur');
+            openToast('Error', err instanceof ApiError ? err.message : 'Erreur', {
+                type: EToastType.ERROR,
+            });
         } finally {
             setSubmitting(false);
         }
@@ -519,7 +527,7 @@ export default function AdminReservationsPage() {
                     ]}
                     value={listTab}
                     onChange={(v) => setListTab(v as 'upcoming' | 'past')}
-                    size={ESize.sm}
+                    size={ESize.lg}
                 />
             </AtomDiv>
 

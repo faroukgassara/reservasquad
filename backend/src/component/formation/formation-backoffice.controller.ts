@@ -155,7 +155,6 @@ export class FormationBackofficeController {
         @SearchQuery({ fields: ['title', 'description'] })
         searchWhere?: Record<string, any>,
     ) {
-        console.log(query);
         try {
             const result = await this.formationService.fetchFormations(
                 query,

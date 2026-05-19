@@ -1,5 +1,7 @@
 'use client';
 
+import { useToast } from '@/contexts/ToastContext';
+import { EToastType } from '@/Enum/Enum';
 import { ApiError, backendFetch } from '@/lib/reservasquad-api';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,7 +20,7 @@ export default function AdminRoomsPage() {
     const { data: session, status } = useSession();
     const token = session?.accessToken;
     const role = session?.user?.role;
-
+    const { openToast } = useToast();
     const [rooms, setRooms] = useState<Room[]>([]);
     const [name, setName] = useState('');
     const [capacity, setCapacity] = useState(8);
@@ -38,7 +40,7 @@ export default function AdminRoomsPage() {
                         ...room,
                         pricePerHour: Number(room.pricePerHour ?? 0),
                     }))
-                :   [];
+                    : [];
             setRooms(normalized);
         } catch {
             setRooms([]);
@@ -83,8 +85,13 @@ export default function AdminRoomsPage() {
             setPricePerHour(0);
             setEditing(null);
             await load();
+            openToast('Success', editing ? 'Salle modifiée avec succès.' : 'Salle créée avec succès.', {
+                type: EToastType.SUCCESS,
+            });
         } catch (err) {
-            alert(err instanceof ApiError ? err.message : 'Erreur');
+            openToast('Error', err instanceof ApiError ? err.message : 'Erreur', {
+                type: EToastType.ERROR,
+            });
         }
     };
 
@@ -103,8 +110,13 @@ export default function AdminRoomsPage() {
         try {
             await backendFetch(token, `/rooms/${id}`, { method: 'DELETE' });
             await load();
+            openToast('Success', 'Salle supprimée avec succès.', {
+                type: EToastType.SUCCESS,
+            });
         } catch (e) {
-            alert(e instanceof ApiError ? e.message : 'Suppression impossible (réservations liées)');
+            openToast('Error', e instanceof ApiError ? e.message : 'Suppression impossible (réservations liées)', {
+                type: EToastType.ERROR,
+            });
         }
     };
 

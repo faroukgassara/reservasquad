@@ -1,5 +1,7 @@
 'use client';
 
+import { useToast } from '@/contexts/ToastContext';
+import { EToastType } from '@/Enum/Enum';
 import { ApiError, backendFetch } from '@/lib/reservasquad-api';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,7 +20,7 @@ export default function AdminTeachersPage() {
     const { data: session, status } = useSession();
     const token = session?.accessToken;
     const role = session?.user?.role;
-
+    const { openToast } = useToast();
     const [rows, setRows] = useState<TeacherRow[]>([]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -67,8 +69,13 @@ export default function AdminTeachersPage() {
             setPhone('');
             setEditing(null);
             await load();
+            openToast('Success', editing ? 'Professeur modifié avec succès.' : 'Professeur créé avec succès.', {
+                type: EToastType.SUCCESS,
+            });
         } catch (err) {
-            alert(err instanceof ApiError ? err.message : 'Erreur');
+            openToast('Error', err instanceof ApiError ? err.message : 'Erreur', {
+                type: EToastType.ERROR,
+            });
         }
     };
 
@@ -85,11 +92,9 @@ export default function AdminTeachersPage() {
             await backendFetch(token, `/directory/teachers/${id}`, { method: 'DELETE' });
             await load();
         } catch (e) {
-            alert(
-                e instanceof ApiError
-                    ? e.message
-                    : 'Suppression impossible : des réservations sont liées à ce profil.',
-            );
+            openToast('Error', e instanceof ApiError ? e.message : 'Suppression impossible : des réservations sont liées à ce profil.', {
+                type: EToastType.ERROR,
+            });
         }
     };
 

@@ -25,6 +25,8 @@ import {
     startOfWeek,
 } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { EToastType } from '@/Enum/Enum';
+import { useToast } from '@/contexts/ToastContext';
 
 export function useReservationCalendar() {
     const [monthCursor, setMonthCursor] = useState(() => new Date());
@@ -49,6 +51,7 @@ export function useReservationCalendar() {
     const [bookPriceMode, setBookPriceMode] = useState<ReservationPriceMode>('ROOM_HOURLY');
     const [bookManualPrice, setBookManualPrice] = useState(0);
     const [submitting, setSubmitting] = useState(false);
+    const { openToast } = useToast();
 
     const loadRooms = useCallback(async () => {
         try {
@@ -59,7 +62,7 @@ export function useReservationCalendar() {
                         ...r,
                         pricePerHour: Number(r.pricePerHour ?? 0),
                     }))
-                :   [];
+                    : [];
             setRooms(normalized);
             const firstId = Array.isArray(list) && list[0]?.id ? list[0].id : '';
             setBookRoomId((prev) => prev || firstId);
@@ -96,7 +99,7 @@ export function useReservationCalendar() {
                             ...item,
                             paid: Boolean(item.paid),
                         }))
-                    :   [];
+                        : [];
             }
             setByDay(next);
         } catch (e) {
@@ -215,7 +218,9 @@ export function useReservationCalendar() {
         async (e?: React.FormEvent) => {
             e?.preventDefault();
             if (!bookTeacherId) {
-                alert('Choisissez un professeur dans la liste (gérée par l’administration).');
+                openToast('Error', 'Choisissez un professeur dans la liste (gérée par l’administration).', {
+                    type: EToastType.ERROR,
+                });
                 return;
             }
             setSubmitting(true);
@@ -236,18 +241,13 @@ export function useReservationCalendar() {
                 });
                 setShowForm(false);
                 await loadCalendar();
-                alert(
-                    'Demande enregistrée. Elle sera affichée en « pending » jusqu’à validation par un administrateur.',
-                );
+                openToast('Success', 'Demande enregistrée. Elle sera affichée en « pending » jusqu’à validation par un administrateur.', {
+                    type: EToastType.SUCCESS,
+                });
             } catch (err) {
-                const msg =
-                    err instanceof ApiError ?
-                        typeof err.body === 'object' && err.body !== null && 'message' in err.body
-                        && Array.isArray((err.body as { message: unknown }).message)
-                        ? ((err.body as { message: string[] }).message).join(', ')
-                        : err.message
-                    : 'Échec de la réservation';
-                alert(msg);
+                openToast('Error', err instanceof ApiError ? err.message : 'Échec de la réservation', {
+                    type: EToastType.ERROR,
+                });
             } finally {
                 setSubmitting(false);
             }

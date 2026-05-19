@@ -3,7 +3,7 @@
 import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
 import type { CalendarReservation } from '@/types/calendar';
 import { EButtonType, EVariantLabel } from '@/Enum/Enum';
-import { format, isSameMonth } from 'date-fns';
+import { format, isSameMonth, isToday } from 'date-fns';
 import type { MouseEvent } from 'react';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
 import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
@@ -48,18 +48,25 @@ export default function OrganismReservationCalendarMonthGrid({
                         const iso = format(day, 'yyyy-MM-dd');
                         const slots = byDay[iso] || [];
                         const inMonth = isSameMonth(day, monthCursor);
+                        const todayCell = isToday(day);
                         return (
                             <AtomDiv
                                 key={iso}
                                 className={[
                                     'min-h-[112px] bg-white p-1.5 hover:bg-slate-50/80 md:min-h-[128px]',
                                     inMonth ? 'opacity-100' : 'opacity-35',
+                                    todayCell ? 'ring-2 ring-primary-900 ring-inset' : '',
                                 ].join(' ')}
                             >
                                 <AtomDiv className="mb-1 flex items-center justify-between">
-                                    <AtomLabel variant={EVariantLabel.caption} color="text-gray-700" className="text-xs font-medium">
+                                    <AtomDiv
+                                        className={[
+                                            'flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold',
+                                            todayCell ? 'bg-primary-900 text-white' : 'text-gray-700',
+                                        ].join(' ')}
+                                    >
                                         {format(day, 'd')}
-                                    </AtomLabel>
+                                    </AtomDiv>
                                     <AtomButton
                                         id={`cal-open-booking-${iso}`}
                                         type={EButtonType.iconButton}

@@ -45,7 +45,7 @@ export default function OrganismReservationCalendarToolbar({
             </AtomDiv>
             <AtomDiv className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <MoleculeTab
-                    size={ESize.sm}
+                    size={ESize.lg}
                     buttonClassName="!px-3"
                     options={[
                         { value: 'month', label: 'Mois' },
