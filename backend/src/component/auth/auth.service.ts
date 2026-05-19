@@ -52,7 +52,7 @@ export class AuthService {
 
     return {
       ...safeUser,
-      ...this.commonFunction.generateToken({ ...user }, dto.rememberMe ?? false),
+      ...this.commonFunction.generateToken({ ...user }),
     };
   }
 
@@ -80,7 +80,7 @@ export class AuthService {
       throw new ForbiddenException('Refresh token invalidated');
     }
 
-    const tokens = this.commonFunction.generateToken(user, payload.rememberMe ?? true);
+    const tokens = this.commonFunction.generateToken(user);
 
     const { password, ...safeUser } = user;
 

@@ -43,7 +43,7 @@ export class CommonFunctionService {
         return value * unitMultiplier[unit];
     }
 
-    public generateToken(user, rememberMe: boolean = true) {
+    public generateToken(user) {
         if (!user.role) {
             throw new Error('Token generation requires user.role.');
         }
@@ -52,14 +52,11 @@ export class CommonFunctionService {
             id: user.id,
             email: user.email,
             role: user.role,
-            rememberMe,
             tokenVersion: user.tokenVersion ?? 0,
         };
 
         const accessExpiresIn = process.env.JWT_SECRET_EXPIRES_IN as any;
-        const refreshExpiresIn = rememberMe
-            ? process.env.JWT_REFRESH_SECRET_EXPIRES_IN as any
-            : '1d';
+        const refreshExpiresIn = process.env.JWT_REFRESH_SECRET_EXPIRES_IN as any;
 
         const access_token = this.jwtService.sign(payload, {
             secret: process.env.JWT_SECRET,
@@ -72,7 +69,6 @@ export class CommonFunctionService {
         return {
             access_token,
             refresh_token,
-            rememberMe,
             expires_in: this.parseExpiryToSeconds(accessExpiresIn),
             refresh_expires_in: this.parseExpiryToSeconds(refreshExpiresIn),
         };

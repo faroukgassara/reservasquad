@@ -1,5 +1,5 @@
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { EmailTransform } from 'src/common/decorator/email-transform.decorator';
 
 export class LoginDTO {
@@ -19,13 +19,4 @@ export class LoginDTO {
     @IsString()
     @IsNotEmpty()
     password: string;
-
-    @ApiPropertyOptional({
-        description: 'Whether the login should persist longer',
-        example: false,
-        default: false,
-    })
-    @IsOptional()
-    @IsBoolean()
-    rememberMe?: boolean;
 }

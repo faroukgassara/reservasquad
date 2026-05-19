@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class AuthUserPayloadDto {
     @ApiProperty({
@@ -8,15 +8,6 @@ export class AuthUserPayloadDto {
     })
     @IsString()
     id: string;
-
-    @ApiPropertyOptional({
-        description: 'Whether user opted for a persistent session',
-        example: true,
-        default: false,
-    })
-    @IsOptional()
-    @IsBoolean()
-    rememberMe?: boolean;
 
     @ApiPropertyOptional({
         description: 'Token version used to invalidate old tokens',

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsString, Min } from 'class-validator';
+import { IsInt, IsString, Min } from 'class-validator';
 
 export class AuthTokensDto {
     @ApiProperty({
@@ -15,13 +15,6 @@ export class AuthTokensDto {
     })
     @IsString()
     refresh_token: string;
-
-    @ApiProperty({
-        description: 'Whether login is persistent',
-        example: true,
-    })
-    @IsBoolean()
-    rememberMe: boolean;
 
     @ApiProperty({
         description: 'Access token expiry in seconds',
