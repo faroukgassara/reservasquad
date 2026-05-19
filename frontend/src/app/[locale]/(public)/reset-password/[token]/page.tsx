@@ -109,7 +109,6 @@ export default function ResetPasswordPage() {
             const signInResult = await signIn('credentials', {
                 email,
                 password: payload.newPassword,
-                rememberMe: true,
                 redirect: false,
             });
 

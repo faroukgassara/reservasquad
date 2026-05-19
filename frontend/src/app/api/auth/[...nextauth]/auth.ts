@@ -16,18 +16,15 @@ export const authOptions = {
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
-                rememberMe: { label: 'Remember Me', type: 'text' },
             },
             async authorize(credentials) {
                 try {
-                    const rememberMe = String(credentials?.rememberMe).toLowerCase() === 'true';
 
                     const apiRes = await api.post(
                         '/auth/login',
                         {
                             email: credentials?.email,
                             password: credentials?.password,
-                            rememberMe,
                         },
                         {
                             'Content-Type': 'application/json',
@@ -39,7 +36,6 @@ export const authOptions = {
                     if (apiRes.status >= 200 && apiRes.status < 300 && data.data) {
                         return {
                             ...data.data,
-                            rememberMe,
                             expires_at: Math.floor(Date.now() / 1000) + (data.data.expires_in || 0)
                         };
                     }
@@ -80,7 +76,6 @@ export const authOptions = {
                     access_token,
                     refresh_token,
                     expires_at,
-                    rememberMe,
                     expires_in,
                     refresh_expires_in,
                     ...safeUser
@@ -88,7 +83,6 @@ export const authOptions = {
                 void access_token;
                 void refresh_token;
                 void expires_at;
-                void rememberMe;
                 void expires_in;
                 void refresh_expires_in;
 
@@ -96,7 +90,6 @@ export const authOptions = {
                     accessToken: user.access_token,
                     refreshToken: user.refresh_token,
                     expiresAt: user.expires_at,
-                    rememberMe: user.rememberMe,
                     user: safeUser,
                 };
             }
@@ -112,7 +105,6 @@ export const authOptions = {
                 session.user = token.user;
                 session.accessToken = token.accessToken;
                 session.error = token.error;
-                session.rememberMe = token.rememberMe;
             }
             return session;
         },
@@ -137,12 +129,10 @@ async function refreshAccessToken(token: any) {
         const {
             access_token,
             refresh_token,
-            rememberMe,
             expires_in,
             refresh_expires_in,
             ...safeUser
         } = data.data || {};
-        void rememberMe;
         void expires_in;
         void refresh_expires_in;
 
@@ -151,7 +141,6 @@ async function refreshAccessToken(token: any) {
             accessToken: access_token || data.data?.access_token,
             refreshToken: refresh_token || data.data?.refresh_token,
             expiresAt: Math.floor(Date.now() / 1000) + (data.data?.expires_in || 0),
-            rememberMe: data.data?.rememberMe ?? token.rememberMe,
             user: safeUser,
         };
     } catch (error) {

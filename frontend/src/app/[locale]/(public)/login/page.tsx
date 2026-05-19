@@ -32,12 +32,11 @@ export default function LoginPage() {
         },
     });
 
-    const handleSubmit = async (user: { email: string, password: string, rememberMe: boolean }) => {
+    const handleSubmit = async (user: { email: string, password: string }) => {
         try {
             const result = await signIn('credentials', {
                 email: user.email,
                 password: user.password,
-                rememberMe: user.rememberMe,
                 redirect: false,
             });
             if (result?.error) {

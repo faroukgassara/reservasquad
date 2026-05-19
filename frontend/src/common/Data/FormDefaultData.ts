@@ -15,8 +15,8 @@ class FormDefaultData {
         return FormDefaultData.instance
     }
 
-    public static loginDefaultValues(): { email: string; password: string; rememberMe: boolean } {
-        return { email: "", password: '', rememberMe: false }
+    public static loginDefaultValues(): { email: string; password: string } {
+        return { email: "", password: '' }
     }
 
     public static forgotPasswordDefaultValues(): { email: string } {

@@ -24,9 +24,7 @@ class FormSchema {
             password: z
                 .string()
                 .min(1, this.t('auth.validation.passwordRequired'))
-                .max(120, this.t('auth.validation.passwordTooLong')),
-            rememberMe: z.
-                boolean()
+                .max(120, this.t('auth.validation.passwordTooLong'))
         });
     }
 
