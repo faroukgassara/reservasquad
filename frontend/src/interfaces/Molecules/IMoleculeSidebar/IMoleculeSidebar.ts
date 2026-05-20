@@ -13,11 +13,14 @@ interface INavigationItem {
 interface ISidebarContext {
     open: boolean;
     setOpen: (open: boolean) => void;
+    isMobile: boolean;
+    expanded: boolean;
 }
 
 interface IMoleculeSidebar extends React.PropsWithChildren<React.ComponentPropsWithoutRef<"aside">> {
     open: boolean;
     setOpen: (open: boolean) => void;
+    isMobile?: boolean;
 }
 
 interface IMoleculeSidebarTrigger extends IAtomButton {

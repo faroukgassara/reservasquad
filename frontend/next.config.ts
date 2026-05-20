@@ -5,6 +5,15 @@ const withNextIntl = createNextIntlPlugin();
 
 const config: NextConfig = {
     output: 'standalone',
+    async redirects() {
+        return [
+            {
+                source: '/favicon.ico',
+                destination: '/branding/logo-biblio-squad-blanc.png',
+                permanent: false,
+            },
+        ];
+    },
     webpack(config) {
         config.module.rules.push({
             test: /\.svg$/i,

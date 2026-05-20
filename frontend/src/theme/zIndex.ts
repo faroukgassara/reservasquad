@@ -7,6 +7,7 @@ const zIndex = {
   header: 100,
   sticky: 110,
 
+  sidebarBackdrop: 190,
   sidebar: 200,
   navigation: 210,
 
@@ -18,7 +19,6 @@ const zIndex = {
   modal: 410,
   drawer: 420,
 
-  /** Floating menus rendered via Portal (above modals) */
   portalDropdown: 450,
 
   toast: 500,

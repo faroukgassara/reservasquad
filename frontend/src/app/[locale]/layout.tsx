@@ -29,6 +29,11 @@ export async function generateMetadata({
   return {
     title: t('title'),
     description: t('description'),
+    icons: {
+      icon: [{ url: '/branding/logo-biblio-squad-blanc.png', type: 'image/png' }],
+      shortcut: '/branding/logo-biblio-squad-blanc.png',
+      apple: '/branding/logo-biblio-squad-blanc.png',
+    },
   };
 }
 
