@@ -9,6 +9,7 @@ import { twMerge } from "tailwind-merge";
 import { IMoleculeSidebar, IMoleculeSidebarContent, IMoleculeSidebarFooter, IMoleculeSidebarHeader, IMoleculeSidebarTrigger } from "@/interfaces/Molecules/IMoleculeSidebar/IMoleculeSidebar";
 import AtomIcon from "@/components/Atoms/AtomIcon/AtomIcon";
 import AtomLabel from "@/components/Atoms/AtomLabel/AtomLabel";
+import AtomLanguageSwitcher from "@/components/Atoms/AtomLanguageSwitcher/AtomLanguageSwitcher";
 
 const MoleculeSidebar = ({
     children,
@@ -119,7 +120,7 @@ const SidebarContent = ({
     );
 };
 
-const SidebarFooter = ({ className = "", ...props }: IMoleculeSidebarFooter) => {
+const SidebarFooter = ({ className = "", children, ...props }: IMoleculeSidebarFooter) => {
     const { open } = useSidebar();
     return (
         <div
@@ -134,7 +135,15 @@ const SidebarFooter = ({ className = "", ...props }: IMoleculeSidebarFooter) => 
                     .filter((c): c is string => Boolean(c))
                     .join(" ")
             )}
-        />
+        >
+            {children}
+            <AtomLanguageSwitcher
+                compact={!open}
+                className={twMerge(
+                    open ? "mt-3 border-t border-gray-100 pt-3" : "mt-2",
+                )}
+            />
+        </div>
     );
 }
 

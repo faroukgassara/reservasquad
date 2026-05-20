@@ -2,6 +2,7 @@ import { EFontFamily, EVariantLabel } from '@/Enum/Enum'
 import typography from '@/theme/typography'
 import type { ELabelColor } from '@/theme/labelColors'
 import WithChildren from '@/types/WithChildren'
+import { twMerge } from 'tailwind-merge'
 import React from 'react'
 
 type LabelProps = WithChildren<{
@@ -45,7 +46,7 @@ const AtomLabel: React.FC<LabelProps> = ({
     return (
         <label
             role='none'
-            className={`${fontClass} ${color ?? ''} ${className}`}
+            className={twMerge(fontClass, color, className)}
             style={style}
             htmlFor={htmlFor}
             onClick={onClick}

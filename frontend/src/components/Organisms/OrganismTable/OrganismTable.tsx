@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useMemo } from 'react'
-import { twMerge } from 'tailwind-merge'
-import { useTranslations } from 'next-intl'
-import MoleculeTableSearchBar from '@/components/Molecules/MoleculeTableSearchBar/MoleculeTableSearchBar'
-import MoleculeTableColumnHeader from '@/components/Molecules/MoleculeTableColumnHeader/MoleculeTableColumnHeader'
-import MoleculeTableRow from '@/components/Molecules/MoleculeTableRow/MoleculeTableRow'
-import MoleculeTableActionMenu from '@/components/Molecules/MoleculeTableActionMenu/MoleculeTableActionMenu'
-import MoleculeTablePagination from '@/components/Molecules/MoleculeTablePagination/MoleculeTablePagination'
-import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDropdown'
-import { IOrganismTable, ITableSortConfig, TTableSortDirection, } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable'
-import { TSortDirection } from '@/interfaces/Molecules/IMoleculeTableColumn/IMoleculeTableColumn'
-import { EVariantLabel } from '@/Enum/Enum'
-import AtomSpinner from '@/components/Atoms/AtomSpinner/AtomSpinner'
-import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel'
+import React, { useState, useMemo } from 'react';
+import { twMerge } from 'tailwind-merge';
+import { useTranslations } from 'next-intl';
+import MoleculeTableSearchBar from '@/components/Molecules/MoleculeTableSearchBar/MoleculeTableSearchBar';
+import MoleculeTableColumnHeader from '@/components/Molecules/MoleculeTableColumnHeader/MoleculeTableColumnHeader';
+import MoleculeTableRow from '@/components/Molecules/MoleculeTableRow/MoleculeTableRow';
+import MoleculeTableActionMenu from '@/components/Molecules/MoleculeTableActionMenu/MoleculeTableActionMenu';
+import MoleculeTablePagination from '@/components/Molecules/MoleculeTablePagination/MoleculeTablePagination';
+import MoleculeDropdown from '@/components/Molecules/MoleculeDropdown/MoleculeDropdown';
+import { IOrganismTable, ITableSortConfig, TTableSortDirection, } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
+import { TSortDirection } from '@/interfaces/Molecules/IMoleculeTableColumn/IMoleculeTableColumn';
+import { EVariantLabel } from '@/Enum/Enum';
+import AtomSpinner from '@/components/Atoms/AtomSpinner/AtomSpinner';
+import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
 const OrganismTable = <TRow,>({
   columns,
   rows,

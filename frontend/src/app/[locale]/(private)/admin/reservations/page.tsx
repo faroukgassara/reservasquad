@@ -495,61 +495,62 @@ export default function AdminReservationsPage() {
                 subTitle={t('admin.reservations.subtitle')}
                 mainSection={
                     <AtomDiv className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                <AtomDiv className="px-6 pt-2">
-                    <MoleculeTab
-                        variant="underline"
-                        options={[
-                            { value: 'upcoming', label: t('admin.reservations.tabs.upcoming') },
-                            { value: 'past', label: t('admin.reservations.tabs.past') },
-                        ]}
-                        value={listTab}
-                        onChange={(v) => setListTab(v as 'upcoming' | 'past')}
-                        size={ESize.md}
-                    />
-                </AtomDiv>
-
-                <AtomDiv className="flex flex-col gap-4 px-6 pb-6 pt-4">
-                    <AtomDiv className="flex flex-wrap items-center gap-3">
-                        <AtomDiv className="min-w-[180px] flex-1 sm:max-w-[220px]">
-                            <MoleculeDropdown
-                                placeholder={t('admin.reservations.filterRoom')}
-                                options={roomFilterOptions}
-                                value={roomId}
-                                onChange={(v) => setRoomId(String(Array.isArray(v) ? v[0] ?? '' : v))}
+                        <AtomDiv className="px-6 pt-6">
+                            <MoleculeTab
+                                variant="underline"
+                                options={[
+                                    { value: 'upcoming', label: t('admin.reservations.tabs.upcoming') },
+                                    { value: 'past', label: t('admin.reservations.tabs.past') },
+                                ]}
+                                value={listTab}
+                                onChange={(v) => setListTab(v as 'upcoming' | 'past')}
+                                size={ESize.md}
                             />
                         </AtomDiv>
-                        <AtomDiv className="min-w-[160px] flex-1 sm:max-w-[200px]">
-                            <MoleculeDropdown
-                                placeholder={t('admin.reservations.filterStatus')}
-                                options={statFilterOptions}
-                                value={stat}
-                                onChange={(v) =>
-                                    setStat((Array.isArray(v) ? v[0] : v) as typeof stat)
-                                }
+
+                        <AtomDiv className="flex flex-col gap-4 px-6 pb-6 pt-4">
+                            <AtomDiv className="flex flex-wrap items-center gap-3">
+                                <AtomDiv className="min-w-[180px] flex-1 sm:max-w-[220px]">
+                                    <MoleculeDropdown
+                                        placeholder={t('admin.reservations.filterRoom')}
+                                        options={roomFilterOptions}
+                                        value={roomId}
+                                        onChange={(v) => setRoomId(String(Array.isArray(v) ? v[0] ?? '' : v))}
+                                    />
+                                </AtomDiv>
+                                <AtomDiv className="min-w-[160px] flex-1 sm:max-w-[200px]">
+                                    <MoleculeDropdown
+                                        placeholder={t('admin.reservations.filterStatus')}
+                                        options={statFilterOptions}
+                                        value={stat}
+                                        onChange={(v) =>
+                                            setStat((Array.isArray(v) ? v[0] : v) as typeof stat)
+                                        }
+                                    />
+                                </AtomDiv>
+                                <AtomButton
+                                    id="admin-reservations-refresh"
+                                    type={EButtonType.secondary}
+                                    className="px-3! py-2! text-sm"
+                                    onClick={() => void load()}
+                                    text={t('common.refresh')}
+                                />
+                            </AtomDiv>
+
+                            <OrganismTable<AdminReservationTableRow>
+                                columns={reservationColumns}
+                                emptyMessage={listTab === 'upcoming' ? t('admin.reservations.emptyUpcoming') : t('admin.reservations.emptyPast')}
+                                isLoading={loading}
+                                pageSize={10}
+                                rows={tableRows}
+                                searchable
+                                primaryAction={createButton}
+                                placeholder={t('table.search')}
+                                className="border-0 shadow-none"
+                                tableClassName="text-sm"
+                                badge={null}
                             />
                         </AtomDiv>
-                        <AtomButton
-                            id="admin-reservations-refresh"
-                            type={EButtonType.secondary}
-                            className="px-3! py-2! text-sm"
-                            onClick={() => void load()}
-                            text={t('common.refresh')}
-                        />
-                    </AtomDiv>
-
-                    <OrganismTable<AdminReservationTableRow>
-                        columns={reservationColumns}
-                        emptyMessage={listTab === 'upcoming' ? t('admin.reservations.emptyUpcoming') : t('admin.reservations.emptyPast')}
-                        isLoading={loading}
-                        pageSize={10}
-                        rows={tableRows}
-                        searchable
-                        primaryAction={createButton}
-                        placeholder={t('table.search')}
-                        className="border-0 shadow-none"
-                        tableClassName="text-sm"
-                    />
-                </AtomDiv>
                     </AtomDiv>
                 }
             />

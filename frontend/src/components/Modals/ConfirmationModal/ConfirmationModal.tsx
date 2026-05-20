@@ -1,4 +1,5 @@
-import { useTranslation } from 'next-i18next';
+'use client';
+
 import MoleculeModal from '@/components/Molecules/MoleculeModal/MoleculeModal';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
@@ -8,9 +9,10 @@ import { EButtonType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/En
 import { ELabelColor } from '@/theme/labelColors';
 import MoleculeButton from '@/components/Molecules/MoleculeButton/MoleculeButton';
 import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
+import { useTranslations } from 'next-intl';
 
 const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
-    const { t } = useTranslation();
+    const t = useTranslations();
     const { closeModal } = useCurrentModal();
 
     const handleCancel = () => closeModal();
@@ -50,7 +52,7 @@ const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
                     id="cancel-btn"
                     type={EButtonType.secondary}
                     className="flex-1"
-                    text={props.cancelBtnText ?? t('common.return')}
+                    text={props.cancelBtnText ?? t('common.cancel')}
                     onClick={handleCancel}
                     disabled={props.isLoading}
                 />
@@ -58,7 +60,7 @@ const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
                     id="confirm-btn"
                     type={EButtonType.primary}
                     className="flex-1"
-                    text={props.submitBtnText ?? t('common.validate')}
+                    text={props.submitBtnText ?? t('common.delete')}
                     isLoading={props.isLoading}
                     onClick={handleSubmit}
                 />

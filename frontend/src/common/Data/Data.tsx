@@ -1,4 +1,4 @@
-import { EButtonSize, EButtonType } from "@/Enum/Enum";
+import { EButtonSize, EButtonType, ESize } from "@/Enum/Enum";
 import { ELabelColor } from "@/theme/labelColors";
 
 export const TYPE_VARIANT_CLASSES: Record<EButtonType, string> = {
@@ -33,4 +33,35 @@ export const BUTTON_LABEL_COLOR: Record<EButtonType, ELabelColor> = {
     [EButtonType.tertiary]: 'text-white',
     [EButtonType.gray]: 'text-gray-700',
     [EButtonType.iconButton]: 'text-gray-700',
+};
+
+export const getSizeClasses = (size: ESize, variant: 'pill' | 'underline') => {
+    if (variant === 'underline') {
+        switch (size) {
+            case ESize.xs:
+                return { container: 'gap-6', button: 'pb-3 text-xs' };
+            case ESize.sm:
+                return { container: 'gap-8', button: 'pb-3.5 text-sm' };
+            case ESize.xl:
+                return { container: 'gap-10', button: 'pb-4 text-base' };
+            case ESize.lg:
+            case ESize.md:
+            default:
+                return { container: 'gap-8', button: 'pb-3.5 text-sm' };
+        }
+    }
+
+    switch (size) {
+        case ESize.xs:
+            return { container: 'p-0.5', button: 'px-2 py-1 text-[11px]' };
+        case ESize.sm:
+            return { container: 'p-0.5', button: 'px-3 py-1.5 text-xs' };
+        case ESize.md:
+            return { container: 'p-0.5', button: 'px-5 py-2 text-sm' };
+        case ESize.xl:
+            return { container: 'p-1', button: 'px-9 py-3 text-base' };
+        case ESize.lg:
+        default:
+            return { container: 'p-1', button: 'px-7 py-2.5 text-sm' };
+    }
 };
