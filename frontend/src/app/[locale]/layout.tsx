@@ -1,9 +1,8 @@
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getMessages } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
-import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import type { Metadata } from 'next';
 import { Lato } from 'next/font/google';
@@ -40,11 +39,10 @@ export async function generateMetadata({
 export default async function LocaleLayout({
   children,
   params,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
-}) {
-  // Await the params promise instead of using React.use()
+}>) {
   const { locale } = await params;
 
   if (!hasLocale(routing.locales, locale)) {
