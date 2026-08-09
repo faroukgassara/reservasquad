@@ -18,6 +18,9 @@ export const Routes = {
     Reservations: {
         index: '/reservations',
     },
+    DailyIncome: {
+        index: '/daily-income',
+    },
     Users: {
         index: '/users',
     },

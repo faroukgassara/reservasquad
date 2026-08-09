@@ -83,6 +83,13 @@ export default function PrivateLayout({
             hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
         },
         {
+            id: 'daily-income',
+            iconName: IconComponentsEnum.squaresFour,
+            label: t('dailyIncome'),
+            href: Routes.DailyIncome.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
+        {
             id: 'users',
             iconName: IconComponentsEnum.user,
             label: t('users'),

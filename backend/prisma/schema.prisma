@@ -147,3 +147,36 @@ enum EReservationStatus {
   CONFIRMED
   CANCELLED
 }
+
+enum EIncomeLineType {
+  CHARGE
+  INVESTMENT
+}
+
+model DailyIncome {
+  id          String   @id @default(uuid())
+  date        DateTime @db.Date @unique
+  totalIncome Decimal  @db.Decimal(10, 2)
+  savings     Decimal  @db.Decimal(10, 2)
+  benefits    Decimal  @default(0) @db.Decimal(10, 2)
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
+
+model IncomeLine {
+  id     String          @id @default(uuid())
+  date   DateTime        @db.Date
+  type   EIncomeLineType
+  label  String
+  amount Decimal         @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@index([type])
+}

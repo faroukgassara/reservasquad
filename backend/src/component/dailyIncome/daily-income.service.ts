@@ -1,0 +1,237 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateDailyIncomeDto } from 'src/dto/dailyIncome/createDailyIncome.dto';
+import { UpdateDailyIncomeDto } from 'src/dto/dailyIncome/updateDailyIncome.dto';
+import { FetchDailyIncomeDto } from 'src/dto/dailyIncome/fetchDailyIncome.dto';
+import {
+  CreateIncomeLineDto,
+  UpdateIncomeLineDto,
+} from 'src/dto/dailyIncome/createIncomeLine.dto';
+import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
+import { EIncomeLineType } from 'src/generated/prisma/client';
+
+@Injectable()
+export class DailyIncomeService {
+  constructor(private readonly prismaService: PrismaService) {}
+
+  private toDateOnly(value: string | Date): Date {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) {
+      throw new BadRequestException('Invalid date');
+    }
+    return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  }
+
+  private dateKey(d: Date): string {
+    return d.toISOString().slice(0, 10);
+  }
+
+  private calcTwentyPercent(totalIncome: number): string {
+    return Math.round(totalIncome * 0.2).toFixed(2);
+  }
+
+  private monthRange(year: number, month: number): { from: Date; to: Date } {
+    const from = new Date(Date.UTC(year, month - 1, 1));
+    const to = new Date(Date.UTC(year, month, 1));
+    return { from, to };
+  }
+
+  private resolvePeriod(query: { year?: number; month?: number }) {
+    const now = new Date();
+    const year = query.year ?? now.getUTCFullYear();
+    const month = query.month ?? now.getUTCMonth() + 1;
+    return { year, month, ...this.monthRange(year, month) };
+  }
+
+  async createDailyIncome(dto: CreateDailyIncomeDto) {
+    const date = this.toDateOnly(dto.date);
+    const existing = await this.prismaService.dailyIncome.findUnique({
+      where: { date },
+    });
+    if (existing) {
+      throw new ConflictException('A daily income entry already exists for this date');
+    }
+
+    const totalIncome = Number(dto.totalIncome);
+    return this.prismaService.dailyIncome.create({
+      data: {
+        date,
+        totalIncome: totalIncome.toFixed(2),
+        savings: this.calcTwentyPercent(totalIncome),
+        benefits: this.calcTwentyPercent(totalIncome),
+        notes: dto.notes?.trim() || null,
+      },
+    });
+  }
+
+  async updateDailyIncome(id: string, dto: UpdateDailyIncomeDto) {
+    const existing = await this.getDailyIncomeById(id);
+
+    let date = existing.date;
+    if (dto.date !== undefined) {
+      date = this.toDateOnly(dto.date);
+      const conflict = await this.prismaService.dailyIncome.findFirst({
+        where: { date, id: { not: id } },
+      });
+      if (conflict) {
+        throw new ConflictException('A daily income entry already exists for this date');
+      }
+    }
+
+    const totalIncome =
+      dto.totalIncome !== undefined ? Number(dto.totalIncome) : Number(existing.totalIncome);
+
+    return this.prismaService.dailyIncome.update({
+      where: { id },
+      data: {
+        date,
+        totalIncome: totalIncome.toFixed(2),
+        savings: this.calcTwentyPercent(totalIncome),
+        benefits: this.calcTwentyPercent(totalIncome),
+        ...(dto.notes !== undefined && { notes: dto.notes?.trim() || null }),
+      },
+    });
+  }
+
+  async getDailyIncomeById(id: string) {
+    const row = await this.prismaService.dailyIncome.findUnique({ where: { id } });
+    if (!row) throw new NotFoundException('Daily income not found');
+    return row;
+  }
+
+  async deleteDailyIncome(id: string) {
+    await this.getDailyIncomeById(id);
+    return this.prismaService.dailyIncome.delete({ where: { id } });
+  }
+
+  async listDailyIncomes(query: FetchDailyIncomeDto) {
+    const { from, to, year, month } = this.resolvePeriod(query);
+
+    const days = await this.prismaService.dailyIncome.findMany({
+      where: { date: { gte: from, lt: to } },
+      orderBy: { date: 'asc' },
+    });
+
+    const lines = await this.prismaService.incomeLine.findMany({
+      where: { date: { gte: from, lt: to } },
+      select: { date: true, amount: true, type: true },
+    });
+
+    const linesByDay = new Map<string, { charges: number; investments: number }>();
+    for (const line of lines) {
+      const key = this.dateKey(line.date);
+      const bucket = linesByDay.get(key) ?? { charges: 0, investments: 0 };
+      const amount = Number(line.amount);
+      if (line.type === EIncomeLineType.CHARGE) bucket.charges += amount;
+      else bucket.investments += amount;
+      linesByDay.set(key, bucket);
+    }
+
+    const data = days.map((day) => {
+      const bucket = linesByDay.get(this.dateKey(day.date)) ?? {
+        charges: 0,
+        investments: 0,
+      };
+      const chargesInvestment = Math.round((bucket.charges + bucket.investments) * 100) / 100;
+      return {
+        ...day,
+        charges: Math.round(bucket.charges * 100) / 100,
+        investments: Math.round(bucket.investments * 100) / 100,
+        chargesInvestment,
+      };
+    });
+
+    return { year, month, data };
+  }
+
+  async getSummary(query: FetchDailyIncomeDto) {
+    const { from, to, year, month } = this.resolvePeriod(query);
+
+    const [incomeAgg, chargeAgg, investmentAgg] = await Promise.all([
+      this.prismaService.dailyIncome.aggregate({
+        where: { date: { gte: from, lt: to } },
+        _sum: { totalIncome: true, savings: true, benefits: true },
+      }),
+      this.prismaService.incomeLine.aggregate({
+        where: { date: { gte: from, lt: to }, type: EIncomeLineType.CHARGE },
+        _sum: { amount: true },
+      }),
+      this.prismaService.incomeLine.aggregate({
+        where: { date: { gte: from, lt: to }, type: EIncomeLineType.INVESTMENT },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const totalIncome = Number(incomeAgg._sum.totalIncome ?? 0);
+    const totalSavings = Number(incomeAgg._sum.savings ?? 0);
+    const totalBenefits = Number(incomeAgg._sum.benefits ?? 0);
+    const totalCharges = Number(chargeAgg._sum.amount ?? 0);
+    const totalInvestments = Number(investmentAgg._sum.amount ?? 0);
+    const netBalance =
+      Math.round((totalIncome - totalCharges - totalInvestments) * 100) / 100;
+
+    return {
+      year,
+      month,
+      totalIncome: Math.round(totalIncome * 100) / 100,
+      totalCharges: Math.round(totalCharges * 100) / 100,
+      totalInvestments: Math.round(totalInvestments * 100) / 100,
+      totalSavings: Math.round(totalSavings * 100) / 100,
+      totalBenefits: Math.round(totalBenefits * 100) / 100,
+      netBalance,
+    };
+  }
+
+  async createIncomeLine(dto: CreateIncomeLineDto) {
+    const date = this.toDateOnly(dto.date);
+    return this.prismaService.incomeLine.create({
+      data: {
+        date,
+        type: dto.type,
+        label: dto.label.trim(),
+        amount: Number(dto.amount).toFixed(2),
+      },
+    });
+  }
+
+  async updateIncomeLine(id: string, dto: UpdateIncomeLineDto) {
+    await this.getIncomeLineById(id);
+    return this.prismaService.incomeLine.update({
+      where: { id },
+      data: {
+        ...(dto.date !== undefined && { date: this.toDateOnly(dto.date) }),
+        ...(dto.type !== undefined && { type: dto.type }),
+        ...(dto.label !== undefined && { label: dto.label.trim() }),
+        ...(dto.amount !== undefined && { amount: Number(dto.amount).toFixed(2) }),
+      },
+    });
+  }
+
+  async getIncomeLineById(id: string) {
+    const row = await this.prismaService.incomeLine.findUnique({ where: { id } });
+    if (!row) throw new NotFoundException('Income line not found');
+    return row;
+  }
+
+  async deleteIncomeLine(id: string) {
+    await this.getIncomeLineById(id);
+    return this.prismaService.incomeLine.delete({ where: { id } });
+  }
+
+  async listIncomeLines(query: FetchIncomeLinesDto) {
+    const { from, to, year, month } = this.resolvePeriod(query);
+    const data = await this.prismaService.incomeLine.findMany({
+      where: {
+        date: { gte: from, lt: to },
+        ...(query.type ? { type: query.type } : {}),
+      },
+      orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
+    });
+    return { year, month, data };
+  }
+}

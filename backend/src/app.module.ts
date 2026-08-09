@@ -12,6 +12,7 @@ import { UserModule } from './component/user/user.module';
 import { RoomModule } from './component/room/room.module';
 import { ProfessorModule } from './component/professor/professor.module';
 import { ReservationModule } from './component/reservation/reservation.module';
+import { DailyIncomeModule } from './component/dailyIncome/daily-income.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ReservationModule } from './component/reservation/reservation.module';
     RoomModule,
     ProfessorModule,
     ReservationModule,
+    DailyIncomeModule,
   ],
   controllers: [AppController],
   providers: [
