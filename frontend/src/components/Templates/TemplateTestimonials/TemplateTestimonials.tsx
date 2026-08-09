@@ -158,7 +158,7 @@ export default function TemplateTestimonials() {
             <Div className="mb-4 max-w-3xl shrink-0 sm:mb-5 lg:mb-6">
                     <Label
                         variant={EVariantLabel.overline}
-                        color="text-gold-600"
+                        color="text-accent-600"
                         className="mb-2 block uppercase"
                     >
                         {t('eyebrow')}

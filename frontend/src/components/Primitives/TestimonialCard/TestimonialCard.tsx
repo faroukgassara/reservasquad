@@ -12,11 +12,11 @@ interface ITestimonialCard {
     compact?: boolean;
 }
 
-// Brand-constrained gradients: teal-family plus the gold accent
+// Brand-constrained gradients: navy + rouge Squad accent
 const AVATAR_GRADIENTS = [
     'from-primary-500 to-primary-700',
     'from-primary-300 to-primary-500',
-    'from-gold-500 to-gold-700',
+    'from-accent-500 to-accent-700',
     'from-primary-700 to-primary-900',
     'from-primary-400 to-primary-600',
     'from-gray-500 to-gray-700',

@@ -5,25 +5,24 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
 import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import type { Metadata } from 'next';
-import { Playfair_Display, Poppins } from 'next/font/google';
+import { Inter, Poppins } from 'next/font/google';
 import '@/app/globals.css';
 import RouteProviders from '@/components/providers/RouteProviders';
 import LocaleMarketingShell from '@/components/Layouts/LocaleMarketingShell/LocaleMarketingShell';
 import { SITE_URL } from '@/lib/site-url';
 
+// Charte Biblio Squad: Poppins = titres, Inter = textes
 const poppins = Poppins({
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-poppins',
   display: 'swap',
 })
 
-// Charte Conchas: Playfair Display is the heading typeface (H1 / H2)
-const playfair = Playfair_Display({
-  weight: ['400', '700'],
-  style: ['normal', 'italic'],
+const inter = Inter({
+  weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
-  variable: '--font-playfair',
+  variable: '--font-inter',
   display: 'swap',
 })
 
@@ -182,8 +181,8 @@ export default async function LocaleLayout({
   const session = await getServerSession(authOptions);
 
   return (
-    <html lang={locale} className={`${poppins.variable} ${playfair.variable}`}>
-      <body className={`${poppins.className} bg-gray-25 text-gray-900 antialiased`}>
+    <html lang={locale} className={`${poppins.variable} ${inter.variable}`}>
+      <body className={`${inter.className} bg-gray-25 text-gray-900 antialiased`}>
         <RouteProviders session={session} locale={locale} messages={messages}>
           <LocaleMarketingShell>{children}</LocaleMarketingShell>
         </RouteProviders>

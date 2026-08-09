@@ -36,7 +36,7 @@ export default function TemplateOurServices() {
                 <Div className="mb-4 max-w-3xl shrink-0 sm:mb-5 lg:mb-6">
                     <Label
                         variant={EVariantLabel.overline}
-                        color="text-gold-600"
+                        color="text-accent-600"
                         className="mb-2 block uppercase"
                     >
                         {t('eyebrow')}
@@ -61,7 +61,7 @@ export default function TemplateOurServices() {
                             key={key}
                             className={twMerge(
                                 'cursor-pointer group flex min-h-0 flex-col rounded-xl border border-gray-100 bg-white p-3 shadow-sm transition-all duration-200',
-                                'hover:-translate-y-1 hover:border-gold-400/60 hover:shadow-md hover:shadow-gold-400/10',
+                                'hover:-translate-y-1 hover:border-accent-400/60 hover:shadow-md hover:shadow-accent-400/10',
                                 'sm:p-5 lg:p-6',
                                 key === 'vinyl' && 'col-span-2 lg:col-span-1',
                             )}
@@ -69,7 +69,7 @@ export default function TemplateOurServices() {
                             <span
                                 className={twMerge(
                                     'mb-2 flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-900 transition-colors duration-200',
-                                    'group-hover:bg-gold-100 group-hover:text-primary-700',
+                                    'group-hover:bg-accent-100 group-hover:text-primary-700',
                                     'sm:mb-4 sm:size-11',
                                 )}
                             >
@@ -88,7 +88,7 @@ export default function TemplateOurServices() {
                             <Div className='flex items-center justify-between'>
                                 <Label
                                     variant={EVariantLabel.bodySmall}
-                                    color="text-gold-600"
+                                    color="text-accent-600"
                                     className="mt-1 block"
                                 >
                                     {t(`items.${key}.tagline`)}

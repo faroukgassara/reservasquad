@@ -56,7 +56,7 @@ export default function OrganismCartDrawer() {
                                     size={ESize.md}
                                     color="text-primary-500"
                                 />
-                                <span className="font-(family-name:--font-playfair) text-xl font-bold text-primary-500">
+                                <span className="font-(family-name:--font-poppins) text-xl font-bold text-primary-500">
                                     {isEmpty ? t('title') : t('titleWithCount', { count: itemCount })}
                                 </span>
                             </Div>
@@ -78,7 +78,7 @@ export default function OrganismCartDrawer() {
                                         color="text-primary-500"
                                     />
                                 </Div>
-                                <span className="mb-3 block font-(family-name:--font-playfair) text-2xl font-bold text-primary-500">
+                                <span className="mb-3 block font-(family-name:--font-poppins) text-2xl font-bold text-primary-500">
                                     {t('emptyTitle')}
                                 </span>
                                 <Label
@@ -91,7 +91,7 @@ export default function OrganismCartDrawer() {
                                 <Link
                                     href={Routes.Shop.index}
                                     onClick={closeDrawer}
-                                    className="inline-flex h-12 items-center justify-center rounded-full bg-primary-500 px-8 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                                    className="inline-flex h-12 items-center justify-center rounded-full bg-accent-500 px-8 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
                                 >
                                     {t('exploreShop')}
                                 </Link>
@@ -126,14 +126,14 @@ export default function OrganismCartDrawer() {
                                     <Link
                                         href={Routes.Checkout}
                                         onClick={closeDrawer}
-                                        className="mb-2.5 flex h-12 w-full items-center justify-center rounded-xl bg-primary-500 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                                        className="mb-2.5 flex h-12 w-full items-center justify-center rounded-xl bg-accent-500 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
                                     >
                                         {t('checkout')}
                                     </Link>
                                     <Link
                                         href={Routes.Cart}
                                         onClick={closeDrawer}
-                                        className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-gold-400 bg-white text-sm font-semibold text-primary-500 transition-colors hover:bg-gold-50"
+                                        className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-accent-500 bg-white text-sm font-semibold text-primary-500 transition-colors hover:bg-accent-50"
                                     >
                                         {t('viewCart')}
                                     </Link>

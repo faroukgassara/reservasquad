@@ -25,7 +25,7 @@ export default function OrganismCheckoutOrderSummary({
 
     return (
         <aside className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 lg:sticky lg:top-24">
-            <span className="mb-5 block font-(family-name:--font-playfair) text-2xl font-bold text-primary-500">
+            <span className="mb-5 block font-(family-name:--font-poppins) text-2xl font-bold text-primary-500">
                 {t('yourOrder')}
             </span>
 

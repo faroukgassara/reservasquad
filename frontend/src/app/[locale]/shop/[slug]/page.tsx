@@ -64,7 +64,7 @@ function SimilarCard({
                     className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                 />
                 {badges[0] ? (
-                    <span className="absolute start-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-gold-400 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase text-gray-900">
+                    <span className="absolute start-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-accent-500 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase text-white">
                         {badges[0]}
                     </span>
                 ) : null}
@@ -232,7 +232,7 @@ export default function ShopProductDetailPage() {
                                         className={twMerge(
                                             'size-16 overflow-hidden rounded-xl ring-2 transition sm:size-20',
                                             activeImage === index
-                                                ? 'ring-gold-400'
+                                                ? 'ring-accent-400'
                                                 : 'ring-transparent hover:ring-gray-200',
                                         )}
                                     >
@@ -267,7 +267,7 @@ export default function ShopProductDetailPage() {
                             {badges.map((badge) => (
                                 <span
                                     key={badge}
-                                    className="inline-flex items-center gap-1.5 rounded-full bg-gold-400 px-3 py-1 text-xs font-semibold text-gray-900"
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold text-white"
                                 >
                                     {badge}
                                 </span>
@@ -383,7 +383,7 @@ export default function ShopProductDetailPage() {
                                                 : undefined,
                                     })
                                 }
-                                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary-500 px-6 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
                             >
                                 <Icon name={IconComponentsEnum.plus} size={ESize.sm} color="text-white" />
                                 {tDetail('addToCart')}
@@ -392,7 +392,7 @@ export default function ShopProductDetailPage() {
 
                         <Div className="mt-4 space-y-2.5 rounded-2xl bg-gray-100 px-4 py-3.5">
                             <Div className="flex items-center gap-2.5">
-                                <Icon name={IconComponentsEnum.truck} size={ESize.sm} color="text-gold-500" />
+                                <Icon name={IconComponentsEnum.truck} size={ESize.sm} color="text-accent-500" />
                                 <Label variant={EVariantLabel.bodySmall} color="text-gray-700">
                                     {tDetail('deliveryEverywhere')}
                                 </Label>
@@ -401,7 +401,7 @@ export default function ShopProductDetailPage() {
                                 <Icon
                                     name={IconComponentsEnum.checkCircle}
                                     size={ESize.sm}
-                                    color="text-gold-500"
+                                    color="text-accent-500"
                                 />
                                 <Label variant={EVariantLabel.bodySmall} color="text-gray-700">
                                     {tDetail('handmadeGuarantee')}
@@ -421,7 +421,7 @@ export default function ShopProductDetailPage() {
                                 className={twMerge(
                                     'shrink-0 border-b-2 px-0.5 py-3.5 text-sm font-medium transition-colors',
                                     tab === item.key
-                                        ? 'border-gold-400 text-gray-900'
+                                        ? 'border-accent-400 text-gray-900'
                                         : 'border-transparent text-gray-500 hover:text-gray-800',
                                 )}
                             >

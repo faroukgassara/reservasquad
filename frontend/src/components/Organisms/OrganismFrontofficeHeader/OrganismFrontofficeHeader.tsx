@@ -80,7 +80,7 @@ function NavLink({
             className={twMerge(
                 'cursor-pointer shrink-0 whitespace-nowrap border-b-2 px-1 py-3 text-[15px] leading-none transition-colors 2xl:text-base',
                 isActive
-                    ? 'border-gold-400 font-medium text-primary-600'
+                    ? 'border-accent-500 font-medium text-primary-600'
                     : 'border-transparent font-normal text-gray-900 hover:text-primary-500',
             )}
         >
@@ -289,7 +289,7 @@ export default function OrganismFrontofficeHeader() {
                                 onClick={openDrawer}
                             />
                             {itemCount > 0 && (
-                                <span className="pointer-events-none absolute -end-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-gold-400 text-[0.6rem] font-bold text-gray-900">
+                                <span className="pointer-events-none absolute -end-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent-500 text-[0.6rem] font-bold text-white">
                                     {itemCount > 9 ? '9+' : itemCount}
                                 </span>
                             )}

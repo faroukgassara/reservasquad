@@ -126,13 +126,10 @@ export default function TemplateHero() {
                             animate="visible"
                             variants={copyVariants}
                         >
-                            <div className="mb-3 inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-gold-400/80 px-3 py-1 sm:mb-4 sm:px-3.5">
-                                <span aria-hidden className="text-gold-400">
-                                    ✦
-                                </span>
+                            <div className="mb-3 inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-accent-500/80 px-3 py-1 sm:mb-4 sm:px-3.5">
                                 <Label
                                     variant={EVariantLabel.hint}
-                                    color="text-gold-400"
+                                    color="text-accent-400"
                                     className="uppercase tracking-[0.12em]"
                                 >
                                     {t('badge')}
@@ -141,11 +138,11 @@ export default function TemplateHero() {
 
                             <h1
                                 id="hero-heading"
-                                className="max-w-xl text-start font-(family-name:--font-playfair) text-[1.75rem] font-bold leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem] xl:text-[3.15rem]"
+                                className="max-w-xl text-start font-(family-name:--font-poppins) text-[1.75rem] font-bold leading-[1.12] tracking-tight text-white sm:text-4xl lg:text-[2.75rem] xl:text-[3.15rem]"
                             >
                                 {t('headline.line1')}
                                 <br />
-                                <span className="italic text-gold-400">{t('headline.highlight')}</span>
+                                <span className="text-accent-400">{t('headline.highlight')}</span>
                                 <br />
                                 {t('headline.line2')}
                             </h1>
@@ -157,7 +154,7 @@ export default function TemplateHero() {
                             <div className="mt-5 flex w-full flex-col gap-2.5 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-center">
                                 <Link
                                     href={Routes.Shop.index}
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold-400 px-5 py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gold-300 sm:w-auto sm:px-6"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-600 sm:w-auto sm:px-6"
                                 >
                                     {t('primaryCta')}
                                     <span aria-hidden>→</span>
@@ -175,8 +172,8 @@ export default function TemplateHero() {
                                     <div key={key} className="min-w-0">
                                         <p
                                             className={twMerge(
-                                                'font-(family-name:--font-playfair) text-lg font-bold sm:text-2xl',
-                                                key === 'services' ? 'text-gold-400' : 'text-white',
+                                                'font-(family-name:--font-poppins) text-lg font-bold sm:text-2xl',
+                                                key === 'services' ? 'text-accent-400' : 'text-white',
                                             )}
                                         >
                                             {t(`stats.${key}.value`)}

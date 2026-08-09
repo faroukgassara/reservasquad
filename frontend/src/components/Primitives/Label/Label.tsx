@@ -42,7 +42,7 @@ const Label: React.FC<LabelProps> = ({
     const fontSizeKey = typography.variants[variant as keyof typeof typography.variants]
     const token = typography.fontSize[fontSizeKey as keyof typeof typography.fontSize]
 
-    // Charte Nexera: display sizes (headings) use Space Grotesk, body text uses Inter
+    // Charte Biblio Squad: display sizes (headings) use Poppins, body text uses Inter
     const isHeading = typeof fontSizeKey === 'string' && fontSizeKey.startsWith('display-')
     const fontFamily = isHeading ? typography.fontFamily.heading : typography.fontFamily.sans
 

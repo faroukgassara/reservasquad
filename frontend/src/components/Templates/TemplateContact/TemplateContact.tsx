@@ -48,7 +48,7 @@ export default function TemplateContact() {
                         <Label
                             variant={EVariantLabel.h3}
                             color="text-primary-600"
-                            className="inline-block border-b-4 border-gold-400 pb-2 uppercase"
+                            className="inline-block border-b-4 border-accent-500 pb-2 uppercase"
                         >
                             {t('title')}
                         </Label>
@@ -140,7 +140,7 @@ export default function TemplateContact() {
                                             id="contact-send"
                                             type="submit"
                                             disabled={!canSubmit || isSubmitting || mutation.isPending}
-                                            className="h-12 w-full rounded-lg bg-primary-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="h-12 w-full rounded-lg bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             {mutation.isPending || isSubmitting ? t('sending') : t('send')}
                                         </button>

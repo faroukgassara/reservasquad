@@ -87,9 +87,9 @@ export default function TemplateAboutUs() {
                     </Div>
 
                     <Div className="mt-12 grid gap-6 md:grid-cols-2">
-                        <Div className="rounded-2xl border border-gold-200 bg-gold-25 p-8 shadow-sm flex flex-col">
-                            <span className="mb-4 flex size-12 items-center justify-center rounded-xl bg-gold-100">
-                                <Icon name={IconComponentsEnum.eye} size={ESize.md} color="text-gold-600" />
+                        <Div className="rounded-2xl border border-accent-200 bg-accent-25 p-8 shadow-sm flex flex-col">
+                            <span className="mb-4 flex size-12 items-center justify-center rounded-xl bg-accent-100">
+                                <Icon name={IconComponentsEnum.eye} size={ESize.md} color="text-accent-600" />
                             </span>
                             <SectionBadge>{t('visionTagline.badge')}</SectionBadge>
                             <Label variant={EVariantLabel.h5} color="text-gray-900" className="mb-3 block">

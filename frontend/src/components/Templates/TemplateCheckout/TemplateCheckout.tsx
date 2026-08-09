@@ -133,7 +133,7 @@ export default function TemplateCheckout() {
                         </Label>
                         <Link
                             href={Routes.Shop.index}
-                            className="inline-flex h-12 items-center justify-center rounded-full bg-primary-500 px-8 text-sm font-semibold text-white hover:bg-primary-600"
+                            className="inline-flex h-12 items-center justify-center rounded-full bg-accent-500 px-8 text-sm font-semibold text-white hover:bg-accent-600"
                         >
                             {tCart('exploreShop')}
                         </Link>

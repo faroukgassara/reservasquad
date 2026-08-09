@@ -67,7 +67,7 @@ function ProductCard({
                         {badges.map((badge) => (
                             <span
                                 key={badge}
-                                className="rounded-md bg-gold-400 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-gray-900"
+                                className="rounded-md bg-accent-500 px-2 py-0.5 text-[0.65rem] font-semibold uppercase text-white"
                             >
                                 {badge}
                             </span>
@@ -90,7 +90,7 @@ function ProductCard({
                     <button
                         type="button"
                         onClick={handleAddToCart}
-                        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-gold-400 px-3.5 text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gold-300"
+                        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-accent-500 px-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-600"
                     >
                         <Icon
                             name={IconComponentsEnum.shoppingCart}
@@ -217,7 +217,7 @@ export default function TemplateShop() {
                 <Div className="mb-8 max-w-3xl sm:mb-10">
                     <Label
                         variant={EVariantLabel.overline}
-                        color="text-gold-600"
+                        color="text-accent-600"
                         className="mb-2 block uppercase"
                     >
                         {t('eyebrow')}

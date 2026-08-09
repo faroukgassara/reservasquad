@@ -61,7 +61,7 @@ export default function TemplateOurHistory() {
                         </Div>
 
                         <Div className="absolute start-1/2 top-1/2 z-10 w-30 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-primary-500 px-4 py-3 text-center shadow-lg sm:w-32 sm:px-5 sm:py-4 rtl:translate-x-1/2">
-                            <p className="font-(family-name:--font-playfair) text-2xl font-bold text-white sm:text-3xl">
+                            <p className="font-(family-name:--font-poppins) text-2xl font-bold text-white sm:text-3xl">
                                 {t('badge.year')}
                             </p>
                             <Label variant={EVariantLabel.caption} color="text-white" className="mt-0.5 block">
@@ -73,7 +73,7 @@ export default function TemplateOurHistory() {
                     <Div className="flex min-w-0 flex-col justify-center">
                         <Label
                             variant={EVariantLabel.overline}
-                            color="text-gold-600"
+                            color="text-accent-600"
                             className="mb-2 block uppercase"
                         >
                             {t('eyebrow')}

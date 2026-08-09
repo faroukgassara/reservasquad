@@ -2,7 +2,7 @@ import { EBadgeSize, EBadgeType, EButtonSize, EButtonType, EInputSize, EInputSta
 import { ELabelColor } from "@/theme/labelColors";
 
 export const TYPE_VARIANT_CLASSES: Record<EButtonType, string> = {
-    [EButtonType.primary]: 'bg-primary-500 text-white cursor-pointer hover:bg-primary-700 focus:bg-primary-500 focus:border-3 focus:border-primary-200 active:bg-primary-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed',
+    [EButtonType.primary]: 'bg-accent-500 text-white cursor-pointer hover:bg-accent-600 focus:bg-accent-500 focus:border-3 focus:border-accent-200 active:bg-accent-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed',
     [EButtonType.secondary]: 'bg-white text-primary-500 cursor-pointer border-2 border-primary-500 hover:bg-primary-50 focus:bg-white focus:border-3 focus:border-primary-200 active:bg-primary-100 disabled:bg-white disabled:text-gray-400 disabled:border-2 disabled:border-gray-200 disabled:cursor-not-allowed',
     [EButtonType.tertiary]: 'text-primary-500 cursor-pointer hover:bg-primary-50 focus:bg-white focus:border-3 focus:border-primary-200 active:bg-primary-100 disabled:bg-white  disabled:text-gray-400 disabled:cursor-not-allowed',
 };
@@ -58,7 +58,7 @@ export const ICON_ONLY_SIZES_BADGE: Record<EBadgeSize, string> = {
 };
 
 export const TYPE_VARIANT_CLASSES_BADGE: Record<EBadgeType, string> = {
-    [EBadgeType.primary]: 'bg-primary-500 text-white',
+    [EBadgeType.primary]: 'bg-accent-500 text-white',
     [EBadgeType.success]: 'bg-success-500 text-white',
     [EBadgeType.warning]: 'bg-warning-500 text-white',
     [EBadgeType.error]: 'bg-danger-500 text-white',

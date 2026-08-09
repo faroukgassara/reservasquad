@@ -35,7 +35,7 @@ export default function TemplateCart() {
                                         color="text-primary-500"
                                     />
                                 </Div>
-                                <span className="mb-3 block font-(family-name:--font-playfair) text-2xl font-bold text-primary-500">
+                                <span className="mb-3 block font-(family-name:--font-poppins) text-2xl font-bold text-primary-500">
                                     {t('emptyTitle')}
                                 </span>
                         <Label
@@ -47,7 +47,7 @@ export default function TemplateCart() {
                         </Label>
                         <Link
                             href={Routes.Shop.index}
-                            className="inline-flex h-12 items-center justify-center rounded-full bg-primary-500 px-8 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                            className="inline-flex h-12 items-center justify-center rounded-full bg-accent-500 px-8 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
                         >
                             {t('exploreShop')}
                         </Link>
@@ -61,7 +61,7 @@ export default function TemplateCart() {
                         </Div>
 
                         <aside className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 lg:sticky lg:top-24">
-                            <span className="mb-5 block font-(family-name:--font-playfair) text-2xl font-bold text-primary-500">
+                            <span className="mb-5 block font-(family-name:--font-poppins) text-2xl font-bold text-primary-500">
                                 {t('summary')}
                             </span>
 
@@ -97,7 +97,7 @@ export default function TemplateCart() {
 
                             <Link
                                 href={Routes.Checkout}
-                                className="mb-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary-500 text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                                className="mb-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
                             >
                                 {t('checkout')}
                                 <Icon

@@ -1,23 +1,24 @@
 /**
- * Charte graphique Conchas : Playfair Display pour les titres, Poppins pour les textes.
- * Hiérarchie : H1/H2 Playfair Bold · H3 Poppins SemiBold · corps Poppins Regular.
- * Substitution bureautique : Georgia / Calibri.
+ * Charte graphique Biblio Squad : Poppins pour les titres, Inter pour les textes.
+ * Hiérarchie : H1 Poppins Bold · H2 Poppins SemiBold · H3 Poppins Medium ·
+ * lead Inter Medium · corps Inter Regular · caption Inter Medium.
+ * Substitution bureautique : Arial / Calibri.
  */
 const typography = {
   fontFamily: {
-    sans: 'var(--font-poppins), Poppins, Calibri, Helvetica, Arial, -apple-system, sans-serif',
-    heading: 'var(--font-playfair), "Playfair Display", Georgia, var(--font-poppins), Poppins, serif',
+    sans: 'var(--font-inter), Inter, Calibri, Helvetica, Arial, -apple-system, sans-serif',
+    heading: 'var(--font-poppins), Poppins, Arial, Helvetica, sans-serif',
   },
 
   fontSize: {
-    'display-xxl': ['3.75rem', { lineHeight: '1.15', fontWeight: '700' }], // 60px — H1 Playfair Bold
-    'display-xl': ['3rem', { lineHeight: '1.2', fontWeight: '700' }], // 48px — H2 Playfair Bold
-    'display-lg': ['2.25rem', { lineHeight: '1.25', fontWeight: '600' }], // 36px — H3 Poppins SemiBold (via Label body path when not display)
+    'display-xxl': ['3.75rem', { lineHeight: '1.15', fontWeight: '700' }], // 60px — H1 Poppins Bold
+    'display-xl': ['3rem', { lineHeight: '1.2', fontWeight: '600' }], // 48px — H2 Poppins SemiBold
+    'display-lg': ['2.25rem', { lineHeight: '1.25', fontWeight: '500' }], // 36px — H3 Poppins Medium
     'display-md': ['1.875rem', { lineHeight: '1.3', fontWeight: '600' }], // 30px
     'display-sm': ['1.5rem', { lineHeight: '1.35', fontWeight: '600' }], // 24px
     'display-xs': ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }], // 20px
 
-    xl: ['1.25rem', { lineHeight: '1.6', fontWeight: '500' }], // 20px — lead Poppins Medium
+    xl: ['1.25rem', { lineHeight: '1.6', fontWeight: '500' }], // 20px — lead Inter Medium
     lg: ['1.125rem', { lineHeight: '1.6', fontWeight: '400' }], // 18px
     md: ['1rem', { lineHeight: '1.65', fontWeight: '400' }], // 16px — texte courant
     sm: ['0.875rem', { lineHeight: '1.5', fontWeight: '500' }], // 14px

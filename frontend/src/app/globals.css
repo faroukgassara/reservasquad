@@ -45,10 +45,10 @@ html {
   }
 }
 
-/* Thin themed scrollbars — used by sidebar nav (neutres Conchas) */
+/* Thin themed scrollbars — used by sidebar nav (neutres Biblio Squad) */
 .sidebar-scroll {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.6800 0.0140 95.00 / 0.45) transparent;
+  scrollbar-color: oklch(0.6504 0.0138 271.20 / 0.45) transparent;
 }
 
 .sidebar-scroll::-webkit-scrollbar {
@@ -60,12 +60,12 @@ html {
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  background-color: oklch(0.6800 0.0140 95.00 / 0.45);
+  background-color: oklch(0.6504 0.0138 271.20 / 0.45);
   border-radius: 9999px;
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: oklch(0.4660 0.0127 101.06 / 0.7);
+  background-color: oklch(0.4280 0.0225 268.77 / 0.7);
 }
 
 .sidebar-scroll::-webkit-scrollbar-button {
@@ -74,10 +74,10 @@ html {
   height: 0;
 }
 
-/* Collapsed dark rail — accent doré / navy Conchas */
+/* Collapsed dark rail — accent rouge / navy Biblio Squad */
 .sidebar-scroll-dark {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.7893 0.1619 84.62 / 0.35) transparent;
+  scrollbar-color: oklch(0.5847 0.2290 27.71 / 0.35) transparent;
 }
 
 .sidebar-scroll-dark::-webkit-scrollbar {
@@ -89,12 +89,12 @@ html {
 }
 
 .sidebar-scroll-dark::-webkit-scrollbar-thumb {
-  background-color: oklch(0.7893 0.1619 84.62 / 0.35);
+  background-color: oklch(0.5847 0.2290 27.71 / 0.35);
   border-radius: 9999px;
 }
 
 .sidebar-scroll-dark::-webkit-scrollbar-thumb:hover {
-  background-color: oklch(0.7893 0.1619 84.62 / 0.55);
+  background-color: oklch(0.5847 0.2290 27.71 / 0.55);
 }
 
 .sidebar-scroll-dark::-webkit-scrollbar-button {
@@ -107,8 +107,8 @@ html {
 .ds-input-field:-webkit-autofill:hover,
 .ds-input-field:-webkit-autofill:focus,
 .ds-input-field:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px oklch(0.9750 0.0080 88.00) inset !important;
-  box-shadow: 0 0 0 1000px oklch(0.9750 0.0080 88.00) inset !important;
-  -webkit-text-fill-color: #201c14 !important;
+  -webkit-box-shadow: 0 0 0 1000px oklch(0.9371 0.0042 271.37) inset !important;
+  box-shadow: 0 0 0 1000px oklch(0.9371 0.0042 271.37) inset !important;
+  -webkit-text-fill-color: #21252e !important;
   transition: background-color 99999s ease-out 0s;
 }
