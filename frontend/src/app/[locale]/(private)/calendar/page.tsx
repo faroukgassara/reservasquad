@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -15,14 +15,28 @@ import {
     type ReservationRecord,
 } from '@/lib/reservation-api';
 import { fetchRooms } from '@/lib/room-api';
-import { EBadgeSize, EBadgeType, EButtonSize, EButtonType, EVariantLabel } from '@/Enum/Enum';
+import {
+    exportWeeklyCalendarPdf,
+    startOfWeek as weekStartOf,
+    addDays as weekAddDays,
+    startOfDay as weekStartOfDay,
+} from '@/lib/export-weekly-calendar-pdf';
+import { useToast } from '@/contexts/ToastContext';
+import {
+    EBadgeSize,
+    EBadgeType,
+    EButtonSize,
+    EButtonType,
+    ESize,
+    EToastType,
+    EVariantLabel,
+    IconComponentsEnum,
+} from '@/Enum/Enum';
 
 type CalendarView = 'day' | 'week' | 'month';
 
 function startOfDay(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
+    return weekStartOfDay(date);
 }
 
 function endOfDay(date: Date): Date {
@@ -32,11 +46,7 @@ function endOfDay(date: Date): Date {
 }
 
 function startOfWeek(date: Date): Date {
-    const d = startOfDay(date);
-    const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff);
-    return d;
+    return weekStartOf(date);
 }
 
 function startOfMonth(date: Date): Date {
@@ -46,9 +56,7 @@ function startOfMonth(date: Date): Date {
 }
 
 function addDays(date: Date, days: number): Date {
-    const d = new Date(date);
-    d.setDate(d.getDate() + days);
-    return d;
+    return weekAddDays(date, days);
 }
 
 function addMonths(date: Date, months: number): Date {
@@ -123,9 +131,12 @@ function EventCard({
 export default function CalendarPage() {
     const t = useTranslations('admin.calendar');
     const tPay = useTranslations('admin.reservations');
+    const tCommon = useTranslations('common');
+    const { openToast } = useToast();
     const [view, setView] = useState<CalendarView>('week');
     const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
     const [roomId, setRoomId] = useState('');
+    const [isExporting, setIsExporting] = useState(false);
 
     const range = useMemo(() => {
         if (view === 'day') {
@@ -153,6 +164,14 @@ export default function CalendarPage() {
         };
     }, [anchor, view]);
 
+    const exportWeek = useMemo(() => {
+        const from = startOfWeek(anchor);
+        return {
+            from,
+            to: endOfDay(addDays(from, 6)),
+        };
+    }, [anchor]);
+
     const { data: roomsData } = useQuery({
         queryKey: ['rooms-options'],
         queryFn: () => fetchRooms({ page: 1, perPage: 100 }),
@@ -168,15 +187,17 @@ export default function CalendarPage() {
             }),
     });
 
+    const rooms = roomsData?.data ?? [];
+
     const roomOptions = useMemo(
         () => [
             { value: '', label: t('allRooms') },
-            ...(roomsData?.data ?? []).map((room) => ({
+            ...rooms.map((room) => ({
                 value: room.id,
                 label: room.name,
             })),
         ],
-        [roomsData?.data, t],
+        [rooms, t],
     );
 
     const viewOptions = useMemo(
@@ -232,6 +253,50 @@ export default function CalendarPage() {
         [],
     );
 
+    const handleExportPdf = useCallback(async () => {
+        const roomsToExport = roomId
+            ? rooms.filter((room) => room.id === roomId)
+            : rooms;
+        if (roomsToExport.length === 0) {
+            openToast(tCommon('error'), t('exportNoRooms'), { type: EToastType.ERROR });
+            return;
+        }
+
+        setIsExporting(true);
+        try {
+            const weekEvents = await fetchCalendar({
+                from: exportWeek.from.toISOString(),
+                to: exportWeek.to.toISOString(),
+                roomId: roomId || undefined,
+            });
+
+            exportWeeklyCalendarPdf({
+                anchor,
+                rooms: roomsToExport,
+                events: weekEvents,
+                labels: {
+                    weekRange: t('exportWeekRange'),
+                    empty: t('empty'),
+                },
+            });
+            openToast(tCommon('success'), t('exportSuccess'), { type: EToastType.SUCCESS });
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : t('exportError');
+            openToast(tCommon('error'), message, { type: EToastType.ERROR });
+        } finally {
+            setIsExporting(false);
+        }
+    }, [
+        anchor,
+        exportWeek.from,
+        exportWeek.to,
+        openToast,
+        roomId,
+        rooms,
+        t,
+        tCommon,
+    ]);
+
     return (
         <LayoutWrapper
             title={t('title')}
@@ -268,6 +333,22 @@ export default function CalendarPage() {
                             >
                                 {periodLabel}
                             </Label>
+                            <Button
+                                id="cal-export-pdf"
+                                type={EButtonType.primary}
+                                size={EButtonSize.small}
+                                text={t('exportPdf')}
+                                isLoading={isExporting}
+                                iconPosition="left"
+                                icon={{
+                                    name: IconComponentsEnum.pdf,
+                                    size: ESize.sm,
+                                    color: 'text-white',
+                                }}
+                                onClick={() => {
+                                    void handleExportPdf();
+                                }}
+                            />
                         </Div>
                         <Div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end lg:w-auto">
                             <Div className="w-full sm:w-40">

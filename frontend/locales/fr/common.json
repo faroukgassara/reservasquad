@@ -1466,7 +1466,13 @@
             "day": "Jour",
             "week": "Semaine",
             "month": "Mois",
-            "empty": "Aucune réservation"
+            "empty": "Aucune réservation",
+            "exportPdf": "Exporter PDF (semaine)",
+            "exportTitle": "Calendrier hebdomadaire — Biblio Squad",
+            "exportWeekRange": "Du {from} au {to}",
+            "exportSuccess": "PDF exporté",
+            "exportError": "Échec de l'export PDF",
+            "exportNoRooms": "Aucune salle à exporter"
         }
     },
     "sales": {

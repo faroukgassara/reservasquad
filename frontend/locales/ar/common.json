@@ -1466,7 +1466,13 @@
             "day": "يوم",
             "week": "أسبوع",
             "month": "شهر",
-            "empty": "لا توجد حجوزات"
+            "empty": "لا توجد حجوزات",
+            "exportPdf": "تصدير PDF (أسبوع)",
+            "exportTitle": "التقويم الأسبوعي — Biblio Squad",
+            "exportWeekRange": "من {from} إلى {to}",
+            "exportSuccess": "تم تصدير PDF",
+            "exportError": "فشل تصدير PDF",
+            "exportNoRooms": "لا توجد قاعات للتصدير"
         }
     },
     "sales": {

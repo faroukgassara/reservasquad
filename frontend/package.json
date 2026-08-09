@@ -16,6 +16,8 @@
     "@types/react-toastify": "^4.0.2",
     "colord": "^2.9.3",
     "framer-motion": "^12.23.22",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "next": "15.5.9",
     "next-auth": "^4.24.11",
     "next-i18next": "^15.2.0",
