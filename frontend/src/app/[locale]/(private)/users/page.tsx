@@ -37,10 +37,9 @@ export default function UsersAdminPage() {
     const tStatus = useTranslations('status');
 
     const roleLabel = useCallback((role: UserRole): string => {
-        if (role === 'ADMIN') return 'Administrateur';
-        if (role === 'CLIENT') return 'Client';
-        return tCommon('userFallback');
-    }, [tCommon]);
+        if (role === 'ADMIN') return t('roles.ADMIN');
+        return t('roles.USER');
+    }, [t]);
 
     const statusLabel = useCallback(
         (status: UserStatus): string =>

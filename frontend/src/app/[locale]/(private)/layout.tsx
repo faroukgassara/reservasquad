@@ -10,7 +10,6 @@ import { signOut, useSession } from 'next-auth/react';
 import { twMerge } from 'tailwind-merge';
 import Button from '@/components/Primitives/Button/Button';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import ContactMessageNotificationListener from '@/components/providers/ContactMessageNotificationListener';
 import { MobileSidebarContext } from '@/contexts/MobileSidebarContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Link from 'next/link';
@@ -58,88 +57,37 @@ export default function PrivateLayout({
             href: Routes.Dashboard,
         },
         {
-            id: 'users',
+            id: 'calendar',
+            iconName: IconComponentsEnum.calendar,
+            label: t('calendar'),
+            href: Routes.Calendar,
+        },
+        {
+            id: 'reservations',
+            iconName: IconComponentsEnum.bookOpenText,
+            label: t('reservations'),
+            href: Routes.Reservations.index,
+        },
+        {
+            id: 'rooms',
+            iconName: IconComponentsEnum.home,
+            label: t('rooms'),
+            href: Routes.Rooms.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
+        {
+            id: 'professors',
             iconName: IconComponentsEnum.users,
+            label: t('professors'),
+            href: Routes.Professors.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
+        {
+            id: 'users',
+            iconName: IconComponentsEnum.user,
             label: t('users'),
             href: Routes.Users.index,
             hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'products',
-            iconName: IconComponentsEnum.bookOpenText,
-            label: t('products'),
-            href: Routes.Products.index,
-            children: [
-                {
-                    id: 'product-categories',
-                    label: t('productCategories'),
-                    href: Routes.ProductCategories.index,
-                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-                },
-            ],
-        },
-        {
-            id: 'faqs',
-            iconName: IconComponentsEnum.info,
-            label: t('faq'),
-            href: Routes.Faqs.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-            children: [
-                {
-                    id: 'faq-categories',
-                    label: t('categories'),
-                    href: Routes.FaqCategories.index,
-                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-                },
-            ],
-        },
-        {
-            id: 'orders',
-            iconName: IconComponentsEnum.shoppingCart,
-            label: t('orders'),
-            href: Routes.Orders.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'contact-messages',
-            iconName: IconComponentsEnum.user,
-            label: t('contactMessages'),
-            href: Routes.ContactMessages.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'testimonials',
-            iconName: IconComponentsEnum.message,
-            label: t('testimonials'),
-            href: Routes.Testimonials.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'sales',
-            iconName: IconComponentsEnum.filetext,
-            label: t('sales'),
-            href: Routes.Quotes.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-            children: [
-                {
-                    id: 'clients',
-                    label: t('clients'),
-                    href: Routes.Clients.index,
-                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-                },
-                {
-                    id: 'quotes',
-                    label: t('quotes'),
-                    href: Routes.Quotes.index,
-                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-                },
-                {
-                    id: 'invoices',
-                    label: t('invoices'),
-                    href: Routes.Invoices.index,
-                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-                },
-            ],
         },
     ];
 
@@ -151,7 +99,6 @@ export default function PrivateLayout({
 
     return (
         <ProtectedRoute>
-            <ContactMessageNotificationListener />
             <MobileSidebarContext.Provider value={mobileSidebarValue}>
                 <div className="flex h-dvh overflow-x-clip overflow-y-hidden">
                     {isMobile && sidebarOpen && (
@@ -175,7 +122,7 @@ export default function PrivateLayout({
                     >
                         <SidebarHeader className="p-4">
                             {(sidebarOpen || isMobile) && (
-                                <Link href="/" className="flex shrink-0 items-center gap-2">
+                                <Link href={Routes.Dashboard} className="flex shrink-0 items-center gap-2">
                                     <Image
                                         src={BiblioSquadLogo}
                                         alt={tCommon('brandLogoAlt')}
@@ -203,7 +150,6 @@ export default function PrivateLayout({
                                         email={session?.user?.email ?? undefined}
                                         size={ESize.md}
                                         className="min-w-0"
-
                                     />
                                     <Button
                                         id="sidebar-disconnect-expanded"

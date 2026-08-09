@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { seedSuperAdmin } from './data/superAdmin.seeder';
-import { seedProducts } from './data/products.seeder';
 
 @Injectable()
 export class SeederService {
@@ -12,7 +11,6 @@ export class SeederService {
 
   private readonly seeders = [
     { name: 'superAdmin', fn: seedSuperAdmin },
-    { name: 'products', fn: seedProducts },
   ];
 
   async seedAll() {

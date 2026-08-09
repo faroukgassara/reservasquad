@@ -9,13 +9,9 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './common/guards/roles.guard';
 import { UserModule } from './component/user/user.module';
-import { ContactMessageModule } from './component/contactMessage/contact-message.module';
-import { FaqModule } from './component/faq/faq.module';
-import { TestimonialModule } from './component/testimonial/testimonial.module';
-import { SalesModule } from './component/sales/sales.module';
-import { ProductModule } from './component/product/product.module';
-import { ProductCategoryModule } from './component/productCategory/product-category.module';
-import { OrderModule } from './component/order/order.module';
+import { RoomModule } from './component/room/room.module';
+import { ProfessorModule } from './component/professor/professor.module';
+import { ReservationModule } from './component/reservation/reservation.module';
 
 @Module({
   imports: [
@@ -27,13 +23,9 @@ import { OrderModule } from './component/order/order.module';
     PrismaModule,
     AuthModule,
     UserModule,
-    ContactMessageModule,
-    FaqModule,
-    TestimonialModule,
-    SalesModule,
-    ProductModule,
-    ProductCategoryModule,
-    OrderModule,
+    RoomModule,
+    ProfessorModule,
+    ReservationModule,
   ],
   controllers: [AppController],
   providers: [

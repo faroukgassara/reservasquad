@@ -68,12 +68,12 @@ export default function ActivateAccountPage() {
                         <Label variant={EVariantLabel.bodySmall} color="text-gray-600">
                             {message}
                         </Label>
-                        <Link href={Routes.Home}>
+                        <Link href={Routes.Login}>
                             <Button
-                                id="activate-go-home"
+                                id="activate-go-login"
                                 type={EButtonType.primary}
                                 size={EButtonSize.medium}
-                                text={t('backToHome')}
+                                text={t('backToLogin')}
                             />
                         </Link>
                     </Div>

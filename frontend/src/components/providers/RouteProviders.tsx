@@ -2,8 +2,6 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { ModalsProvider } from '@/contexts/ModalsContext';
-import { CartProvider } from '@/contexts/CartContext';
-import OrganismCartDrawer from '@/components/Organisms/OrganismCartDrawer/OrganismCartDrawer';
 import { routing } from '@/i18n/routing';
 import { NextIntlClientProvider } from 'next-intl';
 import QueryProvider from './QueryProvider';
@@ -19,7 +17,6 @@ interface RouteProvidersProps extends WithChildren {
     messages: any;
 }
 
-
 export default function RouteProviders({ children, session, locale, messages }: Readonly<RouteProvidersProps>) {
     return (
         <NextIntlClientProvider locale={locale} messages={messages} timeZone='Europe/Paris'>
@@ -29,10 +26,7 @@ export default function RouteProviders({ children, session, locale, messages }: 
                     <ToastProvider>
                         <ToastContainer />
                         <ModalsProvider>
-                            <CartProvider>
-                                {children}
-                                <OrganismCartDrawer />
-                            </CartProvider>
+                            {children}
                         </ModalsProvider>
                     </ToastProvider>
                 </SessionProvider>

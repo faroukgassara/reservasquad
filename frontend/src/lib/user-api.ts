@@ -4,7 +4,7 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 
 const api = new Api();
 
-export type UserRole = 'ADMIN' | 'USER' | 'CLIENT';
+export type UserRole = 'ADMIN' | 'USER';
 export type UserStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface UserRecord {

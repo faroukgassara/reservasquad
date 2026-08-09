@@ -12,7 +12,6 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: Readonly<ProtectedRouteProps>) {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const isClient = session?.user?.role === 'CLIENT';
 
     useEffect(() => {
         if (status === 'loading') return;
@@ -20,13 +19,8 @@ export default function ProtectedRoute({ children }: Readonly<ProtectedRouteProp
         if (!session || session.error === 'RefreshAccessTokenError') {
             void signOut({ callbackUrl: Routes.Login });
             router.push(Routes.Login);
-            return;
         }
-
-        if (isClient) {
-            router.replace(Routes.Home);
-        }
-    }, [session, status, router, isClient]);
+    }, [session, status, router]);
 
     if (status === 'loading') {
         return (
@@ -35,7 +29,7 @@ export default function ProtectedRoute({ children }: Readonly<ProtectedRouteProp
             </div>
         );
     }
-    if (!session || session.error === 'RefreshAccessTokenError' || isClient) {
+    if (!session || session.error === 'RefreshAccessTokenError') {
         return null;
     }
 

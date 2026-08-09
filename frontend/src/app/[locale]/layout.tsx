@@ -8,7 +8,6 @@ import type { Metadata } from 'next';
 import { Inter, Poppins } from 'next/font/google';
 import '@/app/globals.css';
 import RouteProviders from '@/components/providers/RouteProviders';
-import LocaleMarketingShell from '@/components/Layouts/LocaleMarketingShell/LocaleMarketingShell';
 import { SITE_URL } from '@/lib/site-url';
 
 // Charte Biblio Squad: Poppins = titres, Inter = textes
@@ -31,86 +30,72 @@ const APP_URL = SITE_URL;
 const metadataByLocale: Record<string, Metadata> = {
   fr: {
     title: {
-      default: 'Biblio Squad - Centre de Certification et Formation à Sfax, Tunisie',
-      template: '%s | Biblio Squad',
+      default: 'Reserva Squad - Gestion des salles | Biblio Squad',
+      template: '%s | Reserva Squad',
     },
     description:
-      'Biblio Squad est un centre de formation et certification professionnelle à Sfax, Tunisie. Formations IT, certifications, coworking et plus.',
+      'Backoffice Reserva Squad — gérez les salles, professeurs et réservations de Biblio Squad.',
     keywords: [
-      'formation Sfax',
-      'certification Tunisie',
-      'formation professionnelle Sfax',
-      'centre de formation Sfax',
-      'coworking Sfax',
+      'Reserva Squad',
       'Biblio Squad',
-      'certification IT Tunisie',
+      'réservation salles',
+      'coworking Tunis',
     ],
     openGraph: {
-      title: 'Biblio Squad - Centre de Certification et Formation à Sfax',
+      title: 'Reserva Squad - Gestion des salles',
       description:
-        'Centre de formation et certification professionnelle à Sfax, Tunisie. Formations IT, certifications, coworking.',
+        'Backoffice de réservation des salles et espaces Biblio Squad.',
       locale: 'fr_TN',
     },
     twitter: {
-      title: 'Biblio Squad - Centre de Certification et Formation à Sfax',
-      description:
-        'Centre de formation et certification professionnelle à Sfax, Tunisie.',
+      title: 'Reserva Squad - Gestion des salles',
+      description: 'Backoffice de réservation des salles Biblio Squad.',
     },
   },
   en: {
     title: {
-      default: 'Biblio Squad - Training & Certification Center in Sfax, Tunisia',
-      template: '%s | Biblio Squad',
+      default: 'Reserva Squad - Room management | Biblio Squad',
+      template: '%s | Reserva Squad',
     },
     description:
-      'Biblio Squad is a professional training and certification center in Sfax, Tunisia. IT courses, certifications, coworking and more.',
+      'Reserva Squad backoffice — manage rooms, professors and reservations for Biblio Squad.',
     keywords: [
-      'training Sfax',
-      'certification Tunisia',
-      'professional training Sfax',
-      'training center Sfax',
-      'coworking Sfax',
+      'Reserva Squad',
       'Biblio Squad',
-      'IT certification Tunisia',
+      'room booking',
+      'coworking Tunis',
     ],
     openGraph: {
-      title: 'Biblio Squad - Training & Certification Center in Sfax',
-      description:
-        'Professional training and certification center in Sfax, Tunisia. IT courses, certifications, coworking.',
+      title: 'Reserva Squad - Room management',
+      description: 'Backoffice for Biblio Squad room and space reservations.',
       locale: 'en_TN',
     },
     twitter: {
-      title: 'Biblio Squad - Training & Certification Center in Sfax',
-      description:
-        'Professional training and certification center in Sfax, Tunisia.',
+      title: 'Reserva Squad - Room management',
+      description: 'Backoffice for Biblio Squad room reservations.',
     },
   },
   ar: {
     title: {
-      default: 'Biblio Squad - مركز التدريب والشهادات في صفاقس، تونس',
-      template: '%s | Biblio Squad',
+      default: 'Reserva Squad - إدارة القاعات | Biblio Squad',
+      template: '%s | Reserva Squad',
     },
     description:
-      'Biblio Squad مركز تدريب وشهادات مهنية في صفاقس، تونس. دورات تقنية، شهادات، مساحة عمل مشتركة والمزيد.',
+      'لوحة تحكم Reserva Squad — إدارة القاعات والأساتذة والحجوزات لـ Biblio Squad.',
     keywords: [
-      'تدريب صفاقس',
-      'شهادات تونس',
-      'تدريب مهني صفاقس',
-      'مركز تدريب صفاقس',
-      'مساحة عمل مشتركة صفاقس',
+      'Reserva Squad',
       'Biblio Squad',
-      'شهادات تقنية تونس',
+      'حجز قاعات',
+      'مساحة عمل مشتركة تونس',
     ],
     openGraph: {
-      title: 'Biblio Squad - مركز التدريب والشهادات في صفاقس',
-      description:
-        'مركز تدريب وشهادات مهنية في صفاقس، تونس. دورات تقنية، شهادات، مساحة عمل مشتركة.',
+      title: 'Reserva Squad - إدارة القاعات',
+      description: 'لوحة تحكم لحجوزات قاعات ومساحات Biblio Squad.',
       locale: 'ar_TN',
     },
     twitter: {
-      title: 'Biblio Squad - مركز التدريب والشهادات في صفاقس',
-      description:
-        'مركز تدريب وشهادات مهنية في صفاقس، تونس.',
+      title: 'Reserva Squad - إدارة القاعات',
+      description: 'لوحة تحكم لحجوزات قاعات Biblio Squad.',
     },
   },
 };
@@ -184,7 +169,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${poppins.variable} ${inter.variable}`}>
       <body className={`${inter.className} bg-gray-25 text-gray-900 antialiased`}>
         <RouteProviders session={session} locale={locale} messages={messages}>
-          <LocaleMarketingShell>{children}</LocaleMarketingShell>
+          {children}
         </RouteProviders>
       </body>
     </html>

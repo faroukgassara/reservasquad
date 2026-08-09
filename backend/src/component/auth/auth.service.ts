@@ -1,6 +1,6 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User, EStatus, ERole } from 'src/generated/prisma/client';
+import { User, EStatus } from 'src/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
 import { CommonFunctionService } from 'src/common/common-services/common-function';
@@ -10,7 +10,6 @@ import { IEnv } from 'src/common/env/env';
 import { AuthResponseDto } from 'src/dto/login/authResponse.dto';
 import { AuthUserPayloadDto } from 'src/dto/login/authUserPayload.dto';
 import { LoginDTO } from 'src/dto/login/login.dto';
-import { RegisterDto } from 'src/dto/login/register.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { normalizeEmail } from 'src/common/utils/email.util';
 
@@ -300,59 +299,6 @@ export class AuthService {
     });
 
     return activationToken;
-  }
-
-  async register(dto: RegisterDto): Promise<{ email: string; message: string }> {
-    const email = normalizeEmail(dto.email);
-    const phone = dto.phone.replaceAll(/\s+/g, '');
-
-    const existingByEmail = await this.prismaService.user.findFirst({
-      where: { email, deletedAt: null },
-    });
-
-    if (existingByEmail) {
-      if (existingByEmail.status === EStatus.ACTIVE) {
-        throw new ConflictException('An account with this email already exists');
-      }
-
-      const token = await this.issueActivationToken(existingByEmail);
-      await this.sendActivationEmail(existingByEmail, token);
-
-      return {
-        email: existingByEmail.email,
-        message: 'A new activation link has been sent to your email',
-      };
-    }
-
-    const existingByPhone = await this.prismaService.user.findFirst({
-      where: { phone, deletedAt: null },
-    });
-    if (existingByPhone) {
-      throw new ConflictException('An account with this phone number already exists');
-    }
-
-    const hashedPassword = await bcrypt.hash(dto.password, 12);
-
-    const user = await this.prismaService.user.create({
-      data: {
-        email,
-        phone,
-        password: hashedPassword,
-        firstName: dto.firstName.trim(),
-        lastName: dto.lastName.trim(),
-        status: EStatus.INACTIVE,
-        role: ERole.CLIENT,
-        imageUrl: 'http://example.com/image.jpg',
-      },
-    });
-
-    const activationToken = await this.issueActivationToken(user);
-    await this.sendActivationEmail(user, activationToken);
-
-    return {
-      email: user.email,
-      message: 'Registration successful. Please check your email to activate your account',
-    };
   }
 
   async activateAccount(token: string): Promise<{ email: string }> {

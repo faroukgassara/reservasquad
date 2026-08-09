@@ -55,9 +55,7 @@ export default function LoginPage() {
                 failedAttemptsRef.current = 0;
                 const session = await getSession();
                 if (session) {
-                    router.push(
-                        session.user?.role === 'CLIENT' ? Routes.Home : Routes.Dashboard,
-                    );
+                    router.push(Routes.Dashboard);
                 }
             }
         } catch (error) {

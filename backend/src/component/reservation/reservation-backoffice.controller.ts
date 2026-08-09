@@ -1,0 +1,217 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
+import { Response } from 'express';
+import { ReservationService } from './reservation.service';
+import { openApiResponse } from 'src/common/decorator/open-api.decorator';
+import { Roles } from 'src/common/decorator/roles.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import * as swagger from '@nestjs/swagger';
+import { CreateReservationDto } from 'src/dto/reservation/createReservation.dto';
+import { UpdateReservationDto } from 'src/dto/reservation/updateReservation.dto';
+import { FetchReservationsDto } from 'src/dto/reservation/fetchReservations.dto';
+import { CalendarQueryDto } from 'src/dto/reservation/calendarQuery.dto';
+import {
+  ApiPaginationQuery,
+  PaginationQuery,
+} from 'src/common/decorator/pagination-query.decorator';
+import {
+  ApiSortingQuery,
+  SortingQuery,
+} from 'src/common/decorator/sorting-query.decorator';
+import {
+  ApiSearchQuery,
+  SearchQuery,
+} from 'src/common/decorator/search-query.decorator';
+import { PaginationData, SortingDecoratorOptions } from 'src/common/pagination/types';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { sendCaughtError } from 'src/common/utils/caught-error.util';
+import { IRequest } from 'src/interface/request/request.interface';
+
+const RESERVATION_SORTING_OPTIONS: SortingDecoratorOptions = {
+  allowedFields: ['createdAt', 'updatedAt', 'startAt', 'endAt', 'status'],
+  defaultSort: 'startAt',
+};
+
+@swagger.ApiTags('reservation-backoffice')
+@Controller('backoffice/reservation')
+@Roles({ roles: ['ADMIN', 'USER'] })
+@ApiBearerAuth('Authorization')
+@openApiResponse(
+  { status: HttpStatus.OK, description: 'OK' },
+  { status: HttpStatus.CREATED, description: 'CREATED' },
+  { status: HttpStatus.NOT_FOUND, description: 'NOT_FOUND' },
+  { status: HttpStatus.BAD_REQUEST, description: 'BAD_REQUEST' },
+  { status: HttpStatus.CONFLICT, description: 'CONFLICT' },
+  { status: HttpStatus.INTERNAL_SERVER_ERROR, description: 'INTERNAL_SERVER_ERROR' },
+)
+export class ReservationBackofficeController {
+  constructor(private readonly reservationService: ReservationService) {}
+
+  @Get('stats')
+  @swagger.ApiOperation({ summary: 'Dashboard stats' })
+  async stats(@Res() res: Response) {
+    try {
+      const data = await this.reservationService.dashboardStats();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('calendar')
+  @swagger.ApiOperation({ summary: 'Calendar events in range' })
+  async calendar(@Res() res: Response, @Query() query: CalendarQueryDto) {
+    try {
+      const dto = plainToInstance(CalendarQueryDto, query);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.calendar(dto);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('list')
+  @swagger.ApiOperation({ summary: 'List reservations' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  @ApiSortingQuery(RESERVATION_SORTING_OPTIONS)
+  @ApiSearchQuery({ fields: ['title', 'notes'] })
+  async list(
+    @Res() res: Response,
+    @Query() query: FetchReservationsDto,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+    @SortingQuery(RESERVATION_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
+    @SearchQuery({ fields: ['title', 'notes'] }) search: object,
+  ) {
+    try {
+      const data = await this.reservationService.listReservations(
+        query,
+        pagination,
+        orderBy,
+        search as never,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get(':id')
+  @swagger.ApiOperation({ summary: 'Get reservation by id' })
+  async getOne(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const data = await this.reservationService.getReservationById(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post()
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Create a reservation' })
+  async create(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: CreateReservationDto,
+  ) {
+    try {
+      const dto = plainToInstance(CreateReservationDto, body);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.createReservation(
+        dto,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Update a reservation' })
+  async update(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Body() body: UpdateReservationDto,
+  ) {
+    try {
+      const dto = plainToInstance(UpdateReservationDto, body);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.updateReservation(id, dto);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/cancel')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Cancel a reservation' })
+  async cancel(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const data = await this.reservationService.cancelReservation(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete(':id')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Delete a reservation' })
+  async remove(@Res() res: Response, @Param('id') id: string) {
+    try {
+      await this.reservationService.deleteReservation(id);
+      return res.status(HttpStatus.OK).json({
+        statusCode: HttpStatus.OK,
+        message: 'Reservation deleted',
+      });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+}

@@ -1,19 +1,9 @@
-import TemplateHero from '@/components/Templates/TemplateHero/TemplateHero';
-import TemplateOurServices from '@/components/Templates/TemplateOurServices/TemplateOurServices';
-import TemplateProducts from '@/components/Templates/TemplateProducts/TemplateProducts';
-import TemplateOurHistory from '@/components/Templates/TemplateOurHistory/TemplateOurHistory';
-import TemplateTestimonials from '@/components/Templates/TemplateTestimonials/TemplateTestimonials';
-import OrganismHomeCtaBanner from '@/components/Organisms/OrganismHomeCtaBanner/OrganismHomeCtaBanner';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
+import { Routes } from '@/lib/routes';
 
-export default function Home() {
-    return (
-        <>
-            <TemplateHero />
-            <TemplateOurServices />
-            <TemplateProducts />
-            <TemplateOurHistory />
-            <TemplateTestimonials />
-            <OrganismHomeCtaBanner />
-        </>
-    );
+export default async function HomePage() {
+    const session = await getServerSession(authOptions);
+    redirect(session ? Routes.Dashboard : Routes.Login);
 }

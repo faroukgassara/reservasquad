@@ -8,7 +8,6 @@ import { IRequest } from 'src/interface/request/request.interface';
 import { RequestResetPasswordDto } from 'src/dto/login/requestResetPassword.dto';
 import { ValidateResetPasswordTokenDto } from 'src/dto/login/validateResetPasswordToken.dto';
 import { ResetPasswordDto } from 'src/dto/login/resetPassword.dto';
-import { RegisterDto } from 'src/dto/login/register.dto';
 import { ActivateAccountDto } from 'src/dto/login/activateAccount.dto';
 import { openApiResponse } from 'src/common/decorator/open-api.decorator';
 import { Response } from 'express';
@@ -67,34 +66,12 @@ export class AuthController {
     }
     }
 
-    @Post('register')
-    @Public(true)
-    @swagger.ApiBody({ type: RegisterDto })
-    @ApiOperation({
-        summary: 'Public registration',
-        description: 'Creates an inactive CLIENT account and sends an email activation link.',
-    })
-    async register(
-        @Body() dto: RegisterDto,
-        @Res() res: Response,
-    ) {
-        try {
-            const data = await this.authService.register(dto);
-            return res.status(HttpStatus.CREATED).json({
-                statusCode: HttpStatus.CREATED,
-                data,
-            });
-        } catch (error: unknown) {
-            return sendCaughtError(res, error);
-        }
-    }
-
     @Post('activate')
     @Public(true)
     @swagger.ApiBody({ type: ActivateAccountDto })
     @ApiOperation({
         summary: 'Activate account',
-        description: 'Activates a registered account using the token from the confirmation email.',
+        description: 'Activates an account using the token from the confirmation email.',
     })
     async activate(
         @Body() dto: ActivateAccountDto,

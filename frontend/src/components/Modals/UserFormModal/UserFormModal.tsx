@@ -26,7 +26,7 @@ export interface UserFormValues {
     status: UserStatus;
 }
 
-const USER_ROLES: UserRole[] = ['USER', 'CLIENT', 'ADMIN'];
+const USER_ROLES: UserRole[] = ['USER', 'ADMIN'];
 
 function isUserRole(value: string | number | (string | number)[]): value is UserRole {
     return typeof value === 'string' && USER_ROLES.includes(value as UserRole);
