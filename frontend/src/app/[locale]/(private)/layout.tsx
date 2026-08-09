@@ -134,7 +134,7 @@ export default function PrivateLayout({
                                         src={BiblioSquadLogo}
                                         alt={tCommon('brandLogoAlt')}
                                         height={40}
-                                        className="h-6 w-auto object-contain"
+                                        className="w-auto object-contain"
                                         priority
                                     />
                                 </Link>

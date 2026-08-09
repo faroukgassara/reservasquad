@@ -511,7 +511,7 @@ export default function DailyIncomePage() {
                             {summaryCards.map((card) => (
                                 <Div
                                     key={card.key}
-                                    className="rounded-xl border border-gray-100 bg-white p-4"
+                                    className="rounded-xl border border-gray-100 bg-white p-4 flex flex-col justify-center"
                                 >
                                     <Label
                                         variant={EVariantLabel.caption}
