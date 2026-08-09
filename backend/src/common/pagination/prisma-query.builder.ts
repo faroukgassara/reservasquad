@@ -79,6 +79,8 @@ export function composeWhere(baseWhere: Record<string, any>, andFilters: Record<
     };
 }
 
-export function buildAndFilters<T extends Record<string, any>>(...filters: Array<T | undefined | null | false>) {
-    return filters.filter((filter): filter is T => Boolean(filter));
+export function buildAndFilters<T extends Record<string, any>>(
+    ...filters: Array<T | undefined | null | false>
+) {
+    return filters.filter((filter): filter is T => filter != null && filter !== false);
 }

@@ -1,0 +1,252 @@
+---
+alwaysApply: true
+---
+
+# Frontend Architecture Guide
+
+Conventions for the **Biblio Squad** frontend (marketing site + admin backoffice). Follow this when implementing or refactoring UI.
+
+Companion rules (do not duplicate here):
+- `.cursor/rules/label-typography.mdc` — `Label` / `EVariantLabel`
+- `.cursor/rules/i18n.mdc` — `next-intl` copy
+
+---
+
+## Technology Stack
+
+| Area | Choice |
+| --- | --- |
+| Framework | Next.js 15.5.x (App Router) |
+| UI | React 19.1.x |
+| Language | TypeScript 5.x |
+| Styling | Tailwind CSS 4.x (+ SASS where needed) |
+| Forms | `@tanstack/react-form` + Zod 4.x |
+| Data | `@tanstack/react-query` |
+| Auth | NextAuth.js 4.x |
+| i18n | next-intl 4.x (`fr` / `en` / `ar`) |
+| Motion | Framer Motion 12.x |
+
+Key patterns:
+- `[locale]` + `(private)` / public marketing routes
+- Next.js `/api/*` proxies to NestJS
+- Session JWT forwarded on proxied calls (`customToken` in Route Handlers — not `withToken: true` on the server)
+
+---
+
+## Project Structure
+
+```
+frontend/
+├── locales/                 # next-intl JSON (fr, en, ar)
+├── src/
+│   ├── app/                 # App Router
+│   │   ├── [locale]/       # Localized pages
+│   │   │   ├── (private)/ # Backoffice (auth)
+│   │   │   └── …          # Public marketing
+│   │   └── api/             # Proxies → NestJS
+│   ├── components/
+│   │   ├── Primitives/      # Reusable UI building blocks
+│   │   ├── Organisms/       # Composite sections / tables / headers
+│   │   ├── Templates/       # Page-level layouts
+│   │   ├── Layouts/         # LayoutWrapper, LocaleMarketingShell, …
+│   │   ├── Modals/
+│   │   └── providers/
+│   ├── common/              # StandardApi, validation, helpers
+│   ├── contexts/
+│   ├── hooks/
+│   ├── interfaces/
+│   ├── types/
+│   ├── theme/               # colors.ts, typography.ts
+│   ├── lib/                 # routes.ts, *-api.ts
+│   ├── assets/
+│   └── i18n/
+└── package.json
+```
+
+Pages live under `src/app/[locale]/…/page.tsx`. Reusable UI: **Primitives → Organisms → Templates / Modals**.
+
+---
+
+## Component Architecture
+
+Hierarchy (no separate Atoms/Molecules folders — those were merged into **Primitives**):
+
+1. **Primitives** — `src/components/Primitives/`  
+   Single-purpose UI: `Button`, `Input`, `Label`, `Icon`, `Spinner`, `Badge`, `Modal`, `Sidebar`, `ImageUpload`, …
+2. **Organisms** — `src/components/Organisms/`  
+   Larger composites: tables, headers, footers, file uploaders, …
+3. **Templates** — `src/components/Templates/`  
+   Page wireframes (shop, home sections, auth templates, …)
+4. **Pages** — App Router `page.tsx`  
+   Data fetching, mutations, compose Templates / Organisms / Modals
+
+### Naming
+
+| Kind | Pattern | Example |
+| --- | --- | --- |
+| Component folder/file | `PascalCase` | `Primitives/Button/Button.tsx` |
+| Props interface | `I` + name | `IButton` |
+| Import | `@/components/Primitives/...` | `@/components/Primitives/Label/Label` |
+
+Do **not** use legacy prefixes (`Atom*`, `Molecule*`) or paths (`Atoms/`, `Molecules/`).
+
+### Primitive example
+
+```tsx
+// components/Primitives/Button/Button.tsx
+const Button = ({
+  className = '',
+  text,
+  type = EButtonType.primary,
+  disabled = false,
+  onClick,
+  isLoading = false,
+  children,
+  ...props
+}: IButton) => {
+  // …
+}
+```
+
+### Template rules
+
+- Structure + presentation only (no heavy business logic)
+- Compose Primitives / Organisms
+- Accept props for data and handlers from the page
+
+### Page rules (backoffice)
+
+Mirror `users/page.tsx` / `clients/page.tsx`:
+- `useAuthorization({ anyRoles: ['ADMIN'] })` when admin-only
+- TanStack Query + `LayoutWrapper` + `OrganismTable` + drawer modals
+
+---
+
+## Layouts
+
+1. Root — `app/layout.tsx`
+2. Locale — `app/[locale]/layout.tsx` (+ marketing shell)
+3. Private — `app/[locale]/(private)/layout.tsx` (auth, sidebar)
+4. Shared — `components/Layouts/` (`LayoutWrapper`, `LocaleMarketingShell`, …)
+
+**Marketing shell** skips header/footer for auth + backoffice prefixes (dashboard, products, product-categories, clients, quotes, invoices, users, …).
+
+**Private layout**: `ProtectedRoute`, role-gated sidebar via `useAuthorization`, mobile overlay.
+
+---
+
+## API Integration (TanStack Query)
+
+- Client helpers in `src/lib/*-api.ts` (e.g. `product-api.ts`, `sales-api.ts`, `user-api.ts`)
+- Use `Api` from `StandardApi` + `CommonFunction.createHeaders`
+- Invalidate related query keys on mutation success
+- Do not retry 4xx; keep mutation retry off by default
+
+```tsx
+const { data, isLoading, error } = useQuery({
+  queryKey: ['products', page, search],
+  queryFn: () => fetchProducts({ page, search }),
+})
+```
+
+**Proxies** (`src/app/api/**`): forward `Authorization` with `createHeaders({ customToken: authorization })`.
+
+---
+
+## Forms (TanStack Form + Zod)
+
+- Zod schema for validation
+- `@tanstack/react-form` for field state
+- Show errors from `state.meta.errors`
+- `Button` / form submit: wire explicit `onClick` → `form.handleSubmit()` (buttons render `type="button"`)
+
+---
+
+## State
+
+- **Local** `useState` for UI-only state
+- **Context** for feature UI (Modal, Toast, Cart, MobileSidebar, …)
+- Prefer Query cache for server data over duplicating in stores
+
+---
+
+## Routing
+
+- File-based under `app/[locale]/`
+- Shared path helpers in `src/lib/routes.ts`
+- Private group requires session; redirect non-admins from admin pages
+
+---
+
+## Styling (Tailwind)
+
+- Prefer scale utilities over arbitrary pixels (`size-8` not `size-[32px]`) unless Figma demands exact values
+- **No hardcoded hex** — use theme Tailwind classes from `src/theme/colors.ts` (`text-gray-900`, `bg-primary-500`, `border-neutral-200`, …)
+- Motion: intentional Framer Motion (hover, presence, sidebar width) — not decorative noise
+
+---
+
+## Icons (SVG)
+
+Location: `src/assets/icons/` → register in `Primitives/Icon/IconTypes.ts` + `IconComponentsEnum`.
+
+Standards:
+- `width="1em" height="1em"`, `viewBox`, `stroke`/`fill` = `currentColor`
+- Prefer `Icon` `handleClick` — **do not** wrap icons in extra `<button>`s
+- Use i18n for accessible labels/tooltips where the component supports them
+
+---
+
+## Text & i18n (short)
+
+- **Always** `Label` for visible text (never raw `<p>` / `<span>` for copy)
+- Typography only via `variant` — see `label-typography.mdc`
+- **Always** `useTranslations` / `getTranslations` — see `i18n.mdc`
+
+---
+
+## Collapsible sidebar pattern
+
+- Local open/collapsed state
+- Animate width with Framer Motion
+- Center content when collapsed (`items-center` / `justify-center`)
+- Hide labels when collapsed; keep icon affordances
+
+---
+
+## Backoffice & Sales
+
+| Area | Notes |
+| --- | --- |
+| Guard | `useAuthorization({ anyRoles: ['ADMIN'] })` |
+| Lists | `LayoutWrapper` + `OrganismTable` + modal CRUD |
+| Products | `/products`, `/product-categories` — dynamic catalog (images, badges, materials, sizes, gravure) |
+| Sales | `/clients`, `/quotes`, `/invoices` — TND (`formatMoney` / `fr-TN`) |
+| Flow | Client → Devis (`DEV-YYYY-####`) → Facture (`FAC-YYYY-####`) → mark paid |
+| Badge | prop `text` (not `label`) |
+
+Money and document numbering stay consistent with `sales-api.ts`.
+
+---
+
+## Development checklist (new feature)
+
+1. Types/interfaces as needed  
+2. Primitive only if reusable across features  
+3. Template for page structure  
+4. App Router page with Query + mutations  
+5. Zod + TanStack Form for inputs  
+6. Keys in **fr / en / ar** `common.json`  
+7. Theme colors + `Label` variants — no hex / no ad-hoc text sizes on `Label`
+
+---
+
+## Summary — non-negotiables
+
+1. Components: **Primitives / Organisms / Templates** (not Atoms/Molecules)
+2. Text: `Label` + correct `EVariantLabel`
+3. Copy: next-intl in all three locales
+4. Colors: theme Tailwind classes only
+5. Icons: `currentColor`, `handleClick` on `Icon`
+6. API proxies: forward bearer token from the request
+7. Form buttons: explicit submit `onClick`

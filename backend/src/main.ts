@@ -5,13 +5,14 @@ import { ValidationPipe } from '@nestjs/common';
 import { ExceptionsFilter } from './common/filter/exception.filter';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { join } from 'path';
+import { join } from 'node:path';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import * as express from 'express';
 import * as engines from 'consolidate';
+import { getUploadRoot } from './common/upload/upload-paths';
 
-const PORT = process.env.PORT || '5000';
+const PORT = process.env.PORT || '4000';
 const HOST = process.env.HOST || 'http://localhost';
 
 async function bootstrap() {
@@ -19,9 +20,11 @@ async function bootstrap() {
     cors: true,
   });
 
+  app.useBodyParser('json', { limit: '15mb' });
+  app.useBodyParser('urlencoded', { limit: '15mb', extended: true });
+
   app.use('/assets', express.static(join(__dirname, '..', 'public/assets')));
-  // Serve uploaded files from local storage
-  app.use(express.static(join(__dirname, '..', 'public')));
+  app.use(express.static(getUploadRoot()));
 
   app.engine('ejs', engines.ejs);
   app.set('views', join(__dirname, '..', 'view'));
@@ -43,10 +46,10 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   const config = new DocumentBuilder()
-    .setTitle('Reserva Squad API')
-    .setDescription('Study room reservation API')
+    .setTitle('Biblio Squad')
+    .setDescription('Biblio Squad API documentation')
     .setVersion('1.0')
-    .addTag('reservasquad')
+    .addTag('bibliosquad')
     .addBearerAuth(
       {
         type: 'http',

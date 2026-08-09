@@ -1,7 +1,7 @@
 // find-many.proxy.ts
 
 import { PaginationData, ProxyFunctions } from './types';
-import { paginatedResponse, PaginatedResponse } from './proxy';
+import { paginatedResponse } from './proxy';
 
 
 /**
@@ -50,7 +50,6 @@ export function makeFindManyPaginated<T>(model: ProxyFunctions) {
             const hasMore = page < resolvedTotalPages;
             const resolvedPerPage = limit === 0 ? docs.length : limit;
 
-
             const responseClass = paginatedResponse<T>();
             return new responseClass(docs,
                 total,
@@ -58,7 +57,7 @@ export function makeFindManyPaginated<T>(model: ProxyFunctions) {
                 resolvedTotalPages,
                 page,
                 resolvedPerPage,
-            ) as PaginatedResponse<T>;
+            );
         },
     });
 }

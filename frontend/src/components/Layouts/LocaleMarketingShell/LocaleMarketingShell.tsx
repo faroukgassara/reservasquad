@@ -3,17 +3,28 @@
 import type { ReactNode } from 'react';
 import { usePathname } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
-import OrganismFrontofficeFooter from '@/components/Organisms/OrganismFrontofficeFooter';
-import OrganismFrontofficeHeader from '@/components/Organisms/OrganismFrontofficeHeader';
-import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
+import { Routes } from '@/lib/routes';
+import Div from '@/components/Primitives/Div/Div';
+import OrganismFrontofficeFooter from '@/components/Organisms/OrganismFrontofficeFooter/OrganismFrontofficeFooter';
+import OrganismFrontofficeHeader from '@/components/Organisms/OrganismFrontofficeHeader/OrganismFrontofficeHeader';
 
-/** No marketing chrome on auth flows, calendar app, or admin shell */
-const HIDE_MARKETING_PREFIXES = [
-    '/calendar',
-    '/admin',
-    '/login',
-    '/forgot-password',
-    '/reset-password',
+/** Back-office and auth: no marketing header/footer (private layout or login flows handle UI). */
+const BACKOFFICE_AND_AUTH_PREFIXES = [
+    Routes.Dashboard,
+    Routes.Products.index,
+    Routes.ProductCategories.index,
+    Routes.Faqs.index,
+    Routes.FaqCategories.index,
+    Routes.ContactMessages.index,
+    Routes.Orders.index,
+    Routes.Testimonials.index,
+    Routes.Clients.index,
+    Routes.Quotes.index,
+    Routes.Invoices.index,
+    Routes.Users.index,
+    Routes.Login,
+    Routes.ForgotPassword,
+    Routes.ResetPassword,
 ] as const;
 
 function normalizePathname(pathname: string): string {
@@ -30,7 +41,7 @@ function normalizePathname(pathname: string): string {
 
 function shouldShowMarketingShell(pathname: string): boolean {
     const path = normalizePathname(pathname);
-    return !HIDE_MARKETING_PREFIXES.some(
+    return !BACKOFFICE_AND_AUTH_PREFIXES.some(
         (prefix) => path === prefix || path.startsWith(`${prefix}/`),
     );
 }
@@ -43,10 +54,10 @@ export default function LocaleMarketingShell({ children }: Readonly<{ children: 
     }
 
     return (
-        <AtomDiv className="flex min-h-screen flex-col bg-white">
+        <Div className="flex min-h-dvh flex-col overflow-x-clip bg-white">
             <OrganismFrontofficeHeader />
-            <AtomDiv className="flex min-h-0 flex-1 flex-col">{children}</AtomDiv>
+            <Div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-clip">{children}</Div>
             <OrganismFrontofficeFooter />
-        </AtomDiv>
+        </Div>
     );
 }

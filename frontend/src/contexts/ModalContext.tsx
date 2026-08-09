@@ -1,18 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-  MouseEvent,
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
+    MouseEvent,
 } from 'react'
 import { Portal } from 'react-portal'
 import WithChildren from '@/types/WithChildren'
 import { useModals } from './ModalsContext'
 import { IModalContextProps } from '@/interfaces/Contexts/Modal/IModalContextProps'
 import { IUseModalProps } from '@/interfaces/Contexts/Modal/IUseModalProps'
-import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv'
+import Div from '@/components/Primitives/Div/Div'
 
 const Overlay = () => (
   <motion.div
@@ -43,7 +43,7 @@ const ModalPortal = ({ children }: WithChildren) => {
   return (
     <Portal node={document.getElementById('modal-portal')}>
       <Overlay />
-      <AtomDiv
+      <Div
         className={`fixed z-modal ${isDrawer ? `flex items-center ${isLeftDrawer ? 'justify-start' : 'justify-end'} top-0 right-0 w-full` : 'flex items-center justify-center inset-0'}`}
         onClickSelf={onClick}
         style={{
@@ -51,7 +51,7 @@ const ModalPortal = ({ children }: WithChildren) => {
         }}
       >
         {children}
-      </AtomDiv>
+      </Div>
     </Portal>
   )
 }

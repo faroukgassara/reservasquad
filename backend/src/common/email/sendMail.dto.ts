@@ -20,7 +20,9 @@ export class SendMailDto {
   @IsOptional()
   attachments?: {
     filename: string;
-    content: Buffer;
+    content?: Buffer;
+    path?: string;
     contentType?: string;
+    cid?: string;
   }[];
 }

@@ -5,12 +5,13 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { EJwtStrategy } from 'src/enum/common.enum';
 import { IJwtUserPayload } from 'src/interface/request/request.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EStatus } from 'src/generated/prisma/client';
 
 @Injectable()
 export class JwtAccessStrategy extends PassportStrategy(Strategy, EJwtStrategy.accessToken) {
   constructor(
-    private config: ConfigService,
-    private prismaService: PrismaService,
+    private readonly config: ConfigService,
+    private readonly prismaService: PrismaService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -25,12 +26,22 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, EJwtStrategy.a
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
         role: true,
+        status: true,
         tokenVersion: true,
+        deletedAt: true,
+        archivedAt: true,
       },
     });
 
-    if (!user) {
+    if (
+      !user ||
+      user.deletedAt ||
+      user.archivedAt ||
+      user.status !== EStatus.ACTIVE
+    ) {
       throw new UnauthorizedException('Unauthorized');
     }
 
@@ -40,7 +51,9 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, EJwtStrategy.a
 
     return {
       id: payload.id,
-      email: payload.email,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
     };
   }

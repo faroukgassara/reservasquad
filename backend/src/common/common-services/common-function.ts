@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
+import { IEnv } from '../env/env';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as iconv from 'iconv-lite';
@@ -10,11 +11,13 @@ import { IJwtUserPayload } from 'src/interface/request/request.interface';
 @Injectable()
 export class CommonFunctionService {
     private readonly logger = new Logger();
+    readonly config?: IEnv
     constructor(
         readonly configService: ConfigService,
         readonly prisma: PrismaService,
         readonly jwtService: JwtService,
     ) {
+        this.config = this.configService.get<IEnv>('env');
     }
 
     public formatCode(code: string): string {
@@ -55,15 +58,15 @@ export class CommonFunctionService {
             tokenVersion: user.tokenVersion ?? 0,
         };
 
-        const accessExpiresIn = process.env.JWT_SECRET_EXPIRES_IN as any;
-        const refreshExpiresIn = process.env.JWT_REFRESH_SECRET_EXPIRES_IN as any;
+        const accessExpiresIn = this.config.JWT_SECRET_EXPIRES_IN as any;
+        const refreshExpiresIn = this.config.JWT_REFRESH_SECRET_EXPIRES_IN as any;
 
         const access_token = this.jwtService.sign(payload, {
-            secret: process.env.JWT_SECRET,
+            secret: this.config.JWT_SECRET,
             expiresIn: accessExpiresIn,
         });
         const refresh_token = this.jwtService.sign(payload, {
-            secret: process.env.JWT_REFRESH_SECRET,
+            secret: this.config.JWT_REFRESH_SECRET,
             expiresIn: refreshExpiresIn,
         });
         return {
@@ -81,8 +84,8 @@ export class CommonFunctionService {
             jti,
         };
         return this.jwtService.sign(payload, {
-            secret: process.env.JWT_RESET_SECRET,
-            expiresIn: process.env.JWT_RESET_SECRET_EXPIRES_IN as any,
+            secret: this.config.JWT_RESET_SECRET,
+            expiresIn: this.config.JWT_RESET_SECRET_EXPIRES_IN as any,
         });
     }
 
@@ -93,7 +96,7 @@ export class CommonFunctionService {
     public verifyResetPasswordToken(token: string): { sub?: string; email?: string; exp?: number; jti?: string } | null {
         try {
             return this.jwtService.verify(token, {
-                secret: process.env.JWT_RESET_SECRET,
+                secret: this.config.JWT_RESET_SECRET,
             });
         } catch (_) {
             return null;
@@ -197,7 +200,7 @@ export class CommonFunctionService {
         const year = parts.find(p => p.type === "year")?.value;
         const hour = parts.find(p => p.type === "hour")?.value;
 
-        return `${this.capitalize(dayName!)} ${day}/${month}/${year} à ${hour}h`;
+        return `${this.capitalize(dayName)} ${day}/${month}/${year} à ${hour}h`;
     }
 
     public stringToBoolean = (value: string | boolean | null | undefined): boolean => {

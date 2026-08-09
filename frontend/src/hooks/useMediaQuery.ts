@@ -1,17 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 
+/**
+ * Subscribes to a CSS media query without hydration mismatches.
+ * SSR + first hydration always use `getServerSnapshot` (false);
+ * the real viewport value applies after mount.
+ */
 export function useMediaQuery(query: string): boolean {
-    const [matches, setMatches] = useState(false);
+    const subscribe = useCallback(
+        (onStoreChange: () => void) => {
+            const mediaQuery = window.matchMedia(query);
+            mediaQuery.addEventListener('change', onStoreChange);
+            return () => mediaQuery.removeEventListener('change', onStoreChange);
+        },
+        [query],
+    );
 
-    useEffect(() => {
-        const media = globalThis.matchMedia(query);
-        const update = () => setMatches(media.matches);
-        update();
-        media.addEventListener('change', update);
-        return () => media.removeEventListener('change', update);
-    }, [query]);
+    const getSnapshot = useCallback(() => window.matchMedia(query).matches, [query]);
 
-    return matches;
+    const getServerSnapshot = useCallback(() => false, []);
+
+    return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

@@ -1,15 +1,15 @@
-import { ICreateState, IStateType } from "@/interfaces";
+import { ICreateState } from "@/interfaces";
 import { getSession } from "next-auth/react";
 import { ApiConfig, ApiHeaders, AuthSession } from "../StandardApi/interfaces/common";
 
 class CommonFunction {
-  private static instance: CommonFunction
-  
-  constructor() {
-  }
-  public static getInstance(
-  ): CommonFunction {
+  private static readonly instance: CommonFunction = new CommonFunction();
+
+  public static getInstance(): CommonFunction {
     return CommonFunction.instance;
+  }
+
+  private constructor() {
   }
 
   public truncateTextAtWord(text: string, maxChars: number): string {
@@ -19,7 +19,7 @@ class CommonFunction {
     return truncated.slice(0, lastSpaceIndex) + ' ...'
   };
 
-  static createHeaders = async ({
+  static readonly createHeaders = async ({
     withToken = true,
     contentType = "application/json",
     customToken = ''
@@ -34,7 +34,7 @@ class CommonFunction {
     if (withToken) {
       const session: AuthSession | null = await getSession()
       const token = session?.accessToken;
-      header['Authorization'] = customToken ? customToken : 'Bearer ' + token;
+      header['Authorization'] = customToken || 'Bearer ' + token;
     }
 
     return header;
@@ -75,36 +75,14 @@ class CommonFunction {
     }, {} as Record<string, any>);
   };
 
-  public scrollTopAndValidation({
-    ref,
-  }: any) {
-    ref && ref?.current?.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    // if (notification && this.openToast) {
-    //   this.openToast(
-    //     title,
-    //     message,
-    //     {
-    //       type,
-    //       icon,
-    //       duration,
-    //       children
-    //     },
-    //     toastId
-    //   )
-    // }
+  public scrollTopAndValidation(ref: React.RefObject<HTMLDivElement>) {
+    ref?.current?.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 
   public capitalizeFirstLetter(str: string): string {
     if (!str) return str;
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
-
-  public extractValues = (form: IStateType | any) => {
-    return Object.keys(form).reduce((acc, key) => {
-      acc[key] = form?.[key]?.value || form?.[key]?.refs;
-      return acc;
-    }, {} as Record<string, any>);
-  };
 
   public isTokenExpiringSoon = (expiresAt: number) => {
     const currentTime = Math.floor(Date.now() / 1000);
@@ -174,6 +152,14 @@ class CommonFunction {
     }
 
     return true;
+  };
+
+  public getInitials = (name?: string) => {
+    if (!name) return "?";
+    const parts = name.trim().split(/\s+/);
+    const first = parts[0]?.[0] ?? "";
+    const last = parts.length > 1 ? parts.at(-1)?.[0] ?? "" : "";
+    return (first + last).toUpperCase();
   };
 
 }

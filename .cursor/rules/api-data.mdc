@@ -1,0 +1,31 @@
+---
+description: Generic API and data-fetching conventions for frontend/backend boundaries
+globs: "**/api/**/*.{ts,tsx,js,jsx};**/*-api.ts;**/*service*.ts;**/*controller*.ts"
+alwaysApply: false
+---
+
+# API & data fetching
+
+## Boundaries
+
+- Keep transport (HTTP/fetch) separate from UI. Prefer small API client helpers over fetch-in-JSX.
+- Server routes / BFF: authenticate from the incoming request; don’t rely on browser-only session helpers when a bearer header is available.
+- Return consistent error shapes; map upstream status codes honestly (401/403/404/422/500).
+
+## Clients
+
+- Centralize base URL, headers, and JSON parsing.
+- Don’t retry non-idempotent mutations by default; be careful retrying 4xx.
+- Cancel or ignore stale responses when the user changes filters/pages quickly (AbortSignal or framework query keys).
+
+## Contracts
+
+- Validate inputs at the edge (DTO / Zod / schema).
+- Prefer explicit DTOs over leaking raw DB models to clients.
+- Version or evolve fields carefully; avoid silent breaking renames in public APIs.
+
+## Performance & safety
+
+- Paginate list endpoints; never unbounded “get all” for large tables in UI defaults.
+- Don’t put secrets in query strings.
+- Cache with clear keys; invalidate on writes that affect listed data.

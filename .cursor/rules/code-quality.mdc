@@ -1,0 +1,30 @@
+---
+description: Focused, readable changes — match local style, avoid drive-by refactors
+alwaysApply: true
+---
+
+# Code quality
+
+## Scope
+
+- Change only what the task requires. No unrelated refactors, renames, or “while I’m here” cleanups.
+- Prefer editing existing files over adding new ones when either works.
+- Do not add docs/markdown/README unless asked.
+
+## Style
+
+- Match surrounding code: naming, imports, formatting, abstraction level.
+- Prefer clear names over clever ones. Avoid one-letter names except short loops/callbacks.
+- Keep functions small; extract only when it improves clarity or reuse.
+- No unnecessary comments. Comment *why*, not *what*. Delete dead code instead of commenting it out.
+
+## Correctness
+
+- Handle errors and empty/loading states where users or callers will notice.
+- Don’t swallow errors silently.
+- Avoid speculative features (“just in case”) and unused parameters/exports.
+
+## Verification
+
+- After substantive edits, check for obvious type/lint issues in touched files.
+- Prefer running the project’s existing checks over inventing new ones.

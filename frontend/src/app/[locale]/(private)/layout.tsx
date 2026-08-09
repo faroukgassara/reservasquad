@@ -1,216 +1,242 @@
 'use client';
 
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Image from 'next/image';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger } from '@/components/Primitives/Sidebar/Sidebar';
+import { EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum';
 import { Routes } from '@/lib/routes';
-import { IconComponentsEnum, EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
-import type { INavigationItem } from '@/interfaces';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { signOut, useSession } from 'next-auth/react';
 import { twMerge } from 'tailwind-merge';
-import { useEffect, useMemo, useState } from 'react';
-import {
-    MoleculeSidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarMobileBar,
-    SidebarOverlay,
-    SidebarProvider,
-    SidebarTrigger,
-} from '@/components/Molecules/MoleculeSidebar/MoleculeSidebar';
-import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
-import AtomButton from '@/components/Atoms/AtomButton/AtomButton';
-import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
-import { useTranslations } from 'next-intl';
+import Button from '@/components/Primitives/Button/Button';
+import { useAuthorization } from '@/hooks/useAuthorization';
+import ContactMessageNotificationListener from '@/components/providers/ContactMessageNotificationListener';
+import { MobileSidebarContext } from '@/contexts/MobileSidebarContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { usePathname } from '@/i18n/navigation';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import Avatar from '@/components/Primitives/Avatar/Avatar';
+import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
+import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
 
-const DESKTOP_QUERY = '(min-width: 1131px)';
-
-export default function PrivateLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-    const isDesktop = useMediaQuery(DESKTOP_QUERY);
+export default function PrivateLayout({
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    const t = useTranslations('sidebar');
+    const tCommon = useTranslations('common');
+    const isDesktop = useMediaQuery('(min-width: 1024px)');
     const isMobile = !isDesktop;
-    const pathname = usePathname();
-    const [open, setOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
     const { data: session } = useSession();
-    const role = session?.user?.role;
-    const t = useTranslations();
-
-    const userName = session?.user?.name || t('common.user');
-    const userEmail = session?.user?.email || '';
+    const userName = [session?.user?.firstName, session?.user?.lastName]
+        .filter(Boolean)
+        .join(' ') || tCommon('userFallback');
+    const { isAllowed } = useAuthorization();
 
     useEffect(() => {
-        setOpen(isDesktop);
+        setSidebarOpen(isDesktop);
     }, [isDesktop]);
 
-    useEffect(() => {
-        if (isMobile) setOpen(false);
-    }, [pathname, isMobile]);
+    const openSidebar = useCallback(() => setSidebarOpen(true), []);
+    const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+    const mobileSidebarValue = useMemo(
+        () => ({
+            isMobile,
+            openSidebar,
+            closeSidebar,
+        }),
+        [isMobile, openSidebar, closeSidebar],
+    );
 
-    useEffect(() => {
-        if (!isMobile || !open) return;
-        const prev = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = prev;
-        };
-    }, [isMobile, open]);
+    const navigationItems = [
+        {
+            id: 'dashboard',
+            iconName: IconComponentsEnum.home,
+            label: t('dashboard'),
+            href: Routes.Dashboard,
+        },
+        {
+            id: 'users',
+            iconName: IconComponentsEnum.users,
+            label: t('users'),
+            href: Routes.Users.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
+        {
+            id: 'products',
+            iconName: IconComponentsEnum.bookOpenText,
+            label: t('products'),
+            href: Routes.Products.index,
+            children: [
+                {
+                    id: 'product-categories',
+                    label: t('productCategories'),
+                    href: Routes.ProductCategories.index,
+                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+                },
+            ],
+        },
+        {
+            id: 'faqs',
+            iconName: IconComponentsEnum.info,
+            label: t('faq'),
+            href: Routes.Faqs.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+            children: [
+                {
+                    id: 'faq-categories',
+                    label: t('categories'),
+                    href: Routes.FaqCategories.index,
+                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+                },
+            ],
+        },
+        {
+            id: 'orders',
+            iconName: IconComponentsEnum.shoppingCart,
+            label: t('orders'),
+            href: Routes.Orders.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
+        {
+            id: 'contact-messages',
+            iconName: IconComponentsEnum.user,
+            label: t('contactMessages'),
+            href: Routes.ContactMessages.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
+        {
+            id: 'testimonials',
+            iconName: IconComponentsEnum.message,
+            label: t('testimonials'),
+            href: Routes.Testimonials.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
+        {
+            id: 'sales',
+            iconName: IconComponentsEnum.filetext,
+            label: t('sales'),
+            href: Routes.Quotes.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+            children: [
+                {
+                    id: 'clients',
+                    label: t('clients'),
+                    href: Routes.Clients.index,
+                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+                },
+                {
+                    id: 'quotes',
+                    label: t('quotes'),
+                    href: Routes.Quotes.index,
+                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+                },
+                {
+                    id: 'invoices',
+                    label: t('invoices'),
+                    href: Routes.Invoices.index,
+                    hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+                },
+            ],
+        },
+    ];
 
-    const navigation: INavigationItem[] = useMemo(() => {
-        if (role !== 'ADMIN') return [];
-        return [
-            {
-                id: 'admin-calendar',
-                label: t('navigation.calendar'),
-                href: Routes.AdminCalendar,
-                iconName: IconComponentsEnum.calendar,
-            },
-            {
-                id: 'public-booking',
-                label: t('navigation.bookWithoutAccount'),
-                href: Routes.Calendar,
-                iconName: IconComponentsEnum.plus,
-            },
-            {
-                id: 'admin-reservations',
-                label: t('navigation.reservationsAdmin'),
-                href: Routes.AdminReservations,
-                iconName: IconComponentsEnum.layers,
-            },
-            {
-                id: 'admin-rooms',
-                label: t('navigation.rooms'),
-                href: Routes.AdminRooms,
-                iconName: IconComponentsEnum.squaresFour,
-            },
-            {
-                id: 'admin-teachers',
-                label: t('navigation.teachers'),
-                href: Routes.AdminTeachers,
-                iconName: IconComponentsEnum.users,
-            },
-        ];
-    }, [role, t]);
-
-    const sidebarExpanded = isMobile ? true : open;
+    let sidebarLayoutClass =
+        'fixed inset-y-0 left-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl transition-transform duration-200 lg:static lg:z-auto lg:w-70 lg:translate-x-0 lg:shadow-none';
+    if (!isMobile) {
+        sidebarLayoutClass = sidebarOpen ? 'w-70' : 'w-20 bg-primary-900';
+    }
 
     return (
         <ProtectedRoute>
-            <SidebarProvider
-                open={open}
-                setOpen={setOpen}
-                isMobile={isMobile}
-                expanded={sidebarExpanded}
-            >
-                <div className="flex min-h-dvh w-full flex-col md:h-dvh md:max-h-dvh md:min-h-0 md:overflow-hidden md:flex-row">
-                    <SidebarMobileBar />
-                    <SidebarOverlay />
+            <ContactMessageNotificationListener />
+            <MobileSidebarContext.Provider value={mobileSidebarValue}>
+                <div className="flex h-dvh overflow-x-clip overflow-y-hidden">
+                    {isMobile && sidebarOpen && (
+                        <button
+                            type="button"
+                            aria-label={t('closeMenu')}
+                            className="fixed inset-0 z-40 touch-none overscroll-none bg-black/50 lg:hidden"
+                            onClick={() => setSidebarOpen(false)}
+                        />
+                    )}
 
-                    <MoleculeSidebar
-                        open={open}
-                        setOpen={setOpen}
+                    <Sidebar
+                        open={sidebarOpen}
+                        setOpen={setSidebarOpen}
                         isMobile={isMobile}
                         className={twMerge(
-                            !isMobile && 'self-stretch border-r md:min-h-0',
-                            !isMobile && (open ? 'w-[280px] border-gray-100 bg-white' : 'w-19 border-primary-900 bg-primary-900'),
+                            'border-r border-gray-200 bg-white',
+                            sidebarLayoutClass,
+                            isMobile && !sidebarOpen && '-translate-x-full',
                         )}
                     >
-                        <SidebarHeader
-                            className={twMerge(
-                                'border-b',
-                                sidebarExpanded ? 'border-gray-100 px-4 py-4' : 'border-primary-800 px-2 py-5',
-                            )}
-                        >
-                            <div
-                                className={twMerge(
-                                    'flex w-full items-center',
-                                    sidebarExpanded ? 'justify-between gap-3' : 'flex-col gap-4',
-                                )}
-                            >
-                                {sidebarExpanded ? (
+                        <SidebarHeader className="p-4">
+                            {(sidebarOpen || isMobile) && (
+                                <Link href="/" className="flex shrink-0 items-center gap-2">
                                     <Image
-                                        src="/branding/reservasquad-logo-horiz.png"
-                                        alt={t('brand.name')}
-                                        width={140}
-                                        height={48}
-                                        className={twMerge(
-                                            'h-auto object-contain',
-                                            sidebarExpanded ? 'w-[120px]' : 'w-17',
-                                        )}
+                                        src={BiblioSquadLogo}
+                                        alt={tCommon('brandLogoAlt')}
+                                        height={40}
+                                        className="h-6 w-auto object-contain"
                                         priority
                                     />
-                                ) : (
-                                    <Image
-                                        src="/branding/reservasquad-logo.png"
-                                        alt=""
-                                        width={140}
-                                        height={40}
-                                        className="h-9 w-auto object-contain brightness-0 invert"
-                                    />
-                                )}
-                                <SidebarTrigger id="sidebar-collapse-toggle" />
-                            </div>
+                                </Link>
+                            )}
+                            <SidebarTrigger id="sidebar-trigger" />
                         </SidebarHeader>
 
                         <SidebarContent
-                            data={navigation}
-                            className={twMerge('px-2 py-4', isMobile && 'pt-2')}
+                            data={navigationItems}
+                            className={twMerge('flex-1', sidebarOpen || isMobile ? 'p-4' : 'px-0 py-4')}
                         />
 
-                        <SidebarFooter
-                            className={twMerge(
-                                sidebarExpanded ? 'p-4' : 'flex flex-col items-center px-2 py-4',
-                            )}
-                        >
-                            {sidebarExpanded ? (
-                                <div className="flex flex-col gap-3">
-                                    <div>
-                                        <AtomLabel variant={EVariantLabel.bodySmall} color="text-gray-500" className="block">
-                                            {t('common.connected')}
-                                        </AtomLabel>
-                                        <AtomLabel variant={EVariantLabel.bodySmall} color="text-primary-900" className="block">
-                                            {userName}
-                                        </AtomLabel>
-                                        <AtomLabel
-                                            variant={EVariantLabel.bodySmall}
-                                            color="text-gray-600"
-                                            className="mt-1 block truncate"
-                                        >
-                                            {userEmail}
-                                        </AtomLabel>
-                                    </div>
-                                    <AtomButton
-                                        id="private-layout-sign-out"
-                                        type={EButtonType.gray}
-                                        className="justify-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-accent-50 hover:text-accent-700"
-                                        onClick={() => signOut({ callbackUrl: '/' })}
-                                    >
-                                        <AtomIcon
-                                            name={IconComponentsEnum.logOut}
-                                            size={ESize.md}
-                                            color="text-gray-700"
-                                        />
-                                        {t('auth.signOut')}
-                                    </AtomButton>
+                        <SidebarFooter className={sidebarOpen || isMobile ? 'p-4' : 'px-0 py-4'}>
+                            <LanguageSwitcher />
+                            {sidebarOpen || isMobile ? (
+                                <div className="mt-4 flex w-full items-center justify-between gap-2">
+                                    <Avatar
+                                        id="avatar"
+                                        name={userName}
+                                        email={session?.user?.email ?? undefined}
+                                        size={ESize.md}
+                                        className="min-w-0"
+
+                                    />
+                                    <Button
+                                        id="sidebar-disconnect-expanded"
+                                        type={EButtonType.secondary}
+                                        icon={{
+                                            name: IconComponentsEnum.logOut,
+                                            size: ESize.sm,
+                                            color: 'text-primary-400',
+                                        }}
+                                        onClick={() => signOut()}
+                                    />
                                 </div>
                             ) : (
-                                <AtomButton
-                                    id="private-layout-sign-out-icon"
-                                    type={EButtonType.iconButton}
-                                    className="flex size-10 items-center justify-center rounded-full bg-primary-800 text-white hover:bg-accent-500"
-                                    onClick={() => signOut({ callbackUrl: '/' })}
-                                >
-                                    <AtomIcon name={IconComponentsEnum.logOut} size={ESize.md} color="text-white" />
-                                </AtomButton>
+                                <Avatar
+                                    id="avatar"
+                                    name={userName}
+                                    size={ESize.lg}
+                                    className="cursor-pointer"
+                                />
                             )}
                         </SidebarFooter>
-                    </MoleculeSidebar>
+                    </Sidebar>
 
-                    <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+                    <main
+                        className={twMerge(
+                            'min-w-0 flex-1 overflow-y-auto bg-gray-25',
+                            isMobile && sidebarOpen && 'overflow-hidden touch-none',
+                        )}
+                    >
                         {children}
                     </main>
                 </div>
-            </SidebarProvider>
+            </MobileSidebarContext.Provider>
         </ProtectedRoute>
     );
 }

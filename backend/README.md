@@ -1,61 +1,94 @@
-# Nexera Backend
+# Biblio Squad Backend
 
-NestJS API with Prisma and PostgreSQL.
+NestJS **11** API with **Prisma 7** and **PostgreSQL**.
 
 ## Prerequisites
 
 - Node.js (LTS recommended)
-- **PostgreSQL** (16+ recommended) reachable from your machine
-
-First-time database setup and stack overview: [repository root README](../README.md).
-
-## Prisma (ORM 7)
-
-- Connection URL and migrations are configured in **`prisma.config.ts`** at the project root (not in `schema.prisma`).
-- The client is generated into **`src/generated/prisma`** with provider `prisma-client`. Run **`npm run prisma:generate`** after schema changes (also runs automatically via **`postinstall`** after `npm install`).
-- The app uses the **`pg`** driver via **`@prisma/adapter-pg`**; see `src/prisma/prisma.service.ts`.
-- **`npx prisma migrate dev`** applies migrations but does **not** auto-run seed in v7; use **`npm run seed`** or **`npx prisma db seed`** when needed.
-
+- PostgreSQL reachable from your machine
+- Stack overview: [repository root README](../README.md)
 
 ## Environment
 
-```bash
-cp .env.example .env
-```
+Create `backend/.env` (never commit secrets). Important keys:
 
-Edit `.env` so `DATABASE_URL` points at your Postgres instance (`localhost` for local dev). Optional: set `SMTP_HOST_ADDRESS` / `SMTP_PORT` if you use [Maildev](https://github.com/maildev/maildev) or another SMTP sink.
+| Variable | Purpose |
+| :--- | :--- |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `PORT` / `HOST` | HTTP listen (default `4000` / `0.0.0.0`) |
+| `FRONT_URL` | Frontend origin (CORS / links) |
+| `JWT_*` | Access, refresh, and reset-password secrets & TTLs |
+| `SMTP_*` / `MAIL_SECURE` | Transactional email |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` / … | Seeded super-admin |
+| `UPLOAD_DIR` | Persistent uploads root (production) |
+| `ENVIRONMENT` | e.g. `development` |
+
+Typed loading: `src/common/env/env.ts`.
+
+## Prisma (ORM 7)
+
+- Connection / migrate config: **`prisma.config.ts`** (not only `schema.prisma`).
+- Client output: **`src/generated/prisma`** (`npm run prisma:generate`; also `postinstall`).
+- Driver: **`pg`** via **`@prisma/adapter-pg`** (`src/prisma/prisma.service.ts`).
+- Prefer **`npx prisma migrate deploy`** (or `npm run prisma:migrate`) over `db push` so history stays consistent.
+- Seed does **not** always auto-run after migrate in v7 — use **`npm run seed`**.
 
 ## Scripts
 
 ```bash
 npm install
 
-# Database (after .env is configured)
-npm run prisma:migrate
-npm run seed
+# Database
+npm run prisma:migrate    # migrate deploy + generate
+npm run seed              # local seeder (ts-node)
+npm run seed:prod         # after build
 
 # App
-npm run start:dev     # watch mode (development)
-npm run start         # once, without watch
-npm run start:prod    # production (requires build)
+npm run start:dev         # watch
+npm run start             # dist/main (needs build)
+npm run start:prod
+npm run build
 
-# Prisma
+# Prisma helpers
 npm run prisma:generate
-npm run prisma:migrate   # deploy migrations
-npm run prisma:setup     # migrate dev + generate (interactive)
-npm run prisma:reset     # reset DB (destructive)
+npm run prisma:setup      # migrate dev + generate (interactive)
+npm run prisma:reset      # destructive
 
 # Quality
 npm run lint
 npm run test
 npm run test:e2e
-npm run test:cov
 ```
 
-Default API port: **4000** (override with `PORT` in `.env`).
+API default: **http://localhost:4000**
+
+## Main modules
+
+Under `src/component/` (non-exhaustive):
+
+| Area | Notes |
+| :--- | :--- |
+| `auth` | Login, refresh, reset password; inactive users blocked |
+| `user` | Backoffice users; ADMIN cannot be deactivated/deleted |
+| `formation` / applications / categories | Catalog & candidatures |
+| `blog`, `faq`, `testimonial`, `contactMessage` | Content / inbox |
+| `coworkingRoom` / bookings / stats | Coworking |
+| **`sales`** | Customers, quotes (`DEV-YYYY-####`), invoices (`FAC-YYYY-####`); custom lines + per-line tax; admin-only `/backoffice/customer|quote|invoice` |
+
+## Production uploads
+
+```env
+UPLOAD_DIR=/var/www/bibliosquad/uploads
+```
+
+Files land in `{UPLOAD_DIR}/{type}/` (e.g. `formations/`, `blogs/`) and are served as `/{type}/{file}`. Nginx example: [../deploy/nginx-bibliosquad.example.conf](../deploy/nginx-bibliosquad.example.conf).
+
+## Adminer
+
+DB UI via Docker on port **8080** — see [../README.md](../README.md#adminer-db-ui) and root `docker-compose.yml`.
 
 ## Further reading
 
-- Full stack setup and default login: [../README.md](../README.md)
-- [NestJS documentation](https://docs.nestjs.com)
-- [Prisma documentation](https://www.prisma.io/docs)
+- [../README.md](../README.md)
+- [../frontend/README.md](../frontend/README.md)
+- [NestJS](https://docs.nestjs.com) · [Prisma](https://www.prisma.io/docs)

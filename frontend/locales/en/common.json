@@ -1,284 +1,1461 @@
 {
-  "common": {
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
-    "search": "Search",
-    "filter": "Filter",
-    "sort": "Sort",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "submit": "Submit",
-    "reset": "Reset",
-    "refresh": "Refresh",
-    "close": "Close",
-    "apply": "Apply",
-    "update": "Update",
-    "actions": "Actions",
-    "columns": "Columns",
-    "noData": "No data available",
-    "selectOption": "Select an option",
-    "noOptions": "No options",
-    "noResults": "No results",
-    "allSelected": "All selected",
-    "peopleShort": "people",
-    "connected": "Signed in",
-    "user": "User",
-    "cancelEdit": "Cancel editing",
-    "dash": "—"
-  },
-  "auth": {
-    "login": "Login",
-    "logout": "Logout",
-    "email": "Email",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "confirmYourPassword": "Confirm your password",
-    "forgotPassword": "Forgot Password",
-    "backToLogin": "Back to Login",
-    "send": "Send",
-    "signIn": "Sign in",
-    "signOut": "Sign Out",
-    "welcome": "Welcome",
-    "enterYourEmail": "Enter your email",
-    "enterYourPassword": "Enter your password",
-    "loginRequired": "You must sign in to access the administration area",
-    "noAccount": "Don't have an account yet?",
-    "contactSupport": "Contact Support",
-    "loginFailed": "Login failed. Please try again.",
-    "loginAttemptsExceeded": "Too many failed login attempts. Please reset your password.",
-    "forgotPasswordTitle": "Forgot Password?",
-    "resetPasswordTitle": "Reset Password",
-    "newPassword": "New Password",
-    "enterYourNewPassword": "Enter your new password",
-    "resetPasswordCta": "Reset password",
-    "resetPasswordSuccess": "Password reset successfully.",
-    "resetPasswordFailed": "Failed to reset password. Please try again.",
-    "invalidResetToken": "This reset link is invalid or expired.",
-    "validation": {
-      "invalidEmail": "Invalid email format",
-      "emailRequired": "Email is required",
-      "passwordRequired": "Password is required",
-      "passwordTooLong": "Password must be less than 120 characters",
-      "passwordMinLength": "Password must be at least 8 characters",
-      "passwordLowercase": "Password must contain at least one lowercase letter",
-      "passwordUppercase": "Password must contain at least one uppercase letter",
-      "passwordSpecialChar": "Password must contain at least one special character",
-      "confirmPasswordRequired": "Confirm password is required",
-      "passwordsDoNotMatch": "Passwords do not match"
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "search": "Search",
+        "filter": "Filter",
+        "sort": "Sort",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "submit": "Submit",
+        "reset": "Reset",
+        "apply": "Apply",
+        "add": "Add",
+        "close": "Close",
+        "confirm": "Confirm",
+        "validate": "Validate",
+        "return": "Return",
+        "archive": "Archive",
+        "unarchive": "Unarchive",
+        "export": "Export",
+        "actions": "Actions",
+        "status": "Status",
+        "all": "All",
+        "yes": "Yes",
+        "no": "No",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "description": "Description",
+        "notes": "Notes",
+        "active": "Active",
+        "inactive": "Inactive",
+        "selectLanguage": "Select language",
+        "brandLogoAlt": "Biblio Squad Logo",
+        "userFallback": "User",
+        "imagePreview": "Preview",
+        "imageUploadHint": "Drag and drop an image, or click to browse",
+        "removeFile": "Remove file",
+        "dismiss": "Dismiss",
+        "noResults": "No results found",
+        "showingRange": "Showing {from}–{to} of {total}",
+        "pageOf": "Page {page} of {totalPages}",
+        "paginationAria": "Pagination",
+        "pageAria": "Page {page}",
+        "min": "Min",
+        "max": "Max",
+        "optional": "optional",
+        "selectOption": "Select an option"
     },
-    "requestResetSent": "A reset link has been sent if the email exists.",
-    "requestResetFailed": "Failed to send reset password request. Please try again."
-  },
-  "brand": {
-    "name": "Reserva Squad"
-  },
-  "metadata": {
-    "title": "Reserva Squad — Study rooms",
-    "description": "Study room booking application for teachers and administration."
-  },
-  "home": {
-    "title": "Book your study rooms",
-    "subtitle": "Shared calendar, admin validation, equipment per room.",
-    "bookRoom": "Book a room"
-  },
-  "navigation": {
-    "home": "Home",
-    "bookRoom": "Book a room",
-    "book": "Book",
-    "administration": "Administration",
-    "adminLogin": "Admin login",
-    "navigation": "Navigation",
-    "footerTagline": "Study room booking: shared calendar and admin validation.",
-    "copyright": "© {year} Reserva Squad",
-    "calendar": "Calendar",
-    "bookWithoutAccount": "Book",
-    "reservationsAdmin": "Reservations",
-    "rooms": "Rooms",
-    "teachers": "Teachers"
-  },
-  "calendar": {
-    "title": "Study room schedule",
-    "views": {
-      "month": "Month",
-      "week": "Week",
-      "day": "Day"
+    "auth": {
+        "login": "Login",
+        "logout": "Logout",
+        "logoutConfirm": "Are you sure you want to sign out?",
+        "register": "Register",
+        "account": "My account",
+        "email": "Email",
+        "password": "Password",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "confirmPassword": "Confirm Password",
+        "confirmYourPassword": "Confirm your password",
+        "forgotPassword": "Forgot Password",
+        "backToLogin": "Back to Login",
+        "backToHome": "Back to Home",
+        "send": "Send",
+        "signIn": "Sign in",
+        "signOut": "Sign Out",
+        "welcome": "Welcome",
+        "enterYourEmail": "Enter your email",
+        "enterYourPassword": "Enter your password",
+        "loginRequired": "You must sign in to access the license management area",
+        "noAccount": "Don't have an account yet?",
+        "contactSupport": "Contact Support",
+        "loginFailed": "Login failed. Please try again.",
+        "loginAttemptsExceeded": "Too many failed login attempts. Please reset your password.",
+        "forgotPasswordTitle": "Forgot Password?",
+        "resetPasswordTitle": "Reset Password",
+        "newPassword": "New Password",
+        "enterYourNewPassword": "Enter your new password",
+        "resetPasswordCta": "Reset password",
+        "resetPasswordSuccess": "Password reset successfully.",
+        "resetPasswordFailed": "Failed to reset password. Please try again.",
+        "invalidResetToken": "This reset link is invalid or expired.",
+        "modalLoginSubtitle": "Sign in to your Biblio Squad account",
+        "modalRegisterSubtitle": "Create an account to continue",
+        "registerSuccess": "Check your email to activate your account before signing in.",
+        "registerFailed": "Registration failed. Please try again.",
+        "activating": "Activating your account…",
+        "activateTitle": "Account activated",
+        "activateErrorTitle": "Activation failed",
+        "activateSuccess": "Your account is now active. You can sign in.",
+        "activateFailed": "Unable to activate this account.",
+        "invalidActivationToken": "This activation link is invalid or expired.",
+        "placeholders": {
+            "firstName": "Jane",
+            "lastName": "Doe",
+            "phone": "+216 XX XXX XXX"
+        },
+        "validation": {
+            "invalidEmail": "Invalid email format",
+            "emailRequired": "Email is required",
+            "passwordRequired": "Password is required",
+            "passwordTooLong": "Password must be less than 120 characters",
+            "passwordMinLength": "Password must be at least 8 characters",
+            "passwordLowercase": "Password must contain at least one lowercase letter",
+            "passwordUppercase": "Password must contain at least one uppercase letter",
+            "passwordSpecialChar": "Password must contain at least one special character",
+            "confirmPasswordRequired": "Confirm password is required",
+            "passwordsDoNotMatch": "Passwords do not match"
+        },
+        "requestResetSent": "A reset link has been sent if the email exists.",
+        "requestResetFailed": "Failed to send reset password request. Please try again."
     },
-    "subtitles": {
-      "month": "Monthly view — click a day to book or view a reservation.",
-      "week": "Week view (Mon – Sun). Use + or chips to take action.",
-      "day": "Day view — slots sorted by start time."
+    "licenses": {
+        "title": "Licenses",
+        "subTitle": "Create, assign, and manage your clients’ licenses.",
+        "createNewLicensesBtn": "Create a new license",
+        "packsInProgress": "Ongoing Packs",
+        "distributedLicenses": "Distributed Licenses",
+        "activeLicenses": "Active Licenses"
+    },
+    "navigation": {
+        "home": "Home",
+        "licenses": "Licenses",
+        "profile": "Profile",
+        "settings": "Settings"
+    },
+    "errors": {
+        "internalServerError": "Internal server error",
+        "missingParameter": "Missing required parameter",
+        "failedToFetch": "Failed to fetch",
+        "failedToCreate": "Failed to create",
+        "unauthorized": "Unauthorized access",
+        "notFound": "Not found"
+    },
+    "aboutUs": {
+        "whoWeAre": {
+            "badge": "Who we are",
+            "title": "Biblio Squad, academic excellence in Sfax",
+            "body": "Biblio Squad is the first academic institution of excellence in Sfax, accredited by leading international bodies, ensuring high-standard training programs aligned with global benchmarks. Our programs cover engineering, architecture, IT, digital marketing, graphic design, and languages. As an official training and examination center, Biblio Squad awards internationally recognized certifications."
+        },
+        "whyBiblioSquad": {
+            "badge": "Why Biblio Squad?",
+            "title": "Comprehensive training, dual certification",
+            "body": "Biblio Squad distinguishes itself through a comprehensive training offer spanning engineering, architecture, IT, digital marketing, graphic design, project management, entrepreneurship, soft skills, and languages. Graduates receive a dual certification: an official Tunisian certificate and an internationally accredited credential."
+        },
+        "ourVision": {
+            "badge": "Our vision",
+            "title": "Developing tomorrow's talent",
+            "body": "Establish Biblio Squad as the national reference in professional training and certification, developing highly qualified talents capable of excelling globally."
+        },
+        "visionTagline": {
+            "badge": "Vision",
+            "title": "Ambition & expertise",
+            "body": "To be the bridge between ambition and globally recognized expertise."
+        },
+        "mission": {
+            "badge": "Mission",
+            "title": "From training to employability",
+            "body": "To close the gap between learning and global career readiness through certified training across multiple disciplines."
+        },
+        "values": {
+            "badge": "Our values",
+            "title": "What guides us every day",
+            "items": [
+                {
+                    "name": "Excellence",
+                    "description": "We aim for the highest quality standards in our training to ensure rigorous, internationally recognized learning."
+                },
+                {
+                    "name": "Integrity",
+                    "description": "We act with transparency, ethics, and responsibility, ensuring trust in all our certifications and partnerships."
+                },
+                {
+                    "name": "Respect",
+                    "description": "Respect is at the heart of our culture, fostering a healthy, inclusive environment conducive to learning."
+                },
+                {
+                    "name": "Teamwork",
+                    "description": "We believe in the power of collaboration among learners, trainers, and partners to achieve lasting results."
+                },
+                {
+                    "name": "Commitment",
+                    "description": "We support our candidates at every stage of their journey with seriousness and dedication until they succeed."
+                },
+                {
+                    "name": "Innovation",
+                    "description": "We constantly integrate new technologies and market trends to offer modern, relevant training."
+                }
+            ]
+        },
+        "exploreCourses": "Explore our courses"
+    },
+    "certificationsPage": {
+        "hero": {
+            "badge": "Certifications",
+            "title": "Certifications that open doors worldwide",
+            "body": "At Biblio Squad, we believe certification isn't just a credential. It's your passport to global opportunity. Our internationally recognized programs don't just validate your skills, they open doors to a world where you can compete, work, and thrive without borders.",
+            "primaryCta": "Explore programs",
+            "secondaryCta": "Contact us"
+        },
+        "benefits": {
+            "eyebrow": "Certification benefits",
+            "title": "Why get certified with Biblio Squad",
+            "items": {
+                "recognition": {
+                    "title": "Global recognition & career advancement",
+                    "description": "Internationally recognized programs and certifications help validate your skills, strengthen your expertise, and open new professional opportunities worldwide."
+                },
+                "community": {
+                    "title": "Join a global professional community",
+                    "description": "Become part of a network of learners and professionals committed to continuous learning, knowledge sharing, and professional excellence."
+                },
+                "opportunities": {
+                    "title": "Expand your career opportunities",
+                    "description": "Earn recognized certifications that enhance your profile, improve your employability, and increase your opportunities for career growth in a global professional environment."
+                },
+                "standOut": {
+                    "title": "Stand out in a competitive market",
+                    "description": "Showcase your skills, achievements, and professional commitment through trusted certifications recognized by industry standards."
+                },
+                "validate": {
+                    "title": "Validate your skills & expertise",
+                    "description": "Demonstrate your knowledge and practical abilities through certification pathways designed to meet today's professional requirements and prepare you for tomorrow's challenges."
+                }
+            }
+        },
+        "banner": {
+            "title": "Ready to take the next step?",
+            "highlight": "Explore our certification programs and start your journey today.",
+            "cta": "Explore programs"
+        }
+    },
+    "hero": {
+        "badge": "Premium workshop — Sfax, Tunisia",
+        "headline": {
+            "line1": "Explore a world of",
+            "highlight": "Creativity",
+            "line2": "& Customization"
+        },
+        "subtitle": "Laser cutting, wood and plexiglass engraving, custom printing, made-to-order gifts and vinyl wrapping — all crafted in our Sfax workshop.",
+        "primaryCta": "Discover the shop",
+        "secondaryCta": "Request a quote",
+        "stats": {
+            "clients": {
+                "value": "500+",
+                "label": "Happy clients"
+            },
+            "expertise": {
+                "value": "3 yrs",
+                "label": "Of expertise"
+            },
+            "services": {
+                "value": "5 services",
+                "label": "Made to measure"
+            }
+        },
+        "gallery": {
+            "laser": "Laser cutting",
+            "gifts": "Gift boxes",
+            "vinyl": "Vinyl wrapping",
+            "print": "Printing"
+        }
     },
     "nav": {
-      "prevMonth": "← Previous month",
-      "nextMonth": "Next month →",
-      "prevWeek": "← Prev. week",
-      "nextWeek": "Next week →",
-      "prevDay": "← Previous day",
-      "nextDay": "Next day →"
+        "home": "Home",
+        "shop": "Shop",
+        "certifications": "Certifications",
+        "coworkingSpace": "Coworking space",
+        "aboutUs": "About us",
+        "blog": "Blog",
+        "contactUs": "Contact us",
+        "faq": "FAQ",
+        "testimonial": "Testimonial",
+        "leaveTestimonial": "Leave a testimonial",
+        "search": "Search",
+        "cart": "Cart",
+        "searchPlaceholder": "What do you want to learn?",
+        "openMenu": "Open menu",
+        "closeMenu": "Close menu",
+        "mainNav": "Main navigation",
+        "mobileNav": "Mobile navigation"
     },
-    "weekdays": {
-      "mon": "Mon",
-      "tue": "Tue",
-      "wed": "Wed",
-      "thu": "Thu",
-      "fri": "Fri",
-      "sat": "Sat",
-      "sun": "Sun"
+    "cart": {
+        "title": "Your cart",
+        "titleWithCount": "Your cart ({count})",
+        "close": "Close cart",
+        "emptyTitle": "Your cart is empty",
+        "emptyBody": "Discover our custom creations and let your imagination run free.",
+        "exploreShop": "Explore the shop",
+        "summary": "Summary",
+        "subtotal": "Subtotal",
+        "shippingNote": "Shipping costs are calculated at checkout.",
+        "estimatedShipping": "Estimated shipping",
+        "total": "Total",
+        "checkout": "Checkout",
+        "viewCart": "View cart",
+        "continueShopping": "Continue shopping",
+        "decreaseQty": "Decrease quantity",
+        "increaseQty": "Increase quantity",
+        "removeItem": "Remove item",
+        "engraving": "Engraving: {text}"
     },
-    "newBooking": "New booking",
-    "bookThisDay": "Book this day",
-    "noReservationsDay": "No reservations on this day. Click « Book this day » to add one.",
-    "loadFailed": "Unable to load",
-    "banner": {
-      "publicPrefix": "Booking without account · status",
-      "publicSuffix": "until admin approval.",
-      "adminLogin": "Admin login",
-      "adminHint": "Calendar view — same schedule as the public page. Confirm or reject requests from the detailed list.",
-      "adminListLink": "List & validation"
+    "checkout": {
+        "title": "Checkout",
+        "yourOrder": "Your order",
+        "subtotal": "Subtotal",
+        "shipping": "Shipping",
+        "shippingFree": "Free",
+        "total": "Total",
+        "continue": "Continue",
+        "back": "Back",
+        "backToCart": "← Cart",
+        "confirm": "Confirm order",
+        "deliveryTitle": "Delivery information",
+        "shippingTitle": "Shipping method",
+        "summaryTitle": "Order summary",
+        "emptyCartBody": "Add products to your cart before placing an order.",
+        "successTitle": "Order placed",
+        "successMessage": "Your order {number} has been saved successfully.",
+        "steps": {
+            "delivery": "Delivery",
+            "shipping": "Shipping",
+            "summary": "Summary"
+        },
+        "fields": {
+            "firstName": "First name",
+            "lastName": "Last name",
+            "email": "Email",
+            "phone": "Phone",
+            "address": "Address",
+            "city": "City",
+            "governorate": "Governorate",
+            "postalCode": "Postal code",
+            "lockedHint": "Taken from your account"
+        },
+        "shippingMethods": {
+            "STANDARD": {
+                "label": "Home delivery",
+                "eta": "Within Sfax"
+            },
+            "EXPRESS": {
+                "label": "Home delivery",
+                "eta": "Outside Sfax"
+            },
+            "PICKUP": {
+                "label": "Workshop pickup (Sfax)",
+                "eta": "Free"
+            }
+        },
+        "errors": {
+            "title": "Error",
+            "required": "This field is required",
+            "email": "Invalid email",
+            "phone": "Invalid phone number"
+        }
+    },
+    "home": {
+        "services": {
+            "eyebrow": "Our services",
+            "title": "Complete craftsmanship, from concept to finished piece",
+            "subtitle": "Five expertises under one roof to bring all your customization ideas to life.",
+            "viewProducts": "View products",
+            "items": {
+                "laser": {
+                    "title": "Laser Cutting",
+                    "tagline": "Millimeter precision",
+                    "description": "Laser cutting and engraving on wood, plexiglass and more, for clean and detailed creations."
+                },
+                "design": {
+                    "title": "Graphic Design",
+                    "tagline": "Your visual identity",
+                    "description": "Logos, brand guidelines and print materials crafted to reveal your brand."
+                },
+                "print": {
+                    "title": "Print on Any Surface",
+                    "tagline": "On everything, really",
+                    "description": "Quality printing on mugs, textiles, cushions, premium paper and everyday objects."
+                },
+                "gifts": {
+                    "title": "Gift Ideas",
+                    "tagline": "Give the unique",
+                    "description": "Personalized and memorable gifts for every occasion."
+                },
+                "vinyl": {
+                    "title": "Vehicle Wrap & Vinyl",
+                    "tagline": "Make an impression",
+                    "description": "Vehicle wrapping, storefront lettering and decorative stickers applied with care."
+                }
+            }
+        },
+        "products": {
+            "eyebrow": "Our selection",
+            "title": "Popular Products",
+            "viewAll": "View all",
+            "quickView": "Quick view",
+            "addToCart": "Add",
+            "badges": {
+                "bestseller": "Bestseller",
+                "new": "New",
+                "customizable": "Customizable",
+                "popular": "Popular"
+            },
+            "categories": {
+                "laser": "Laser cutting",
+                "print": "Print on any surface",
+                "gifts": "Gift ideas",
+                "vinyl": "Vinyl wrapping"
+            },
+            "items": {
+                "giftBox": { "name": "“Sweet Home” gift box" },
+                "wallClock": { "name": "Plexiglass wall clock" },
+                "photoMug": { "name": "Custom photo mug" },
+                "neonSign": { "name": "LED neon sign" },
+                "woodKeychain": { "name": "Engraved wood keychain" },
+                "windowStickers": { "name": "Window stickers — pack of 10" },
+                "quoteBoard": { "name": "Wooden quote board" },
+                "corporatePouch": { "name": "Corporate gift pouch" }
+            }
+        },
+        "history": {
+            "eyebrow": "Our story",
+            "title": "Born in Sfax, driven by precision",
+            "body1": "Founded in 2022 by a team of young entrepreneurs from Sfax, Conchas was born from a simple belief: every object deserves to be unique. With cutting-edge laser machines and a sharp eye for detail, we turn wood, plexiglass and vinyl into personalized pieces.",
+            "body2": "Individuals, businesses, decorators — we support every client from concept to delivery. Our workshop is open on request for made-to-measure projects.",
+            "badge": {
+                "year": "2022",
+                "label": "Founded in Sfax"
+            },
+            "features": {
+                "laser": {
+                    "title": "CNC laser cutting",
+                    "subtitle": "Precision to the tenth of a mm"
+                },
+                "packaging": {
+                    "title": "Careful packaging",
+                    "subtitle": "Every order is unique"
+                },
+                "delivery": {
+                    "title": "Delivery across Tunisia",
+                    "subtitle": "Sfax and major cities"
+                },
+                "custom": {
+                    "title": "100% customized",
+                    "subtitle": "Built on your ideas, not ours"
+                }
+            }
+        },
+        "formations": {
+            "eyebrow": "Explore programs",
+            "title": "Our most popular courses",
+            "subtitle": "Join our flagship programs — knowledge that will truly serve you.",
+            "empty": "No courses available at the moment.",
+            "exploreAll": "Explore all programs"
+        },
+        "blogs": {
+            "eyebrow": "Blog",
+            "title": "Our recent articles",
+            "subtitle": "Ideas, product updates, and stories from the team.",
+            "empty": "No articles yet.",
+            "viewAll": "View all articles"
+        },
+        "testimonials": {
+            "eyebrow": "Testimonials",
+            "title": "What our learners say",
+            "subtitle": "Feedback from people who have taken our courses.",
+            "prev": "Previous testimonial",
+            "next": "Next testimonial",
+            "submitSuccessTitle": "Thank you!",
+            "submitSuccessMessage": "Your testimonial has been sent. It will be published after our team reviews it.",
+            "submitErrorTitle": "Error"
+        },
+        "faq": {
+            "eyebrow": "Help center",
+            "title": "Frequently asked questions",
+            "subtitle": "Everything you need to know about Biblio Squad and our courses.",
+            "viewAll": "View all questions",
+            "empty": "No FAQ available yet.",
+            "panelBadge": "/ FAQS",
+            "panelTitle": "Frequently asked questions",
+            "noQuestionsInCategory": "No questions in this category."
+        },
+        "journey": {
+            "eyebrow": "The Biblio Squad journey",
+            "title": "Learn. Prepare. Certify.",
+            "highlight": "Succeed.",
+            "steps": {
+                "learn": {
+                    "title": "Learn",
+                    "description": "High-quality training from expert instructors."
+                },
+                "prepare": {
+                    "title": "Prepare",
+                    "description": "Hands-on practice and guided exam preparation."
+                },
+                "certify": {
+                    "title": "Certify",
+                    "description": "Earn internationally recognized certifications."
+                },
+                "succeed": {
+                    "title": "Succeed",
+                    "description": "Unlock new opportunities and advance your career."
+                }
+            }
+        },
+        "domains": {
+            "eyebrow": "Our programs",
+            "title": {
+                "line1": "Build Skills. Shape Your",
+                "highlight": "Future."
+            },
+            "body": "Explore our wide range of training programs and international certifications designed to empower you with future-ready skills and global recognition.",
+            "cta": "Explore all programs",
+            "viewPrograms": "View programs",
+            "items": {
+                "technology": {
+                    "title": "Technology & Data",
+                    "topics": ["Python", "Power BI", "NVIDIA", "Data Analytics", "AI & More"]
+                },
+                "engineering": {
+                    "title": "Engineering & Design",
+                    "topics": ["Autodesk", "SolidWorks", "Abaqus", "Structural Design & More"]
+                },
+                "business": {
+                    "title": "Business & Management",
+                    "topics": ["PMP", "Agile", "Project Management", "Leadership & More"]
+                },
+                "digitalMarketing": {
+                    "title": "Digital Marketing",
+                    "topics": ["Meta Blueprint", "Google Ads", "Social Media Marketing & More"]
+                },
+                "languages": {
+                    "title": "Languages",
+                    "topics": ["IELTS", "TOEFL", "TOEIC", "TCF", "DELF/DALF & More"]
+                }
+            }
+        },
+        "whoWeAre": {
+            "eyebrow": "Who we are",
+            "title": "Your gateway to international recognition",
+            "body": "Biblio Squad is a premium training and certification center offering globally recognized credentials in IT, engineering, business and languages. We partner with leading international organizations to ensure your success in today's competitive world.",
+            "cta": "Discover more about us"
+        },
+        "features": {
+            "eyebrow": "Why choose Biblio Squad",
+            "title": "Everything you need to succeed",
+            "items": {
+                "certifications": {
+                    "title": "International Certifications",
+                    "description": "Globally recognized credentials that open doors worldwide."
+                },
+                "instructors": {
+                    "title": "Expert Instructors",
+                    "description": "Learn from industry professionals and certified experts."
+                },
+                "learning": {
+                    "title": "Modern Learning",
+                    "description": "Practical, hands-on training with the latest tools and technologies."
+                },
+                "growth": {
+                    "title": "Career Growth",
+                    "description": "We help you build the skills and confidence to achieve more."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Start your journey today.",
+            "highlight": "Shape your next era with Biblio Squad.",
+            "cta": "Get Started"
+        },
+        "about": {
+            "eyebrow": "About us",
+            "title": {
+                "line1": "Empowering minds.",
+                "line2": "Building futures."
+            },
+            "body1": "Biblio Squad Institute is a premium hub for learning, certification, and professional growth.",
+            "body2": "We are a training and certification center dedicated to empowering individuals with internationally recognized skills, globally trusted certifications, and the knowledge and confidence to lead in a fast-changing world.",
+            "body3": "Through our expert-led programs, state-of-the-art facilities, and global partnerships, we prepare you not just for a career, but for your next era of success.",
+            "pillars": {
+                "vision": {
+                    "title": "Our Vision",
+                    "description": "To shape the next era of global professionals."
+                },
+                "mission": {
+                    "title": "Our Mission",
+                    "description": "Empower individuals through knowledge, certification, and impact."
+                },
+                "promise": {
+                    "title": "Our Promise",
+                    "description": "Excellence. Credibility. Results."
+                },
+                "impact": {
+                    "title": "Our Impact",
+                    "description": "Real skills. Real recognition. Real opportunities."
+                }
+            },
+            "imageCaption": "Biblio Squad",
+            "quote": "Education is the most powerful tool to shape your next era.",
+            "differentiators": {
+                "title": "What makes us different",
+                "items": {
+                    "partnerships": {
+                        "title": "Official partnerships with global leaders",
+                        "description": "We deliver internationally recognized certifications."
+                    },
+                    "instructors": {
+                        "title": "Expert-led training",
+                        "description": "Learn from certified professionals and industry experts."
+                    },
+                    "learning": {
+                        "title": "Modern learning experience",
+                        "description": "Advanced tools, real-world projects, and practical skills."
+                    },
+                    "career": {
+                        "title": "Career-focused approach",
+                        "description": "We prepare you for what the world needs tomorrow."
+                    }
+                },
+                "cta": "Meet our team"
+            },
+            "stats": {
+                "students": {
+                    "value": "1,500+",
+                    "label": "Students trained"
+                },
+                "certifications": {
+                    "value": "25+",
+                    "label": "Global certifications"
+                },
+                "partners": {
+                    "value": "10+",
+                    "label": "International partners"
+                },
+                "successRate": {
+                    "value": "95%",
+                    "label": "Success & satisfaction"
+                }
+            },
+            "banner": {
+                "line1": "At Biblio Squad, you don't just earn a certificate.",
+                "highlight": "You earn a future.",
+                "cta": "Join the next era"
+            }
+        }
+    },
+    "testimonialForm": {
+        "title": "Share your testimonial",
+        "subtitle": "Your review will be published after approval by our team.",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email",
+        "titleField": "Title / Role",
+        "description": "Your testimonial",
+        "rating": "Rating",
+        "cancel": "Cancel",
+        "submit": "Send",
+        "sending": "Sending…",
+        "placeholders": {
+            "firstName": "John",
+            "lastName": "Doe",
+            "email": "john.doe@email.com",
+            "titleField": "Web development student",
+            "description": "Describe your experience with Biblio Squad…"
+        },
+        "validation": {
+            "firstNameRequired": "First name is required",
+            "lastNameRequired": "Last name is required",
+            "emailRequired": "Email is required",
+            "emailInvalid": "Invalid email",
+            "titleRequired": "Title is required",
+            "descriptionRequired": "Description is required",
+            "descriptionMinLength": "Minimum 10 characters",
+            "ratingRequired": "Please select a rating"
+        }
+    },
+    "contact": {
+        "title": "Contact us",
+        "leaveMessage": "Leave us a message",
+        "name": "Name",
+        "email": "Email address",
+        "message": "Message",
+        "send": "Send",
+        "sending": "Sending…",
+        "successTitle": "Thank you",
+        "successMessage": "Your message has been sent successfully.",
+        "errorTitle": "Error",
+        "placeholders": {
+            "name": "First name Last name",
+            "email": "Email address",
+            "message": "Your message"
+        },
+        "validation": {
+            "nameRequired": "Name is required",
+            "emailRequired": "Email is required",
+            "emailInvalid": "Invalid email",
+            "messageTooShort": "Message is too short"
+        },
+        "getInTouch": "Get in touch",
+        "address": "Between Route el Ain and Manzel Chaker km 1, Rue de Mohamed Salah, Sfax 3002.",
+        "mapTitle": "Biblio Squad location map",
+        "openMap": "Open in Google Maps"
+    },
+    "coworkingSpace": {
+        "title": "Coworking space",
+        "hero": {
+            "badge": "Between Route el Ain and Manzel Chaker km 1, Rue de Mohamed Salah, Sfax 3002.",
+            "headline": "Meetings, training, coworking — all in one place, ready to book",
+            "subtitle": "Modern, connected and comfortable rooms for teams, trainers and content creators. Book by the hour or by the day.",
+            "cta": "Book now"
+        },
+        "included": {
+            "title": "What's included",
+            "items": {
+                "wifi": {
+                    "title": "Fiber Wi‑Fi",
+                    "description": "High-speed & stable connection"
+                },
+                "coffee": {
+                    "title": "Coffee & water",
+                    "description": "Unlimited break area"
+                },
+                "printer": {
+                    "title": "Printer/Scan",
+                    "description": "Included, reasonable use"
+                },
+                "parking": {
+                    "title": "Parking",
+                    "description": "Spaces nearby"
+                },
+                "security": {
+                    "title": "Security",
+                    "description": "Cameras & access control"
+                },
+                "audiovisual": {
+                    "title": "Audiovisual",
+                    "description": "TV/projector depending on room"
+                }
+            }
+        },
+        "spaces": {
+            "title": "Our available spaces",
+            "empty": "No spaces available at the moment.",
+            "book": "Book",
+            "visit": "Request a visit",
+            "capacity": "{count} seats"
+        },
+        "booking": {
+            "title": "Book a room or workspace",
+            "subtitle": "Fill out the form below and our team will get back to you shortly.",
+            "close": "Close",
+            "firstName": "First name",
+            "lastName": "Last name",
+            "email": "Work email",
+            "phone": "Mobile phone",
+            "company": "Company",
+            "jobTitle": "Job title",
+            "spaceType": "Desired space type",
+            "room": "Room / space",
+            "startDate": "Start date",
+            "startTime": "Start time",
+            "endDate": "End date",
+            "endTime": "End time",
+            "participants": "Number of participants",
+            "equipment": "Desired equipment",
+            "services": "Would you like to add services?",
+            "message": "Message",
+            "submit": "Send",
+            "sending": "Sending…",
+            "successTitle": "Request sent",
+            "successMessage": "Your booking request has been submitted. We will contact you shortly.",
+            "errorTitle": "Error",
+            "placeholders": {
+                "firstName": "Your first name",
+                "lastName": "Your last name",
+                "email": "name@company.com",
+                "phone": "+216 XX XXX XXX",
+                "company": "e.g. Biblio Squad",
+                "jobTitle": "General manager",
+                "spaceType": "Training room",
+                "room": "Tunis room",
+                "message": "Share any useful details about your event or training."
+            },
+            "validation": {
+                "firstName": "First name is required",
+                "lastName": "Last name is required",
+                "email": "Email is required",
+                "phone": "Phone is required",
+                "company": "Company is required",
+                "jobTitle": "Job title is required",
+                "spaceType": "Space type is required",
+                "startDate": "Start date is required",
+                "startTime": "Start time is required",
+                "endDate": "End date is required",
+                "endTime": "End time is required",
+                "participants": "At least 1 participant is required"
+            },
+            "jobTitleOptions": {
+                "ceo": "Chief Executive Officer",
+                "cio": "Chief Information Officer",
+                "hrDirector": "Human Resources Director",
+                "trainingDirector": "Training Director",
+                "cfo": "Chief Financial Officer",
+                "seniorExecutive": "Senior Executive",
+                "other": "Other"
+            },
+            "spaceTypeOptions": {
+                "trainingRoom": "Training room",
+                "meetingRoom": "Meeting room",
+                "coworkingSpace": "Coworking space"
+            },
+            "equipmentOptions": {
+                "projector": "Projector / screen",
+                "whiteboard": "Whiteboard / flipchart",
+                "fiberInternet": "Fiber internet",
+                "videoconference": "Videoconferencing system",
+                "soundSystem": "Sound system",
+                "microphone": "Microphone"
+            },
+            "serviceOptions": {
+                "coffeeBreak": "Coffee break",
+                "lunchBox": "Lunch box",
+                "mealVoucher": "Meal voucher",
+                "drinks": "Water / drinks",
+                "reception": "Participant reception"
+            }
+        }
+    },
+    "footer": {
+        "tagline": "Top learning experiences that create more talent in the world.",
+        "product": "Product",
+        "company": "Company",
+        "social": "Social",
+        "legal": "Legal",
+        "copyright": "All rights reserved.",
+        "newBadge": "New",
+        "links": {
+            "overview": "Overview",
+            "features": "Features",
+            "solutions": "Solutions",
+            "tutorials": "Tutorials",
+            "pricing": "Pricing",
+            "aboutUs": "About us",
+            "careers": "Careers",
+            "press": "Press",
+            "news": "News",
+            "terms": "Terms",
+            "privacy": "Privacy",
+            "cookies": "Cookies",
+            "contact": "Contact"
+        }
+    },
+    "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "archived": "Archived",
+        "draft": "Draft",
+        "sent": "Sent",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "pending": "Pending",
+        "paid": "Paid",
+        "cancelled": "Cancelled",
+        "validated": "Validated",
+        "published": "Published",
+        "new": "New",
+        "contacted": "Contacted",
+        "confirmed": "Confirmed"
+    },
+    "sidebar": {
+        "dashboard": "Dashboard",
+        "formations": "Products",
+        "products": "Products",
+        "productCategories": "Categories",
+        "categories": "Categories",
+        "blog": "Blog",
+        "faq": "FAQ",
+        "contactMessages": "Contact messages",
+        "orders": "Orders",
+        "testimonials": "Testimonials",
+        "coworkingRooms": "Coworking spaces",
+        "coworkingStats": "Coworking stats",
+        "coworkingBookings": "Bookings",
+        "users": "Users",
+        "sales": "Sales",
+        "clients": "Clients",
+        "quotes": "Quotes",
+        "invoices": "Invoices",
+        "archive": "Archive",
+        "closeMenu": "Close menu",
+        "openMenu": "Open menu",
+        "collapseMenu": "Collapse menu"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "subtitle": "Welcome back!",
+        "welcome": "Welcome to {brand} Dashboard",
+        "welcomeBody": "Manage your staff and clients efficiently from one central place.",
+        "recentActivity": "Recent Activity",
+        "activityItem": "Staff member assigned to Project Alpha",
+        "activityTime": "2 hours ago",
+        "updated": "Updated"
+    },
+    "shop": {
+        "eyebrow": "Shop",
+        "title": "All our creations",
+        "subtitle": "Browse our catalog of customizable objects, crafted in our Sfax workshop.",
+        "back": "Back to shop",
+        "notFound": "Product not found.",
+        "requestQuote": "Request a quote",
+        "addToCart": "Add",
+        "emptyTitle": "No matching products",
+        "emptyBody": "Try adjusting your filters",
+        "resultCount": "{count, plural, =0 {0 products} one {# product} other {# products}}",
+        "detail": {
+            "breadcrumb": "Breadcrumb",
+            "home": "Home",
+            "material": "Material",
+            "size": "Size",
+            "engravingLabel": "Engraving text (optional)",
+            "engravingPlaceholder": "e.g. name, date, message...",
+            "decreaseQty": "Decrease quantity",
+            "increaseQty": "Increase quantity",
+            "addToCart": "Add to cart",
+            "deliveryEverywhere": "Delivery across Tunisia",
+            "handmadeGuarantee": "Guaranteed handmade craftsmanship",
+            "similarTitle": "Similar products",
+            "tabs": {
+                "description": "Description",
+                "specs": "Specifications",
+                "shipping": "Shipping & returns"
+            },
+            "materials": {
+                "lightWood": "Light wood",
+                "darkWood": "Dark wood",
+                "clearPlexi": "Clear plexiglass",
+                "coloredPlexi": "Colored plexiglass"
+            },
+            "sizes": {
+                "small": "Small (20 cm)",
+                "medium": "Medium (30 cm)",
+                "large": "Large (40 cm)"
+            },
+            "longDescription": "{short} A piece crafted in our Sfax workshop, with a careful finish and a unique look for your interior or event.",
+            "specsList": {
+                "material": "Material: {value}",
+                "size": "Size: {value}",
+                "origin": "Made in Sfax, Tunisia",
+                "finish": "Artisan laser cutting / engraving finish"
+            },
+            "shippingBody": "Delivery across Tunisia. Typical lead time: 3 to 7 business days depending on customization. Returns within 7 days for non-customized items."
+        },
+        "filters": {
+            "categories": "Categories",
+            "all": "All products",
+            "maxPrice": "Maximum price"
+        },
+        "sort": {
+            "label": "Sort",
+            "popularity": "Sort: Popularity",
+            "newest": "Sort: Newest",
+            "priceAsc": "Sort: Price ascending",
+            "priceDesc": "Sort: Price descending"
+        },
+        "badges": {
+            "bestseller": "Bestseller",
+            "new": "New",
+            "customizable": "Customizable",
+            "popular": "Popular"
+        },
+        "categories": {
+            "laser": "Laser Cutting",
+            "design": "Graphic Design",
+            "print": "Print on Any Surface",
+            "gifts": "Gift Ideas",
+            "vinyl": "Vehicle Wrap & Vinyl"
+        },
+        "items": {
+            "coffret-maison-douce": {
+                "name": "“Sweet Home” gift box",
+                "description": "Artisan gift box for a warm interior."
+            },
+            "horloge-murale-plexiglas": {
+                "name": "Plexiglass wall clock",
+                "description": "Laser-cut clock with precise finishes."
+            },
+            "mug-personnalise-photo": {
+                "name": "Custom photo mug",
+                "description": "High-quality print on a ceramic mug."
+            },
+            "enseigne-neon-led": {
+                "name": "LED neon sign",
+                "description": "Custom light sign for your space."
+            },
+            "porte-cles-bois-grave": {
+                "name": "Engraved wood keychain",
+                "description": "Laser-engraved wooden keychain, neat finish."
+            },
+            "stickers-vitrine-lot-10": {
+                "name": "Window stickers — pack of 10",
+                "description": "Cut vinyl stickers for windows or décor."
+            },
+            "tableau-citation-bois": {
+                "name": "Wooden quote board",
+                "description": "Quote engraved on wood for an inspirational wall."
+            },
+            "trousse-cadeau-entreprise": {
+                "name": "Corporate gift pouch",
+                "description": "Customizable corporate gift kit."
+            },
+            "lampe-deco-decoupee-laser": {
+                "name": "Laser-cut décor lamp",
+                "description": "Ambient lamp with carved geometric patterns."
+            },
+            "plan-table-mariage-plexiglas": {
+                "name": "Plexiglass wedding seating chart",
+                "description": "Engraved plexiglass panel for your events."
+            },
+            "porte-cles-personnalise": {
+                "name": "Custom keychain",
+                "description": "Keychain engraved with your name or logo."
+            },
+            "covering-partiel-vehicule": {
+                "name": "Partial vehicle wrap",
+                "description": "Partial vinyl wrap applied with precision."
+            },
+            "logo-charte-graphique": {
+                "name": "Logo & brand guidelines",
+                "description": "Made-to-measure visual identity for your brand."
+            },
+            "coussin-imprime-photo": {
+                "name": "Printed photo cushion",
+                "description": "Custom cushion with textile printing."
+            },
+            "boite-bijoux-gravee": {
+                "name": "Engraved jewelry box",
+                "description": "Engraved wooden box, ideal as a gift."
+            },
+            "lettrage-vitrine": {
+                "name": "Storefront lettering",
+                "description": "Adhesive lettering for façades and windows."
+            }
+        }
+    },
+    "blog": {
+        "title": "Blog",
+        "subtitle": "All articles",
+        "empty": "No articles available yet.",
+        "back": "Back to blog",
+        "notFound": "Article not found."
+    },
+    "faqPage": {
+        "heroTitle": "Hello, how can we help?",
+        "searchPlaceholder": "Ask a question…",
+        "search": "Search",
+        "orChooseCategory": "or choose a category to quickly find the help you need",
+        "stillHaveQuestion": "You still have a question?",
+        "stillHaveQuestionBody": "If you cannot find an answer in our FAQ, you can always contact us. We will reply shortly.",
+        "phoneHelp": "We are always happy to help.",
+        "emailHelp": "The best way to get an answer faster.",
+        "goToContact": "Go to contact page →",
+        "noResults": "No results found for your search.",
+        "noCategories": "No FAQ categories available yet.",
+        "noQuestionsInCategory": "No questions in this category.",
+        "categoriesAria": "FAQ categories"
+    },
+    "formationApplication": {
+        "title": "Application",
+        "subtitle": "Apply for “{name}”",
+        "fullName": "Full name",
+        "fullNamePlaceholder": "First Last",
+        "email": "Email address",
+        "emailPlaceholder": "you@example.com",
+        "phone": "Phone",
+        "phonePlaceholder": "+1 555 000 0000",
+        "message": "Message / motivation (optional)",
+        "messagePlaceholder": "Why do you want to join this program?",
+        "submit": "Submit application",
+        "submitting": "Sending…",
+        "success": "Your application has been submitted. We will contact you soon.",
+        "errors": {
+            "fullName": "Full name is required",
+            "emailRequired": "Email is required",
+            "emailInvalid": "Invalid email address",
+            "phone": "Phone number is required",
+            "phoneShort": "Phone number is too short",
+            "duplicateEmail": "An application with this email already exists for this course."
+        }
+    },
+    "admin": {
+        "formations": {
+            "title": "Programs",
+            "subtitle": "Manage training programs",
+            "createTitle": "New program",
+            "createSubtitle": "Create a new training program",
+            "editSubtitle": "Edit program details",
+            "add": "Add program",
+            "search": "Search programs",
+            "empty": "No programs found",
+            "columns": {
+                "title": "Program",
+                "category": "Category",
+                "duration": "Duration",
+                "price": "Price",
+                "status": "Status"
+            },
+            "toasts": {
+                "created": "Program created successfully",
+                "updated": "Program updated successfully",
+                "deleted": "Program deleted successfully",
+                "archived": "Program archived",
+                "unarchived": "Program restored"
+            },
+            "confirmDelete": "Delete this program?",
+            "form": {
+                "about": "About the program",
+                "title": "Title",
+                "slug": "Slug",
+                "category": "Category",
+                "duration": "Duration (hours)",
+                "price": "Price",
+                "description": "Description",
+                "image": "Image",
+                "status": "Status"
+            }
+        },
+        "formationCategories": {
+            "title": "Program categories",
+            "subtitle": "Manage program categories",
+            "add": "Add category",
+            "empty": "No categories found",
+            "name": "Category name",
+            "confirmDelete": "Delete this category?",
+            "placeholders": {
+                "name": "E.g. Computer Science"
+            },
+            "addSpecification": "Add a specification",
+            "modalCreateTitle": "Add category",
+            "modalEditTitle": "Edit category"
+        },
+        "products": {
+            "title": "Products",
+            "subtitle": "Manage the shop catalog",
+            "add": "Add product",
+            "search": "Search products",
+            "empty": "No products found",
+            "confirmDelete": "Delete this product?",
+            "modalCreateTitle": "Add product",
+            "modalEditTitle": "Edit product",
+            "featuredYes": "Yes",
+            "featuredNo": "No",
+            "columns": {
+                "title": "Product",
+                "category": "Category",
+                "price": "Price",
+                "status": "Status",
+                "badges": "Badges",
+                "featured": "Featured"
+            },
+            "fields": {
+                "title": "Title",
+                "description": "Description",
+                "price": "Price (TND)",
+                "discountedPrice": "Price after discount (TND)",
+                "images": "Images",
+                "addImage": "Add an image",
+                "removeImage": "Remove image",
+                "category": "Category",
+                "badges": "Badges",
+                "materials": "Materials",
+                "sizes": "Sizes",
+                "hasEngraving": "Enable engraving (custom text)",
+                "featured": "Feature on home page",
+                "popularity": "Popularity"
+            },
+            "placeholders": {
+                "title": "E.g. Acrylic wall clock",
+                "shortDescription": "Short text shown on cards",
+                "description": "Full product description",
+                "category": "Select a category",
+                "badge": "E.g. New, Bestseller...",
+                "material": "E.g. Light wood",
+                "size": "E.g. Small (20 cm)",
+                "price": "E.g. 45",
+                "discountedPrice": "E.g. 35"
+            },
+            "hints": {
+                "discountedPrice": "Leave empty if there is no discount"
+            },
+            "addTag": "Add",
+            "validation": {
+                "titleRequired": "Title is required",
+                "priceInvalid": "Invalid price"
+            },
+            "toasts": {
+                "created": "Product created successfully",
+                "updated": "Product updated successfully",
+                "deleted": "Product deleted successfully"
+            }
+        },
+        "productCategories": {
+            "title": "Product categories",
+            "subtitle": "Manage shop categories",
+            "add": "Add category",
+            "empty": "No categories found",
+            "name": "Category name",
+            "description": "Description (optional)",
+            "confirmDelete": "Delete this category?",
+            "placeholders": {
+                "name": "E.g. Laser engraving",
+                "description": "Short category description"
+            },
+            "validation": {
+                "nameRequired": "Name is required"
+            },
+            "modalCreateTitle": "Add category",
+            "modalEditTitle": "Edit category"
+        },
+        "applications": {
+            "title": "Applications",
+            "search": "Search applications",
+            "empty": "No applications yet",
+            "accept": "Accept",
+            "reject": "Reject",
+            "columns": {
+                "name": "Name",
+                "email": "Email",
+                "phone": "Phone",
+                "status": "Status",
+                "date": "Date"
+            },
+            "noImage": "No image"
+        },
+        "blogs": {
+            "title": "Blog",
+            "subtitle": "Manage blog articles",
+            "add": "Add article",
+            "empty": "No articles found",
+            "confirmDelete": "Delete this article?",
+            "confirmArchive": "Archive this article?",
+            "placeholders": {
+                "title": "Article title",
+                "excerpt": "Short excerpt shown on cards",
+                "content": "Article body",
+                "tags": "Search, UX, Product (comma-separated)"
+            },
+            "modalCreateTitle": "Add article",
+            "modalEditTitle": "Edit article"
+        },
+        "faqs": {
+            "title": "FAQ",
+            "subtitle": "Manage frequently asked questions",
+            "add": "Add question",
+            "empty": "No questions found",
+            "confirmDelete": "Delete this question?",
+            "placeholders": {
+                "question": "What is your question?",
+                "answer": "Detailed answer",
+                "category": "Select a category"
+            },
+            "fields": {
+                "category": "Category"
+            },
+            "validation": {
+                "categoryRequired": "Category is required"
+            },
+            "modalCreateTitle": "Add question",
+            "modalEditTitle": "Edit question"
+        },
+        "faqCategories": {
+            "title": "FAQ categories",
+            "subtitle": "Manage FAQ categories",
+            "add": "Add category",
+            "empty": "No categories found",
+            "confirmDelete": "Delete this category?",
+            "placeholders": {
+                "name": "E.g. Getting Started",
+                "description": "Short description shown on the FAQ page"
+            },
+            "modalCreateTitle": "Add category",
+            "modalEditTitle": "Edit category"
+        },
+        "users": {
+            "title": "Users",
+            "subtitle": "Manage users",
+            "add": "Add user",
+            "empty": "No users found",
+            "confirmDelete": "Delete this user?",
+            "placeholders": {
+                "firstName": "First name",
+                "lastName": "Last name",
+                "email": "name@example.com"
+            },
+            "fields": {
+                "role": "Role"
+            },
+            "roles": {
+                "USER": "User",
+                "CLIENT": "Client",
+                "ADMIN": "Administrator"
+            },
+            "adminCannotDeactivate": "An administrator account cannot be deactivated.",
+            "modalCreateTitle": "Add user",
+            "modalEditTitle": "Edit user"
+        },
+        "testimonials": {
+            "title": "Testimonials",
+            "subtitle": "Moderate testimonials",
+            "empty": "No testimonials found",
+            "approve": "Approve",
+            "reject": "Reject",
+            "columns": {
+                "title": "Title",
+                "testimonial": "Testimonial",
+                "rating": "Rating"
+            }
+        },
+        "contactMessages": {
+            "title": "Contact messages",
+            "subtitle": "Messages received from the contact form",
+            "empty": "No messages found",
+            "newNotification": "New contact message",
+            "message": "Message",
+            "receivedAt": "Received on",
+            "charCount": "{count} characters"
+        },
+        "orders": {
+            "title": "Orders",
+            "subtitle": "Manage shop orders",
+            "empty": "No orders found",
+            "search": "Search orders",
+            "view": "View",
+            "confirm": "Confirm",
+            "cancelOrder": "Cancel order",
+            "statusUpdated": "Order status updated",
+            "confirmStatus": "Confirm order {number}?",
+            "cancelStatus": "Cancel order {number}?",
+            "confirmDelete": "Delete order {number}?",
+            "detailTitle": "Order {number}",
+            "customer": "Customer",
+            "items": "Items",
+            "columns": {
+                "number": "Number",
+                "customer": "Customer",
+                "shipping": "Shipping",
+                "total": "Total",
+                "date": "Date"
+            }
+        },
+        "archive": {
+            "title": "Archive",
+            "subtitle": "Archived content",
+            "formations": "Archived programs",
+            "blogs": "Archived blog articles",
+            "empty": "Nothing in the archive"
+        },
+        "coworkingRooms": {
+            "title": "Coworking spaces",
+            "subtitle": "Manage coworking rooms",
+            "add": "Add space",
+            "empty": "No spaces found",
+            "placeholders": {
+                "title": "E.g. Tunis Room",
+                "category": "E.g. training room"
+            },
+            "addEquipment": "Add equipment",
+            "modalCreateTitle": "Add space",
+            "modalEditTitle": "Edit space"
+        },
+        "coworkingStats": {
+            "title": "Coworking stats",
+            "subtitle": "Manage homepage coworking statistics",
+            "add": "Add stat",
+            "empty": "No stats found",
+            "placeholders": {
+                "value": "E.g. 200+",
+                "label": "E.g. coworking desks"
+            },
+            "modalCreateTitle": "Add stat",
+            "modalEditTitle": "Edit stat"
+        },
+        "coworkingBookings": {
+            "title": "Bookings",
+            "subtitle": "Manage coworking bookings",
+            "list": "List",
+            "calendar": "Calendar",
+            "empty": "No bookings found",
+            "today": "Today",
+            "month": "Month",
+            "week": "Week",
+            "day": "Day",
+            "detailTitle": "Booking detail"
+        }
+    },
+    "sales": {
+        "clients": {
+            "title": "Clients",
+            "subtitle": "Manage clients",
+            "add": "Add client",
+            "empty": "No clients found",
+            "confirmDelete": "Delete this client?",
+            "name": "Name",
+            "company": "Company",
+            "email": "Email",
+            "phone": "Phone",
+            "address": "Address",
+            "taxId": "Tax ID",
+            "type": "Type",
+            "types": {
+                "COMPANY": "Company",
+                "INDIVIDUAL": "Individual"
+            }
+        },
+        "quotes": {
+            "title": "Quotes",
+            "subtitle": "Manage quotes",
+            "add": "New quote",
+            "empty": "No quotes found",
+            "convert": "Convert to invoice",
+            "convertHint": "To create an invoice, click “Convert to invoice” in the top right. An FAC- invoice will be generated with the same lines and amounts.",
+            "validUntil": "Valid until",
+            "customer": "Client",
+            "total": "Total incl. tax"
+        },
+        "invoices": {
+            "title": "Invoices",
+            "subtitle": "Manage invoices",
+            "createFromQuote": "Create from a quote",
+            "empty": "No invoices found",
+            "markPaid": "Mark as paid",
+            "issueDate": "Issue date",
+            "dueDate": "Due date",
+            "sourceQuote": "Source quote",
+            "customer": "Client",
+            "notes": "Notes",
+            "lines": "Lines",
+            "subtotal": "Subtotal excl. tax",
+            "tax": "VAT",
+            "total": "Total incl. tax"
+        },
+        "lines": {
+            "title": "Lines",
+            "add": "Add line",
+            "label": "Description",
+            "quantity": "Quantity",
+            "unitPrice": "Unit price excl. tax",
+            "taxRate": "VAT (%)",
+            "lineTotal": "Line total",
+            "subtotal": "Subtotal excl. tax",
+            "tax": "VAT",
+            "total": "Total incl. tax"
+        }
     }
-  },
-  "reservation": {
-    "newRequest": "New booking request",
-    "detail": "Reservation details",
-    "closePanel": "Close panel",
-    "teacher": "Teacher",
-    "room": "Room",
-    "date": "Date",
-    "start": "Start",
-    "end": "End",
-    "participants": "Participants",
-    "peopleCount": "Number of people",
-    "purpose": "Purpose / description",
-    "schedule": "Schedule",
-    "priceTnd": "Price (TND)",
-    "status": "Status",
-    "motif": "Purpose",
-    "payment": "Payment",
-    "slot": "Time slot",
-    "requester": "Requester",
-    "places": "Seats",
-    "choosePlaceholder": "— Choose —",
-    "noTeacherAdmin": "No teacher (admin)",
-    "teacherListHint": "The list is updated by the administration.",
-    "roomCapacityHint": "Max capacity {capacity} for this room",
-    "roomOption": "{name} ({capacity} people)",
-    "submitting": "Sending…",
-    "sendRequest": "Send request",
-    "selectTeacherError": "Choose a teacher from the list (managed by the administration).",
-    "bookingSuccess": "Request saved. It will appear as pending until validated by an administrator.",
-    "bookingFailed": "Booking failed",
-    "statusLabels": {
-      "PENDING": "Pending",
-      "CONFIRMED": "Confirmed",
-      "CANCELLED": "Cancelled"
-    },
-    "paid": "Paid",
-    "unpaid": "Not paid",
-    "confirm": "Confirm",
-    "refuse": "Reject",
-    "priceMode": {
-      "ROOM_HOURLY": "Room × duration (hourly rate)",
-      "PER_PARTICIPANT": "Participants × 2.5 TND",
-      "MANUAL": "Manual price"
-    },
-    "priceModeCaption": {
-      "ROOM_HOURLY": "Room hourly rate",
-      "PER_PARTICIPANT": "Participants × 2.5",
-      "MANUAL": "Manual"
-    },
-    "pricing": {
-      "title": "Price calculation (TND)",
-      "amount": "Amount (TND)",
-      "estimatedTotal": "Estimated total:"
-    },
-    "adminConfirmedBooking": "Confirmed booking (teacher)"
-  },
-  "admin": {
-    "accessDenied": "Administrators only.",
-    "accessDeniedReservations": "Access restricted to administrators.",
-    "rooms": {
-      "title": "Rooms",
-      "subtitle": "Manage study rooms and equipment",
-      "add": "Add",
-      "empty": "No rooms yet.",
-      "newRoom": "New room",
-      "editTitle": "Edit room",
-      "editRoom": "Edit: {name}",
-      "name": "Name",
-      "capacity": "Capacity",
-      "capacityShort": "Cap.",
-      "color": "Color (hex badge)",
-      "colorHint": "Use #RRGGBB format",
-      "pricePerHour": "Price / hour (TND)",
-      "description": "Description",
-      "equipment": "Equipment (comma-separated)",
-      "tndPerHour": "TND/h",
-      "equipmentCol": "Equipment",
-      "updated": "Room updated successfully.",
-      "created": "Room created successfully.",
-      "deleted": "Room deleted successfully.",
-      "deleteConfirm": "Delete this room?",
-      "deleteFailed": "Cannot delete (linked reservations)"
-    },
-    "teachers": {
-      "title": "Teachers",
-      "subtitle": "Booking directory for public calendar",
-      "description": "Teachers have no password by default: they are selected on the public calendar. Each booking is linked to the selected profile.",
-      "add": "Add",
-      "empty": "No teachers yet.",
-      "newTeacher": "New teacher",
-      "editTitle": "Edit teacher",
-      "editTeacher": "Edit: {name}",
-      "displayName": "Display name",
-      "emailUnique": "Email (unique)",
-      "phone": "Phone",
-      "phonePlaceholder": "+33 …",
-      "reservations": "Reservations",
-      "updated": "Teacher updated successfully.",
-      "created": "Teacher created successfully.",
-      "deleted": "Teacher deleted successfully.",
-      "deleteConfirm": "Delete this teacher?",
-      "deleteFailed": "Cannot delete: reservations are linked to this profile."
-    },
-    "reservations": {
-      "title": "Reservations",
-      "subtitle": "All reservations list",
-      "createForTeacher": "Add",
-      "createForTeacherLong": "Create for a teacher",
-      "filterRoom": "Filter by room",
-      "filterStatus": "Status",
-      "allRooms": "All rooms",
-      "allStatuses": "All statuses",
-      "tabs": {
-        "upcoming": "Upcoming",
-        "past": "Past"
-      },
-      "emptyUpcoming": "No upcoming reservations.",
-      "emptyPast": "No past reservations."
-    }
-  },
-  "table": {
-    "search": "Search",
-    "reset": "Reset",
-    "previous": "Previous",
-    "next": "Next",
-    "columns": "Columns",
-    "noData": "No data available"
-  },
-  "errors": {
-    "internalServerError": "Internal server error",
-    "missingParameter": "Missing required parameter",
-    "failedToFetch": "Failed to fetch",
-    "failedToCreate": "Failed to create",
-    "unauthorized": "Unauthorized access",
-    "notFound": "Not found",
-    "generic": "An error occurred"
-  }
 }

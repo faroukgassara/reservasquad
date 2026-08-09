@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
+import TemplateForgotPassword from '@/components/Templates/TemplateForgotPassword/TemplateForgotPassword';
 import { FormSchema } from '@/common/Data/FormSchema';
 import { FormDefaultData } from '@/common/Data/FormDefaultData';
 import { Api } from '@/common/StandardApi/api';
@@ -12,8 +13,6 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 import { Routes } from '@/lib/routes';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
-import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
-import TemplateForgotPassword from '@/components/Templates/TemplateForgotPassword/TemplateForgotPassword';
 import { CommonFunction } from '@/common/Function/Function';
 
 export default function ForgotPasswordPage() {
@@ -77,13 +76,9 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <LayoutWrapper
-            mainSection={
-                <TemplateForgotPassword
-                    form={form}
-                    showMaxAttemptsHint={showMaxAttemptsHint}
-                />
-            }
+        <TemplateForgotPassword
+            form={form}
+            showMaxAttemptsHint={showMaxAttemptsHint}
         />
     );
 }

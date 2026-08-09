@@ -8,7 +8,7 @@ import {
   Length,
 } from 'class-validator';
 import { EmailTransform } from 'src/common/decorator/email-transform.decorator';
-import { ERole } from 'src/generated/prisma/client';
+import { ERole, EStatus } from 'src/generated/prisma/client';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -64,9 +64,11 @@ export class CreateUserDto {
   @ApiPropertyOptional({
     description: 'The status of the user',
     example: 'ACTIVE',
+    enum: EStatus,
   })
   @IsOptional()
-  status?: string;
+  @IsEnum(EStatus)
+  status?: EStatus;
 
   @ApiPropertyOptional({
     description: 'The image URL of the user',

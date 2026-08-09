@@ -1,0 +1,53 @@
+---
+description: All user-facing text must use next-intl translations (fr/en/ar)
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend i18n
+
+Never ship hardcoded user-facing copy. Use `next-intl`.
+
+## Locales
+
+- Files: `frontend/locales/{fr,en,ar}/common.json`
+- Add every new key to **all three** locale files in the same shape
+- Client: `useTranslations('namespace')`
+- Server: `getTranslations('namespace')`
+
+## Do
+
+```tsx
+const t = useTranslations('admin.products')
+const tCommon = useTranslations('common')
+
+<LayoutWrapper title={t('title')} subTitle={t('subtitle')} />
+<Button text={tCommon('cancel')} />
+<Label variant={EVariantLabel.bodySmall}>{t('fields.price')}</Label>
+```
+
+## Don't
+
+```tsx
+<LayoutWrapper title="Produits" subTitle="Gérer le catalogue" />
+<Button text="Annuler" />
+<label>Email</label>
+```
+
+## Namespaces (common.json)
+
+| Area | Namespaces |
+| --- | --- |
+| Shared | `common`, `auth`, `status`, `sidebar`, `dashboard`, `errors`, `navigation` |
+| Admin | `admin.*` (users, products, productCategories, testimonials, faqs, …) |
+| Sales | `sales.*` (clients, quotes, invoices) |
+| Shop | `shop`, `cart` |
+| Marketing | `home`, `nav`, `hero`, `contact`, `footer`, `aboutUs`, `coworkingSpace`, `blog`, `faqPage`, `testimonialForm`, … |
+
+Prefer nested keys under an existing namespace (`admin.products.fields.title`) over new top-level roots unless the feature is large.
+
+## Allowed to stay literal
+
+- Brand name `Biblio Squad`
+- Emails, phone numbers, URLs
+- Technical IDs, enum values, route paths, currency codes in formatters

@@ -11,11 +11,11 @@ const ui = {
 
   breakPoints: {
     xs: { max: '576px' },
-    sm: { min: '577px', max: '1130px' },
-    md: { min: '1131px', max: '1200px' },
-    lg: { min: '1201px', max: '1361px' },
-    xl: { min: '1362px', max: '1640px' },
-    xxl: { min: '1641px' },
+    sm: '577px',
+    md: '1131px',
+    lg: '1201px',
+    xl: '1362px',
+    xxl: '1641px',
   },
 } as const
 

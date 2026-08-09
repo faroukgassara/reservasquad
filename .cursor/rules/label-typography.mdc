@@ -1,0 +1,62 @@
+---
+description: Label typography — use the right EVariantLabel for context
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Label typography
+
+Typography for `Label` (`@/components/Primitives/Label/Label`) comes **only** from `variant` (`EVariantLabel` → `frontend/src/theme/typography.ts`).
+
+Never override with `text-*` size, `font-*` weight, `leading-*`, or `tracking-*` on `Label`.
+
+## Pick variant by context
+
+| Context | Variant |
+| --- | --- |
+| Marketing hero / page title | `h1`–`h3` |
+| Auth / form page title | `h3` (not `h1`) |
+| Section title (home, about, list page) | `h2`–`h4` |
+| Card / list / modal / form section title | `h5`–`h6` |
+| Stat / price visual anchor | `h5`–`h6` |
+| Paragraph / main readable copy | `body` or `bodyLarge` |
+| Secondary line, nav link, button text, form field label | `bodySmall` |
+| Section eyebrow (uppercase meta above a title) | `overline` |
+| Date, badge chip, timestamp, tiny meta | `caption` |
+| Form hint / error / field key in detail rows | `hint` |
+
+## Do
+
+```tsx
+import Label from '@/components/Primitives/Label/Label'
+import { EVariantLabel } from '@/Enum/Enum'
+
+<Label variant={EVariantLabel.h3} color="text-gray-900">{t('title')}</Label>
+<Label variant={EVariantLabel.overline} color="text-gold-600" className="uppercase">
+  {t('eyebrow')}
+</Label>
+<Label variant={EVariantLabel.h6} color="text-gray-900">{item.title}</Label>
+<Label variant={EVariantLabel.caption} color="text-gray-500">{date}</Label>
+```
+
+## Don't
+
+```tsx
+{/* ❌ Hero size on a card or auth form */}
+<Label variant={EVariantLabel.h1}>{cardName}</Label>
+
+{/* ❌ Paragraph variant on a section title */}
+<Label variant={EVariantLabel.bodyLarge}>{sectionTitle}</Label>
+
+{/* ❌ Size/weight utilities on Label */}
+<Label variant={EVariantLabel.h3} className="text-2xl font-bold">Title</Label>
+
+{/* ❌ Raw HTML for user-facing copy */}
+<p className="text-sm">{t('title')}</p>
+```
+
+## Allowed on `className`
+
+Layout / clamp only: `mt-2`, `mb-4`, `block`, `truncate`, `line-clamp-2`, `text-center`, `uppercase` (eyebrows).
+
+If weight or size looks wrong, change the token in `typography.ts` or pick another variant — do not patch with Tailwind type utilities.

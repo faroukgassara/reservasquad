@@ -1,9 +1,10 @@
 'use client';
 
 import { signIn, getSession } from 'next-auth/react';
-import { useRouter } from '@/i18n/navigation';
+import { useRouter } from 'next/navigation';
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
+import TemplateLogin from '@/components/Templates/TemplateLogin/TemplateLogin';
 import { FormSchema } from '@/common/Data/FormSchema';
 import { FormDefaultData } from '@/common/Data/FormDefaultData';
 import { useTranslations } from 'next-intl';
@@ -11,8 +12,6 @@ import { Routes } from '@/lib/routes';
 import { useRef } from 'react';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
-import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
-import TemplateLogin from '@/components/Templates/TemplateLogin/TemplateLogin';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -56,8 +55,9 @@ export default function LoginPage() {
                 failedAttemptsRef.current = 0;
                 const session = await getSession();
                 if (session) {
-                    const role = session.user?.role;
-                    router.push(role === 'ADMIN' ? Routes.AdminReservations : Routes.Home);
+                    router.push(
+                        session.user?.role === 'CLIENT' ? Routes.Home : Routes.Dashboard,
+                    );
                 }
             }
         } catch (error) {
@@ -76,5 +76,9 @@ export default function LoginPage() {
         }
     };
 
-    return <LayoutWrapper mainSection={<TemplateLogin form={form} />} />;
+    return (
+        <div className="h-dvh max-h-dvh overflow-hidden">
+            <TemplateLogin form={form} />
+        </div>
+    );
 }

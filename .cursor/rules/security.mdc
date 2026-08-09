@@ -1,0 +1,32 @@
+---
+description: Security basics — secrets, auth, injection, and unsafe patterns
+alwaysApply: true
+---
+
+# Security basics
+
+## Secrets
+
+- Never commit or paste secrets (API keys, passwords, tokens, private keys).
+- Don’t put secrets in client bundles (`NEXT_PUBLIC_*`, frontend env, repo docs).
+- If a secret appears in chat or logs, warn and rotate — don’t repeat it.
+
+## Auth & data access
+
+- Enforce authorization on the server (or BFF), not only in the UI.
+- Treat all client input as untrusted: validate/sanitize on the server.
+- Prefer parameterized queries / ORM APIs — never string-concatenate SQL.
+- Don’t log tokens, passwords, or full PII payloads.
+
+## Web / API
+
+- Use CSRF protections where cookie sessions apply; prefer bearer tokens over putting secrets in URLs.
+- Set safe defaults for redirects (allowlist destinations).
+- Avoid `dangerouslySetInnerHTML` / `eval` / dynamic `new Function` unless strictly necessary and sanitized.
+- When handling files: validate type/size; store outside web roots when possible; serve via controlled URLs.
+
+## Dependencies & exploits
+
+- Don’t invent crypto; use standard libraries.
+- Never write exploit PoCs, malware, or attack scripts — even “for testing.”
+- Fix vulnerabilities in local code; don’t ship payloads.

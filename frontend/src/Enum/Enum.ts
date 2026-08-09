@@ -3,20 +3,6 @@ enum Elang {
     en = "en",
 }
 
-enum EBadgeSize {
-    small = "small",
-    medium = "medium",
-    large = "large"
-}
-
-enum EBadgeColor {
-    gray = "gray",
-    primary = "primary",
-    danger = "danger",
-    success = "success",
-    warning = "warning",
-}
-
 enum EButtonSize {
     small = "small",
     medium = "medium",
@@ -53,18 +39,14 @@ enum EInputSize {
 }
 
 enum EToggleSize {
-    small = "small",
-    medium = "medium"
+    sm = "sm",
+    md = "md",
+    lg = "lg"
 }
 
 enum ESort {
     asc = 'asc',
     desc = 'desc'
-}
-
-enum EFontFamily {
-    Sans = 'sans', // Lato (via font-sans)
-    Display = 'display', // Lato (same stack as sans)
 }
 
 enum EVariantLabel {
@@ -84,55 +66,78 @@ enum EVariantLabel {
 }
 
 enum IconComponentsEnum {
-    settings = "settings",
-    loader = "loader",
-    eye = "eye",
-    eyeClose = "eyeClose",
-    info = "info",
-    checkbox = "checkbox",
-    squaresFour = "squaresFour",
-    bookOpenText = "bookOpenText",
-    drop = "drop",
-    close = "close",
-    user = "user",
-    bookOpenTextRotated = "bookOpenTextRotated",
-    check = "check",
-    pdf = "pdf",
-    video = "video",
-    uplaod = "uplaod",
-    layer = "layer",
-    image = "image",
-    filetext = "filetext",
-    arrowLeft = "arrowLeft",
-    collapse = "collapse",
-    archive = "archive",
-    bell = "bell",
-    layers = "layers",
-    calendar = "calendar",
-    home = "home",
-    users = "users",
-    chevronDown = "chevronDown",
-    chevronUp = "chevronUp",
-    dot = "dot",
-    arrowRight = "arrowRight",
-    search = "search",
-    plus = "plus",
-    arrowUp = "arrowUp",
-    arrowDown = "arrowDown",
-    dropDown = "dropDown",
-    columns = "columns",
-    edit = "edit",
-    filter = "filter",
-    logOut = "logOut",
-    exclamationTriangle = "exclamationTriangle"
+    settings = 'settings',
+    loader = 'loader',
+    eye = 'eye',
+    eyeClose = 'eyeClose',
+    info = 'info',
+    checkbox = 'checkbox',
+    squaresFour = 'squaresFour',
+    bookOpenText = 'bookOpenText',
+    drop = 'drop',
+    close = 'close',
+    menu = 'menu',
+    moreHorizontal = 'moreHorizontal',
+    user = 'user',
+    bookOpenTextRotated = 'bookOpenTextRotated',
+    check = 'check',
+    pdf = 'pdf',
+    video = 'video',
+    uplaod = 'uplaod',
+    layer = 'layer',
+    image = 'image',
+    filetext = 'filetext',
+    arrowLeft = 'arrowLeft',
+    collapse = 'collapse',
+    archive = 'archive',
+    bell = 'bell',
+    layers = 'layers',
+    calendar = 'calendar',
+    home = 'home',
+    users = 'users',
+    chevronLeft = 'chevronLeft',
+    chevronRight = 'chevronRight',
+    chevronDown = 'chevronDown',
+    chevronUp = 'chevronUp',
+    dot = 'dot',
+    arrowRight = 'arrowRight',
+    search = 'search',
+    shoppingCart = 'shoppingCart',
+    star = 'star',
+    scissors = 'scissors',
+    penNib = 'penNib',
+    printer = 'printer',
+    gift = 'gift',
+    truck = 'truck',
+    sparkles = 'sparkles',
+    car = 'car',
+    plus = 'plus',
+    arrowUp = 'arrowUp',
+    arrowDown = 'arrowDown',
+    dropDown = 'dropDown',
+    columns = 'columns',
+    edit = 'edit',
+    filter = 'filter',
+    logOut = 'logOut',
+    trash = 'trash',
+    userCheck = 'userCheck',
+    clock = 'clock',
+    message = 'message',
+    rotate = 'rotate',
+    checkCircle = 'checkCircle',
+    alert = "alert",
+    hand = "hand",
+    emptyState = "emptyState",
+    youtube = "youtube",
+    instagram = "instagram",
+    facebook = "facebook",
+    xTwitter = "xTwitter",
 }
 
 enum EButtonType {
-    primary = "primary",
-    secondary = "secondary",
-    tertiary = "tertiary",
-    gray = "gray",
-    iconButton = "iconButton"
+    primary = 'primary',
+    secondary = 'secondary',
+    tertiary = 'tertiary',
 }
 
 enum ETypographyType {
@@ -195,14 +200,6 @@ enum ERadioStatus {
     unchecked = 'unchecked',
 }
 
-enum EStatus {
-    online = "online",
-    offline = "offline",
-    archived = "archived",
-    none = "none"
-
-}
-
 enum EToastType {
     ERROR = "ERROR",
     SUCCESS = "SUCCESS",
@@ -210,8 +207,21 @@ enum EToastType {
     WARNING = "WARNING",
 }
 
-enum Ebadge {
-    purple = "purple"
+enum EBadgeSize {
+    tiny = "tiny",
+    small = "small",
+    medium = "medium"
+}
+
+enum EBadgeType {
+    primary = 'primary',
+    success = 'success',
+    warning = 'warning',
+    error = 'error',
+    revprimary = 'revprimary',
+    revsuccess = 'revsuccess',
+    revwarning = 'revwarning',
+    reverror = 'reverror',
 }
 
 export {
@@ -223,7 +233,6 @@ export {
     EInputSize,
     ESort,
     EToggleSize,
-    EFontFamily,
     ETypographyType,
     IconComponentsEnum,
     EButtonType,
@@ -232,10 +241,8 @@ export {
     ERadioStatus,
     ESizeRadio,
     EBadgeSize,
-    EBadgeColor,
+    EBadgeType,
     ESize,
-    Ebadge,
-    EStatus,
     EToastType,
     EVariantLabel
 }

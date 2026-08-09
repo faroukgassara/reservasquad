@@ -11,19 +11,9 @@ const config: Config = {
     extend: {
       colors,
       spacing,
-      fontFamily: {
-        display: ['var(--font-sans)', 'sans-serif'],
-      },
       fontSize: typography.fontSize,
       borderRadius: ui.radius,
-      screens: {
-        xs: { max: '576px' },
-        sm: '577px',
-        md: '1131px',
-        lg: '1201px',
-        xl: '1362px',
-        xxl: '1641px',
-      },
+      screens: ui.breakPoints,
       zIndex: zIndex,
       boxShadow: shadows,
     },

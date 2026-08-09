@@ -1,11 +1,14 @@
-
-
 import { ApiResponse } from "../types";
 import { IRefreshApiResponse } from "@/interfaces";
 import { IApi } from "../interfaces/IApi";
 import { HttpStatus } from "../interfaces/EHttpStatus";
 import { Method } from "../interfaces/EMethod";
+import { forceSignOut, hasAuthorizationHeader, refreshSessionOrSignOut } from "@/lib/auth-session";
 import { CommonFunction } from "@/common/Function/Function";
+
+type AuthRetryOptions = {
+  skipAuthRetry?: boolean;
+};
 
 export class Api implements IApi {
   private readonly apiURL: string;
@@ -25,12 +28,53 @@ export class Api implements IApi {
     return typeof FormData !== 'undefined' && body instanceof FormData;
   }
 
+  private async rebuildAuthHeaders(headers: Record<string, unknown>) {
+    const isContentTypeFormData =
+      headers["Content-Type"] === undefined ||
+      (typeof headers["Content-Type"] === 'string' &&
+        headers["Content-Type"].includes('multipart/form-data'));
+
+    return CommonFunction.createHeaders({
+      withToken: true,
+      contentType: isContentTypeFormData ? null : "application/json",
+    });
+  }
+
+  private async handleUnauthorizedResponse(
+    response: Response,
+    headers: Record<string, unknown>,
+    retry: (newHeaders: Record<string, unknown> | Awaited<ReturnType<typeof CommonFunction.createHeaders>>) => Promise<ApiResponse>,
+    options: AuthRetryOptions = {},
+  ): Promise<ApiResponse | null> {
+    if (
+      response.status !== HttpStatus.Unauthorized ||
+      !hasAuthorizationHeader(headers) ||
+      options.skipAuthRetry
+    ) {
+      return null;
+    }
+
+    const canRetry = await refreshSessionOrSignOut();
+    if (!canRetry) {
+      const data = await this._getData(response);
+      return { status: HttpStatus.Unauthorized, data };
+    }
+
+    const newHeaders = await this.rebuildAuthHeaders(headers);
+    const retryResponse = await retry(newHeaders);
+    if (retryResponse.status === HttpStatus.Unauthorized) {
+      await forceSignOut();
+    }
+    return retryResponse;
+  }
+
   private async standardApi(
     method: Method,
     endPoint: string,
     body: any,
     headers: any,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
+    options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
     const isBodyFormData = this.isFormData(body);
     const bodyToSend = isBodyFormData ? body : JSON.stringify(body);
@@ -43,16 +87,26 @@ export class Api implements IApi {
 
     if (refrechCallback) {
       return this.processResponse(response, (header: any) =>
-        this.standardApi(method, endPoint, body, header, refrechCallback),
+        this.standardApi(method, endPoint, body, header, refrechCallback, options),
         refrechCallback,
         headers
       );
-    } else {
-      const data = await this._getData(response)
-      return {
-        status: response.status,
-        data: data,
-      }
+    }
+
+    const unauthorizedResponse = await this.handleUnauthorizedResponse(
+      response,
+      headers,
+      (newHeaders) => this.standardApi(method, endPoint, body, newHeaders, undefined, { skipAuthRetry: true }),
+      options,
+    );
+    if (unauthorizedResponse) {
+      return unauthorizedResponse;
+    }
+
+    const data = await this._getData(response)
+    return {
+      status: response.status,
+      data: data,
     }
   }
 
@@ -75,14 +129,16 @@ export class Api implements IApi {
               contentType: isContentTypeFormData ? null : "application/json",
               customToken: refreshResponse?.data?.accessToken
             }
-          )
-          const res = await callback(newHeader)
-          return res
-        } else {
-          return { status: refreshResponse.status, data: refreshResponse?.data };
+          );
+          const res = await callback(newHeader);
+          return res;
         }
+
+        await forceSignOut();
+        return { status: refreshResponse.status, data: refreshResponse?.data };
       } catch (error: unknown) {
         console.error(error)
+        await forceSignOut();
         return { status: HttpStatus.Internal, data: "" }
       }
     } else {
@@ -101,7 +157,8 @@ export class Api implements IApi {
     endPoint: string,
     headers: any,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Get,
@@ -109,13 +166,23 @@ export class Api implements IApi {
       signal
     });
     if (refrechCallback) {
-      return this.processResponse(response, (header) => this.get(endPoint, header, refrechCallback), refrechCallback, headers);
-    } else {
-      const data = await this._getData(response)
-      return {
-        status: response.status,
-        data: data,
-      }
+      return this.processResponse(response, (header) => this.get(endPoint, header, refrechCallback, signal, options), refrechCallback, headers);
+    }
+
+    const unauthorizedResponse = await this.handleUnauthorizedResponse(
+      response,
+      headers,
+      (newHeaders) => this.get(endPoint, newHeaders, undefined, signal, { skipAuthRetry: true }),
+      options,
+    );
+    if (unauthorizedResponse) {
+      return unauthorizedResponse;
+    }
+
+    const data = await this._getData(response)
+    return {
+      status: response.status,
+      data: data,
     }
   }
 
@@ -178,7 +245,8 @@ export class Api implements IApi {
     headers: any,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     isReturnBlob = false,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
     const isBodyFormData = this.isFormData(body);
 
@@ -190,14 +258,24 @@ export class Api implements IApi {
     });
 
     if (refrechCallback) {
-      return this.processResponse(response, (header) => this.post(endPoint, body, header, refrechCallback), refrechCallback, headers);
-    } else {
-      const data = await this._getData(response, isReturnBlob)
-      return {
-        status: response.status,
-        data: data,
-        originalResponse: response,
-      }
+      return this.processResponse(response, (header) => this.post(endPoint, body, header, refrechCallback, isReturnBlob, signal, options), refrechCallback, headers);
+    }
+
+    const unauthorizedResponse = await this.handleUnauthorizedResponse(
+      response,
+      headers,
+      (newHeaders) => this.post(endPoint, body, newHeaders, undefined, isReturnBlob, signal, { skipAuthRetry: true }),
+      options,
+    );
+    if (unauthorizedResponse) {
+      return unauthorizedResponse;
+    }
+
+    const data = await this._getData(response, isReturnBlob)
+    return {
+      status: response.status,
+      data: data,
+      originalResponse: response,
     }
   }
 
@@ -207,7 +285,7 @@ export class Api implements IApi {
     headers: any,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
   ): Promise<ApiResponse> {
-    headers = headers ? headers : await CommonFunction.createHeaders({ withToken: true })
+    headers = headers || await CommonFunction.createHeaders({ withToken: true })
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Post,
       body,
@@ -236,21 +314,32 @@ export class Api implements IApi {
     body: any,
     headers: any,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
+    options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
-    headers = headers ? headers : await CommonFunction.createHeaders({ withToken: true })
+    headers = headers || await CommonFunction.createHeaders({ withToken: true })
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Delete,
       headers,
       body: JSON.stringify(body)
     });
     if (refrechCallback) {
-      return this.processResponse(response, (header) => this.delete(endPoint, body, header), refrechCallback, headers);
-    } else {
-      const data = await this._getData(response)
-      return {
-        status: response.status,
-        data: data,
-      }
+      return this.processResponse(response, (header) => this.delete(endPoint, body, header, refrechCallback, options), refrechCallback, headers);
+    }
+
+    const unauthorizedResponse = await this.handleUnauthorizedResponse(
+      response,
+      headers,
+      (newHeaders) => this.delete(endPoint, body, newHeaders, undefined, { skipAuthRetry: true }),
+      options,
+    );
+    if (unauthorizedResponse) {
+      return unauthorizedResponse;
+    }
+
+    const data = await this._getData(response)
+    return {
+      status: response.status,
+      data: data,
     }
   }
 
@@ -259,8 +348,9 @@ export class Api implements IApi {
     body: any,
     headers: any,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
+    options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
-    return this.standardApi(Method.Put, endPoint, body, headers, refrechCallback);
+    return this.standardApi(Method.Put, endPoint, body, headers, refrechCallback, options);
   }
 
   async patch(
@@ -268,8 +358,9 @@ export class Api implements IApi {
     body: any,
     headers: any = {},
     refrechCallback?: () => Promise<IRefreshApiResponse>,
+    options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
-    return this.standardApi(Method.Patch, endPoint, body, headers, refrechCallback);
+    return this.standardApi(Method.Patch, endPoint, body, headers, refrechCallback, options);
   }
 
   async _getData(response: Response, isReturnBlob?: boolean) {

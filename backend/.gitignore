@@ -1,11 +1,6 @@
 # Prisma 7 generated client (regenerated on `npm install` / `npm run prisma:generate`)
 src/generated/prisma
 
-# Do not commit compiled prisma.config — Prisma reads prisma.config.ts (CJS .js breaks CLI)
-prisma.config.js
-prisma.config.js.map
-prisma.config.d.ts
-
 # compiled output
 dist
 node_modules
@@ -44,5 +39,7 @@ coverage
 
 .env
 
-# Local file uploads
+# Local file uploads (persist across dist rebuilds)
+public/formations
+public/blogs
 public/uploads

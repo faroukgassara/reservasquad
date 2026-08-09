@@ -1,19 +1,27 @@
 'use client';
 
 import Error from 'next/error';
-import { Lato } from 'next/font/google';
+import { Playfair_Display, Poppins } from 'next/font/google';
 
-const lato = Lato({
-  weight: ['400', '700'],
+const poppins = Poppins({
+  weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
+  variable: '--font-poppins',
   display: 'swap',
-  variable: '--font-sans',
-});
+})
+
+const playfair = Playfair_Display({
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
 
 export default function NotFound() {
   return (
-    <html lang="en">
-      <body className={`${lato.variable} font-sans antialiased`}>
+    <html lang="en" className={`${poppins.variable} ${playfair.variable}`}>
+      <body className={`${poppins.className} bg-gray-25 text-gray-900 antialiased`}>
         <Error statusCode={404} />
       </body>
     </html>

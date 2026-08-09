@@ -1,0 +1,31 @@
+---
+description: Generic TypeScript and React habits for maintainable UI code
+globs: "**/*.{ts,tsx,js,jsx}"
+alwaysApply: false
+---
+
+# TypeScript & React
+
+## TypeScript
+
+- Prefer `unknown` over `any`; narrow before use.
+- Use precise types for public APIs/props; avoid loose `object` / `Function`.
+- Prefer `interface` for object shapes that may be extended; `type` for unions/intersections/mapped types.
+- Don’t use non-null assertions (`!`) unless the invariant is obvious and local.
+- Prefer `async`/`await` over raw promise chains.
+
+## React
+
+- Keep components focused: UI in components, data/effects in hooks or callers.
+- Derive values during render when cheap; don’t mirror props into state.
+- List keys must be stable IDs — not array indexes when order can change.
+- Effects: declare full dependencies; don’t lie to the linter. Extract event handlers with `useCallback` only when needed for deps/memo children.
+- Prefer composition (`children`, small wrappers) over deep prop drilling or giant config objects.
+- Don’t add `useMemo`/`useCallback` by default — only for measured or required referential stability (context values, expensive work, memoized children).
+
+## Accessibility (UI)
+
+- Interactive elements need keyboard support and accessible names (`aria-label` / visible text).
+- Don’t use `<div onClick>` when `<button>` / `<a>` is correct.
+- Images that convey meaning need `alt`; decorative images use empty `alt`.
+- Preserve focus management in modals/drawers (trap/restore as the existing pattern does).

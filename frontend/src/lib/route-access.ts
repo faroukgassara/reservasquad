@@ -5,14 +5,8 @@ interface IRoutePolicy {
     policy: IAccessPolicy;
 }
 
-export const ROUTE_POLICIES: IRoutePolicy[] = [
-    {
-        route: '/admin',
-        policy: {
-            anyRoles: ['ADMIN'],
-        },
-    },
-];
+/** Path-based access policies. Most admin pages use in-page `useAuthorization` instead. */
+export const ROUTE_POLICIES: IRoutePolicy[] = [];
 
 export const isRouteAllowed = (path: string, context: IAuthzContext): boolean => {
     const matchedPolicy = ROUTE_POLICIES.find(

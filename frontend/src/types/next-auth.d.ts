@@ -1,28 +1,29 @@
 import 'next-auth';
 
+interface AuthSessionUser {
+    id?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    status?: string;
+    role?: string;
+    tokenVersion?: number;
+    imageUrl?: string | null;
+    createdAt?: string | Date;
+    updatedAt?: string | Date;
+    archivedAt?: string | Date | null;
+    deletedAt?: string | Date | null;
+}
+
 declare module 'next-auth' {
     interface Session {
-        user: {
-            id?: string;
-            email?: string;
-            name?: string;
-            role?: string;
-            tokenVersion?: number;
-            createdAt?: string | Date;
-            updatedAt?: string | Date;
-        };
+        user: AuthSessionUser;
         accessToken?: string;
         error?: string;
     }
 
-    interface User {
-        id?: string;
-        email?: string;
-        name?: string;
-        role?: string;
-        tokenVersion?: number;
-        createdAt?: string | Date;
-        updatedAt?: string | Date;
+    interface User extends AuthSessionUser {
         access_token?: string;
         refresh_token?: string;
         expires_at?: number;
@@ -36,13 +37,7 @@ declare module 'next-auth/jwt' {
         accessToken?: string;
         refreshToken?: string;
         expiresAt?: number;
-        user?: {
-            id?: string;
-            email?: string;
-            name?: string;
-            role?: string;
-            tokenVersion?: number;
-        };
+        user?: AuthSessionUser;
         error?: string;
     }
 }

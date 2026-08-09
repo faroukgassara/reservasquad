@@ -1,284 +1,1461 @@
 {
-  "common": {
-    "loading": "Chargement...",
-    "error": "Erreur",
-    "success": "Succès",
-    "cancel": "Annuler",
-    "save": "Enregistrer",
-    "delete": "Supprimer",
-    "edit": "Modifier",
-    "create": "Créer",
-    "search": "Rechercher",
-    "filter": "Filtrer",
-    "sort": "Trier",
-    "back": "Retour",
-    "next": "Suivant",
-    "previous": "Précédent",
-    "submit": "Soumettre",
-    "reset": "Réinitialiser",
-    "refresh": "Actualiser",
-    "close": "Fermer",
-    "apply": "Appliquer",
-    "update": "Mettre à jour",
-    "actions": "Actions",
-    "columns": "Colonnes",
-    "noData": "Aucune donnée disponible",
-    "selectOption": "Sélectionner une option",
-    "noOptions": "Aucune option",
-    "noResults": "Aucun résultat",
-    "allSelected": "Tout sélectionné",
-    "peopleShort": "pers.",
-    "connected": "Connecté",
-    "user": "Utilisateur",
-    "cancelEdit": "Annuler édition",
-    "dash": "—"
-  },
-  "auth": {
-    "login": "Connexion",
-    "logout": "Déconnexion",
-    "email": "Email",
-    "password": "Mot de passe",
-    "confirmPassword": "Confirmer le mot de passe",
-    "confirmYourPassword": "Confirmez votre mot de passe",
-    "forgotPassword": "Mot de passe oublié",
-    "backToLogin": "Retour à la connexion",
-    "send": "Envoyer",
-    "signIn": "Se connecter",
-    "signOut": "Se déconnecter",
-    "welcome": "Bienvenue",
-    "enterYourEmail": "Entrez votre email",
-    "enterYourPassword": "Entrez votre mot de passe",
-    "loginRequired": "Vous devez vous connecter pour accéder à l'espace d'administration",
-    "noAccount": "Vous n'avez pas encore de compte ?",
-    "contactSupport": "Contacter le support",
-    "loginFailed": "Échec de la connexion. Veuillez réessayer.",
-    "loginAttemptsExceeded": "Trop de tentatives de connexion échouées. Veuillez réinitialiser votre mot de passe.",
-    "forgotPasswordTitle": "Mot de passe oublié ?",
-    "resetPasswordTitle": "Réinitialiser le mot de passe",
-    "newPassword": "Nouveau mot de passe",
-    "enterYourNewPassword": "Entrez votre nouveau mot de passe",
-    "resetPasswordCta": "Réinitialiser le mot de passe",
-    "resetPasswordSuccess": "Mot de passe réinitialisé avec succès.",
-    "resetPasswordFailed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer.",
-    "invalidResetToken": "Ce lien de réinitialisation est invalide ou expiré.",
-    "validation": {
-      "invalidEmail": "Format d'email invalide",
-      "emailRequired": "L'email est requis",
-      "passwordRequired": "Le mot de passe est requis",
-      "passwordTooLong": "Le mot de passe doit contenir moins de 120 caractères",
-      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
-      "passwordLowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
-      "passwordUppercase": "Le mot de passe doit contenir au moins une lettre majuscule",
-      "passwordSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial",
-      "confirmPasswordRequired": "La confirmation du mot de passe est requise",
-      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas"
+    "common": {
+        "loading": "Chargement...",
+        "error": "Erreur",
+        "success": "Succès",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "create": "Créer",
+        "search": "Rechercher",
+        "filter": "Filtrer",
+        "sort": "Trier",
+        "back": "Retour",
+        "next": "Suivant",
+        "previous": "Précédent",
+        "submit": "Soumettre",
+        "reset": "Réinitialiser",
+        "apply": "Appliquer",
+        "add": "Ajouter",
+        "close": "Fermer",
+        "confirm": "Confirmer",
+        "validate": "Valider",
+        "return": "Retour",
+        "archive": "Archiver",
+        "unarchive": "Désarchiver",
+        "export": "Exporter",
+        "actions": "Actions",
+        "status": "Statut",
+        "all": "Tous",
+        "yes": "Oui",
+        "no": "Non",
+        "name": "Nom",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "description": "Description",
+        "notes": "Notes",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "selectLanguage": "Choisir la langue",
+        "brandLogoAlt": "Logo Biblio Squad",
+        "userFallback": "Utilisateur",
+        "imagePreview": "Aperçu",
+        "imageUploadHint": "Glissez-déposez une image, ou cliquez pour parcourir",
+        "removeFile": "Supprimer le fichier",
+        "dismiss": "Fermer",
+        "noResults": "Aucun résultat",
+        "showingRange": "Affichage {from}–{to} sur {total}",
+        "pageOf": "Page {page} sur {totalPages}",
+        "paginationAria": "Pagination",
+        "pageAria": "Page {page}",
+        "min": "Min",
+        "max": "Max",
+        "optional": "optionnel",
+        "selectOption": "Sélectionner une option"
     },
-    "requestResetSent": "Un lien de réinitialisation a été envoyé si l'email existe.",
-    "requestResetFailed": "Échec de l'envoi de la demande. Veuillez réessayer."
-  },
-  "brand": {
-    "name": "Reserva Squad"
-  },
-  "metadata": {
-    "title": "Reserva Squad — Salles d'étude",
-    "description": "Application de réservation de salles d'étude pour professeurs et administration."
-  },
-  "home": {
-    "title": "Réservez vos salles d'étude",
-    "subtitle": "Calendrier partagé, validation par l'administration, équipements par salle.",
-    "bookRoom": "Réserver une salle"
-  },
-  "navigation": {
-    "home": "Accueil",
-    "bookRoom": "Réserver une salle",
-    "book": "Réserver",
-    "administration": "Administration",
-    "adminLogin": "Connexion administration",
-    "navigation": "Navigation",
-    "footerTagline": "Réservation de salles d'étude : calendrier partagé et validation par l'administration.",
-    "copyright": "© {year} Reserva Squad",
-    "calendar": "Calendrier",
-    "bookWithoutAccount": "Réserver",
-    "reservationsAdmin": "Réservations",
-    "rooms": "Salles",
-    "teachers": "Professeurs"
-  },
-  "calendar": {
-    "title": "Planning des salles d'étude",
-    "views": {
-      "month": "Mois",
-      "week": "Semaine",
-      "day": "Jour"
+    "auth": {
+        "login": "Connexion",
+        "logout": "Déconnexion",
+        "logoutConfirm": "Voulez-vous vraiment vous déconnecter ?",
+        "register": "S’inscrire",
+        "account": "Mon compte",
+        "email": "Email",
+        "password": "Mot de passe",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "confirmPassword": "Confirmer le mot de passe",
+        "confirmYourPassword": "Confirmez votre mot de passe",
+        "forgotPassword": "Mot de passe oublié",
+        "backToLogin": "Retour à la connexion",
+        "backToHome": "Retour à l’accueil",
+        "send": "Envoyer",
+        "signIn": "Se connecter",
+        "signOut": "Se déconnecter",
+        "welcome": "Bienvenue",
+        "enterYourEmail": "Entrez votre email",
+        "enterYourPassword": "Entrez votre mot de passe",
+        "loginRequired": "Vous devez vous connecter pour accéder à l’espace de gestion des licences",
+        "noAccount": "Vous n’avez pas encore de compte ?",
+        "contactSupport": "Contacter le support",
+        "loginFailed": "Échec de la connexion. Veuillez réessayer.",
+        "loginAttemptsExceeded": "Trop de tentatives de connexion échouées. Veuillez réinitialiser votre mot de passe.",
+        "forgotPasswordTitle": "Mot de passe oublié ?",
+        "resetPasswordTitle": "Réinitialiser le mot de passe",
+        "newPassword": "Nouveau mot de passe",
+        "enterYourNewPassword": "Entrez votre nouveau mot de passe",
+        "resetPasswordCta": "Réinitialiser le mot de passe",
+        "resetPasswordSuccess": "Mot de passe réinitialisé avec succès.",
+        "resetPasswordFailed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer.",
+        "invalidResetToken": "Ce lien de réinitialisation est invalide ou expiré.",
+        "modalLoginSubtitle": "Connectez-vous à votre compte Biblio Squad",
+        "modalRegisterSubtitle": "Créez un compte pour continuer",
+        "registerSuccess": "Consultez votre e-mail pour activer votre compte avant de vous connecter.",
+        "registerFailed": "Échec de l’inscription. Veuillez réessayer.",
+        "activating": "Activation de votre compte…",
+        "activateTitle": "Compte activé",
+        "activateErrorTitle": "Échec de l’activation",
+        "activateSuccess": "Votre compte est maintenant actif. Vous pouvez vous connecter.",
+        "activateFailed": "Impossible d’activer ce compte.",
+        "invalidActivationToken": "Ce lien d’activation est invalide ou expiré.",
+        "placeholders": {
+            "firstName": "Jean",
+            "lastName": "Dupont",
+            "phone": "+216 XX XXX XXX"
+        },
+        "validation": {
+            "invalidEmail": "Format d’email invalide",
+            "emailRequired": "L’email est requis",
+            "passwordRequired": "Le mot de passe est requis",
+            "passwordTooLong": "Le mot de passe doit contenir moins de 120 caractères",
+            "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+            "passwordLowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
+            "passwordUppercase": "Le mot de passe doit contenir au moins une lettre majuscule",
+            "passwordSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial",
+            "confirmPasswordRequired": "La confirmation du mot de passe est requise",
+            "passwordsDoNotMatch": "Les mots de passe ne correspondent pas"
+        },
+        "requestResetSent": "Un lien de réinitialisation a été envoyé si l’email existe.",
+        "requestResetFailed": "Échec de l’envoi de la demande. Veuillez réessayer."
     },
-    "subtitles": {
-      "month": "Vue mensuelle — cliquez un jour pour réserver ou voir une réservation.",
-      "week": "Vue semaine (lundi – dimanche). Utilisez + ou les pastilles pour agir.",
-      "day": "Vue jour — créneaux triés par heure de début."
+    "licenses": {
+        "title": "Licences",
+        "subTitle": "Créez, associez et gérez les licences de vos clients",
+        "createNewLicensesBtn": "Créer une nouvelle licence",
+        "packsInProgress": "Packs en cours",
+        "distributedLicenses": "Licences distribuées",
+        "activeLicenses": "Licences actives"
+    },
+    "navigation": {
+        "home": "Accueil",
+        "licenses": "Licences",
+        "profile": "Profil",
+        "settings": "Paramètres"
+    },
+    "errors": {
+        "internalServerError": "Erreur interne du serveur",
+        "missingParameter": "Paramètre requis manquant",
+        "failedToFetch": "Échec de la récupération",
+        "failedToCreate": "Échec de la création",
+        "unauthorized": "Accès non autorisé",
+        "notFound": "Non trouvé"
+    },
+    "aboutUs": {
+        "whoWeAre": {
+            "badge": "Qui sommes-nous ?",
+            "title": "Biblio Squad, l'excellence académique à Sfax",
+            "body": "Biblio Squad est la première institution académique d'excellence à Sfax, accréditée par des organismes internationaux de premier rang, garantissant des formations de haut niveau conformes aux standards mondiaux les plus exigeants. Nos programmes couvrent l'ingénierie, l'architecture, l'informatique, le marketing digital, le design graphique et les langues. En tant que centre de formation et d'examen officiel, Biblio Squad délivre des certifications internationales reconnues."
+        },
+        "whyBiblioSquad": {
+            "badge": "Pourquoi Biblio Squad ?",
+            "title": "Une formation complète, une double certification",
+            "body": "Biblio Squad se distingue par une offre de formation diversifiée couvrant l'ingénierie, l'architecture, l'informatique, le marketing digital, le design graphique, le management de projet, l'entrepreneuriat, les soft skills et les langues. Les candidats obtiennent une double certification : un certificat reconnu par l'État tunisien et une certification internationale."
+        },
+        "ourVision": {
+            "badge": "Notre vision",
+            "title": "Former les talents de demain",
+            "body": "Faire de Biblio Squad la référence nationale en matière de formation et de certification professionnelle, en formant des talents hautement qualifiés capables d'exceller à l'échelle mondiale."
+        },
+        "visionTagline": {
+            "badge": "Vision",
+            "title": "Ambition & expertise",
+            "body": "Être le pont entre l'ambition et l'expertise reconnue mondialement."
+        },
+        "mission": {
+            "badge": "Mission",
+            "title": "De la formation à l'employabilité",
+            "body": "Combler l'écart entre la formation et l'employabilité internationale grâce à des formations certifiantes dans divers domaines."
+        },
+        "values": {
+            "badge": "Nos valeurs",
+            "title": "Ce qui guide notre action au quotidien",
+            "items": [
+                {
+                    "name": "Excellence",
+                    "description": "Nous visons les plus hauts standards de qualité dans nos formations afin de garantir un apprentissage rigoureux et reconnu à l'échelle internationale."
+                },
+                {
+                    "name": "Intégrité",
+                    "description": "Nous agissons avec transparence, éthique et responsabilité, assurant la confiance dans toutes nos certifications et partenariats."
+                },
+                {
+                    "name": "Respect",
+                    "description": "Nous plaçons le respect au cœur de notre culture, favorisant un environnement sain, inclusif et propice à l'apprentissage."
+                },
+                {
+                    "name": "Travail d'équipe",
+                    "description": "Nous croyons en la force de la collaboration entre apprenants, formateurs et partenaires pour atteindre des résultats durables."
+                },
+                {
+                    "name": "Engagement",
+                    "description": "Nous accompagnons nos candidats à chaque étape de leur parcours avec sérieux et dévouement jusqu'à leur réussite."
+                },
+                {
+                    "name": "Innovation",
+                    "description": "Nous intégrons constamment les nouvelles technologies et tendances du marché pour offrir des formations modernes et pertinentes."
+                }
+            ]
+        },
+        "exploreCourses": "Découvrir nos formations"
+    },
+    "certificationsPage": {
+        "hero": {
+            "badge": "Certifications",
+            "title": "Des certifications qui ouvrent des portes dans le monde entier",
+            "body": "Chez Biblio Squad, nous croyons que la certification n'est pas un simple diplôme. C'est votre passeport vers l'opportunité mondiale. Nos programmes reconnus à l'international ne se contentent pas de valider vos compétences, ils vous ouvrent les portes d'un monde où vous pouvez rivaliser, travailler et prospérer sans frontières.",
+            "primaryCta": "Découvrir nos programmes",
+            "secondaryCta": "Nous contacter"
+        },
+        "benefits": {
+            "eyebrow": "Avantages de la certification",
+            "title": "Pourquoi se certifier avec Biblio Squad",
+            "items": {
+                "recognition": {
+                    "title": "Reconnaissance internationale & évolution professionnelle",
+                    "description": "Les programmes et certifications reconnus à l'international permettent de valoriser vos compétences, de renforcer votre expertise et d'accéder à de nouvelles opportunités professionnelles à l'échelle mondiale."
+                },
+                "community": {
+                    "title": "Intégrez une communauté professionnelle internationale",
+                    "description": "Rejoignez un réseau d'apprenants et de professionnels engagés dans l'apprentissage continu, le partage des connaissances et l'excellence professionnelle."
+                },
+                "opportunities": {
+                    "title": "Développez vos opportunités de carrière",
+                    "description": "Obtenez des certifications reconnues qui renforcent votre profil, améliorent votre employabilité et augmentent vos perspectives d'évolution dans un environnement professionnel international."
+                },
+                "standOut": {
+                    "title": "Démarquez-vous dans un marché compétitif",
+                    "description": "Faites reconnaître vos compétences, vos réalisations et votre engagement professionnel grâce à des certifications de référence reconnues par l'industrie."
+                },
+                "validate": {
+                    "title": "Validez vos compétences & votre expertise",
+                    "description": "Démontrez votre maîtrise des connaissances et des compétences pratiques à travers des parcours de certification conçus pour répondre aux exigences professionnelles d'aujourd'hui et de demain."
+                }
+            }
+        },
+        "banner": {
+            "title": "Prêt à passer à l'étape suivante ?",
+            "highlight": "Découvrez nos programmes de certification et commencez votre parcours dès aujourd'hui.",
+            "cta": "Découvrir nos programmes"
+        }
+    },
+    "hero": {
+        "badge": "Atelier premium — Sfax, Tunisie",
+        "headline": {
+            "line1": "Explore a world of",
+            "highlight": "Creativity",
+            "line2": "& Customization"
+        },
+        "subtitle": "Découpe laser, gravure sur bois et plexiglas, impression personnalisée, cadeaux sur-mesure et habillage vinyle — tout naît dans notre atelier de Sfax.",
+        "primaryCta": "Découvrir la boutique",
+        "secondaryCta": "Demander un devis",
+        "stats": {
+            "clients": {
+                "value": "500+",
+                "label": "Clients satisfaits"
+            },
+            "expertise": {
+                "value": "3 ans",
+                "label": "D'expertise"
+            },
+            "services": {
+                "value": "5 services",
+                "label": "Sur-mesure"
+            }
+        },
+        "gallery": {
+            "laser": "Découpe laser",
+            "gifts": "Coffrets cadeaux",
+            "vinyl": "Covering vinyle",
+            "print": "Impression"
+        }
     },
     "nav": {
-      "prevMonth": "← Mois précédent",
-      "nextMonth": "Mois suivant →",
-      "prevWeek": "← Semaine préc.",
-      "nextWeek": "Semaine suiv. →",
-      "prevDay": "← Jour préc.",
-      "nextDay": "Jour suivant →"
+        "home": "Accueil",
+        "shop": "Boutique",
+        "certifications": "Certifications",
+        "coworkingSpace": "Espace coworking",
+        "aboutUs": "À propos",
+        "blog": "Blog",
+        "contactUs": "Contact",
+        "faq": "FAQ",
+        "testimonial": "Témoignage",
+        "leaveTestimonial": "Laisser un témoignage",
+        "search": "Rechercher",
+        "cart": "Panier",
+        "searchPlaceholder": "Que souhaitez-vous apprendre ?",
+        "openMenu": "Ouvrir le menu",
+        "closeMenu": "Fermer le menu",
+        "mainNav": "Navigation principale",
+        "mobileNav": "Navigation mobile"
     },
-    "weekdays": {
-      "mon": "Lun",
-      "tue": "Mar",
-      "wed": "Mer",
-      "thu": "Jeu",
-      "fri": "Ven",
-      "sat": "Sam",
-      "sun": "Dim"
+    "cart": {
+        "title": "Votre panier",
+        "titleWithCount": "Votre panier ({count})",
+        "close": "Fermer le panier",
+        "emptyTitle": "Votre panier est vide",
+        "emptyBody": "Découvrez nos créations sur-mesure et laissez parler votre imagination.",
+        "exploreShop": "Explorer la boutique",
+        "summary": "Récapitulatif",
+        "subtotal": "Sous-total",
+        "shippingNote": "Frais de livraison calculés à la commande.",
+        "estimatedShipping": "Livraison estimée",
+        "total": "Total",
+        "checkout": "Passer commande",
+        "viewCart": "Voir le panier",
+        "continueShopping": "Continuer mes achats",
+        "decreaseQty": "Diminuer la quantité",
+        "increaseQty": "Augmenter la quantité",
+        "removeItem": "Retirer l'article",
+        "engraving": "Gravure : {text}"
     },
-    "newBooking": "Nouvelle réservation",
-    "bookThisDay": "Réserver ce jour",
-    "noReservationsDay": "Aucune réservation ce jour. Cliquez sur « Réserver ce jour » pour en ajouter une.",
-    "loadFailed": "Chargement impossible",
-    "banner": {
-      "publicPrefix": "Réservation sans compte · statut",
-      "publicSuffix": "jusqu'à accord admin.",
-      "adminLogin": "Connexion administration",
-      "adminHint": "Vue calendrier — même planning que la page publique. Confirmer ou refuser les demandes depuis la liste détaillée.",
-      "adminListLink": "Liste & validation"
+    "checkout": {
+        "title": "Commande",
+        "yourOrder": "Votre commande",
+        "subtotal": "Sous-total",
+        "shipping": "Livraison",
+        "shippingFree": "Gratuit",
+        "total": "Total",
+        "continue": "Continuer",
+        "back": "Retour",
+        "backToCart": "← Panier",
+        "confirm": "Confirmer la commande",
+        "deliveryTitle": "Informations de livraison",
+        "shippingTitle": "Mode d’expédition",
+        "summaryTitle": "Récapitulatif",
+        "emptyCartBody": "Ajoutez des produits à votre panier avant de commander.",
+        "successTitle": "Commande enregistrée",
+        "successMessage": "Votre commande {number} a été enregistrée avec succès.",
+        "steps": {
+            "delivery": "Livraison",
+            "shipping": "Expédition",
+            "summary": "Résumé"
+        },
+        "fields": {
+            "firstName": "Prénom",
+            "lastName": "Nom",
+            "email": "Email",
+            "phone": "Téléphone",
+            "address": "Adresse",
+            "city": "Ville",
+            "governorate": "Gouvernorat",
+            "postalCode": "Code postal",
+            "lockedHint": "Issu de votre compte"
+        },
+        "shippingMethods": {
+            "STANDARD": {
+                "label": "Livraison à domicile",
+                "eta": "Dans Sfax"
+            },
+            "EXPRESS": {
+                "label": "Livraison à domicile",
+                "eta": "Hors Sfax"
+            },
+            "PICKUP": {
+                "label": "Retrait à l’atelier (Sfax)",
+                "eta": "Gratuit"
+            }
+        },
+        "errors": {
+            "title": "Erreur",
+            "required": "Ce champ est requis",
+            "email": "Email invalide",
+            "phone": "Numéro de téléphone invalide"
+        }
+    },
+    "home": {
+        "services": {
+            "eyebrow": "Nos services",
+            "title": "Un savoir-faire complet, du concept à l'objet fini",
+            "subtitle": "Cinq expertises réunies sous un même toit pour donner vie à toutes vos idées de personnalisation.",
+            "viewProducts": "Voir les produits",
+            "items": {
+                "laser": {
+                    "title": "Découpe Laser",
+                    "tagline": "Précision au millimètre",
+                    "description": "Découpe et gravure laser sur bois, plexiglas et bien plus, pour des créations nettes et détaillées."
+                },
+                "design": {
+                    "title": "Design Graphique",
+                    "tagline": "Votre identité visuelle",
+                    "description": "Logos, chartes graphiques et supports print pensés pour révéler votre marque."
+                },
+                "print": {
+                    "title": "Impression Tout Support",
+                    "tagline": "Sur tout, vraiment",
+                    "description": "Impression de qualité sur mug, textile, coussin, papier premium et objets du quotidien."
+                },
+                "gifts": {
+                    "title": "Idées Cadeaux",
+                    "tagline": "Offrir l'unique",
+                    "description": "Des cadeaux personnalisés et mémorables pour toutes les occasions."
+                },
+                "vinyl": {
+                    "title": "Habillage Voiture & Vinyle",
+                    "tagline": "Marquez les esprits",
+                    "description": "Covering véhicule, lettrage vitrine et stickers déco posés avec soin."
+                }
+            }
+        },
+        "products": {
+            "eyebrow": "Notre sélection",
+            "title": "Produits Populaires",
+            "viewAll": "Voir tout",
+            "quickView": "Aperçu rapide",
+            "addToCart": "Ajouter",
+            "badges": {
+                "bestseller": "Bestseller",
+                "new": "Nouveau",
+                "customizable": "Personnalisable",
+                "popular": "Populaire"
+            },
+            "categories": {
+                "laser": "Découpe laser",
+                "print": "Impression tout support",
+                "gifts": "Idées cadeaux",
+                "vinyl": "Habillage vinyle"
+            },
+            "items": {
+                "giftBox": { "name": "Coffret « Maison douce »" },
+                "wallClock": { "name": "Horloge murale en plexiglas" },
+                "photoMug": { "name": "Mug personnalisé photo" },
+                "neonSign": { "name": "Enseigne néon LED" },
+                "woodKeychain": { "name": "Porte-clés bois gravé" },
+                "windowStickers": { "name": "Stickers vitrine — lot de 10" },
+                "quoteBoard": { "name": "Tableau citation bois" },
+                "corporatePouch": { "name": "Trousse cadeau entreprise" }
+            }
+        },
+        "history": {
+            "eyebrow": "Notre histoire",
+            "title": "Nés à Sfax, passionnés par la précision",
+            "body1": "Fondée en 2022 par une équipe de jeunes entrepreneurs sfaxiens, Biblio Squad est née d'une conviction simple : chaque objet mérite d'être unique. Armés de machines laser de dernière génération et d'un sens aigu du détail, nous transformons bois, plexiglas et vinyle en œuvres personnalisées.",
+            "body2": "Particuliers, entreprises, décorateurs — nous accompagnons chaque client depuis le concept jusqu'à la livraison. Notre atelier est ouvert sur demande pour les projets sur-mesure.",
+            "badge": {
+                "year": "2022",
+                "label": "Fondée à Sfax"
+            },
+            "features": {
+                "laser": {
+                    "title": "Découpe laser CNC",
+                    "subtitle": "Précision au dixième de mm"
+                },
+                "packaging": {
+                    "title": "Emballage soigné",
+                    "subtitle": "Chaque commande est unique"
+                },
+                "delivery": {
+                    "title": "Livraison Tunisie",
+                    "subtitle": "Sfax et grandes villes"
+                },
+                "custom": {
+                    "title": "100% personnalisé",
+                    "subtitle": "Sur vos idées, pas les nôtres"
+                }
+            }
+        },
+        "formations": {
+            "eyebrow": "Explorer les programmes",
+            "title": "Nos formations les plus populaires",
+            "subtitle": "Rejoignez nos programmes phares — des connaissances qui vous seront vraiment utiles.",
+            "empty": "Aucune formation disponible pour le moment.",
+            "exploreAll": "Voir toutes les formations"
+        },
+        "blogs": {
+            "eyebrow": "Blog",
+            "title": "Nos articles récents",
+            "subtitle": "Idées, actualités produit et histoires de l'équipe.",
+            "empty": "Aucun article pour le moment.",
+            "viewAll": "Voir tous les articles"
+        },
+        "testimonials": {
+            "eyebrow": "Témoignages",
+            "title": "Ce que disent nos apprenants",
+            "subtitle": "Les retours d'expérience de ceux qui ont suivi nos formations.",
+            "prev": "Témoignage précédent",
+            "next": "Témoignage suivant",
+            "submitSuccessTitle": "Merci !",
+            "submitSuccessMessage": "Votre témoignage a été envoyé. Il sera publié après validation par notre équipe.",
+            "submitErrorTitle": "Erreur"
+        },
+        "journey": {
+            "eyebrow": "Le parcours Biblio Squad",
+            "title": "Apprenez. Préparez. Certifiez.",
+            "highlight": "Réussissez.",
+            "steps": {
+                "learn": {
+                    "title": "Apprendre",
+                    "description": "Une formation de haute qualité dispensée par des experts."
+                },
+                "prepare": {
+                    "title": "Préparer",
+                    "description": "Une pratique concrète et une préparation guidée aux examens."
+                },
+                "certify": {
+                    "title": "Certifier",
+                    "description": "Obtenez des certifications reconnues à l'international."
+                },
+                "succeed": {
+                    "title": "Réussir",
+                    "description": "Ouvrez de nouvelles opportunités et faites progresser votre carrière."
+                }
+            }
+        },
+        "domains": {
+            "eyebrow": "Our programs",
+            "title": {
+                "line1": "Build Skills. Shape Your",
+                "highlight": "Future."
+            },
+            "body": "Explore our wide range of training programs and international certifications designed to empower you with future-ready skills and global recognition.",
+            "cta": "Explore all programs",
+            "viewPrograms": "View programs",
+            "items": {
+                "technology": {
+                    "title": "Technology & Data",
+                    "topics": ["Python", "Power BI", "NVIDIA", "Data Analytics", "AI & More"]
+                },
+                "engineering": {
+                    "title": "Engineering & Design",
+                    "topics": ["Autodesk", "SolidWorks", "Abaqus", "Structural Design & More"]
+                },
+                "business": {
+                    "title": "Business & Management",
+                    "topics": ["PMP", "Agile", "Project Management", "Leadership & More"]
+                },
+                "digitalMarketing": {
+                    "title": "Digital Marketing",
+                    "topics": ["Meta Blueprint", "Google Ads", "Social Media Marketing & More"]
+                },
+                "languages": {
+                    "title": "Languages",
+                    "topics": ["IELTS", "TOEFL", "TOEIC", "TCF", "DELF/DALF & More"]
+                }
+            }
+        },
+        "whoWeAre": {
+            "eyebrow": "Qui sommes-nous",
+            "title": "Votre passerelle vers la reconnaissance internationale",
+            "body": "Biblio Squad est un centre de formation et de certification haut de gamme offrant des certifications reconnues à l'international en informatique, ingénierie, business et langues. Nous collaborons avec des organismes internationaux de référence pour garantir votre réussite dans un monde compétitif.",
+            "cta": "En savoir plus sur nous"
+        },
+        "features": {
+            "eyebrow": "Pourquoi choisir Biblio Squad",
+            "title": "Tout ce dont vous avez besoin pour réussir",
+            "items": {
+                "certifications": {
+                    "title": "Certifications internationales",
+                    "description": "Des diplômes reconnus mondialement qui ouvrent des portes partout dans le monde."
+                },
+                "instructors": {
+                    "title": "Formateurs experts",
+                    "description": "Apprenez auprès de professionnels du secteur et d'experts certifiés."
+                },
+                "learning": {
+                    "title": "Apprentissage moderne",
+                    "description": "Une formation pratique avec les outils et technologies les plus récents."
+                },
+                "growth": {
+                    "title": "Évolution de carrière",
+                    "description": "Nous vous aidons à acquérir les compétences et la confiance pour aller plus loin."
+                }
+            }
+        },
+        "ctaBanner": {
+            "title": "Commencez votre parcours dès aujourd'hui.",
+            "highlight": "Façonnez votre prochaine ère avec Biblio Squad.",
+            "cta": "Commencer"
+        },
+        "about": {
+            "eyebrow": "À propos de nous",
+            "title": {
+                "line1": "Empowering minds.",
+                "line2": "Building futures."
+            },
+            "body1": "Biblio Squad Institute est un centre haut de gamme pour l'apprentissage, la certification et l'évolution professionnelle.",
+            "body2": "Nous sommes un centre de formation et de certification dédié à doter les individus de compétences reconnues à l'international, de certifications de confiance dans le monde entier, ainsi que du savoir et de la confiance nécessaires pour s'imposer dans un monde en évolution rapide.",
+            "body3": "Grâce à nos programmes animés par des experts, nos installations de pointe et nos partenariats internationaux, nous vous préparons non seulement à une carrière, mais à votre prochaine ère de réussite.",
+            "pillars": {
+                "vision": {
+                    "title": "Notre vision",
+                    "description": "Façonner la prochaine ère des professionnels du monde."
+                },
+                "mission": {
+                    "title": "Notre mission",
+                    "description": "Renforcer les individus par le savoir, la certification et l'impact."
+                },
+                "promise": {
+                    "title": "Notre promesse",
+                    "description": "Excellence. Crédibilité. Résultats."
+                },
+                "impact": {
+                    "title": "Notre impact",
+                    "description": "De vraies compétences. Une vraie reconnaissance. De vraies opportunités."
+                }
+            },
+            "imageCaption": "Biblio Squad",
+            "quote": "L'éducation est l'outil le plus puissant pour façonner votre prochaine ère.",
+            "differentiators": {
+                "title": "Ce qui nous distingue",
+                "items": {
+                    "partnerships": {
+                        "title": "Partenariats officiels avec des leaders mondiaux",
+                        "description": "Nous délivrons des certifications reconnues à l'international."
+                    },
+                    "instructors": {
+                        "title": "Formateurs experts",
+                        "description": "Apprenez auprès de professionnels certifiés et d'experts du secteur."
+                    },
+                    "learning": {
+                        "title": "Une expérience d'apprentissage moderne",
+                        "description": "Outils avancés, projets concrets et compétences pratiques."
+                    },
+                    "career": {
+                        "title": "Une approche orientée carrière",
+                        "description": "Nous vous préparons aux besoins du monde de demain."
+                    }
+                },
+                "cta": "Rencontrer notre équipe"
+            },
+            "stats": {
+                "students": {
+                    "value": "1 500+",
+                    "label": "Étudiants formés"
+                },
+                "certifications": {
+                    "value": "25+",
+                    "label": "Certifications internationales"
+                },
+                "partners": {
+                    "value": "10+",
+                    "label": "Partenaires internationaux"
+                },
+                "successRate": {
+                    "value": "95%",
+                    "label": "Réussite & satisfaction"
+                }
+            },
+            "banner": {
+                "line1": "Chez Biblio Squad, vous ne décrochez pas qu'un certificat.",
+                "highlight": "Vous gagnez un avenir.",
+                "cta": "Rejoindre la prochaine ère"
+            }
+        },
+        "faq": {
+            "eyebrow": "Centre d'aide",
+            "title": "Questions fréquentes",
+            "subtitle": "Tout ce que vous devez savoir sur Biblio Squad et nos formations.",
+            "viewAll": "Voir toutes les questions",
+            "empty": "Aucune FAQ disponible pour le moment.",
+            "panelBadge": "/ FAQS",
+            "panelTitle": "Questions fréquentes",
+            "noQuestionsInCategory": "Aucune question dans cette catégorie."
+        }
+    },
+    "testimonialForm": {
+        "title": "Partager votre témoignage",
+        "subtitle": "Votre avis sera publié après validation par notre équipe.",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "Email",
+        "titleField": "Titre / Fonction",
+        "description": "Votre témoignage",
+        "rating": "Note",
+        "cancel": "Annuler",
+        "submit": "Envoyer",
+        "sending": "Envoi…",
+        "placeholders": {
+            "firstName": "Jean",
+            "lastName": "Dupont",
+            "email": "jean.dupont@email.com",
+            "titleField": "Étudiant en développement web",
+            "description": "Décrivez votre expérience avec Biblio Squad…"
+        },
+        "validation": {
+            "firstNameRequired": "Le prénom est requis",
+            "lastNameRequired": "Le nom est requis",
+            "emailRequired": "L'email est requis",
+            "emailInvalid": "Email invalide",
+            "titleRequired": "Le titre est requis",
+            "descriptionRequired": "La description est requise",
+            "descriptionMinLength": "Minimum 10 caractères",
+            "ratingRequired": "Veuillez sélectionner une note"
+        }
+    },
+    "contact": {
+        "title": "Contactez-nous",
+        "leaveMessage": "Laissez-nous un message",
+        "name": "Nom",
+        "email": "Adresse email",
+        "message": "Message",
+        "send": "Envoyer",
+        "sending": "Envoi…",
+        "successTitle": "Merci",
+        "successMessage": "Votre message a bien été envoyé.",
+        "errorTitle": "Erreur",
+        "placeholders": {
+            "name": "Prénom Nom",
+            "email": "Adresse email",
+            "message": "Votre message"
+        },
+        "validation": {
+            "nameRequired": "Le nom est requis",
+            "emailRequired": "L'email est requis",
+            "emailInvalid": "Email invalide",
+            "messageTooShort": "Message trop court"
+        },
+        "getInTouch": "Restons en contact",
+        "address": "Entre route el Ain et Manzel Chaker km 1, Rue de Mohamed Salah, Sfax 3002.",
+        "mapTitle": "Carte de localisation Biblio Squad",
+        "openMap": "Ouvrir dans Google Maps"
+    },
+    "coworkingSpace": {
+        "title": "Espace coworking",
+        "hero": {
+            "badge": "Entre route el Ain et Manzel Chaker km 1, Rue de Mohamed Salah, Sfax 3002.",
+            "headline": "Réunions, formations, coworking – tout en un, prêt à réserver",
+            "subtitle": "Des salles modernes, connectées et confortables, adaptées aux équipes, aux formateurs et aux créateurs de contenu. Réservez à l'heure ou à la journée.",
+            "cta": "Réserver maintenant"
+        },
+        "included": {
+            "title": "Ce qui est inclus",
+            "items": {
+                "wifi": {
+                    "title": "Wifi Fibre",
+                    "description": "Débit élevé & stable"
+                },
+                "coffee": {
+                    "title": "Café & eau",
+                    "description": "Coin détente illimité"
+                },
+                "printer": {
+                    "title": "Imprimante/Scan",
+                    "description": "Inclus, usage raisonnable"
+                },
+                "parking": {
+                    "title": "Parking",
+                    "description": "Places à proximité"
+                },
+                "security": {
+                    "title": "Sécurité",
+                    "description": "Caméras & contrôle d'accès"
+                },
+                "audiovisual": {
+                    "title": "Audiovisuel",
+                    "description": "TV/Projecteur selon salles"
+                }
+            }
+        },
+        "spaces": {
+            "title": "Nos espaces disponibles",
+            "empty": "Aucun espace disponible pour le moment.",
+            "book": "Réserver",
+            "visit": "Demander une visite",
+            "capacity": "{count} places"
+        },
+        "booking": {
+            "title": "Réserver une salle ou un espace de travail",
+            "subtitle": "Remplissez le formulaire ci-dessous et notre équipe vous recontactera rapidement.",
+            "close": "Fermer",
+            "firstName": "Prénom",
+            "lastName": "Nom",
+            "email": "Email professionnel",
+            "phone": "Téléphone portable",
+            "company": "Entreprise",
+            "jobTitle": "Fonction",
+            "spaceType": "Type d'espace souhaité",
+            "room": "Salle / espace",
+            "startDate": "Date début",
+            "startTime": "Heure de début",
+            "endDate": "Date fin",
+            "endTime": "Heure de fin",
+            "participants": "Nombre de participants",
+            "equipment": "Équipements souhaités",
+            "services": "Souhaitez-vous ajouter des services ?",
+            "message": "Message",
+            "submit": "Envoyer",
+            "sending": "Envoi…",
+            "successTitle": "Demande envoyée",
+            "successMessage": "Votre demande de réservation a bien été transmise. Nous vous recontacterons rapidement.",
+            "errorTitle": "Erreur",
+            "placeholders": {
+                "firstName": "Votre prénom",
+                "lastName": "Votre nom",
+                "email": "nom@organisation.tn",
+                "phone": "+216 XX XXX XXX",
+                "company": "Ex. Biblio Squad",
+                "jobTitle": "Directeur général",
+                "spaceType": "Salle de formation",
+                "room": "Salle Tunis",
+                "message": "Indiquez toute information utile concernant votre événement ou votre formation."
+            },
+            "validation": {
+                "firstName": "Le prénom est requis",
+                "lastName": "Le nom est requis",
+                "email": "L'email est requis",
+                "phone": "Le téléphone est requis",
+                "company": "L'entreprise est requise",
+                "jobTitle": "La fonction est requise",
+                "spaceType": "Le type d'espace est requis",
+                "startDate": "La date de début est requise",
+                "startTime": "L'heure de début est requise",
+                "endDate": "La date de fin est requise",
+                "endTime": "L'heure de fin est requise",
+                "participants": "Le nombre de participants doit être au moins 1"
+            },
+            "jobTitleOptions": {
+                "ceo": "Directeur général",
+                "cio": "Directeur des systèmes d'information",
+                "hrDirector": "Directeur Ressources Humaines",
+                "trainingDirector": "Directeur de la formation",
+                "cfo": "Directeur Financier",
+                "seniorExecutive": "Cadre supérieur",
+                "other": "Autre"
+            },
+            "spaceTypeOptions": {
+                "trainingRoom": "Salle de formation",
+                "meetingRoom": "Salle de réunion",
+                "coworkingSpace": "Espace coworking"
+            },
+            "equipmentOptions": {
+                "projector": "Vidéoprojecteur / écran",
+                "whiteboard": "Tableau blanc / paperboard",
+                "fiberInternet": "Connexion Internet fibre",
+                "videoconference": "Système de visioconférence",
+                "soundSystem": "Sonorisation",
+                "microphone": "Microphone"
+            },
+            "serviceOptions": {
+                "coffeeBreak": "Pause café",
+                "lunchBox": "Lunch box",
+                "mealVoucher": "Ticket restaurant",
+                "drinks": "Eau / boissons",
+                "reception": "Accueil des participants"
+            }
+        }
+    },
+    "footer": {
+        "tagline": "Des expériences d'apprentissage d'excellence pour développer les talents de demain.",
+        "product": "Produit",
+        "company": "Entreprise",
+        "social": "Réseaux",
+        "legal": "Légal",
+        "copyright": "Tous droits réservés.",
+        "newBadge": "Nouveau",
+        "links": {
+            "overview": "Aperçu",
+            "features": "Fonctionnalités",
+            "solutions": "Solutions",
+            "tutorials": "Tutoriels",
+            "pricing": "Tarifs",
+            "aboutUs": "À propos",
+            "careers": "Carrières",
+            "press": "Presse",
+            "news": "Actualités",
+            "terms": "Conditions",
+            "privacy": "Confidentialité",
+            "cookies": "Cookies",
+            "contact": "Contact"
+        }
+    },
+    "status": {
+        "active": "Actif",
+        "inactive": "Inactif",
+        "archived": "Archivé",
+        "draft": "Brouillon",
+        "sent": "Envoyé",
+        "accepted": "Accepté",
+        "rejected": "Refusé",
+        "pending": "En attente",
+        "paid": "Payée",
+        "cancelled": "Annulée",
+        "validated": "Validée",
+        "published": "Publié",
+        "new": "Nouveau",
+        "contacted": "Contacté",
+        "confirmed": "Confirmé"
+    },
+    "sidebar": {
+        "dashboard": "Dashboard",
+        "formations": "Produits",
+        "products": "Produits",
+        "productCategories": "Catégories",
+        "categories": "Catégories",
+        "blog": "Blog",
+        "faq": "FAQ",
+        "contactMessages": "Messages contact",
+        "orders": "Commandes",
+        "testimonials": "Témoignages",
+        "coworkingRooms": "Espaces coworking",
+        "coworkingStats": "Stats coworking",
+        "coworkingBookings": "Réservations",
+        "users": "Utilisateurs",
+        "sales": "Ventes",
+        "clients": "Clients",
+        "quotes": "Devis",
+        "invoices": "Factures",
+        "archive": "Archive",
+        "closeMenu": "Fermer le menu",
+        "openMenu": "Ouvrir le menu",
+        "collapseMenu": "Réduire le menu"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "subtitle": "Bon retour !",
+        "welcome": "Bienvenue sur le Dashboard {brand}",
+        "welcomeBody": "Gérez votre équipe et vos clients efficacement depuis un seul endroit.",
+        "recentActivity": "Activité récente",
+        "activityItem": "Membre du staff assigné au projet Alpha",
+        "activityTime": "Il y a 2 heures",
+        "updated": "Mis à jour"
+    },
+    "shop": {
+        "eyebrow": "Boutique",
+        "title": "Toutes nos créations",
+        "subtitle": "Parcourez notre catalogue d'objets personnalisables, façonnés dans notre atelier de Sfax.",
+        "back": "Retour à la boutique",
+        "notFound": "Produit introuvable.",
+        "requestQuote": "Demander un devis",
+        "addToCart": "Ajouter",
+        "emptyTitle": "Aucun produit ne correspond",
+        "emptyBody": "Essayez d'ajuster vos filtres",
+        "resultCount": "{count, plural, =0 {0 produit} one {# produit} other {# produits}}",
+        "detail": {
+            "breadcrumb": "Fil d'Ariane",
+            "home": "Accueil",
+            "material": "Matériau",
+            "size": "Taille",
+            "engravingLabel": "Texte de gravure (optionnel)",
+            "engravingPlaceholder": "Ex. : prénom, date, message...",
+            "decreaseQty": "Diminuer la quantité",
+            "increaseQty": "Augmenter la quantité",
+            "addToCart": "Ajouter au panier",
+            "deliveryEverywhere": "Livraison partout en Tunisie",
+            "handmadeGuarantee": "Fabrication artisanale garantie",
+            "similarTitle": "Produits similaires",
+            "tabs": {
+                "description": "Description",
+                "specs": "Caractéristiques",
+                "shipping": "Livraison & Retours"
+            },
+            "materials": {
+                "lightWood": "Bois clair",
+                "darkWood": "Bois foncé",
+                "clearPlexi": "Plexiglas transparent",
+                "coloredPlexi": "Plexiglas coloré"
+            },
+            "sizes": {
+                "small": "Petite (20 cm)",
+                "medium": "Moyenne (30 cm)",
+                "large": "Grande (40 cm)"
+            },
+            "longDescription": "{short} Une pièce façonnée dans notre atelier de Sfax, avec une finition soignée et un rendu unique pour votre intérieur ou votre événement.",
+            "specsList": {
+                "material": "Matériau : {value}",
+                "size": "Taille : {value}",
+                "origin": "Fabriqué à Sfax, Tunisie",
+                "finish": "Finition artisanale découpe / gravure laser"
+            },
+            "shippingBody": "Livraison partout en Tunisie. Délais indicatifs : 3 à 7 jours ouvrés selon la personnalisation. Retours sous 7 jours pour les articles non personnalisés."
+        },
+        "filters": {
+            "categories": "Catégories",
+            "all": "Tous les produits",
+            "maxPrice": "Prix maximum"
+        },
+        "sort": {
+            "label": "Trier",
+            "popularity": "Trier : Popularité",
+            "newest": "Trier : Nouveautés",
+            "priceAsc": "Trier : Prix croissant",
+            "priceDesc": "Trier : Prix décroissant"
+        },
+        "badges": {
+            "bestseller": "Bestseller",
+            "new": "Nouveau",
+            "customizable": "Personnalisable",
+            "popular": "Populaire"
+        },
+        "categories": {
+            "laser": "Découpe Laser",
+            "design": "Design Graphique",
+            "print": "Impression Tout Support",
+            "gifts": "Idées Cadeaux",
+            "vinyl": "Habillage Voiture & Vinyle"
+        },
+        "items": {
+            "coffret-maison-douce": {
+                "name": "Coffret « Maison douce »",
+                "description": "Coffret cadeau artisanal pour un intérieur chaleureux."
+            },
+            "horloge-murale-plexiglas": {
+                "name": "Horloge murale en plexiglas",
+                "description": "Horloge découpée laser aux finitions précises."
+            },
+            "mug-personnalise-photo": {
+                "name": "Mug personnalisé photo",
+                "description": "Impression haute qualité sur mug céramique."
+            },
+            "enseigne-neon-led": {
+                "name": "Enseigne néon LED",
+                "description": "Enseigne lumineuse personnalisée pour votre espace."
+            },
+            "porte-cles-bois-grave": {
+                "name": "Porte-clés bois gravé",
+                "description": "Porte-clés en bois gravé laser, fini soigné."
+            },
+            "stickers-vitrine-lot-10": {
+                "name": "Stickers vitrine — lot de 10",
+                "description": "Stickers vinyle découpés pour vitrine ou décoration."
+            },
+            "tableau-citation-bois": {
+                "name": "Tableau citation bois",
+                "description": "Citation gravée sur bois pour un mur d'inspiration."
+            },
+            "trousse-cadeau-entreprise": {
+                "name": "Trousse cadeau entreprise",
+                "description": "Kit cadeau corporate personnalisable."
+            },
+            "lampe-deco-decoupee-laser": {
+                "name": "Lampe déco découpée laser",
+                "description": "Lampe d'ambiance aux motifs géométriques ciselés."
+            },
+            "plan-table-mariage-plexiglas": {
+                "name": "Plan de table mariage plexiglas",
+                "description": "Panneau plexiglas gravé pour vos évènements."
+            },
+            "porte-cles-personnalise": {
+                "name": "Porte-clés personnalisé",
+                "description": "Porte-clés gravé à votre nom ou logo."
+            },
+            "covering-partiel-vehicule": {
+                "name": "Covering partiel véhicule",
+                "description": "Habillage vinyle partiel posé avec précision."
+            },
+            "logo-charte-graphique": {
+                "name": "Logo & charte graphique",
+                "description": "Identité visuelle sur-mesure pour votre marque."
+            },
+            "coussin-imprime-photo": {
+                "name": "Coussin imprimé photo",
+                "description": "Coussin personnalisé avec impression textile."
+            },
+            "boite-bijoux-gravee": {
+                "name": "Boîte à bijoux gravée",
+                "description": "Boîte en bois gravée, idéale en cadeau."
+            },
+            "lettrage-vitrine": {
+                "name": "Lettrage vitrine",
+                "description": "Lettrage adhésif pour façade et vitrine."
+            }
+        }
+    },
+    "blog": {
+        "title": "Blog",
+        "subtitle": "Tous les articles",
+        "empty": "Aucun article disponible pour le moment.",
+        "back": "Retour au blog",
+        "notFound": "Article introuvable."
+    },
+    "faqPage": {
+        "heroTitle": "Bonjour, comment pouvons-nous vous aider ?",
+        "searchPlaceholder": "Posez une question…",
+        "search": "Rechercher",
+        "orChooseCategory": "ou choisissez une catégorie pour trouver rapidement de l'aide",
+        "stillHaveQuestion": "Vous avez encore une question ?",
+        "stillHaveQuestionBody": "Si vous ne trouvez pas de réponse dans notre FAQ, vous pouvez toujours nous contacter. Nous vous répondrons rapidement.",
+        "phoneHelp": "Nous sommes toujours ravis de vous aider.",
+        "emailHelp": "Le meilleur moyen d'obtenir une réponse plus rapidement.",
+        "goToContact": "Aller à la page contact →",
+        "noResults": "Aucun résultat pour votre recherche.",
+        "noCategories": "Aucune catégorie FAQ disponible pour le moment.",
+        "noQuestionsInCategory": "Aucune question dans cette catégorie.",
+        "categoriesAria": "Catégories FAQ"
+    },
+    "formationApplication": {
+        "title": "Candidature",
+        "subtitle": "Postuler à « {name} »",
+        "fullName": "Nom complet",
+        "fullNamePlaceholder": "Prénom Nom",
+        "email": "Adresse e-mail",
+        "emailPlaceholder": "vous@exemple.com",
+        "phone": "Téléphone",
+        "phonePlaceholder": "+33 6 00 00 00 00",
+        "message": "Message / motivation (optionnel)",
+        "messagePlaceholder": "Pourquoi souhaitez-vous suivre cette formation ?",
+        "submit": "Envoyer ma candidature",
+        "submitting": "Envoi…",
+        "success": "Votre candidature a été envoyée, nous vous contacterons bientôt.",
+        "errors": {
+            "fullName": "Le nom complet est requis",
+            "emailRequired": "L'e-mail est requis",
+            "emailInvalid": "Adresse e-mail invalide",
+            "phone": "Le numéro de téléphone est requis",
+            "phoneShort": "Numéro de téléphone trop court",
+            "duplicateEmail": "Une candidature avec cet e-mail existe déjà pour cette formation."
+        }
+    },
+    "admin": {
+        "formations": {
+            "title": "Formations",
+            "subtitle": "Gérer les formations",
+            "createTitle": "Nouvelle formation",
+            "createSubtitle": "Créer une nouvelle formation",
+            "editSubtitle": "Modifier les détails de la formation",
+            "add": "Ajouter une formation",
+            "search": "Rechercher une formation",
+            "empty": "Aucune formation trouvée",
+            "columns": {
+                "title": "Formation",
+                "category": "Catégorie",
+                "duration": "Durée",
+                "price": "Prix",
+                "status": "Statut"
+            },
+            "toasts": {
+                "created": "Formation créée avec succès",
+                "updated": "Formation mise à jour avec succès",
+                "deleted": "Formation supprimée avec succès",
+                "archived": "Formation archivée",
+                "unarchived": "Formation restaurée"
+            },
+            "confirmDelete": "Supprimer cette formation ?",
+            "form": {
+                "about": "À propos de la formation",
+                "title": "Titre",
+                "slug": "Slug",
+                "category": "Catégorie",
+                "duration": "Durée (heures)",
+                "price": "Prix",
+                "description": "Description",
+                "image": "Image",
+                "status": "Statut"
+            }
+        },
+        "formationCategories": {
+            "title": "Catégories de formations",
+            "subtitle": "Gérer les catégories de formations",
+            "add": "Ajouter une catégorie",
+            "empty": "Aucune catégorie trouvée",
+            "name": "Nom de la catégorie",
+            "confirmDelete": "Supprimer cette catégorie ?",
+            "placeholders": {
+                "name": "Ex: Informatique"
+            },
+            "addSpecification": "Ajouter une spécification",
+            "modalCreateTitle": "Ajouter une catégorie",
+            "modalEditTitle": "Modifier la catégorie"
+        },
+        "products": {
+            "title": "Produits",
+            "subtitle": "Gérer le catalogue boutique",
+            "add": "Ajouter un produit",
+            "search": "Rechercher un produit",
+            "empty": "Aucun produit trouvé",
+            "confirmDelete": "Supprimer ce produit ?",
+            "modalCreateTitle": "Ajouter un produit",
+            "modalEditTitle": "Modifier le produit",
+            "featuredYes": "Oui",
+            "featuredNo": "Non",
+            "columns": {
+                "title": "Produit",
+                "category": "Catégorie",
+                "price": "Prix",
+                "status": "Statut",
+                "badges": "Badges",
+                "featured": "Mis en avant"
+            },
+            "fields": {
+                "title": "Titre",
+                "description": "Description",
+                "price": "Prix (TND)",
+                "discountedPrice": "Prix après remise (TND)",
+                "images": "Images",
+                "addImage": "Ajouter une image",
+                "removeImage": "Supprimer l'image",
+                "category": "Catégorie",
+                "badges": "Badges",
+                "materials": "Matériaux",
+                "sizes": "Tailles",
+                "hasEngraving": "Activer la gravure (texte personnalisé)",
+                "featured": "Mettre en avant sur l'accueil",
+                "popularity": "Popularité"
+            },
+            "placeholders": {
+                "title": "Ex. Horloge murale plexiglas",
+                "shortDescription": "Court texte affiché sur les cartes",
+                "description": "Description détaillée du produit",
+                "category": "Sélectionner une catégorie",
+                "badge": "Ex. Nouveau, Best-seller...",
+                "material": "Ex. Bois clair",
+                "size": "Ex. Petite (20 cm)",
+                "price": "Ex. 45",
+                "discountedPrice": "Ex. 35"
+            },
+            "hints": {
+                "discountedPrice": "Laisser vide s’il n’y a pas de remise"
+            },
+            "addTag": "Ajouter",
+            "validation": {
+                "titleRequired": "Le titre est requis",
+                "priceInvalid": "Prix invalide"
+            },
+            "toasts": {
+                "created": "Produit créé avec succès",
+                "updated": "Produit mis à jour avec succès",
+                "deleted": "Produit supprimé avec succès"
+            }
+        },
+        "productCategories": {
+            "title": "Catégories de produits",
+            "subtitle": "Gérer les catégories boutique",
+            "add": "Ajouter une catégorie",
+            "empty": "Aucune catégorie trouvée",
+            "name": "Nom de la catégorie",
+            "description": "Description (optionnel)",
+            "confirmDelete": "Supprimer cette catégorie ?",
+            "placeholders": {
+                "name": "Ex: Gravure laser",
+                "description": "Courte description de la catégorie"
+            },
+            "validation": {
+                "nameRequired": "Le nom est requis"
+            },
+            "modalCreateTitle": "Ajouter une catégorie",
+            "modalEditTitle": "Modifier la catégorie"
+        },
+        "applications": {
+            "title": "Candidatures",
+            "search": "Rechercher une candidature",
+            "empty": "Aucune candidature pour le moment",
+            "accept": "Accepter",
+            "reject": "Refuser",
+            "columns": {
+                "name": "Nom",
+                "email": "E-mail",
+                "phone": "Téléphone",
+                "status": "Statut",
+                "date": "Date"
+            },
+            "noImage": "Aucune image"
+        },
+        "blogs": {
+            "title": "Blog",
+            "subtitle": "Gérer les articles de blog",
+            "add": "Ajouter un article",
+            "empty": "Aucun article trouvé",
+            "confirmDelete": "Supprimer cet article ?",
+            "confirmArchive": "Archiver cet article ?",
+            "placeholders": {
+                "title": "Titre de l'article",
+                "excerpt": "Court extrait affiché sur les cartes",
+                "content": "Corps de l'article",
+                "tags": "Recherche, UX, Produit (séparées par des virgules)"
+            },
+            "modalCreateTitle": "Ajouter un article",
+            "modalEditTitle": "Modifier l'article"
+        },
+        "faqs": {
+            "title": "FAQ",
+            "subtitle": "Gérer les questions fréquentes",
+            "add": "Ajouter une question",
+            "empty": "Aucune question trouvée",
+            "confirmDelete": "Supprimer cette question ?",
+            "placeholders": {
+                "question": "Quelle est votre question ?",
+                "answer": "Réponse détaillée",
+                "category": "Sélectionner une catégorie"
+            },
+            "fields": {
+                "category": "Catégorie"
+            },
+            "validation": {
+                "categoryRequired": "La catégorie est requise"
+            },
+            "modalCreateTitle": "Ajouter une question",
+            "modalEditTitle": "Modifier la question"
+        },
+        "faqCategories": {
+            "title": "Catégories FAQ",
+            "subtitle": "Gérer les catégories FAQ",
+            "add": "Ajouter une catégorie",
+            "empty": "Aucune catégorie trouvée",
+            "confirmDelete": "Supprimer cette catégorie ?",
+            "placeholders": {
+                "name": "Ex. Getting Started",
+                "description": "Courte description affichée sur la page FAQ"
+            },
+            "modalCreateTitle": "Ajouter une catégorie",
+            "modalEditTitle": "Modifier la catégorie"
+        },
+        "users": {
+            "title": "Utilisateurs",
+            "subtitle": "Gérer les utilisateurs",
+            "add": "Ajouter un utilisateur",
+            "empty": "Aucun utilisateur trouvé",
+            "confirmDelete": "Supprimer cet utilisateur ?",
+            "placeholders": {
+                "firstName": "Prénom",
+                "lastName": "Nom",
+                "email": "nom@exemple.tn"
+            },
+            "fields": {
+                "role": "Rôle"
+            },
+            "roles": {
+                "USER": "Utilisateur",
+                "CLIENT": "Client",
+                "ADMIN": "Administrateur"
+            },
+            "adminCannotDeactivate": "Un compte administrateur ne peut pas être désactivé.",
+            "modalCreateTitle": "Ajouter un utilisateur",
+            "modalEditTitle": "Modifier l'utilisateur"
+        },
+        "testimonials": {
+            "title": "Témoignages",
+            "subtitle": "Modérer les témoignages",
+            "empty": "Aucun témoignage trouvé",
+            "approve": "Approuver",
+            "reject": "Refuser",
+            "columns": {
+                "title": "Titre",
+                "testimonial": "Témoignage",
+                "rating": "Note"
+            }
+        },
+        "contactMessages": {
+            "title": "Messages contact",
+            "subtitle": "Messages reçus via le formulaire de contact",
+            "empty": "Aucun message trouvé",
+            "newNotification": "Nouveau message contact",
+            "message": "Message",
+            "receivedAt": "Reçu le",
+            "charCount": "{count} caractères"
+        },
+        "orders": {
+            "title": "Commandes",
+            "subtitle": "Gérer les commandes boutique",
+            "empty": "Aucune commande trouvée",
+            "search": "Rechercher une commande",
+            "view": "Voir",
+            "confirm": "Confirmer",
+            "cancelOrder": "Annuler la commande",
+            "statusUpdated": "Statut de la commande mis à jour",
+            "confirmStatus": "Confirmer la commande {number} ?",
+            "cancelStatus": "Annuler la commande {number} ?",
+            "confirmDelete": "Supprimer la commande {number} ?",
+            "detailTitle": "Commande {number}",
+            "customer": "Client",
+            "items": "Articles",
+            "columns": {
+                "number": "Numéro",
+                "customer": "Client",
+                "shipping": "Livraison",
+                "total": "Total",
+                "date": "Date"
+            }
+        },
+        "archive": {
+            "title": "Archive",
+            "subtitle": "Contenu archivé",
+            "formations": "Formations archivées",
+            "blogs": "Articles de blog archivés",
+            "empty": "Rien dans l'archive"
+        },
+        "coworkingRooms": {
+            "title": "Espaces coworking",
+            "subtitle": "Gérer les salles de coworking",
+            "add": "Ajouter un espace",
+            "empty": "Aucun espace trouvé",
+            "placeholders": {
+                "title": "Ex. Salle Tunis",
+                "category": "Ex. salle de Formation"
+            },
+            "addEquipment": "Ajouter un équipement",
+            "modalCreateTitle": "Ajouter un espace",
+            "modalEditTitle": "Modifier l'espace"
+        },
+        "coworkingStats": {
+            "title": "Stats coworking",
+            "subtitle": "Gérer les statistiques coworking de l'accueil",
+            "add": "Ajouter une statistique",
+            "empty": "Aucune statistique trouvée",
+            "placeholders": {
+                "value": "Ex. 200+",
+                "label": "Ex. postes coworking"
+            },
+            "modalCreateTitle": "Ajouter une statistique",
+            "modalEditTitle": "Modifier la statistique"
+        },
+        "coworkingBookings": {
+            "title": "Réservations",
+            "subtitle": "Gérer les réservations coworking",
+            "list": "Liste",
+            "calendar": "Calendrier",
+            "empty": "Aucune réservation trouvée",
+            "today": "Aujourd'hui",
+            "month": "Mois",
+            "week": "Semaine",
+            "day": "Jour",
+            "detailTitle": "Détail de la réservation"
+        }
+    },
+    "sales": {
+        "clients": {
+            "title": "Clients",
+            "subtitle": "Gérer les clients",
+            "add": "Ajouter un client",
+            "empty": "Aucun client trouvé",
+            "confirmDelete": "Supprimer ce client ?",
+            "name": "Nom",
+            "company": "Société",
+            "email": "E-mail",
+            "phone": "Téléphone",
+            "address": "Adresse",
+            "taxId": "Matricule fiscal",
+            "type": "Type",
+            "types": {
+                "COMPANY": "Société",
+                "INDIVIDUAL": "Particulier"
+            }
+        },
+        "quotes": {
+            "title": "Devis",
+            "subtitle": "Gérer les devis",
+            "add": "Nouveau devis",
+            "empty": "Aucun devis trouvé",
+            "convert": "Convertir en facture",
+            "convertHint": "Pour créer une facture, cliquez sur « Convertir en facture » en haut à droite. Une facture FAC- sera générée avec les mêmes lignes et montants.",
+            "validUntil": "Valide jusqu'au",
+            "customer": "Client",
+            "total": "Total TTC"
+        },
+        "invoices": {
+            "title": "Factures",
+            "subtitle": "Gérer les factures",
+            "createFromQuote": "Créer depuis un devis",
+            "empty": "Aucune facture trouvée",
+            "markPaid": "Marquer payée",
+            "issueDate": "Date d'émission",
+            "dueDate": "Échéance",
+            "sourceQuote": "Devis source",
+            "customer": "Client",
+            "notes": "Notes",
+            "lines": "Lignes",
+            "subtotal": "Sous-total HT",
+            "tax": "TVA",
+            "total": "Total TTC"
+        },
+        "lines": {
+            "title": "Lignes",
+            "add": "Ajouter une ligne",
+            "label": "Désignation",
+            "quantity": "Quantité",
+            "unitPrice": "Prix unitaire HT",
+            "taxRate": "TVA (%)",
+            "lineTotal": "Total ligne",
+            "subtotal": "Sous-total HT",
+            "tax": "TVA",
+            "total": "Total TTC"
+        }
     }
-  },
-  "reservation": {
-    "newRequest": "Nouvelle demande de réservation",
-    "detail": "Détail réservation",
-    "closePanel": "Fermer le panneau",
-    "teacher": "Professeur",
-    "room": "Salle",
-    "date": "Date",
-    "start": "Début",
-    "end": "Fin",
-    "participants": "Participants",
-    "peopleCount": "Nombre de personnes",
-    "purpose": "Objet / description",
-    "schedule": "Horaire",
-    "priceTnd": "Prix (TND)",
-    "status": "Statut",
-    "motif": "Motif",
-    "payment": "Paiement",
-    "slot": "Créneau",
-    "requester": "Demandeur",
-    "places": "Places",
-    "choosePlaceholder": "— Choisir —",
-    "noTeacherAdmin": "Aucun professeur (admin)",
-    "teacherListHint": "La liste est mise à jour par l'administration.",
-    "roomCapacityHint": "Capacité max {capacity} pour cette salle",
-    "roomOption": "{name} ({capacity} pers.)",
-    "submitting": "Envoi…",
-    "sendRequest": "Envoyer la demande",
-    "selectTeacherError": "Choisissez un professeur dans la liste (gérée par l'administration).",
-    "bookingSuccess": "Demande enregistrée. Elle sera affichée en « pending » jusqu'à validation par un administrateur.",
-    "bookingFailed": "Échec de la réservation",
-    "statusLabels": {
-      "PENDING": "En attente",
-      "CONFIRMED": "Confirmée",
-      "CANCELLED": "Annulée"
-    },
-    "paid": "Payé",
-    "unpaid": "Non payé",
-    "confirm": "Confirmer",
-    "refuse": "Refuser",
-    "priceMode": {
-      "ROOM_HOURLY": "Salle × durée (tarif horaire)",
-      "PER_PARTICIPANT": "Participants × 2,5 TND",
-      "MANUAL": "Prix manuel"
-    },
-    "priceModeCaption": {
-      "ROOM_HOURLY": "Tarif horaire salle",
-      "PER_PARTICIPANT": "Participants × 2,5",
-      "MANUAL": "Manuel"
-    },
-    "pricing": {
-      "title": "Calcul du prix (TND)",
-      "amount": "Montant (TND)",
-      "estimatedTotal": "Total estimatif :"
-    },
-    "adminConfirmedBooking": "Réservation confirmée (professeur)"
-  },
-  "admin": {
-    "accessDenied": "Administrateurs uniquement.",
-    "accessDeniedReservations": "Accès réservé aux administrateurs.",
-    "rooms": {
-      "title": "Salles",
-      "subtitle": "Gestion des salles d'étude et des équipements",
-      "add": "Ajouter",
-      "empty": "Aucune salle pour le moment.",
-      "newRoom": "Nouvelle salle",
-      "editTitle": "Modifier la salle",
-      "editRoom": "Modifier : {name}",
-      "name": "Nom",
-      "capacity": "Capacité",
-      "capacityShort": "Cap.",
-      "color": "Couleur (hex badge)",
-      "colorHint": "Format #RRGGBB requis",
-      "pricePerHour": "Prix / heure (TND)",
-      "description": "Description",
-      "equipment": "Équipement (virgules)",
-      "tndPerHour": "TND/h",
-      "equipmentCol": "Équipements",
-      "updated": "Salle modifiée avec succès.",
-      "created": "Salle créée avec succès.",
-      "deleted": "Salle supprimée avec succès.",
-      "deleteConfirm": "Supprimer cette salle ?",
-      "deleteFailed": "Suppression impossible (réservations liées)"
-    },
-    "teachers": {
-      "title": "Professeurs",
-      "subtitle": "Liste de réservation pour le calendrier public",
-      "description": "Les professeurs n'ont pas de mot de passe par défaut : ils sont choisis sur le calendrier public. Chaque réservation est liée au profil sélectionné.",
-      "add": "Ajouter",
-      "empty": "Aucun professeur pour le moment.",
-      "newTeacher": "Nouveau professeur",
-      "editTitle": "Modifier le professeur",
-      "editTeacher": "Modifier : {name}",
-      "displayName": "Nom affiché",
-      "emailUnique": "Email (unique)",
-      "phone": "Téléphone",
-      "phonePlaceholder": "+33 …",
-      "reservations": "Réservations",
-      "updated": "Professeur modifié avec succès.",
-      "created": "Professeur créé avec succès.",
-      "deleted": "Professeur supprimé avec succès.",
-      "deleteConfirm": "Supprimer ce professeur ?",
-      "deleteFailed": "Suppression impossible : des réservations sont liées à ce profil."
-    },
-    "reservations": {
-      "title": "Réservations",
-      "subtitle": "Liste de toutes les réservations",
-      "createForTeacher": "Ajouter",
-      "createForTeacherLong": "Créer pour un professeur",
-      "filterRoom": "Filtrer par salle",
-      "filterStatus": "Statut",
-      "allRooms": "Toutes les salles",
-      "allStatuses": "Tous statuts",
-      "tabs": {
-        "upcoming": "À venir",
-        "past": "Passées"
-      },
-      "emptyUpcoming": "Aucune réservation à venir.",
-      "emptyPast": "Aucune réservation passée."
-    }
-  },
-  "table": {
-    "search": "Recherche",
-    "reset": "Réinitialiser",
-    "previous": "Précédent",
-    "next": "Suivant",
-    "columns": "Colonnes",
-    "noData": "Aucune donnée disponible"
-  },
-  "errors": {
-    "internalServerError": "Erreur interne du serveur",
-    "missingParameter": "Paramètre requis manquant",
-    "failedToFetch": "Échec de la récupération",
-    "failedToCreate": "Échec de la création",
-    "unauthorized": "Accès non autorisé",
-    "notFound": "Non trouvé",
-    "generic": "Une erreur est survenue"
-  }
 }

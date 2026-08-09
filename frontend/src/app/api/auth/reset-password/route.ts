@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     try {
         const api = new Api(process.env.NEXT_PUBLIC_API_URL);
         const { searchParams } = new URL(req.url);
-        const lang = searchParams.get('lang') || 'fr';
+        const lang = searchParams.get('lang') || 'en';
         const body = await req.json();
 
         const apiRes = await api.post(

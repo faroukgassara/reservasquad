@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, HttpStatus, Req, Query, HttpException } from '@nestjs/common';
+import { Controller, Post, Body, Res, HttpStatus, Req, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDTO } from 'src/dto/login/login.dto';
 import { Public } from 'src/common/decorator/public.decorator';
@@ -6,13 +6,16 @@ import { EJwtStrategy } from 'src/enum/common.enum';
 import { LangDto } from 'src/dto/appConfiguration/lang.dto';
 import { IRequest } from 'src/interface/request/request.interface';
 import { RequestResetPasswordDto } from 'src/dto/login/requestResetPassword.dto';
-import { openApiResponse } from 'src/common/decorator/open-api.decorator';
-import { Response } from 'express';
 import { ValidateResetPasswordTokenDto } from 'src/dto/login/validateResetPasswordToken.dto';
 import { ResetPasswordDto } from 'src/dto/login/resetPassword.dto';
+import { RegisterDto } from 'src/dto/login/register.dto';
+import { ActivateAccountDto } from 'src/dto/login/activateAccount.dto';
+import { openApiResponse } from 'src/common/decorator/open-api.decorator';
+import { Response } from 'express';
 import * as swagger from '@nestjs/swagger';
 import { ApiBearerAuth, ApiOperation, ApiHeader } from '@nestjs/swagger';
 import { normalizeEmail } from 'src/common/utils/email.util';
+import { sendCaughtError } from 'src/common/utils/caught-error.util';
 
 @swagger.ApiTags('auth')
 @Controller('auth')
@@ -59,11 +62,53 @@ export class AuthController {
                 statusCode: HttpStatus.OK,
                 data: response,
             });
-        } catch (error) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                error: error,
+        } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+    }
+
+    @Post('register')
+    @Public(true)
+    @swagger.ApiBody({ type: RegisterDto })
+    @ApiOperation({
+        summary: 'Public registration',
+        description: 'Creates an inactive CLIENT account and sends an email activation link.',
+    })
+    async register(
+        @Body() dto: RegisterDto,
+        @Res() res: Response,
+    ) {
+        try {
+            const data = await this.authService.register(dto);
+            return res.status(HttpStatus.CREATED).json({
+                statusCode: HttpStatus.CREATED,
+                data,
             });
+        } catch (error: unknown) {
+            return sendCaughtError(res, error);
+        }
+    }
+
+    @Post('activate')
+    @Public(true)
+    @swagger.ApiBody({ type: ActivateAccountDto })
+    @ApiOperation({
+        summary: 'Activate account',
+        description: 'Activates a registered account using the token from the confirmation email.',
+    })
+    async activate(
+        @Body() dto: ActivateAccountDto,
+        @Res() res: Response,
+    ) {
+        try {
+            const data = await this.authService.activateAccount(dto.token);
+            return res.status(HttpStatus.OK).json({
+                statusCode: HttpStatus.OK,
+                data,
+                message: 'Account activated successfully.',
+            });
+        } catch (error: unknown) {
+            return sendCaughtError(res, error);
         }
     }
 
@@ -101,12 +146,9 @@ export class AuthController {
                 statusCode: HttpStatus.OK,
                 data: response,
             });
-        } catch (error) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                error: error,
-            });
-        }
+        } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
     }
 
     @Post('logout')
@@ -134,18 +176,9 @@ export class AuthController {
                 statusCode: HttpStatus.OK,
                 message: 'Logged out successfully.',
             });
-        } catch (error) {
-            const statusCode = error instanceof HttpException
-                ? error.getStatus()
-                : HttpStatus.INTERNAL_SERVER_ERROR;
-            const response = error instanceof HttpException
-                ? error.getResponse()
-                : error;
-            return res.status(statusCode).json({
-                statusCode,
-                error: response,
-            });
-        }
+        } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
     }
 
     @Post('/request-reset-password')

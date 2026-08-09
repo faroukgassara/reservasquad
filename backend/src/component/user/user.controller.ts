@@ -7,6 +7,7 @@ import { IEnv } from 'src/common/env/env';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from 'src/dto/user/createUser.dto';
 import { Public } from 'src/common/decorator/public.decorator';
+import { Roles } from 'src/common/decorator/roles.decorator';
 import * as swagger from '@nestjs/swagger';
 
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -109,6 +110,7 @@ export class UserController {
     }
 
     @Get('/list')
+    @Roles({ roles: ['ADMIN'] })
     @ApiBearerAuth('Authorization')
     @swagger.ApiOperation({
         summary: 'Fetch users with pagination, filters and search',
@@ -116,13 +118,13 @@ export class UserController {
     })
     @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
     @ApiSortingQuery(USER_SORTING_OPTIONS)
-    @ApiSearchQuery({ fields: ['firstName', 'lastName', 'email', 'phone', 'role'] })
+    @ApiSearchQuery({ fields: ['firstName', 'lastName', 'email', 'phone'] })
     async fetchUsers(
         @Res() res: Response,
         @Query() query: FetchUsersDto,
         @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 }) pagination: PaginationData,
         @SortingQuery(USER_SORTING_OPTIONS) orderBy: Record<string, any>[],
-        @SearchQuery({ fields: ['firstName', 'lastName', 'email', 'phone', 'role'] }) searchWhere?: Record<string, any>,
+        @SearchQuery({ fields: ['firstName', 'lastName', 'email', 'phone'] }) searchWhere?: Record<string, any>,
     ) {
         try {
             const users = await this.userService.fetchUsers(query, pagination, orderBy, searchWhere);

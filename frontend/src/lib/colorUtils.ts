@@ -1,4 +1,4 @@
-import { TColorPickerFormat } from '@/interfaces/Molecules/IMoleculeColorPicker/IMoleculeColorPicker'
+import { TColorPickerFormat } from '@/interfaces/IPrimitives/IColorPicker/IColorPicker'
 import { colord } from 'colord'
 
 /**
@@ -6,7 +6,7 @@ import { colord } from 'colord'
  */
 export const toFormattedColor = (
     input: string,
-    targetFormat: Readonly<TColorPickerFormat>,
+    targetFormat: TColorPickerFormat,
     fallback: string
 ): string => {
     const parsed = colord(input)

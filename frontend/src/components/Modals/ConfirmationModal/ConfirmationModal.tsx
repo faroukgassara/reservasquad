@@ -1,18 +1,18 @@
 'use client';
 
-import MoleculeModal from '@/components/Molecules/MoleculeModal/MoleculeModal';
+import { useTranslations } from 'next-intl';
+import Button from '@/components/Primitives/Button/Button';
+import Modal from '@/components/Primitives/Modal/Modal';
 import { useCurrentModal } from '@/contexts/ModalContext';
-import AtomDiv from '@/components/Atoms/AtomDiv/AtomDiv';
-import AtomLabel from '@/components/Atoms/AtomLabel/AtomLabel';
+import Div from '@/components/Primitives/Div/Div';
+import Icon from '@/components/Primitives/Icon/Icon';
+import Label from '@/components/Primitives/Label/Label';
 import IConfirmationModalProps from '@/interfaces/Modals/IConfirmationModalProps/IConfirmationModalProps';
 import { EButtonType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { ELabelColor } from '@/theme/labelColors';
-import MoleculeButton from '@/components/Molecules/MoleculeButton/MoleculeButton';
-import AtomIcon from '@/components/Atoms/AtomIcon/AtomIcon';
-import { useTranslations } from 'next-intl';
 
 const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
-    const t = useTranslations();
+    const t = useTranslations('common');
     const { closeModal } = useCurrentModal();
 
     const handleCancel = () => closeModal();
@@ -20,66 +20,66 @@ const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
         props.onSubmit?.();
     };
 
-    const iconName = props.icon ?? IconComponentsEnum.exclamationTriangle;
+    const iconName = props.icon ?? IconComponentsEnum.alert;
     const iconBgColor = props.iconBgColor ?? 'bg-warning-100';
     const iconColor = props.iconColor ?? 'text-warning-500';
 
     const modalContent = (
-        <AtomDiv className="w-full flex flex-col gap-5 px-2 pb-2">
-            <AtomDiv className={`flex items-center justify-center w-12 h-12 rounded-full shrink-0 ${iconBgColor}`}>
-                <AtomIcon
+        <Div className="w-full flex flex-col gap-5 px-2 pb-2">
+            <Div className={`flex items-center justify-center w-12 h-12 rounded-full shrink-0 ${iconBgColor}`}>
+                <Icon
                     name={iconName}
                     color={iconColor as ELabelColor}
                     size={ESize.md}
                 />
-            </AtomDiv>
+            </Div>
 
-            <AtomDiv className="flex flex-col gap-1 w-full">
+            <Div className="flex flex-col gap-1 w-full">
                 {props.title && (
-                    <AtomLabel color="text-primary-500" variant={EVariantLabel.h6}>
+                    <Label color="text-primary-500" variant={EVariantLabel.h6}>
                         {props.title}
-                    </AtomLabel>
+                    </Label>
                 )}
                 {props.description && (
-                    <AtomLabel color="text-gray-500" variant={EVariantLabel.bodySmall}>
+                    <Label color="text-gray-500" variant={EVariantLabel.bodySmall}>
                         {props.description}
-                    </AtomLabel>
+                    </Label>
                 )}
-            </AtomDiv>
+            </Div>
 
-            <AtomDiv className="w-full flex gap-3 pt-2">
-                <MoleculeButton
+            <Div className="w-full flex gap-3 pt-2">
+                <Button
                     id="cancel-btn"
                     type={EButtonType.secondary}
                     className="flex-1"
-                    text={props.cancelBtnText ?? t('common.cancel')}
+                    text={props.cancelBtnText ?? t('return')}
                     onClick={handleCancel}
                     disabled={props.isLoading}
                 />
-                <MoleculeButton
+                <Button
                     id="confirm-btn"
                     type={EButtonType.primary}
                     className="flex-1"
-                    text={props.submitBtnText ?? t('common.delete')}
+                    text={props.submitBtnText ?? t('validate')}
                     isLoading={props.isLoading}
                     onClick={handleSubmit}
                 />
-            </AtomDiv>
-        </AtomDiv>
+            </Div>
+        </Div>
     );
 
     if (overlay) {
         return (
-            <AtomDiv className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <AtomDiv className="bg-white rounded-xxl shadow-lg w-[min(92vw,400px)] p-6">
+            <Div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <Div className="bg-white rounded-xxl shadow-lg w-[min(92vw,400px)] p-6">
                     {modalContent}
-                </AtomDiv>
-            </AtomDiv>
+                </Div>
+            </Div>
         );
     }
 
     return (
-        <MoleculeModal
+        <Modal
             title=""
             canClose={false}
             canCloseOnClickOutisde={false}
@@ -87,7 +87,7 @@ const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
             isDrawer={false}
         >
             {modalContent}
-        </MoleculeModal>
+        </Modal>
     );
 };
 
