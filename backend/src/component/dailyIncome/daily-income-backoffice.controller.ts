@@ -84,6 +84,20 @@ export class DailyIncomeBackofficeController {
     }
   }
 
+  @Get('trend')
+  @swagger.ApiOperation({ summary: 'Income trend over the last N months' })
+  async trend(@Res() res: Response, @Query('months') months?: string) {
+    try {
+      const parsed = months !== undefined ? Number(months) : 6;
+      const data = await this.dailyIncomeService.getTrend(
+        Number.isFinite(parsed) ? parsed : 6,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get('lines')
   @swagger.ApiOperation({ summary: 'List income lines for a month' })
   async listLines(@Res() res: Response, @Query() query: FetchIncomeLinesDto) {

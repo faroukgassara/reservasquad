@@ -200,6 +200,16 @@ export class DailyIncomeService {
     };
   }
 
+  async getTrend(months: number) {
+    const now = new Date();
+    const count = Math.min(Math.max(Math.trunc(months) || 6, 1), 24);
+    const periods = Array.from({ length: count }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
+      return { year: d.getFullYear(), month: d.getMonth() + 1 };
+    });
+    return Promise.all(periods.map((period) => this.getSummary(period)));
+  }
+
   async createIncomeLine(dto: CreateIncomeLineDto) {
     const date = this.toDateOnly(dto.date);
     return this.prismaService.incomeLine.create({

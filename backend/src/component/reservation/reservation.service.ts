@@ -282,30 +282,115 @@ export class ReservationService {
     });
   }
 
+  private dayKey(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+      d.getDate(),
+    ).padStart(2, '0')}`;
+  }
+
   async dashboardStats() {
     const now = new Date();
     const startOfDay = new Date(now);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const trendFrom = new Date(startOfDay);
+    trendFrom.setDate(trendFrom.getDate() - 13);
 
-    const [rooms, professors, todayReservations] = await Promise.all([
-      this.prismaService.room.count({
-        where: { deletedAt: null },
-      }),
-      this.prismaService.professor.count({
-        where: { deletedAt: null },
-      }),
-      this.prismaService.reservation.count({
-        where: {
-          deletedAt: null,
-          status: EReservationStatus.CONFIRMED,
-          startAt: { lt: endOfDay },
-          endAt: { gt: startOfDay },
-        },
-      }),
-    ]);
+    const [rooms, professors, todayReservations, monthReservations, trendReservations] =
+      await Promise.all([
+        this.prismaService.room.count({
+          where: { deletedAt: null },
+        }),
+        this.prismaService.professor.count({
+          where: { deletedAt: null },
+        }),
+        this.prismaService.reservation.count({
+          where: {
+            deletedAt: null,
+            status: EReservationStatus.CONFIRMED,
+            startAt: { lt: endOfDay },
+            endAt: { gt: startOfDay },
+          },
+        }),
+        this.prismaService.reservation.findMany({
+          where: { deletedAt: null, startAt: { gte: startOfMonth, lt: startOfNextMonth } },
+          select: {
+            status: true,
+            isPaid: true,
+            price: true,
+            roomId: true,
+            room: { select: { name: true } },
+          },
+        }),
+        this.prismaService.reservation.findMany({
+          where: {
+            deletedAt: null,
+            status: EReservationStatus.CONFIRMED,
+            startAt: { gte: trendFrom, lt: endOfDay },
+          },
+          select: { startAt: true, price: true },
+        }),
+      ]);
 
-    return { rooms, professors, todayReservations };
+    const month = monthReservations.reduce(
+      (acc, r) => {
+        acc.total += 1;
+        if (r.status === EReservationStatus.CONFIRMED) {
+          acc.confirmed += 1;
+          acc.revenue += Number(r.price);
+        } else {
+          acc.cancelled += 1;
+        }
+        if (r.isPaid) acc.paid += 1;
+        else acc.unpaid += 1;
+        return acc;
+      },
+      { total: 0, confirmed: 0, cancelled: 0, paid: 0, unpaid: 0, revenue: 0 },
+    );
+    month.revenue = Math.round(month.revenue * 100) / 100;
+
+    const roomBuckets = new Map<
+      string,
+      { roomId: string; roomName: string; count: number; revenue: number }
+    >();
+    for (const r of monthReservations) {
+      if (r.status !== EReservationStatus.CONFIRMED) continue;
+      const bucket =
+        roomBuckets.get(r.roomId) ??
+        ({ roomId: r.roomId, roomName: r.room?.name ?? '—', count: 0, revenue: 0 } as const);
+      roomBuckets.set(r.roomId, {
+        ...bucket,
+        count: bucket.count + 1,
+        revenue: bucket.revenue + Number(r.price),
+      });
+    }
+    const topRooms = Array.from(roomBuckets.values())
+      .map((bucket) => ({ ...bucket, revenue: Math.round(bucket.revenue * 100) / 100 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const trendMap = new Map<string, { count: number; revenue: number }>();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(trendFrom);
+      d.setDate(d.getDate() + i);
+      trendMap.set(this.dayKey(d), { count: 0, revenue: 0 });
+    }
+    for (const r of trendReservations) {
+      const bucket = trendMap.get(this.dayKey(r.startAt));
+      if (bucket) {
+        bucket.count += 1;
+        bucket.revenue += Number(r.price);
+      }
+    }
+    const dailyTrend = Array.from(trendMap.entries()).map(([date, value]) => ({
+      date,
+      count: value.count,
+      revenue: Math.round(value.revenue * 100) / 100,
+    }));
+
+    return { rooms, professors, todayReservations, month, topRooms, dailyTrend };
   }
 }

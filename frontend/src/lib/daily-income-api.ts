@@ -103,6 +103,17 @@ export async function fetchDailyIncomeSummary(params: {
     return unwrapData<DailyIncomeSummary>(res.data as { data?: DailyIncomeSummary });
 }
 
+export async function fetchIncomeTrend(params: { months?: number }): Promise<DailyIncomeSummary[]> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params.months) sp.set('months', String(params.months));
+    const q = sp.toString();
+    const path = q ? `/api/daily-income/trend?${q}` : '/api/daily-income/trend';
+    const res = await api.get(path, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch income trend');
+    return unwrapData<DailyIncomeSummary[]>(res.data as { data?: DailyIncomeSummary[] });
+}
+
 export async function createDailyIncome(body: {
     date: string;
     totalIncome: number;

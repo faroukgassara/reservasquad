@@ -39,10 +39,33 @@ export interface PaginatedReservations {
     };
 }
 
+export interface DashboardRoomBreakdown {
+    roomId: string;
+    roomName: string;
+    count: number;
+    revenue: number;
+}
+
+export interface DashboardDailyTrendPoint {
+    date: string;
+    count: number;
+    revenue: number;
+}
+
 export interface DashboardStats {
     rooms: number;
     professors: number;
     todayReservations: number;
+    month: {
+        total: number;
+        confirmed: number;
+        cancelled: number;
+        paid: number;
+        unpaid: number;
+        revenue: number;
+    };
+    topRooms: DashboardRoomBreakdown[];
+    dailyTrend: DashboardDailyTrendPoint[];
 }
 
 function unwrapData<T>(raw: { data?: T } | T): T {
