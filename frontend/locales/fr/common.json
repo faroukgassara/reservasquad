@@ -895,6 +895,7 @@
         "coworkingStats": "Stats coworking",
         "coworkingBookings": "Réservations",
         "users": "Utilisateurs",
+        "auditLog": "Journal d'audit",
         "sales": "Ventes",
         "clients": "Clients",
         "quotes": "Devis",
@@ -935,7 +936,9 @@
         "chartIncome": "Revenus",
         "chartCharges": "Charges",
         "chartInvestments": "Investissements",
-        "chartNetBalance": "Solde net"
+        "chartNetBalance": "Solde net",
+        "occupancyHeatmapTitle": "Occupation des salles — ce mois-ci",
+        "occupancyEmpty": "Aucune donnée d'occupation pour ce mois"
     },
     "shop": {
         "eyebrow": "Boutique",
@@ -1338,6 +1341,33 @@
             "modalCreateTitle": "Ajouter un utilisateur",
             "modalEditTitle": "Modifier l'utilisateur"
         },
+        "auditLog": {
+            "title": "Journal d'audit",
+            "subtitle": "Suivi des modifications réservations et revenus",
+            "empty": "Aucune entrée d'audit",
+            "filterEntity": "Entité",
+            "columns": {
+                "date": "Date",
+                "user": "Utilisateur",
+                "action": "Action",
+                "entity": "Entité",
+                "summary": "Résumé"
+            },
+            "entities": {
+                "all": "Toutes",
+                "RESERVATION": "Réservation",
+                "DAILY_INCOME": "Revenu journalier",
+                "INCOME_LINE": "Ligne de revenu"
+            },
+            "actions": {
+                "CREATE": "Création",
+                "UPDATE": "Modification",
+                "DELETE": "Suppression",
+                "CANCEL": "Annulation",
+                "BULK_PAID": "Paiement groupé",
+                "SERIES_CREATE": "Série créée"
+            }
+        },
         "testimonials": {
             "title": "Témoignages",
             "subtitle": "Modérer les témoignages",
@@ -1481,7 +1511,24 @@
             "filterAllPayments": "Tous les paiements",
             "filterAllStatuses": "Tous les statuts",
             "filterFrom": "Du",
-            "filterTo": "Au"
+            "filterTo": "Au",
+            "bulkPaid": "Marquer payé",
+            "bulkPaidSelected": "Marquer payé ({count})",
+            "bulkPaidConfirm": "Marquer {count} réservation(s) sélectionnée(s) comme payée(s) ?",
+            "bulkPaidSuccess": "{count} réservation(s) marquée(s) comme payée(s)",
+            "selectUnpaidPage": "Sélectionner les non payées",
+            "deselectUnpaid": "Désélectionner les non payées",
+            "recurring": "Réservation récurrente",
+            "frequency": "Fréquence",
+            "frequencyWeekly": "Hebdomadaire",
+            "frequencyMonthly": "Mensuelle",
+            "until": "Répéter jusqu'au",
+            "untilRequired": "Choisissez une date de fin",
+            "seriesMemberHint": "Cette réservation fait partie d'une série. La modification ne concerne que cette occurrence.",
+            "deleteSeriesFuture": "Supprimer cette occurrence et les suivantes",
+            "deleteSeriesFutureConfirm": "Supprimer cette occurrence et toutes les suivantes de la série ?",
+            "seriesCreated": "Série créée ({count} réservations)",
+            "seriesBadge": "Série"
         },
         "calendar": {
             "title": "Calendrier",

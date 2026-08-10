@@ -96,6 +96,13 @@ export default function PrivateLayout({
             href: Routes.Users.index,
             hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
         },
+        {
+            id: 'audit-log',
+            iconName: IconComponentsEnum.clock,
+            label: t('auditLog'),
+            href: Routes.AuditLog.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
     ];
 
     let sidebarLayoutClass =

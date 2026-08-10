@@ -895,6 +895,7 @@
         "coworkingStats": "Coworking stats",
         "coworkingBookings": "Bookings",
         "users": "Users",
+        "auditLog": "Audit log",
         "sales": "Sales",
         "clients": "Clients",
         "quotes": "Quotes",
@@ -935,7 +936,9 @@
         "chartIncome": "Income",
         "chartCharges": "Charges",
         "chartInvestments": "Investments",
-        "chartNetBalance": "Net balance"
+        "chartNetBalance": "Net balance",
+        "occupancyHeatmapTitle": "Room occupancy — this month",
+        "occupancyEmpty": "No room occupancy data for this month"
     },
     "shop": {
         "eyebrow": "Shop",
@@ -1338,6 +1341,33 @@
             "modalCreateTitle": "Add user",
             "modalEditTitle": "Edit user"
         },
+        "auditLog": {
+            "title": "Audit log",
+            "subtitle": "Track reservation and income changes",
+            "empty": "No audit entries yet",
+            "filterEntity": "Entity",
+            "columns": {
+                "date": "Date",
+                "user": "User",
+                "action": "Action",
+                "entity": "Entity",
+                "summary": "Summary"
+            },
+            "entities": {
+                "all": "All",
+                "RESERVATION": "Reservation",
+                "DAILY_INCOME": "Daily income",
+                "INCOME_LINE": "Income line"
+            },
+            "actions": {
+                "CREATE": "Create",
+                "UPDATE": "Update",
+                "DELETE": "Delete",
+                "CANCEL": "Cancel",
+                "BULK_PAID": "Bulk paid",
+                "SERIES_CREATE": "Series create"
+            }
+        },
         "testimonials": {
             "title": "Testimonials",
             "subtitle": "Moderate testimonials",
@@ -1481,7 +1511,24 @@
             "filterAllPayments": "All payments",
             "filterAllStatuses": "All statuses",
             "filterFrom": "From",
-            "filterTo": "To"
+            "filterTo": "To",
+            "bulkPaid": "Mark paid",
+            "bulkPaidSelected": "Mark paid ({count})",
+            "bulkPaidConfirm": "Mark {count} selected reservation(s) as paid?",
+            "bulkPaidSuccess": "{count} reservation(s) marked as paid",
+            "selectUnpaidPage": "Select unpaid on page",
+            "deselectUnpaid": "Deselect unpaid",
+            "recurring": "Recurring reservation",
+            "frequency": "Frequency",
+            "frequencyWeekly": "Weekly",
+            "frequencyMonthly": "Monthly",
+            "until": "Repeat until",
+            "untilRequired": "Choose an end date",
+            "seriesMemberHint": "This reservation is part of a series. Editing affects only this occurrence.",
+            "deleteSeriesFuture": "Delete this and future occurrences",
+            "deleteSeriesFutureConfirm": "Delete this and all future occurrences in the series?",
+            "seriesCreated": "Series created ({count} reservations)",
+            "seriesBadge": "Series"
         },
         "calendar": {
             "title": "Calendar",

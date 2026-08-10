@@ -24,6 +24,9 @@ export const Routes = {
     Users: {
         index: '/users',
     },
+    AuditLog: {
+        index: '/audit-log',
+    },
 } as const;
 
 export const PublicRoutes = [

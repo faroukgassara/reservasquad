@@ -7,6 +7,7 @@ import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import Button from '@/components/Primitives/Button/Button';
 import Badge from '@/components/Primitives/Badge/Badge';
+import Checkbox from '@/components/Primitives/Checkbox/Checkbox';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
@@ -18,8 +19,11 @@ import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import {
+    bulkMarkReservationsPaid,
     cancelReservation,
     createReservation,
+    createReservationSeries,
+    deleteFutureInSeries,
     deleteReservation,
     fetchReservations,
     formatMoney,
@@ -45,6 +49,8 @@ type ModalState =
     | { type: 'form'; reservation: ReservationRecord | null }
     | { type: 'delete'; reservation: ReservationRecord }
     | { type: 'cancel'; reservation: ReservationRecord }
+    | { type: 'bulk-paid' }
+    | { type: 'delete-series'; reservation: ReservationRecord }
     | null;
 
 type PaidFilter = 'all' | 'paid' | 'unpaid';
@@ -72,6 +78,7 @@ export default function ReservationsAdminPage() {
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
     const [modalState, setModalState] = useState<ModalState>(null);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const queryClient = useQueryClient();
     const { openToast } = useToast();
     const { openModal, closeModal, modalPortal } = useModal({
@@ -172,6 +179,20 @@ export default function ReservationsAdminPage() {
         onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
     });
 
+    const seriesMutation = useMutation({
+        mutationFn: createReservationSeries,
+        onSuccess: (result) => {
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            openToast(tCommon('success'), t('seriesCreated', { count: result.count }), {
+                type: EToastType.SUCCESS,
+            });
+            setModalState(null);
+        },
+        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
     const updateMutation = useMutation({
         mutationFn: ({ id, body }: { id: string; body: Parameters<typeof updateReservation>[1] }) =>
             updateReservation(id, body),
@@ -207,8 +228,62 @@ export default function ReservationsAdminPage() {
         onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
     });
 
+    const bulkPaidMutation = useMutation({
+        mutationFn: bulkMarkReservationsPaid,
+        onSuccess: (result) => {
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+            openToast(tCommon('success'), t('bulkPaidSuccess', { count: result.updated }), {
+                type: EToastType.SUCCESS,
+            });
+            setSelectedIds([]);
+            setModalState(null);
+            closeModal();
+        },
+        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
+    const deleteSeriesMutation = useMutation({
+        mutationFn: deleteFutureInSeries,
+        onSuccess: (result) => {
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            openToast(tCommon('success'), t('deleteSeriesFuture'), {
+                type: EToastType.SUCCESS,
+            });
+            void result;
+            setModalState(null);
+            closeModal();
+        },
+        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
     const rows = data?.data ?? [];
     const totalRows = data?.meta?.total ?? 0;
+    const unpaidSelectableIds = useMemo(
+        () => rows.filter((row) => !row.isPaid).map((row) => row.id),
+        [rows],
+    );
+    const allUnpaidSelected =
+        unpaidSelectableIds.length > 0 &&
+        unpaidSelectableIds.every((id) => selectedIds.includes(id));
+
+    const toggleSelectAllUnpaid = useCallback(() => {
+        setSelectedIds((prev) => {
+            if (unpaidSelectableIds.every((id) => prev.includes(id))) {
+                return prev.filter((id) => !unpaidSelectableIds.includes(id));
+            }
+            return Array.from(new Set([...prev, ...unpaidSelectableIds]));
+        });
+    }, [unpaidSelectableIds]);
+
+    const toggleSelectRow = useCallback((id: string) => {
+        setSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+        );
+    }, []);
 
     const handleFormSubmit = useCallback(
         async (values: ReservationFormValues) => {
@@ -221,9 +296,7 @@ export default function ReservationsAdminPage() {
                 notes: values.notes.trim() || undefined,
                 status: values.status,
                 isPaid: values.isPaid,
-                ...((values.manualPrice
-                    ? { price: Number(values.price) }
-                    : {})),
+                ...(values.manualPrice ? { price: Number(values.price) } : {}),
             };
             if (modalState?.type === 'form' && modalState.reservation) {
                 await updateMutation.mutateAsync({
@@ -235,13 +308,43 @@ export default function ReservationsAdminPage() {
                 });
                 return;
             }
+            if (values.recurring) {
+                await seriesMutation.mutateAsync({
+                    ...payload,
+                    frequency: values.frequency,
+                    until: values.until,
+                });
+                return;
+            }
             await createMutation.mutateAsync(payload);
         },
-        [createMutation, modalState, updateMutation],
+        [createMutation, modalState, seriesMutation, updateMutation],
     );
 
     const columns = useMemo(
         (): ITableColumn<ReservationRecord>[] => [
+            ...(isAdmin
+                ? [
+                      {
+                          headerElement: {
+                              value: 'select',
+                              label: '',
+                              width: '48px',
+                              render: (_: unknown, row: ReservationRecord) =>
+                                  row.isPaid ? (
+                                      <Div className="size-5" />
+                                  ) : (
+                                      <Checkbox
+                                          id={`reservation-select-${row.id}`}
+                                          checked={selectedIds.includes(row.id)}
+                                          onChange={() => toggleSelectRow(row.id)}
+                                          label=""
+                                      />
+                                  ),
+                          },
+                      } satisfies ITableColumn<ReservationRecord>,
+                  ]
+                : []),
             {
                 headerElement: {
                     value: 'title',
@@ -327,7 +430,7 @@ export default function ReservationsAdminPage() {
                 },
             },
         ],
-        [t, tStatus],
+        [isAdmin, selectedIds, t, tStatus, toggleSelectRow],
     );
 
     const actions = useMemo(
@@ -365,6 +468,33 @@ export default function ReservationsAdminPage() {
     );
 
     const renderModalContent = () => {
+        if (modalState?.type === 'bulk-paid') {
+            return (
+                <ConfirmationModal
+                    title={t('bulkPaid')}
+                    description={t('bulkPaidConfirm', { count: selectedIds.length })}
+                    submitBtnText={t('bulkPaid')}
+                    cancelBtnText={tCommon('cancel')}
+                    onSubmit={() => bulkPaidMutation.mutate(selectedIds)}
+                    isLoading={bulkPaidMutation.isPending}
+                />
+            );
+        }
+        if (modalState?.type === 'delete-series') {
+            return (
+                <ConfirmationModal
+                    title={t('deleteSeriesFuture')}
+                    description={t('deleteSeriesFutureConfirm')}
+                    submitBtnText={tCommon('delete')}
+                    cancelBtnText={tCommon('cancel')}
+                    onSubmit={() => deleteSeriesMutation.mutate(modalState.reservation.id)}
+                    isLoading={deleteSeriesMutation.isPending}
+                    icon={IconComponentsEnum.info}
+                    iconBgColor="bg-danger-100"
+                    iconColor="text-danger-600"
+                />
+            );
+        }
         if (modalState?.type === 'delete') {
             return (
                 <ConfirmationModal
@@ -400,7 +530,22 @@ export default function ReservationsAdminPage() {
                     rooms={rooms}
                     professors={professors}
                     onSubmit={handleFormSubmit}
-                    isLoading={createMutation.isPending || updateMutation.isPending}
+                    isLoading={
+                        createMutation.isPending ||
+                        updateMutation.isPending ||
+                        seriesMutation.isPending
+                    }
+                    onDeleteSeriesFuture={
+                        modalState.reservation?.seriesId
+                            ? () => {
+                                  setModalState({
+                                      type: 'delete-series',
+                                      reservation: modalState.reservation!,
+                                  });
+                              }
+                            : undefined
+                    }
+                    isDeletingSeries={deleteSeriesMutation.isPending}
                 />
             );
         }
@@ -524,22 +669,49 @@ export default function ReservationsAdminPage() {
                             onPageChange={setPage}
                             primaryAction={
                                 isAdmin ? (
-                                    <Button
-                                        id="reservations-add-btn"
-                                        type={EButtonType.primary}
-                                        size={EButtonSize.medium}
-                                        iconPosition="left"
-                                        icon={{
-                                            name: IconComponentsEnum.plus,
-                                            size: ESize.sm,
-                                            color: 'text-white',
-                                        }}
-                                        text={t('create')}
-                                        onClick={() => {
-                                            setModalState({ type: 'form', reservation: null });
-                                            openModal();
-                                        }}
-                                    />
+                                    <Div className="flex flex-wrap items-center gap-2">
+                                        {selectedIds.length > 0 ? (
+                                            <Button
+                                                id="reservations-bulk-paid-btn"
+                                                type={EButtonType.secondary}
+                                                size={EButtonSize.medium}
+                                                text={t('bulkPaidSelected', { count: selectedIds.length })}
+                                                onClick={() => {
+                                                    setModalState({ type: 'bulk-paid' });
+                                                    openModal();
+                                                }}
+                                            />
+                                        ) : null}
+                                        {unpaidSelectableIds.length > 0 ? (
+                                            <Button
+                                                id="reservations-select-unpaid-btn"
+                                                type={EButtonType.tertiary}
+                                                size={EButtonSize.medium}
+                                                text={
+                                                    allUnpaidSelected
+                                                        ? t('deselectUnpaid')
+                                                        : t('selectUnpaidPage')
+                                                }
+                                                onClick={toggleSelectAllUnpaid}
+                                            />
+                                        ) : null}
+                                        <Button
+                                            id="reservations-add-btn"
+                                            type={EButtonType.primary}
+                                            size={EButtonSize.medium}
+                                            iconPosition="left"
+                                            icon={{
+                                                name: IconComponentsEnum.plus,
+                                                size: ESize.sm,
+                                                color: 'text-white',
+                                            }}
+                                            text={t('create')}
+                                            onClick={() => {
+                                                setModalState({ type: 'form', reservation: null });
+                                                openModal();
+                                            }}
+                                        />
+                                    </Div>
                                 ) : undefined
                             }
                         />

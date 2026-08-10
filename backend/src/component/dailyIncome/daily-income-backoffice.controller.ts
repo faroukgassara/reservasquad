@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   Res,
 } from '@nestjs/common';
 import { Response } from 'express';
@@ -26,6 +27,7 @@ import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { sendCaughtError } from 'src/common/utils/caught-error.util';
+import { IRequest } from 'src/interface/request/request.interface';
 
 @swagger.ApiTags('daily-income-backoffice')
 @Controller('backoffice/daily-income')
@@ -111,11 +113,18 @@ export class DailyIncomeBackofficeController {
 
   @Post('lines')
   @swagger.ApiOperation({ summary: 'Create an income line' })
-  async createLine(@Res() res: Response, @Body() body: CreateIncomeLineDto) {
+  async createLine(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: CreateIncomeLineDto,
+  ) {
     try {
       const dto = await this.validateDto(CreateIncomeLineDto, body, res);
       if (!dto) return;
-      const line = await this.dailyIncomeService.createIncomeLine(dto);
+      const line = await this.dailyIncomeService.createIncomeLine(
+        dto,
+        req.user?.id,
+      );
       return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data: line });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -126,13 +135,18 @@ export class DailyIncomeBackofficeController {
   @swagger.ApiOperation({ summary: 'Update an income line' })
   async updateLine(
     @Res() res: Response,
+    @Req() req: IRequest,
     @Param('id') id: string,
     @Body() body: UpdateIncomeLineDto,
   ) {
     try {
       const dto = await this.validateDto(UpdateIncomeLineDto, body, res);
       if (!dto) return;
-      const line = await this.dailyIncomeService.updateIncomeLine(id, dto);
+      const line = await this.dailyIncomeService.updateIncomeLine(
+        id,
+        dto,
+        req.user?.id,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: line });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -141,9 +155,16 @@ export class DailyIncomeBackofficeController {
 
   @Delete('lines/:id')
   @swagger.ApiOperation({ summary: 'Delete an income line' })
-  async removeLine(@Res() res: Response, @Param('id') id: string) {
+  async removeLine(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
     try {
-      const line = await this.dailyIncomeService.deleteIncomeLine(id);
+      const line = await this.dailyIncomeService.deleteIncomeLine(
+        id,
+        req.user?.id,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: line });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -152,11 +173,18 @@ export class DailyIncomeBackofficeController {
 
   @Post()
   @swagger.ApiOperation({ summary: 'Create a daily income entry' })
-  async create(@Res() res: Response, @Body() body: CreateDailyIncomeDto) {
+  async create(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: CreateDailyIncomeDto,
+  ) {
     try {
       const dto = await this.validateDto(CreateDailyIncomeDto, body, res);
       if (!dto) return;
-      const row = await this.dailyIncomeService.createDailyIncome(dto);
+      const row = await this.dailyIncomeService.createDailyIncome(
+        dto,
+        req.user?.id,
+      );
       return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data: row });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -178,13 +206,18 @@ export class DailyIncomeBackofficeController {
   @swagger.ApiOperation({ summary: 'Update a daily income entry' })
   async update(
     @Res() res: Response,
+    @Req() req: IRequest,
     @Param('id') id: string,
     @Body() body: UpdateDailyIncomeDto,
   ) {
     try {
       const dto = await this.validateDto(UpdateDailyIncomeDto, body, res);
       if (!dto) return;
-      const row = await this.dailyIncomeService.updateDailyIncome(id, dto);
+      const row = await this.dailyIncomeService.updateDailyIncome(
+        id,
+        dto,
+        req.user?.id,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: row });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -193,9 +226,16 @@ export class DailyIncomeBackofficeController {
 
   @Delete(':id')
   @swagger.ApiOperation({ summary: 'Delete a daily income entry' })
-  async remove(@Res() res: Response, @Param('id') id: string) {
+  async remove(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
     try {
-      const row = await this.dailyIncomeService.deleteDailyIncome(id);
+      const row = await this.dailyIncomeService.deleteDailyIncome(
+        id,
+        req.user?.id,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: row });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

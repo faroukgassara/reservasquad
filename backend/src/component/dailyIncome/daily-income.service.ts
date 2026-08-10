@@ -14,10 +14,14 @@ import {
 } from 'src/dto/dailyIncome/createIncomeLine.dto';
 import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
 import { EIncomeLineType } from 'src/generated/prisma/client';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class DailyIncomeService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly auditService: AuditService,
+  ) {}
 
   private toDateOnly(value: string | Date): Date {
     const d = new Date(value);
@@ -48,7 +52,7 @@ export class DailyIncomeService {
     return { year, month, ...this.monthRange(year, month) };
   }
 
-  async createDailyIncome(dto: CreateDailyIncomeDto) {
+  async createDailyIncome(dto: CreateDailyIncomeDto, actorId?: string) {
     const date = this.toDateOnly(dto.date);
     const existing = await this.prismaService.dailyIncome.findFirst({
       where: { date, deletedAt: null },
@@ -58,7 +62,7 @@ export class DailyIncomeService {
     }
 
     const totalIncome = Number(dto.totalIncome);
-    return this.prismaService.dailyIncome.create({
+    const created = await this.prismaService.dailyIncome.create({
       data: {
         date,
         totalIncome: totalIncome.toFixed(2),
@@ -67,9 +71,23 @@ export class DailyIncomeService {
         notes: dto.notes?.trim() || null,
       },
     });
+
+    await this.auditService.log({
+      entityType: 'DAILY_INCOME',
+      entityId: created.id,
+      action: 'CREATE',
+      userId: actorId,
+      summary: `Created daily income for ${this.dateKey(created.date)}`,
+    });
+
+    return created;
   }
 
-  async updateDailyIncome(id: string, dto: UpdateDailyIncomeDto) {
+  async updateDailyIncome(
+    id: string,
+    dto: UpdateDailyIncomeDto,
+    actorId?: string,
+  ) {
     const existing = await this.getDailyIncomeById(id);
 
     let date = existing.date;
@@ -86,7 +104,7 @@ export class DailyIncomeService {
     const totalIncome =
       dto.totalIncome !== undefined ? Number(dto.totalIncome) : Number(existing.totalIncome);
 
-    return this.prismaService.dailyIncome.update({
+    const updated = await this.prismaService.dailyIncome.update({
       where: { id },
       data: {
         date,
@@ -96,6 +114,16 @@ export class DailyIncomeService {
         ...(dto.notes !== undefined && { notes: dto.notes?.trim() || null }),
       },
     });
+
+    await this.auditService.log({
+      entityType: 'DAILY_INCOME',
+      entityId: updated.id,
+      action: 'UPDATE',
+      userId: actorId,
+      summary: `Updated daily income for ${this.dateKey(updated.date)}`,
+    });
+
+    return updated;
   }
 
   async getDailyIncomeById(id: string) {
@@ -106,12 +134,22 @@ export class DailyIncomeService {
     return row;
   }
 
-  async deleteDailyIncome(id: string) {
+  async deleteDailyIncome(id: string, actorId?: string) {
     await this.getDailyIncomeById(id);
-    return this.prismaService.dailyIncome.update({
+    const deleted = await this.prismaService.dailyIncome.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
+
+    await this.auditService.log({
+      entityType: 'DAILY_INCOME',
+      entityId: deleted.id,
+      action: 'DELETE',
+      userId: actorId,
+      summary: `Deleted daily income for ${this.dateKey(deleted.date)}`,
+    });
+
+    return deleted;
   }
 
   async listDailyIncomes(query: FetchDailyIncomeDto) {
@@ -210,9 +248,9 @@ export class DailyIncomeService {
     return Promise.all(periods.map((period) => this.getSummary(period)));
   }
 
-  async createIncomeLine(dto: CreateIncomeLineDto) {
+  async createIncomeLine(dto: CreateIncomeLineDto, actorId?: string) {
     const date = this.toDateOnly(dto.date);
-    return this.prismaService.incomeLine.create({
+    const created = await this.prismaService.incomeLine.create({
       data: {
         date,
         type: dto.type,
@@ -220,11 +258,25 @@ export class DailyIncomeService {
         amount: Number(dto.amount).toFixed(2),
       },
     });
+
+    await this.auditService.log({
+      entityType: 'INCOME_LINE',
+      entityId: created.id,
+      action: 'CREATE',
+      userId: actorId,
+      summary: `Created ${created.type.toLowerCase()} line: ${created.label}`,
+    });
+
+    return created;
   }
 
-  async updateIncomeLine(id: string, dto: UpdateIncomeLineDto) {
+  async updateIncomeLine(
+    id: string,
+    dto: UpdateIncomeLineDto,
+    actorId?: string,
+  ) {
     await this.getIncomeLineById(id);
-    return this.prismaService.incomeLine.update({
+    const updated = await this.prismaService.incomeLine.update({
       where: { id },
       data: {
         ...(dto.date !== undefined && { date: this.toDateOnly(dto.date) }),
@@ -233,6 +285,16 @@ export class DailyIncomeService {
         ...(dto.amount !== undefined && { amount: Number(dto.amount).toFixed(2) }),
       },
     });
+
+    await this.auditService.log({
+      entityType: 'INCOME_LINE',
+      entityId: updated.id,
+      action: 'UPDATE',
+      userId: actorId,
+      summary: `Updated income line: ${updated.label}`,
+    });
+
+    return updated;
   }
 
   async getIncomeLineById(id: string) {
@@ -243,12 +305,22 @@ export class DailyIncomeService {
     return row;
   }
 
-  async deleteIncomeLine(id: string) {
+  async deleteIncomeLine(id: string, actorId?: string) {
     await this.getIncomeLineById(id);
-    return this.prismaService.incomeLine.update({
+    const deleted = await this.prismaService.incomeLine.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
+
+    await this.auditService.log({
+      entityType: 'INCOME_LINE',
+      entityId: deleted.id,
+      action: 'DELETE',
+      userId: actorId,
+      summary: `Deleted income line: ${deleted.label}`,
+    });
+
+    return deleted;
   }
 
   async listIncomeLines(query: FetchIncomeLinesDto) {

@@ -9,6 +9,8 @@ import { CreateReservationDto } from 'src/dto/reservation/createReservation.dto'
 import { UpdateReservationDto } from 'src/dto/reservation/updateReservation.dto';
 import { FetchReservationsDto } from 'src/dto/reservation/fetchReservations.dto';
 import { CalendarQueryDto } from 'src/dto/reservation/calendarQuery.dto';
+import { CreateReservationSeriesDto } from 'src/dto/reservation/createReservationSeries.dto';
+import { randomUUID } from 'crypto';
 import {
   EReservationStatus,
   Prisma,
@@ -18,6 +20,7 @@ import {
 import { ProxyPrismaModel } from 'src/common/pagination/proxy';
 import { buildAndFilters, composeWhere } from 'src/common/pagination/prisma-query.builder';
 import { PaginationData } from 'src/common/pagination/types';
+import { AuditService } from '../audit/audit.service';
 
 const reservationInclude = {
   room: true,
@@ -34,7 +37,10 @@ const reservationInclude = {
 
 @Injectable()
 export class ReservationService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly auditService: AuditService,
+  ) {}
 
   private assertValidRange(startAt: Date, endAt: Date) {
     if (!(startAt instanceof Date) || Number.isNaN(startAt.getTime())) {
@@ -130,7 +136,7 @@ export class ReservationService {
       status,
     });
 
-    return this.prismaService.reservation.create({
+    const created = await this.prismaService.reservation.create({
       data: {
         title: dto.title?.trim() || null,
         roomId: dto.roomId,
@@ -145,11 +151,173 @@ export class ReservationService {
       },
       include: reservationInclude,
     });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: created.id,
+      action: 'CREATE',
+      userId: createdById,
+      summary: `Created reservation ${created.id}`,
+      metadata: { roomId: created.roomId, startAt: created.startAt, endAt: created.endAt },
+    });
+
+    return created;
+  }
+
+  private expandSeriesOccurrences(
+    startAt: Date,
+    endAt: Date,
+    frequency: 'WEEKLY' | 'MONTHLY',
+    until: Date,
+  ): { startAt: Date; endAt: Date }[] {
+    const durationMs = endAt.getTime() - startAt.getTime();
+    const untilEnd = new Date(until);
+    untilEnd.setHours(23, 59, 59, 999);
+
+    const occurrences: { startAt: Date; endAt: Date }[] = [];
+    let cursor = new Date(startAt);
+    const maxOccurrences = 52;
+
+    while (cursor <= untilEnd && occurrences.length < maxOccurrences) {
+      occurrences.push({
+        startAt: new Date(cursor),
+        endAt: new Date(cursor.getTime() + durationMs),
+      });
+      if (frequency === 'WEEKLY') {
+        cursor.setDate(cursor.getDate() + 7);
+      } else {
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+    }
+
+    if (occurrences.length === 0) {
+      throw new BadRequestException('No occurrences fall within the selected range');
+    }
+    return occurrences;
+  }
+
+  async createReservationSeries(
+    dto: CreateReservationSeriesDto,
+    createdById?: string,
+  ) {
+    const startAt = new Date(dto.startAt);
+    const endAt = new Date(dto.endAt);
+    this.assertValidRange(startAt, endAt);
+    const until = new Date(dto.until);
+    if (Number.isNaN(until.getTime())) {
+      throw new BadRequestException('Invalid until date');
+    }
+    if (until < startAt) {
+      throw new BadRequestException('until must be on or after the first occurrence');
+    }
+
+    const room = await this.assertRoomExists(dto.roomId);
+    await this.assertProfessorExists(dto.professorId);
+    const status = dto.status ?? EReservationStatus.CONFIRMED;
+    const occurrences = this.expandSeriesOccurrences(
+      startAt,
+      endAt,
+      dto.frequency,
+      until,
+    );
+
+    for (const occurrence of occurrences) {
+      try {
+        await this.assertNoOverlap({
+          roomId: dto.roomId,
+          startAt: occurrence.startAt,
+          endAt: occurrence.endAt,
+          status,
+        });
+      } catch (error) {
+        if (error instanceof ConflictException) {
+          throw new ConflictException(
+            `This room is already reserved on ${occurrence.startAt.toISOString()}`,
+          );
+        }
+        throw error;
+      }
+    }
+
+    const seriesId = randomUUID();
+    const created = await this.prismaService.$transaction(
+      occurrences.map((occurrence) =>
+        this.prismaService.reservation.create({
+          data: {
+            title: dto.title?.trim() || null,
+            roomId: dto.roomId,
+            professorId: dto.professorId || null,
+            startAt: occurrence.startAt,
+            endAt: occurrence.endAt,
+            price: this.resolvePrice(
+              room,
+              occurrence.startAt,
+              occurrence.endAt,
+              dto.price,
+            ),
+            isPaid: dto.isPaid ?? false,
+            status,
+            notes: dto.notes?.trim() || null,
+            seriesId,
+            createdById: createdById || null,
+          },
+          include: reservationInclude,
+        }),
+      ),
+    );
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: seriesId,
+      action: 'SERIES_CREATE',
+      userId: createdById,
+      summary: `Created series of ${created.length} reservations`,
+      metadata: {
+        seriesId,
+        count: created.length,
+        frequency: dto.frequency,
+        until: dto.until,
+      },
+    });
+
+    return { seriesId, count: created.length, data: created };
+  }
+
+  async deleteFutureInSeries(id: string, actorId?: string) {
+    const existing = await this.getReservationById(id);
+    if (!existing.seriesId) {
+      throw new BadRequestException('This reservation is not part of a series');
+    }
+
+    const result = await this.prismaService.reservation.updateMany({
+      where: {
+        seriesId: existing.seriesId,
+        deletedAt: null,
+        startAt: { gte: existing.startAt },
+      },
+      data: { deletedAt: new Date() },
+    });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: existing.seriesId,
+      action: 'DELETE',
+      userId: actorId,
+      summary: `Deleted ${result.count} future series occurrences`,
+      metadata: {
+        seriesId: existing.seriesId,
+        fromReservationId: id,
+        deleted: result.count,
+      },
+    });
+
+    return { deleted: result.count, seriesId: existing.seriesId };
   }
 
   async updateReservation(
     id: string,
     dto: UpdateReservationDto,
+    actorId?: string,
   ): Promise<Reservation> {
     const existing = await this.getReservationById(id);
     const startAt = dto.startAt ? new Date(dto.startAt) : existing.startAt;
@@ -177,7 +345,7 @@ export class ReservationService {
       dto.price === undefined &&
       (dto.roomId !== undefined || dto.startAt !== undefined || dto.endAt !== undefined);
 
-    return this.prismaService.reservation.update({
+    const updated = await this.prismaService.reservation.update({
       where: { id },
       data: {
         ...(dto.title !== undefined && { title: dto.title?.trim() || null }),
@@ -197,6 +365,16 @@ export class ReservationService {
       },
       include: reservationInclude,
     });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: updated.id,
+      action: 'UPDATE',
+      userId: actorId,
+      summary: `Updated reservation ${updated.id}`,
+    });
+
+    return updated;
   }
 
   async getReservationById(id: string) {
@@ -264,22 +442,65 @@ export class ReservationService {
     });
   }
 
-  async cancelReservation(id: string) {
+  async cancelReservation(id: string, actorId?: string) {
     await this.getReservationById(id);
-    return this.prismaService.reservation.update({
+    const cancelled = await this.prismaService.reservation.update({
       where: { id },
       data: { status: EReservationStatus.CANCELLED },
       include: reservationInclude,
     });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: cancelled.id,
+      action: 'CANCEL',
+      userId: actorId,
+      summary: `Cancelled reservation ${cancelled.id}`,
+    });
+
+    return cancelled;
   }
 
-  async deleteReservation(id: string) {
+  async deleteReservation(id: string, actorId?: string) {
     await this.getReservationById(id);
-    return this.prismaService.reservation.update({
+    const deleted = await this.prismaService.reservation.update({
       where: { id },
       data: { deletedAt: new Date() },
       include: reservationInclude,
     });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: deleted.id,
+      action: 'DELETE',
+      userId: actorId,
+      summary: `Deleted reservation ${deleted.id}`,
+    });
+
+    return deleted;
+  }
+
+  async bulkMarkPaid(ids: string[], actorId?: string) {
+    const uniqueIds = Array.from(new Set(ids));
+    const result = await this.prismaService.reservation.updateMany({
+      where: {
+        id: { in: uniqueIds },
+        deletedAt: null,
+        isPaid: false,
+      },
+      data: { isPaid: true },
+    });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: uniqueIds[0] ?? 'bulk',
+      action: 'BULK_PAID',
+      userId: actorId,
+      summary: `Marked ${result.count} reservations as paid`,
+      metadata: { ids: uniqueIds, updated: result.count },
+    });
+
+    return { updated: result.count };
   }
 
   private dayKey(d: Date): string {
@@ -392,5 +613,63 @@ export class ReservationService {
     }));
 
     return { rooms, professors, todayReservations, month, topRooms, dailyTrend };
+  }
+
+  async occupancy(year?: number, month?: number) {
+    const now = new Date();
+    const y = year ?? now.getFullYear();
+    const m = month ?? now.getMonth() + 1;
+    const from = new Date(y, m - 1, 1);
+    const to = new Date(y, m, 1);
+    const hours = Array.from({ length: 16 }, (_, i) => i + 8); // 8–23
+
+    const [rooms, reservations] = await Promise.all([
+      this.prismaService.room.findMany({
+        where: { deletedAt: null },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
+      this.prismaService.reservation.findMany({
+        where: {
+          deletedAt: null,
+          status: EReservationStatus.CONFIRMED,
+          startAt: { lt: to },
+          endAt: { gt: from },
+        },
+        select: { roomId: true, startAt: true, endAt: true },
+      }),
+    ]);
+
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const cells: { roomId: string; hour: number; ratio: number; bookedMinutes: number }[] = [];
+
+    for (const room of rooms) {
+      for (const hour of hours) {
+        let bookedMinutes = 0;
+        for (let day = 1; day <= daysInMonth; day++) {
+          const slotStart = new Date(y, m - 1, day, hour, 0, 0, 0);
+          const slotEnd = new Date(y, m - 1, day, hour + 1, 0, 0, 0);
+          if (slotEnd <= from || slotStart >= to) continue;
+
+          for (const reservation of reservations) {
+            if (reservation.roomId !== room.id) continue;
+            const overlapStart = Math.max(slotStart.getTime(), reservation.startAt.getTime());
+            const overlapEnd = Math.min(slotEnd.getTime(), reservation.endAt.getTime());
+            if (overlapEnd > overlapStart) {
+              bookedMinutes += (overlapEnd - overlapStart) / (1000 * 60);
+            }
+          }
+        }
+        const availableMinutes = daysInMonth * 60;
+        cells.push({
+          roomId: room.id,
+          hour,
+          bookedMinutes: Math.round(bookedMinutes),
+          ratio: Math.min(1, Math.round((bookedMinutes / availableMinutes) * 1000) / 1000),
+        });
+      }
+    }
+
+    return { year: y, month: m, hours, rooms, cells };
   }
 }

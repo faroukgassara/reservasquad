@@ -23,6 +23,7 @@ model User {
   passwordResetTokens   PasswordResetToken[]
   emailActivationTokens EmailActivationToken[]
   reservationsCreated   Reservation[]
+  auditLogs             AuditLog[]
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -118,6 +119,7 @@ model Reservation {
   isPaid      Boolean            @default(false)
   status      EReservationStatus @default(CONFIRMED)
   notes       String?            @db.Text
+  seriesId    String?
   createdById String?
   createdBy   User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
@@ -131,6 +133,7 @@ model Reservation {
   @@index([endAt])
   @@index([status])
   @@index([isPaid])
+  @@index([seriesId])
   @@index([createdById])
   @@index([deletedAt])
 }
@@ -185,4 +188,20 @@ model IncomeLine {
   @@index([date])
   @@index([type])
   @@index([deletedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  action     String
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  summary    String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@index([userId])
 }

@@ -20,6 +20,8 @@ import { CreateReservationDto } from 'src/dto/reservation/createReservation.dto'
 import { UpdateReservationDto } from 'src/dto/reservation/updateReservation.dto';
 import { FetchReservationsDto } from 'src/dto/reservation/fetchReservations.dto';
 import { CalendarQueryDto } from 'src/dto/reservation/calendarQuery.dto';
+import { BulkMarkPaidDto } from 'src/dto/reservation/bulkMarkPaid.dto';
+import { CreateReservationSeriesDto } from 'src/dto/reservation/createReservationSeries.dto';
 import {
   ApiPaginationQuery,
   PaginationQuery,
@@ -63,6 +65,26 @@ export class ReservationBackofficeController {
   async stats(@Res() res: Response) {
     try {
       const data = await this.reservationService.dashboardStats();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('occupancy')
+  @swagger.ApiOperation({ summary: 'Room × hour occupancy for a month' })
+  async occupancy(
+    @Res() res: Response,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+  ) {
+    try {
+      const y = year !== undefined ? Number(year) : undefined;
+      const m = month !== undefined ? Number(month) : undefined;
+      const data = await this.reservationService.occupancy(
+        Number.isFinite(y) ? y : undefined,
+        Number.isFinite(m) ? m : undefined,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -148,6 +170,68 @@ export class ReservationBackofficeController {
     }
   }
 
+  @Post('series')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Create a recurring reservation series' })
+  async createSeries(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: CreateReservationSeriesDto,
+  ) {
+    try {
+      const dto = plainToInstance(CreateReservationSeriesDto, body);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.createReservationSeries(
+        dto,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('bulk-paid')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Mark multiple reservations as paid' })
+  async bulkMarkPaid(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: BulkMarkPaidDto,
+  ) {
+    try {
+      const dto = plainToInstance(BulkMarkPaidDto, body);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.bulkMarkPaid(
+        dto.ids,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Post()
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Create a reservation' })
@@ -184,6 +268,7 @@ export class ReservationBackofficeController {
   @swagger.ApiOperation({ summary: 'Update a reservation' })
   async update(
     @Res() res: Response,
+    @Req() req: IRequest,
     @Param('id') id: string,
     @Body() body: UpdateReservationDto,
   ) {
@@ -200,7 +285,11 @@ export class ReservationBackofficeController {
           })),
         });
       }
-      const data = await this.reservationService.updateReservation(id, dto);
+      const data = await this.reservationService.updateReservation(
+        id,
+        dto,
+        req.user?.id,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -210,9 +299,37 @@ export class ReservationBackofficeController {
   @Post(':id/cancel')
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Cancel a reservation' })
-  async cancel(@Res() res: Response, @Param('id') id: string) {
+  async cancel(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
     try {
-      const data = await this.reservationService.cancelReservation(id);
+      const data = await this.reservationService.cancelReservation(
+        id,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/delete-series-future')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({
+    summary: 'Soft-delete this and future occurrences in the same series',
+  })
+  async deleteSeriesFuture(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
+    try {
+      const data = await this.reservationService.deleteFutureInSeries(
+        id,
+        req.user?.id,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -222,9 +339,13 @@ export class ReservationBackofficeController {
   @Delete(':id')
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Delete a reservation' })
-  async remove(@Res() res: Response, @Param('id') id: string) {
+  async remove(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
     try {
-      await this.reservationService.deleteReservation(id);
+      await this.reservationService.deleteReservation(id, req.user?.id);
       return res.status(HttpStatus.OK).json({
         statusCode: HttpStatus.OK,
         message: 'Reservation deleted',

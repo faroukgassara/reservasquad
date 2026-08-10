@@ -895,6 +895,7 @@
         "coworkingStats": "إحصائيات مساحات العمل",
         "coworkingBookings": "الحجوزات",
         "users": "المستخدمون",
+        "auditLog": "سجل التدقيق",
         "sales": "المبيعات",
         "clients": "العملاء",
         "quotes": "عروض الأسعار",
@@ -935,7 +936,9 @@
         "chartIncome": "الدخل",
         "chartCharges": "المصاريف",
         "chartInvestments": "الاستثمارات",
-        "chartNetBalance": "الصافي"
+        "chartNetBalance": "الصافي",
+        "occupancyHeatmapTitle": "إشغال القاعات — هذا الشهر",
+        "occupancyEmpty": "لا توجد بيانات إشغال لهذا الشهر"
     },
     "shop": {
         "eyebrow": "المتجر",
@@ -1338,6 +1341,33 @@
             "modalCreateTitle": "إضافة مستخدم",
             "modalEditTitle": "تعديل المستخدم"
         },
+        "auditLog": {
+            "title": "سجل التدقيق",
+            "subtitle": "تتبع تغييرات الحجوزات والدخل",
+            "empty": "لا توجد سجلات تدقيق بعد",
+            "filterEntity": "الكيان",
+            "columns": {
+                "date": "التاريخ",
+                "user": "المستخدم",
+                "action": "الإجراء",
+                "entity": "الكيان",
+                "summary": "الملخص"
+            },
+            "entities": {
+                "all": "الكل",
+                "RESERVATION": "حجز",
+                "DAILY_INCOME": "دخل يومي",
+                "INCOME_LINE": "بند دخل"
+            },
+            "actions": {
+                "CREATE": "إنشاء",
+                "UPDATE": "تحديث",
+                "DELETE": "حذف",
+                "CANCEL": "إلغاء",
+                "BULK_PAID": "دفع جماعي",
+                "SERIES_CREATE": "إنشاء سلسلة"
+            }
+        },
         "testimonials": {
             "title": "الشهادات",
             "subtitle": "مراجعة الشهادات",
@@ -1481,7 +1511,24 @@
             "filterAllPayments": "كل المدفوعات",
             "filterAllStatuses": "كل الحالات",
             "filterFrom": "من",
-            "filterTo": "إلى"
+            "filterTo": "إلى",
+            "bulkPaid": "تعيين كمدفوع",
+            "bulkPaidSelected": "تعيين كمدفوع ({count})",
+            "bulkPaidConfirm": "تعيين {count} حجز(ات) محددة كمدفوعة؟",
+            "bulkPaidSuccess": "تم تعيين {count} حجز(ات) كمدفوعة",
+            "selectUnpaidPage": "تحديد غير المدفوعة",
+            "deselectUnpaid": "إلغاء تحديد غير المدفوعة",
+            "recurring": "حجز متكرر",
+            "frequency": "التكرار",
+            "frequencyWeekly": "أسبوعي",
+            "frequencyMonthly": "شهري",
+            "until": "التكرار حتى",
+            "untilRequired": "اختر تاريخ الانتهاء",
+            "seriesMemberHint": "هذا الحجز جزء من سلسلة. التعديل يؤثر على هذه المرة فقط.",
+            "deleteSeriesFuture": "حذف هذه المرة والمرات القادمة",
+            "deleteSeriesFutureConfirm": "حذف هذه المرة وجميع المرات القادمة في السلسلة؟",
+            "seriesCreated": "تم إنشاء السلسلة ({count} حجوزات)",
+            "seriesBadge": "سلسلة"
         },
         "calendar": {
             "title": "التقويم",

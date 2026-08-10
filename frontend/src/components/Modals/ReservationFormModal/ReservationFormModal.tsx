@@ -29,6 +29,9 @@ export interface ReservationFormValues {
     isPaid: boolean;
     manualPrice: boolean;
     price: string;
+    recurring: boolean;
+    frequency: 'WEEKLY' | 'MONTHLY';
+    until: string;
 }
 
 function priceToInput(value?: number | string | null): string {
@@ -78,6 +81,8 @@ interface ReservationFormModalProps {
     /** Prefills the create form (e.g. when created from a calendar day click). Local `YYYY-MM-DDTHH:mm` format. */
     defaultStartAt?: string;
     defaultEndAt?: string;
+    onDeleteSeriesFuture?: () => void;
+    isDeletingSeries?: boolean;
 }
 
 export default function ReservationFormModal({
@@ -89,6 +94,8 @@ export default function ReservationFormModal({
     isLoading = false,
     defaultStartAt,
     defaultEndAt,
+    onDeleteSeriesFuture,
+    isDeletingSeries = false,
 }: Readonly<ReservationFormModalProps>) {
     const t = useTranslations('admin.reservations');
     const tCommon = useTranslations('common');
@@ -109,21 +116,26 @@ export default function ReservationFormModal({
         [professors],
     );
 
+    const defaultValues: ReservationFormValues = {
+        title: reservation?.title ?? '',
+        roomId: reservation?.roomId ?? '',
+        professorId: reservation?.professorId ?? '',
+        startAt: reservation ? toLocalInputValue(reservation.startAt) : defaultStartAt ?? '',
+        endAt: reservation ? toLocalInputValue(reservation.endAt) : defaultEndAt ?? '',
+        notes: reservation?.notes ?? '',
+        status: (reservation?.status ?? 'CONFIRMED') as ReservationStatus,
+        isPaid: reservation?.isPaid ?? false,
+        manualPrice: isEdit,
+        price: priceToInput(reservation?.price),
+        recurring: false,
+        frequency: 'WEEKLY',
+        until: '',
+    };
+
     const form = useForm({
-        defaultValues: {
-            title: reservation?.title ?? '',
-            roomId: reservation?.roomId ?? '',
-            professorId: reservation?.professorId ?? '',
-            startAt: reservation ? toLocalInputValue(reservation.startAt) : defaultStartAt ?? '',
-            endAt: reservation ? toLocalInputValue(reservation.endAt) : defaultEndAt ?? '',
-            notes: reservation?.notes ?? '',
-            status: (reservation?.status ?? 'CONFIRMED') as ReservationStatus,
-            isPaid: reservation?.isPaid ?? false,
-            manualPrice: isEdit,
-            price: priceToInput(reservation?.price),
-        },
+        defaultValues,
         onSubmit: async ({ value }) => {
-            await onSubmit(value as ReservationFormValues);
+            await onSubmit(value);
             closeModal();
         },
     });
@@ -509,6 +521,114 @@ export default function ReservationFormModal({
                             />
                         )}
                     </form.Field>
+                    {!isEdit ? (
+                        <>
+                            <form.Field name="recurring">
+                                {({ state, handleChange }) => (
+                                    <Checkbox
+                                        id="reservation-recurring"
+                                        checked={state.value}
+                                        label={t('recurring')}
+                                        onChange={(e) => handleChange(e.target.checked)}
+                                    />
+                                )}
+                            </form.Field>
+                            <form.Subscribe selector={(s) => s.values.recurring}>
+                                {(recurring) =>
+                                    recurring ? (
+                                        <Div className="space-y-4">
+                                            <form.Field name="frequency">
+                                                {({ state, handleChange }) => (
+                                                    <Dropdown
+                                                        label={t('frequency')}
+                                                        options={[
+                                                            {
+                                                                value: 'WEEKLY',
+                                                                label: t('frequencyWeekly'),
+                                                            },
+                                                            {
+                                                                value: 'MONTHLY',
+                                                                label: t('frequencyMonthly'),
+                                                            },
+                                                        ]}
+                                                        value={state.value}
+                                                        onChange={(value) => {
+                                                            if (
+                                                                value === 'WEEKLY' ||
+                                                                value === 'MONTHLY'
+                                                            ) {
+                                                                handleChange(value);
+                                                            }
+                                                        }}
+                                                    />
+                                                )}
+                                            </form.Field>
+                                            <form.Field
+                                                name="until"
+                                                validators={{
+                                                    onSubmit: ({ value }) =>
+                                                        value ? undefined : t('untilRequired'),
+                                                }}
+                                            >
+                                                {({ state, handleChange }) => (
+                                                    <div>
+                                                        <Label
+                                                            variant={EVariantLabel.bodySmall}
+                                                            color="text-gray-700"
+                                                            className="mb-1.5 block"
+                                                        >
+                                                            {t('until')}
+                                                        </Label>
+                                                        <input
+                                                            id="reservation-until"
+                                                            type="date"
+                                                            lang="fr"
+                                                            className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
+                                                            value={state.value}
+                                                            onChange={(e) =>
+                                                                handleChange(e.target.value)
+                                                            }
+                                                            required
+                                                        />
+                                                        {state.meta.errors?.[0] ? (
+                                                            <Label
+                                                                variant={EVariantLabel.bodySmall}
+                                                                color="text-danger-500"
+                                                                className="mt-1 block"
+                                                            >
+                                                                {state.meta.errors[0]}
+                                                            </Label>
+                                                        ) : null}
+                                                    </div>
+                                                )}
+                                            </form.Field>
+                                        </Div>
+                                    ) : null
+                                }
+                            </form.Subscribe>
+                        </>
+                    ) : null}
+                    {isEdit && reservation?.seriesId ? (
+                        <Div className="rounded-lg border border-warning-100 bg-warning-25 px-3 py-2">
+                            <Label
+                                variant={EVariantLabel.caption}
+                                color="text-warning-700"
+                                className="mb-2 block"
+                            >
+                                {t('seriesMemberHint')}
+                            </Label>
+                            {onDeleteSeriesFuture ? (
+                                <Button
+                                    id="reservation-delete-series-future"
+                                    type={EButtonType.secondary}
+                                    size={EButtonSize.small}
+                                    text={t('deleteSeriesFuture')}
+                                    isLoading={isDeletingSeries}
+                                    onClick={onDeleteSeriesFuture}
+                                />
+                            ) : null}
+                        </Div>
+                    ) : null}
                 </DrawerScrollContent>
                 <DrawerActions>
                     <Button

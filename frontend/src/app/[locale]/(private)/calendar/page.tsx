@@ -17,8 +17,10 @@ import ReservationFormModal, {
 } from '@/components/Modals/ReservationFormModal/ReservationFormModal';
 import {
     createReservation,
+    createReservationSeries,
     fetchCalendar,
     formatMoney,
+    updateReservation,
     type ReservationRecord,
 } from '@/lib/reservation-api';
 import { fetchRooms } from '@/lib/room-api';
@@ -44,6 +46,11 @@ import {
 } from '@/Enum/Enum';
 
 type CalendarView = 'day' | 'week' | 'month';
+
+type CalendarModalState =
+    | { mode: 'create'; day: Date }
+    | { mode: 'edit'; reservation: ReservationRecord }
+    | null;
 
 function formatExportDate(date: Date): string {
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -176,15 +183,22 @@ function EventCard({
     event,
     paidLabel,
     unpaidLabel,
+    onClick,
 }: Readonly<{
     event: ReservationRecord;
     paidLabel: string;
     unpaidLabel: string;
+    onClick?: () => void;
 }>) {
     return (
         <Div
-            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
-                }`}
+            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${
+                event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
+            } ${onClick ? 'cursor-pointer' : ''}`}
+            onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                onClick?.();
+            }}
         >
             <Div className="flex items-center justify-between gap-2">
                 <Label
@@ -217,7 +231,6 @@ function EventCard({
                 <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-1.5 block font-medium">
                     {formatMoney(event.price)}
                 </Label>
-
             </Div>
         </Div>
     );
@@ -235,9 +248,9 @@ export default function CalendarPage() {
     const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
     const [roomId, setRoomId] = useState('');
     const [isExporting, setIsExporting] = useState(false);
-    const [createDay, setCreateDay] = useState<Date | null>(null);
+    const [modalState, setModalState] = useState<CalendarModalState>(null);
     const { openModal, closeModal, modalPortal } = useModal({
-        closeCallBack: () => setCreateDay(null),
+        closeCallBack: () => setModalState(null),
     });
 
     const range = useMemo(() => {
@@ -304,33 +317,100 @@ export default function CalendarPage() {
             queryClient.invalidateQueries({ queryKey: ['reservations'] });
             queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
             openToast(tCommon('success'), tPay('create'), { type: EToastType.SUCCESS });
-            setCreateDay(null);
+            setModalState(null);
             closeModal();
         },
         onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
     });
 
-    const handleCreateSubmit = useCallback(
+    const seriesMutation = useMutation({
+        mutationFn: createReservationSeries,
+        onSuccess: (result) => {
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            openToast(tCommon('success'), tPay('seriesCreated', { count: result.count }), {
+                type: EToastType.SUCCESS,
+            });
+            setModalState(null);
+            closeModal();
+        },
+        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({
+            id,
+            body,
+        }: {
+            id: string;
+            body: Parameters<typeof updateReservation>[1];
+        }) => updateReservation(id, body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            openToast(tCommon('success'), tPay('edit'), { type: EToastType.SUCCESS });
+            setModalState(null);
+            closeModal();
+        },
+        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
+    const handleFormSubmit = useCallback(
         async (values: ReservationFormValues) => {
-            await createMutation.mutateAsync({
+            const payload = {
                 title: values.title.trim() || undefined,
                 roomId: values.roomId,
-                professorId: values.professorId || undefined,
+                professorId: values.professorId || null,
                 startAt: new Date(values.startAt).toISOString(),
                 endAt: new Date(values.endAt).toISOString(),
                 notes: values.notes.trim() || undefined,
                 status: values.status,
                 isPaid: values.isPaid,
                 ...(values.manualPrice ? { price: Number(values.price) } : {}),
+            };
+
+            if (modalState?.mode === 'edit') {
+                await updateMutation.mutateAsync({
+                    id: modalState.reservation.id,
+                    body: payload,
+                });
+                return;
+            }
+
+            if (values.recurring) {
+                await seriesMutation.mutateAsync({
+                    ...payload,
+                    professorId: values.professorId || undefined,
+                    frequency: values.frequency,
+                    until: values.until,
+                });
+                return;
+            }
+
+            await createMutation.mutateAsync({
+                ...payload,
+                professorId: values.professorId || undefined,
+                notes: values.notes.trim() || undefined,
             });
         },
-        [createMutation],
+        [createMutation, modalState, seriesMutation, updateMutation],
     );
 
     const openCreateForDay = useCallback(
         (day: Date) => {
             if (!isAdmin) return;
-            setCreateDay(day);
+            setModalState({ mode: 'create', day });
+            openModal();
+        },
+        [isAdmin, openModal],
+    );
+
+    const openEditReservation = useCallback(
+        (reservation: ReservationRecord) => {
+            if (!isAdmin) return;
+            setModalState({ mode: 'edit', reservation });
             openModal();
         },
         [isAdmin, openModal],
@@ -455,16 +535,28 @@ export default function CalendarPage() {
     return (
         <>
             {modalPortal(
-                createDay ? (
+                modalState ? (
                     <ReservationFormModal
-                        mode="create"
-                        reservation={null}
+                        mode={modalState.mode}
+                        reservation={modalState.mode === 'edit' ? modalState.reservation : null}
                         rooms={rooms}
                         professors={professors}
-                        onSubmit={handleCreateSubmit}
-                        isLoading={createMutation.isPending}
-                        defaultStartAt={toLocalDateTimeInput(createDay, 9)}
-                        defaultEndAt={toLocalDateTimeInput(createDay, 10)}
+                        onSubmit={handleFormSubmit}
+                        isLoading={
+                            createMutation.isPending ||
+                            updateMutation.isPending ||
+                            seriesMutation.isPending
+                        }
+                        defaultStartAt={
+                            modalState.mode === 'create'
+                                ? toLocalDateTimeInput(modalState.day, 9)
+                                : undefined
+                        }
+                        defaultEndAt={
+                            modalState.mode === 'create'
+                                ? toLocalDateTimeInput(modalState.day, 10)
+                                : undefined
+                        }
                     />
                 ) : null,
             )}
@@ -612,6 +704,11 @@ export default function CalendarPage() {
                                                             event={event}
                                                             paidLabel={tPay('paid')}
                                                             unpaidLabel={tPay('unpaid')}
+                                                            onClick={
+                                                                isAdmin
+                                                                    ? () => openEditReservation(event)
+                                                                    : undefined
+                                                            }
                                                         />
                                                     ),
                                                 )}
@@ -675,6 +772,11 @@ export default function CalendarPage() {
                                                                     event={event}
                                                                     paidLabel={tPay('paid')}
                                                                     unpaidLabel={tPay('unpaid')}
+                                                                    onClick={
+                                                                        isAdmin
+                                                                            ? () => openEditReservation(event)
+                                                                            : undefined
+                                                                    }
                                                                 />
                                                             ))}
                                                         </Div>
@@ -748,18 +850,28 @@ export default function CalendarPage() {
                                                         {dayEvents.slice(0, 3).map((event) => (
                                                             <Div
                                                                 key={event.id}
-                                                                className="flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50"
+                                                                className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${
+                                                                    isAdmin ? 'cursor-pointer' : ''
+                                                                }`}
+                                                                onClick={(e: MouseEvent) => {
+                                                                    e.stopPropagation();
+                                                                    openEditReservation(event);
+                                                                }}
                                                             >
                                                                 <Div
-                                                                    className={`size-1.5 shrink-0 rounded-full ${event.isPaid ? 'bg-success-400' : 'bg-warning-400'
-                                                                        }`}
+                                                                    className={`size-1.5 shrink-0 rounded-full ${
+                                                                        event.isPaid
+                                                                            ? 'bg-success-400'
+                                                                            : 'bg-warning-400'
+                                                                    }`}
                                                                 />
                                                                 <Label
                                                                     variant={EVariantLabel.caption}
                                                                     color="text-gray-700"
                                                                     className="block truncate"
                                                                 >
-                                                                    {formatTime(event.startAt)} – {formatTime(event.endAt)}{' '}
+                                                                    {formatTime(event.startAt)} –{' '}
+                                                                    {formatTime(event.endAt)}{' '}
                                                                     {event.room?.name || event.title || ''}
                                                                 </Label>
                                                             </Div>

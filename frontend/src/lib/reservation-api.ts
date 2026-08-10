@@ -19,6 +19,7 @@ export interface ReservationRecord {
     isPaid: boolean;
     status: ReservationStatus;
     notes: string | null;
+    seriesId?: string | null;
     createdById: string | null;
     createdAt: string;
     updatedAt: string;
@@ -148,6 +149,36 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
     return unwrapData<DashboardStats>(res.data as { data?: DashboardStats });
 }
 
+export interface OccupancyCell {
+    roomId: string;
+    hour: number;
+    ratio: number;
+    bookedMinutes: number;
+}
+
+export interface OccupancyData {
+    year: number;
+    month: number;
+    hours: number[];
+    rooms: { id: string; name: string }[];
+    cells: OccupancyCell[];
+}
+
+export async function fetchOccupancy(params?: {
+    year?: number;
+    month?: number;
+}): Promise<OccupancyData> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params?.year) sp.set('year', String(params.year));
+    if (params?.month) sp.set('month', String(params.month));
+    const q = sp.toString();
+    const path = q ? `/api/reservations/occupancy?${q}` : '/api/reservations/occupancy';
+    const res = await api.get(path, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch occupancy');
+    return unwrapData<OccupancyData>(res.data as { data?: OccupancyData });
+}
+
 export async function createReservation(body: {
     title?: string;
     roomId: string;
@@ -208,4 +239,61 @@ export async function deleteReservation(id: string): Promise<void> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.delete(`/api/reservations/${id}`, {}, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to delete reservation');
+}
+
+export async function bulkMarkReservationsPaid(ids: string[]): Promise<{ updated: number }> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post('/api/reservations/bulk-paid', { ids }, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.error ||
+            (res.data as { message?: string })?.message ||
+            'Failed to mark reservations as paid';
+        throw new Error(message);
+    }
+    return unwrapData<{ updated: number }>(res.data as { data?: { updated: number } });
+}
+
+export async function createReservationSeries(body: {
+    title?: string;
+    roomId: string;
+    professorId?: string;
+    startAt: string;
+    endAt: string;
+    frequency: 'WEEKLY' | 'MONTHLY';
+    until: string;
+    price?: number;
+    status?: ReservationStatus;
+    isPaid?: boolean;
+    notes?: string;
+}): Promise<{ seriesId: string; count: number; data: ReservationRecord[] }> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post('/api/reservations/series', body, headers);
+    if (res.status !== HttpStatus.SuccessCreated && res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.error ||
+            (res.data as { message?: string })?.message ||
+            'Failed to create reservation series';
+        throw new Error(message);
+    }
+    return unwrapData<{ seriesId: string; count: number; data: ReservationRecord[] }>(
+        res.data as { data?: { seriesId: string; count: number; data: ReservationRecord[] } },
+    );
+}
+
+export async function deleteFutureInSeries(
+    id: string,
+): Promise<{ deleted: number; seriesId: string }> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/reservations/${id}/delete-series-future`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.error ||
+            (res.data as { message?: string })?.message ||
+            'Failed to delete series occurrences';
+        throw new Error(message);
+    }
+    return unwrapData<{ deleted: number; seriesId: string }>(
+        res.data as { data?: { deleted: number; seriesId: string } },
+    );
 }
