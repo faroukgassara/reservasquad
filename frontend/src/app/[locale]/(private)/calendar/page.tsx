@@ -45,6 +45,11 @@ import {
 
 type CalendarView = 'day' | 'week' | 'month';
 
+function formatExportDate(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+}
+
 function startOfDay(date: Date): Date {
     return weekStartOfDay(date);
 }
@@ -417,7 +422,13 @@ export default function CalendarPage() {
                 rooms: roomsToExport,
                 events: weekEvents,
                 labels: {
-                    weekRange: t('exportWeekRange'),
+                    title: t('exportTitle'),
+                    weekRange: t('exportWeekRange', {
+                        from: formatExportDate(exportWeek.from),
+                        to: formatExportDate(exportWeek.to),
+                    }),
+                    morningSection: t('exportMorningSection'),
+                    eveningSection: t('exportEveningSection'),
                     empty: t('empty'),
                 },
             });

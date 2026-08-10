@@ -1501,6 +1501,8 @@
             "exportPdf": "Exporter PDF (semaine)",
             "exportTitle": "Calendrier hebdomadaire — Biblio Squad",
             "exportWeekRange": "Du {from} au {to}",
+            "exportMorningSection": "Matin · 8h – 16h",
+            "exportEveningSection": "Soir · 16h – 00h",
             "exportSuccess": "PDF exporté",
             "exportError": "Échec de l'export PDF",
             "exportNoRooms": "Aucune salle à exporter"
