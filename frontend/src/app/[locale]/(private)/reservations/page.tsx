@@ -149,6 +149,7 @@ export default function ReservationsAdminPage() {
     const professorFilterOptions = useMemo(
         () => [
             { value: 'all', label: t('filterAllProfessors') },
+            { value: 'none', label: t('noProfessor') },
             ...professors.map((p) => ({
                 value: p.id,
                 label: `${p.firstName} ${p.lastName}`,

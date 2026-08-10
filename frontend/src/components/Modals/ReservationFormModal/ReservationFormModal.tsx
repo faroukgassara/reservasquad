@@ -110,12 +110,14 @@ export default function ReservationFormModal({
         [rooms],
     );
     const professorOptions = useMemo(
-        () =>
-            professors.map((p) => ({
+        () => [
+            { value: '', label: t('noProfessor') },
+            ...professors.map((p) => ({
                 value: p.id,
                 label: `${p.firstName} ${p.lastName}`,
             })),
-        [professors],
+        ],
+        [professors, t],
     );
 
     const defaultValues: ReservationFormValues = {
@@ -209,7 +211,7 @@ export default function ReservationFormModal({
                                 onChange={(value) => {
                                     if (typeof value === 'string') handleChange(value);
                                 }}
-                                placeholder={t('professor')}
+                                placeholder={t('noProfessor')}
                             />
                         )}
                     </form.Field>
@@ -467,7 +469,7 @@ export default function ReservationFormModal({
                                     <Label
                                         variant={EVariantLabel.bodySmall}
                                         color="text-gray-600"
-                                        className="block"
+                                        className="block mr-1"
                                     >
                                         {t('price')}
                                     </Label>

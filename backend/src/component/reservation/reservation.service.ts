@@ -447,10 +447,17 @@ export class ReservationService {
           }
         : undefined;
 
-    const andWhere = buildAndFilters(
+    const professorFilter: Prisma.ReservationWhereInput | undefined =
+      query.professorId === 'none'
+        ? { professorId: null }
+        : query.professorId
+          ? { professorId: query.professorId }
+          : undefined;
+
+    const andWhere = buildAndFilters<Prisma.ReservationWhereInput>(
       query.status ? { status: query.status } : undefined,
       query.roomId ? { roomId: query.roomId } : undefined,
-      query.professorId ? { professorId: query.professorId } : undefined,
+      professorFilter,
       query.isPaid === 'true'
         ? { isPaid: true }
         : query.isPaid === 'false'

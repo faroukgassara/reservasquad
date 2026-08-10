@@ -6,6 +6,7 @@ import {
   IsIn,
   IsOptional,
   IsUUID,
+  ValidateIf,
 } from 'class-validator';
 import { EReservationStatus } from 'src/generated/prisma/client';
 
@@ -28,8 +29,11 @@ export class FetchReservationsDto {
   @IsUUID()
   roomId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by professor id' })
+  @ApiPropertyOptional({
+    description: 'Filter by professor id, or `none` for reservations without a professor',
+  })
   @IsOptional()
+  @ValidateIf((_, value) => value !== 'none')
   @IsUUID()
   professorId?: string;
 
