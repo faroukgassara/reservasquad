@@ -66,6 +66,9 @@ enum EVariantLabel {
 }
 
 enum IconComponentsEnum {
+    flagEn = 'flagEn',
+    flagFr = 'flagFr',
+    flagAr = 'flagAr',
     settings = 'settings',
     loader = 'loader',
     eye = 'eye',

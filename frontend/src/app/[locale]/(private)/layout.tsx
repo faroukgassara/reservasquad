@@ -15,8 +15,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Avatar from '@/components/Primitives/Avatar/Avatar';
-import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
 import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
 
 export default function PrivateLayout({
     children,
@@ -148,7 +148,7 @@ export default function PrivateLayout({
                         />
 
                         <SidebarFooter className={sidebarOpen || isMobile ? 'p-4' : 'px-0 py-4'}>
-                            <LanguageSwitcher />
+                            <LanguageSwitcher compact={!sidebarOpen && !isMobile} />
                             {sidebarOpen || isMobile ? (
                                 <div className="mt-4 flex w-full items-center justify-between gap-2">
                                     <Avatar

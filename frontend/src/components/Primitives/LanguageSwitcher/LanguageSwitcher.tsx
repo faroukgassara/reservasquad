@@ -1,11 +1,12 @@
 'use client';
 
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useLocale } from 'next-intl';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
-import { IconComponentsEnum } from '@/Enum/Enum';
+import { ESize, IconComponentsEnum } from '@/Enum/Enum';
 import { twMerge } from 'tailwind-merge';
 import Icon from '../Icon/Icon';
 
@@ -18,92 +19,123 @@ interface LanguageOption {
 }
 
 const LANGUAGES: LanguageOption[] = [
+    { code: 'en', name: 'English', shortCode: 'EN' },
     { code: 'fr', name: 'Français', shortCode: 'FR' },
     { code: 'ar', name: 'العربية', shortCode: 'AR' },
-    { code: 'en', name: 'English', shortCode: 'EN' },
 ];
 
+const FLAG_ICONS: Record<LocaleCode, IconComponentsEnum> = {
+    en: IconComponentsEnum.flagEn,
+    fr: IconComponentsEnum.flagFr,
+    ar: IconComponentsEnum.flagAr,
+};
+
 function FlagIcon({ code, className }: Readonly<{ code: LocaleCode; className?: string }>) {
-    const baseClass = twMerge('h-4 w-6 shrink-0 overflow-hidden rounded-sm shadow-sm ring-1 ring-black/5', className);
-
-    if (code === 'fr') {
-        return (
-            <svg viewBox="0 0 24 16" className={baseClass} aria-hidden="true">
-                <rect width="8" height="16" fill="#002395" />
-                <rect x="8" width="8" height="16" fill="#FFFFFF" />
-                <rect x="16" width="8" height="16" fill="#ED2939" />
-            </svg>
-        );
-    }
-
-    if (code === 'en') {
-        return (
-            <svg viewBox="0 0 24 16" className={baseClass} aria-hidden="true">
-                <rect width="24" height="16" fill="#012169" />
-                <path d="M0 0 L24 16 M24 0 L0 16" stroke="#FFFFFF" strokeWidth="2.5" />
-                <path d="M0 0 L24 16 M24 0 L0 16" stroke="#C8102E" strokeWidth="1.2" />
-                <path d="M12 0 V16 M0 8 H24" stroke="#FFFFFF" strokeWidth="4" />
-                <path d="M12 0 V16 M0 8 H24" stroke="#C8102E" strokeWidth="2.2" />
-            </svg>
-        );
-    }
-
-    // Tunisia flag — used for Arabic locale in this project
     return (
-        <svg viewBox="0 0 24 16" className={baseClass} aria-hidden="true">
-            <rect width="24" height="16" fill="#E70013" />
-            <circle cx="11" cy="8" r="4.5" fill="#FFFFFF" />
-            <circle cx="12.2" cy="8" r="3.6" fill="#E70013" />
-            <path
-                d="M15.2 8 L16.8 8.55 L16.1 7.15 L16.1 8.85 L16.8 7.45 Z"
-                fill="#E70013"
-            />
-        </svg>
+        <Icon
+            name={FLAG_ICONS[code]}
+            size={ESize.xs}
+            color="text-gray-900"
+            className={twMerge(
+                'h-4 w-6 overflow-hidden rounded-sm shadow-sm ring-1 ring-black/5',
+                className,
+            )}
+        />
     );
 }
 
-function CheckIcon({ className }: Readonly<{ className?: string }>) {
-    return (
-        <svg viewBox="0 0 16 16" className={twMerge('h-4 w-4 shrink-0', className)} aria-hidden="true">
-            <path
-                d="M3 8.5 L6.5 12 L13 4.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
-}
-
-interface LanguageSwitcherProps {
+interface ILanguageSwitcher {
     /** Opens the menu above (`bottom`) or below (`top`) the trigger — use `top` in headers. */
     menuPlacement?: 'top' | 'bottom';
+    /** Icon-only circular trigger for collapsed sidebar. */
+    compact?: boolean;
     className?: string;
+}
+
+interface MenuPosition {
+    top?: number;
+    bottom?: number;
+    left: number;
+    width: number;
 }
 
 export default function LanguageSwitcher({
     menuPlacement = 'bottom',
+    compact = false,
     className,
-}: Readonly<LanguageSwitcherProps> = {}) {
+}: Readonly<ILanguageSwitcher> = {}) {
     const locale = useLocale();
+    const t = useTranslations('common');
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
 
     const currentLanguage = LANGUAGES.find((lang) => lang.code === locale) ?? LANGUAGES[0];
 
     const closeDropdown = useCallback(() => setOpen(false), []);
 
-    // Close when clicking outside the switcher or pressing Escape
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const updateMenuPosition = useCallback(() => {
+        const trigger = triggerRef.current;
+        if (!trigger) return;
+
+        const rect = trigger.getBoundingClientRect();
+        const menuWidth = Math.max(compact ? 200 : rect.width, 220);
+        const gap = 8;
+        const viewportPadding = 8;
+
+        let left = compact ? rect.right + gap : rect.left;
+        if (left + menuWidth > window.innerWidth - viewportPadding) {
+            left = compact
+                ? Math.max(viewportPadding, rect.left - menuWidth - gap)
+                : Math.max(viewportPadding, window.innerWidth - menuWidth - viewportPadding);
+        }
+
+        if (menuPlacement === 'top') {
+            setMenuPosition({ top: rect.bottom + gap, left, width: menuWidth });
+            return;
+        }
+
+        // Open above the trigger; `bottom` keeps the menu anchored without needing its height.
+        setMenuPosition({
+            bottom: window.innerHeight - rect.top + gap,
+            left,
+            width: menuWidth,
+        });
+    }, [compact, menuPlacement]);
+
+    useLayoutEffect(() => {
+        if (!open) {
+            setMenuPosition(null);
+            return;
+        }
+
+        updateMenuPosition();
+        window.addEventListener('resize', updateMenuPosition);
+        window.addEventListener('scroll', updateMenuPosition, true);
+
+        return () => {
+            window.removeEventListener('resize', updateMenuPosition);
+            window.removeEventListener('scroll', updateMenuPosition, true);
+        };
+    }, [open, updateMenuPosition]);
+
     useEffect(() => {
         if (!open) return;
 
         const handlePointerDown = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                closeDropdown();
+            const target = event.target as Node;
+            if (containerRef.current?.contains(target) || menuRef.current?.contains(target)) {
+                return;
             }
+            closeDropdown();
         };
 
         const handleKeyDown = (event: globalThis.KeyboardEvent) => {
@@ -128,55 +160,21 @@ export default function LanguageSwitcher({
         }
     };
 
-    return (
-        <div
-            ref={containerRef}
-            className={twMerge('relative inline-block max-w-full text-start', className ?? 'w-full')}
-        >
-            <button
-                type="button"
-                id="language-switcher-trigger"
-                aria-haspopup="listbox"
-                aria-expanded={open}
-                aria-label={`Language: ${currentLanguage.name}. Change language`}
-                onClick={() => setOpen((prev) => !prev)}
-                onKeyDown={handleTriggerKeyDown}
-                className={twMerge(
-                    'inline-flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200',
-                    className?.includes('w-auto') ? 'w-auto' : 'w-full',
-                    'hover:border-primary-200 hover:bg-gray-50 hover:shadow-md',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:ring-offset-1',
-                    open && 'border-primary-300 bg-gray-50 shadow-md',
-                )}
-            >
-                <span className="flex min-w-0 items-center gap-2">
-                    <FlagIcon code={currentLanguage.code} />
-                    <span className="truncate font-semibold uppercase tracking-wide text-gray-900">
-                        {currentLanguage.shortCode}
-                    </span>
-                    <span className="hidden truncate text-gray-600 md:inline">{currentLanguage.name}</span>
-                </span>
-                <Icon
-                    name={IconComponentsEnum.chevronDown}
-                    size="w-4 h-4"
-                    color="text-gray-500"
-                    className={twMerge('shrink-0 transition-transform duration-200', open && 'rotate-180')}
-                />
-            </button>
-
+    const menu = open && mounted && menuPosition
+        ? createPortal(
             <div
+                ref={menuRef}
                 role="listbox"
-                aria-label="Select language"
-                className={twMerge(
-                    'absolute start-0 z-50 min-w-[220px] rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg',
-                    'transition-all duration-200 ease-out',
-                    menuPlacement === 'top'
-                        ? 'top-full mt-2 w-full origin-top-start'
-                        : 'bottom-full mb-2 w-full origin-bottom-start',
-                    open
-                        ? 'pointer-events-auto scale-100 opacity-100'
-                        : 'pointer-events-none scale-95 opacity-0',
-                )}
+                aria-label={t('selectLanguage')}
+                style={{
+                    position: 'fixed',
+                    top: menuPosition.top,
+                    bottom: menuPosition.bottom,
+                    left: menuPosition.left,
+                    width: menuPosition.width,
+                    zIndex: 100,
+                }}
+                className="rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
             >
                 {LANGUAGES.map((language) => {
                     const isActive = language.code === locale;
@@ -202,11 +200,78 @@ export default function LanguageSwitcher({
                             <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                                 {language.shortCode}
                             </span>
-                            {isActive && <CheckIcon className="text-primary-600" />}
+                            {isActive && (
+                                <Icon
+                                    name={IconComponentsEnum.check}
+                                    size={ESize.xs}
+                                    color="text-primary-600"
+                                />
+                            )}
                         </Link>
                     );
                 })}
-            </div>
+            </div>,
+            document.body,
+        )
+        : null;
+
+    return (
+        <div
+            ref={containerRef}
+            className={twMerge(
+                'relative text-start',
+                compact ? 'inline-flex' : 'inline-block max-w-full',
+                className ?? (compact ? undefined : 'w-full'),
+            )}
+        >
+            <button
+                ref={triggerRef}
+                type="button"
+                id="language-switcher-trigger"
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                aria-label={`Language: ${currentLanguage.name}. Change language`}
+                onClick={() => setOpen((prev) => !prev)}
+                onKeyDown={handleTriggerKeyDown}
+                className={twMerge(
+                    compact
+                        ? twMerge(
+                            'flex size-12 items-center justify-center rounded-full border border-primary-700 bg-primary-800 text-primary-100 shadow-none transition-all duration-200',
+                            'hover:border-primary-600 hover:bg-primary-700',
+                            'focus:outline-none focus:ring-2 focus:ring-primary-300/40 focus:ring-offset-0',
+                            open && 'border-primary-500 bg-primary-700',
+                        )
+                        : twMerge(
+                            'inline-flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200',
+                            className?.includes('w-auto') ? 'w-auto' : 'w-full',
+                            'hover:border-primary-200 hover:bg-gray-50 hover:shadow-md',
+                            'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:ring-offset-1',
+                            open && 'border-primary-300 bg-gray-50 shadow-md',
+                        ),
+                )}
+            >
+                {compact ? (
+                    <FlagIcon code={currentLanguage.code} className="h-3.5 w-5" />
+                ) : (
+                    <>
+                        <span className="flex min-w-0 items-center gap-2">
+                            <FlagIcon code={currentLanguage.code} />
+                            <span className="truncate font-semibold uppercase tracking-wide text-gray-900">
+                                {currentLanguage.shortCode}
+                            </span>
+                            <span className="hidden truncate text-gray-600 md:inline">{currentLanguage.name}</span>
+                        </span>
+                        <Icon
+                            name={IconComponentsEnum.chevronDown}
+                            size={ESize.sm}
+                            color="text-gray-500"
+                            className={twMerge('shrink-0 transition-transform duration-200', open && 'rotate-180')}
+                        />
+                    </>
+                )}
+            </button>
+
+            {menu}
         </div>
     );
 }

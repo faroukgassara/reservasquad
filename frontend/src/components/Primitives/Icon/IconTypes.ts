@@ -64,6 +64,10 @@ import Youtube from "@/assets/icons/youtube.svg";
 import Instagram from "@/assets/icons/instagram.svg";
 import Facebook from "@/assets/icons/facebook.svg";
 import XTwitter from "@/assets/icons/x-twitter.svg";
+import FlagEn from "@/assets/icons/flag-en.svg";
+import FlagFr from "@/assets/icons/flag-fr.svg";
+import FlagAr from "@/assets/icons/flag-ar.svg";
+
 export const iconComponents: Record<string, any> = {
     settings: Settings,
     loader: Loader,
@@ -131,4 +135,7 @@ export const iconComponents: Record<string, any> = {
     instagram: Instagram,
     facebook: Facebook,
     xTwitter: XTwitter,
+    flagEn: FlagEn,
+    flagFr: FlagFr,
+    flagAr: FlagAr,
 };
