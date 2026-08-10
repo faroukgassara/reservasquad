@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, type Key, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -43,8 +43,9 @@ function formatMonthLabel(year: number, month: number): string {
 }
 
 function ColoredSector(props: Readonly<PieSectorShapeProps>) {
-    const payload = props.payload as { color?: string } | undefined;
-    return <Sector {...props} fill={payload?.color ?? props.fill} />;
+    const { key, payload, ...rest } = props as PieSectorShapeProps & { key?: Key };
+    const color = (payload as { color?: string } | undefined)?.color ?? rest.fill;
+    return <Sector key={key} {...rest} fill={color} />;
 }
 
 function ChartTooltip({ active, payload, label, formatter }: Readonly<TooltipContentProps>) {
