@@ -1518,6 +1518,11 @@
             "totalSavings": "Total épargne",
             "totalBenefits": "Total bénéfices",
             "netBalance": "Solde net",
+            "exportPdf": "Exporter PDF",
+            "exportTitle": "Revenus journaliers — Biblio Squad",
+            "exportPeriod": "{month} {year}",
+            "exportSuccess": "PDF exporté",
+            "exportError": "Échec de l'export PDF",
             "months": {
                 "1": "Janvier",
                 "2": "Février",

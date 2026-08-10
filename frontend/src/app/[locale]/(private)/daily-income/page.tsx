@@ -37,6 +37,7 @@ import {
     type IncomeLineRecord,
     type IncomeLineType,
 } from '@/lib/daily-income-api';
+import { exportDailyIncomePdf } from '@/lib/export-daily-income-pdf';
 import {
     EBadgeSize,
     EBadgeType,
@@ -77,6 +78,7 @@ export default function DailyIncomePage() {
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [lineFilter, setLineFilter] = useState<LineFilter>('all');
     const [modalState, setModalState] = useState<ModalState>(null);
+    const [isExporting, setIsExporting] = useState(false);
     const queryClient = useQueryClient();
     const { openToast } = useToast();
     const { openModal, closeModal, modalPortal } = useModal({
@@ -417,6 +419,48 @@ export default function DailyIncomePage() {
         { key: 'net', label: t('netBalance'), value: summary?.netBalance ?? 0 },
     ];
 
+    const handleExportPdf = useCallback(() => {
+        setIsExporting(true);
+        try {
+            exportDailyIncomePdf({
+                year,
+                month,
+                monthLabel: t(`months.${month}` as 'months.1'),
+                days,
+                lines: allLines,
+                summary,
+                labels: {
+                    title: t('exportTitle'),
+                    period: t('exportPeriod'),
+                    totalIncome: t('totalIncome'),
+                    totalCharges: t('totalCharges'),
+                    totalInvestments: t('totalInvestments'),
+                    totalSavings: t('totalSavings'),
+                    totalBenefits: t('totalBenefits'),
+                    netBalance: t('netBalance'),
+                    daysTitle: t('daysTitle'),
+                    linesTitle: t('linesTitle'),
+                    date: t('date'),
+                    chargesInvestment: t('chargesInvestment'),
+                    savings: t('savings'),
+                    benefits: t('benefits'),
+                    type: t('type'),
+                    label: t('label'),
+                    amount: t('amount'),
+                    charge: t('charge'),
+                    investment: t('investment'),
+                    empty: tCommon('empty'),
+                },
+            });
+            openToast(tCommon('success'), t('exportSuccess'), { type: EToastType.SUCCESS });
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : t('exportError');
+            openToast(tCommon('error'), message, { type: EToastType.ERROR });
+        } finally {
+            setIsExporting(false);
+        }
+    }, [allLines, days, month, openToast, summary, t, tCommon, year]);
+
     const renderModalContent = () => {
         if (modalState?.type === 'day-delete') {
             return (
@@ -505,6 +549,14 @@ export default function DailyIncomePage() {
                                     />
                                 </Div>
                             </Div>
+                            <Button
+                                id="daily-income-export-pdf"
+                                type={EButtonType.secondary}
+                                size={EButtonSize.medium}
+                                text={t('exportPdf')}
+                                isLoading={isExporting}
+                                onClick={handleExportPdf}
+                            />
                         </Div>
 
                         <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
