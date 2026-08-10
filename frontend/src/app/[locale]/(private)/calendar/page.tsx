@@ -759,7 +759,7 @@ export default function CalendarPage() {
                                                                     color="text-gray-700"
                                                                     className="block truncate"
                                                                 >
-                                                                    {formatTime(event.startAt)}{' '}
+                                                                    {formatTime(event.startAt)} – {formatTime(event.endAt)}{' '}
                                                                     {event.room?.name || event.title || ''}
                                                                 </Label>
                                                             </Div>
