@@ -55,7 +55,7 @@ export class RoomBackofficeController {
   constructor(private readonly roomService: RoomService) {}
 
   @Post()
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Create a room' })
   async create(@Res() res: Response, @Body() body: CreateRoomDto) {
     try {
@@ -79,7 +79,7 @@ export class RoomBackofficeController {
   }
 
   @Post(':id')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Update a room' })
   async update(
     @Res() res: Response,

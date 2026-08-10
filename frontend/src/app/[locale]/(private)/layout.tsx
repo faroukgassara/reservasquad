@@ -73,14 +73,14 @@ export default function PrivateLayout({
             iconName: IconComponentsEnum.home,
             label: t('rooms'),
             href: Routes.Rooms.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+            hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
         },
         {
             id: 'professors',
             iconName: IconComponentsEnum.users,
             label: t('professors'),
             href: Routes.Professors.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+            hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
         },
         {
             id: 'daily-income',

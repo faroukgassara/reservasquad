@@ -55,7 +55,7 @@ export class ProfessorBackofficeController {
   constructor(private readonly professorService: ProfessorService) {}
 
   @Post()
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Create a professor' })
   async create(@Res() res: Response, @Body() body: CreateProfessorDto) {
     try {
@@ -79,7 +79,7 @@ export class ProfessorBackofficeController {
   }
 
   @Post(':id')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Update a professor' })
   async update(
     @Res() res: Response,

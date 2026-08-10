@@ -199,7 +199,7 @@ export class ReservationBackofficeController {
   }
 
   @Post('series')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Create a recurring reservation series' })
   async createSeries(
     @Res() res: Response,
@@ -261,7 +261,7 @@ export class ReservationBackofficeController {
   }
 
   @Post()
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Create a reservation' })
   async create(
     @Res() res: Response,
@@ -292,7 +292,7 @@ export class ReservationBackofficeController {
   }
 
   @Post(':id')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Update a reservation' })
   async update(
     @Res() res: Response,
@@ -325,7 +325,7 @@ export class ReservationBackofficeController {
   }
 
   @Post(':id/cancel')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Cancel a reservation' })
   async cancel(
     @Res() res: Response,
@@ -344,7 +344,7 @@ export class ReservationBackofficeController {
   }
 
   @Post(':id/delete-series-future')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({
     summary: 'Soft-delete this and future occurrences in the same series',
   })
@@ -365,7 +365,7 @@ export class ReservationBackofficeController {
   }
 
   @Delete(':id')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Delete a reservation' })
   async remove(
     @Res() res: Response,

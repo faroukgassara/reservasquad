@@ -247,7 +247,7 @@ export default function CalendarPage() {
     const tCommon = useTranslations('common');
     const { openToast } = useToast();
     const { isAllowed } = useAuthorization();
-    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
+    const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
     const queryClient = useQueryClient();
     const [view, setView] = useState<CalendarView>('week');
     const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
@@ -405,20 +405,20 @@ export default function CalendarPage() {
 
     const openCreateForDay = useCallback(
         (day: Date) => {
-            if (!isAdmin) return;
+            if (!canManage) return;
             setModalState({ mode: 'create', day });
             openModal();
         },
-        [isAdmin, openModal],
+        [canManage, openModal],
     );
 
     const openEditReservation = useCallback(
         (reservation: ReservationRecord) => {
-            if (!isAdmin) return;
+            if (!canManage) return;
             setModalState({ mode: 'edit', reservation });
             openModal();
         },
-        [isAdmin, openModal],
+        [canManage, openModal],
     );
 
     const roomOptions = useMemo(
@@ -694,7 +694,7 @@ export default function CalendarPage() {
                                                 void handleExportPdf();
                                             }}
                                         />
-                                        {isAdmin ? (
+                                        {canManage ? (
                                             <Button
                                                 id="cal-find-room"
                                                 type={EButtonType.primary}
@@ -717,7 +717,7 @@ export default function CalendarPage() {
                         <Div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
                             {view === 'day' ? (
                                 <Div
-                                    className={`group ${isAdmin ? 'cursor-pointer' : ''}`}
+                                    className={`group ${canManage ? 'cursor-pointer' : ''}`}
                                     onClick={() => openCreateForDay(range.days[0])}
                                 >
                                     <Div className="flex items-center justify-between border-b border-gray-100 bg-gray-25 px-5 py-3.5">
@@ -737,15 +737,15 @@ export default function CalendarPage() {
                                                 {formatDayMonth(range.days[0])}
                                             </Label>
                                         </Div>
-                                        {isAdmin ? (
+                                        {canManage ? (
                                             <AddDayButton onClick={() => openCreateForDay(range.days[0])} />
                                         ) : null}
                                     </Div>
                                     <Div className="p-4 sm:p-5">
                                         {(eventsByDay.get(range.days[0].toDateString()) ?? []).length === 0 ? (
                                             <EmptySlot
-                                                label={isAdmin ? t('addReservation') : t('empty')}
-                                                actionable={isAdmin}
+                                                label={canManage ? t('addReservation') : t('empty')}
+                                                actionable={canManage}
                                             />
                                         ) : (
                                             <Div
@@ -760,7 +760,7 @@ export default function CalendarPage() {
                                                             paidLabel={tPay('paid')}
                                                             unpaidLabel={tPay('unpaid')}
                                                             onClick={
-                                                                isAdmin
+                                                                canManage
                                                                     ? () => openEditReservation(event)
                                                                     : undefined
                                                             }
@@ -781,7 +781,7 @@ export default function CalendarPage() {
                                         return (
                                             <Div
                                                 key={day.toISOString()}
-                                                className={`group flex flex-col ${isAdmin ? 'cursor-pointer' : ''}`}
+                                                className={`group flex flex-col ${canManage ? 'cursor-pointer' : ''}`}
                                                 onClick={() => openCreateForDay(day)}
                                             >
                                                 <Div
@@ -806,15 +806,15 @@ export default function CalendarPage() {
                                                             {formatDayMonth(day)}
                                                         </Label>
                                                     </Div>
-                                                    {isAdmin ? (
+                                                    {canManage ? (
                                                         <AddDayButton onClick={() => openCreateForDay(day)} />
                                                     ) : null}
                                                 </Div>
                                                 <Div className="min-h-48 flex-1 p-3">
                                                     {dayEvents.length === 0 ? (
                                                         <EmptySlot
-                                                            label={isAdmin ? t('addReservation') : t('empty')}
-                                                            actionable={isAdmin}
+                                                            label={canManage ? t('addReservation') : t('empty')}
+                                                            actionable={canManage}
                                                         />
                                                     ) : (
                                                         <Div
@@ -828,7 +828,7 @@ export default function CalendarPage() {
                                                                     paidLabel={tPay('paid')}
                                                                     unpaidLabel={tPay('unpaid')}
                                                                     onClick={
-                                                                        isAdmin
+                                                                        canManage
                                                                             ? () => openEditReservation(event)
                                                                             : undefined
                                                                     }
@@ -870,7 +870,7 @@ export default function CalendarPage() {
                                             return (
                                                 <Div
                                                     key={day.toISOString()}
-                                                    className={`group min-h-28 border-b border-e border-gray-100 p-2 ${isAdmin ? 'cursor-pointer' : ''
+                                                    className={`group min-h-28 border-b border-e border-gray-100 p-2 ${canManage ? 'cursor-pointer' : ''
                                                         } ${inMonth ? 'bg-white hover:bg-primary-25/60' : 'bg-gray-25/70'}`}
                                                     onClick={() => openCreateForDay(day)}
                                                 >
@@ -894,7 +894,7 @@ export default function CalendarPage() {
                                                                 {day.getDate()}
                                                             </Label>
                                                         )}
-                                                        {isAdmin ? (
+                                                        {canManage ? (
                                                             <AddDayButton onClick={() => openCreateForDay(day)} />
                                                         ) : null}
                                                     </Div>
@@ -905,7 +905,7 @@ export default function CalendarPage() {
                                                         {dayEvents.slice(0, 3).map((event) => (
                                                             <Div
                                                                 key={event.id}
-                                                                className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${isAdmin ? 'cursor-pointer' : ''
+                                                                className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${canManage ? 'cursor-pointer' : ''
                                                                     }`}
                                                                 onClick={(e: MouseEvent) => {
                                                                     e.stopPropagation();

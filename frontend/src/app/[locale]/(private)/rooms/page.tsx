@@ -49,6 +49,7 @@ export default function RoomsAdminPage() {
     const tCommon = useTranslations('common');
     const router = useRouter();
     const { isAllowed } = useAuthorization();
+    const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
@@ -60,13 +61,13 @@ export default function RoomsAdminPage() {
     });
 
     useEffect(() => {
-        if (!isAdmin) router.replace(Routes.Dashboard);
-    }, [isAdmin, router]);
+        if (!canManage) router.replace(Routes.Dashboard);
+    }, [canManage, router]);
 
     const { data, isLoading } = useQuery({
         queryKey: ['rooms', page, searchValue],
         queryFn: () => fetchRooms({ page, perPage: 10, search: searchValue || undefined }),
-        enabled: isAdmin,
+        enabled: canManage,
     });
 
     const invalidateRooms = () => {
@@ -158,8 +159,8 @@ export default function RoomsAdminPage() {
         [t],
     );
 
-    const actions = useMemo(
-        (): ITableAction<RoomRecord>[] => [
+    const actions = useMemo((): ITableAction<RoomRecord>[] => {
+        const items: ITableAction<RoomRecord>[] = [
             {
                 label: tCommon('edit'),
                 iconName: IconComponentsEnum.edit,
@@ -168,17 +169,19 @@ export default function RoomsAdminPage() {
                     openModal();
                 },
             },
-            {
+        ];
+        if (isAdmin) {
+            items.push({
                 label: tCommon('delete'),
                 iconName: IconComponentsEnum.trash,
                 onClick: (row) => {
                     setModalState({ type: 'delete', room: row });
                     openModal();
                 },
-            },
-        ],
-        [openModal, tCommon],
-    );
+            });
+        }
+        return items;
+    }, [isAdmin, openModal, tCommon]);
 
     const renderModalContent = () => {
         if (modalState?.type === 'delete') {
@@ -209,7 +212,7 @@ export default function RoomsAdminPage() {
         return null;
     };
 
-    if (!isAdmin) return null;
+    if (!canManage) return null;
 
     return (
         <>

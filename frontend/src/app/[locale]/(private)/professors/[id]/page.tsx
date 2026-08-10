@@ -46,19 +46,19 @@ export default function ProfessorDetailPage() {
     const professorId = params.id;
     const router = useRouter();
     const { isAllowed } = useAuthorization();
-    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
+    const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
     const [page, setPage] = useState(1);
     const [paidFilter, setPaidFilter] = useState<PaidFilter>('all');
     const [statusFilter, setStatusFilter] = useState<'all' | 'CONFIRMED' | 'CANCELLED'>('all');
 
     useEffect(() => {
-        if (!isAdmin) router.replace(Routes.Dashboard);
-    }, [isAdmin, router]);
+        if (!canManage) router.replace(Routes.Dashboard);
+    }, [canManage, router]);
 
     const { data: professor, isLoading: professorLoading } = useQuery({
         queryKey: ['professor', professorId],
         queryFn: () => fetchProfessorById(professorId),
-        enabled: isAdmin && !!professorId,
+        enabled: canManage && !!professorId,
     });
 
     const { data: reservationsData, isLoading: reservationsLoading } = useQuery({
@@ -74,7 +74,7 @@ export default function ProfessorDetailPage() {
                 ...(paidFilter === 'unpaid' ? { isPaid: false } : {}),
                 ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
             }),
-        enabled: isAdmin && !!professorId,
+        enabled: canManage && !!professorId,
     });
 
     const rows = reservationsData?.data ?? [];
@@ -173,7 +173,7 @@ export default function ProfessorDetailPage() {
         [tRes, tStatus],
     );
 
-    if (!isAdmin) return null;
+    if (!canManage) return null;
 
     let subtitle = t('subtitle');
     if (professor) {

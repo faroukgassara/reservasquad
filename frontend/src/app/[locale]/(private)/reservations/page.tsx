@@ -77,6 +77,7 @@ export default function ReservationsAdminPage() {
     const tStatus = useTranslations('status');
     const { isAllowed } = useAuthorization();
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
+    const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
     const [roomFilter, setRoomFilter] = useState('all');
@@ -444,7 +445,7 @@ export default function ReservationsAdminPage() {
 
     const actions = useMemo(
         (): ITableAction<ReservationRecord>[] => {
-            if (!isAdmin) return [];
+            if (!canManage) return [];
             return [
                 {
                     label: tCommon('edit'),
@@ -473,7 +474,7 @@ export default function ReservationsAdminPage() {
                 },
             ];
         },
-        [isAdmin, openModal, t, tCommon],
+        [canManage, openModal, t, tCommon],
     );
 
     const renderModalContent = () => {
@@ -700,9 +701,9 @@ export default function ReservationsAdminPage() {
                             totalRows={totalRows}
                             onPageChange={setPage}
                             primaryAction={
-                                isAdmin ? (
+                                canManage ? (
                                     <Div className="flex flex-wrap items-center gap-2">
-                                        {selectedIds.length > 0 ? (
+                                        {isAdmin && selectedIds.length > 0 ? (
                                             <Button
                                                 id="reservations-bulk-paid-btn"
                                                 type={EButtonType.secondary}
@@ -714,7 +715,7 @@ export default function ReservationsAdminPage() {
                                                 }}
                                             />
                                         ) : null}
-                                        {unpaidSelectableIds.length > 0 ? (
+                                        {isAdmin && unpaidSelectableIds.length > 0 ? (
                                             <Button
                                                 id="reservations-select-unpaid-btn"
                                                 type={EButtonType.tertiary}

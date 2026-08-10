@@ -41,6 +41,7 @@ export default function ProfessorsAdminPage() {
     const tCommon = useTranslations('common');
     const router = useRouter();
     const { isAllowed } = useAuthorization();
+    const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
@@ -52,13 +53,13 @@ export default function ProfessorsAdminPage() {
     });
 
     useEffect(() => {
-        if (!isAdmin) router.replace(Routes.Dashboard);
-    }, [isAdmin, router]);
+        if (!canManage) router.replace(Routes.Dashboard);
+    }, [canManage, router]);
 
     const { data, isLoading } = useQuery({
         queryKey: ['professors', page, searchValue],
         queryFn: () => fetchProfessors({ page, perPage: 10, search: searchValue || undefined }),
-        enabled: isAdmin,
+        enabled: canManage,
     });
 
     const invalidateProfessors = () => {
@@ -155,8 +156,8 @@ export default function ProfessorsAdminPage() {
         [t, tCommon],
     );
 
-    const actions = useMemo(
-        (): ITableAction<ProfessorRecord>[] => [
+    const actions = useMemo((): ITableAction<ProfessorRecord>[] => {
+        const items: ITableAction<ProfessorRecord>[] = [
             {
                 label: t('reservations'),
                 iconName: IconComponentsEnum.eye,
@@ -172,17 +173,19 @@ export default function ProfessorsAdminPage() {
                     openModal();
                 },
             },
-            {
+        ];
+        if (isAdmin) {
+            items.push({
                 label: tCommon('delete'),
                 iconName: IconComponentsEnum.trash,
                 onClick: (row) => {
                     setModalState({ type: 'delete', professor: row });
                     openModal();
                 },
-            },
-        ],
-        [openModal, router, t, tCommon],
-    );
+            });
+        }
+        return items;
+    }, [isAdmin, openModal, router, t, tCommon]);
 
     const renderModalContent = () => {
         if (modalState?.type === 'delete') {
@@ -213,7 +216,7 @@ export default function ProfessorsAdminPage() {
         return null;
     };
 
-    if (!isAdmin) return null;
+    if (!canManage) return null;
 
     return (
         <>
