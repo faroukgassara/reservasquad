@@ -431,7 +431,10 @@ export default function DailyIncomePage() {
                 summary,
                 labels: {
                     title: t('exportTitle'),
-                    period: t('exportPeriod'),
+                    period: t('exportPeriod', {
+                        month: t(`months.${month}` as 'months.1'),
+                        year,
+                    }),
                     totalIncome: t('totalIncome'),
                     totalCharges: t('totalCharges'),
                     totalInvestments: t('totalInvestments'),
