@@ -1476,6 +1476,8 @@
             "week": "Week",
             "month": "Month",
             "empty": "No reservations",
+            "addReservation": "Add a reservation",
+            "moreEvents": "+{count}",
             "exportPdf": "Export PDF (week)",
             "exportTitle": "Weekly calendar — Biblio Squad",
             "exportWeekRange": "From {from} to {to}",

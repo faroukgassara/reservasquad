@@ -4,11 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
-import {
-    DrawerActions,
-    DrawerForm,
-    DrawerScrollContent,
-} from '@/components/Primitives/DrawerLayout/DrawerLayout';
+import { DrawerActions, DrawerForm, DrawerScrollContent } from '@/components/Primitives/DrawerLayout/DrawerLayout';
 import Input from '@/components/Primitives/Input/Input';
 import Label from '@/components/Primitives/Label/Label';
 import Div from '@/components/Primitives/Div/Div';
@@ -79,6 +75,9 @@ interface ReservationFormModalProps {
     professors: ProfessorRecord[];
     onSubmit: (values: ReservationFormValues) => Promise<void>;
     isLoading?: boolean;
+    /** Prefills the create form (e.g. when created from a calendar day click). Local `YYYY-MM-DDTHH:mm` format. */
+    defaultStartAt?: string;
+    defaultEndAt?: string;
 }
 
 export default function ReservationFormModal({
@@ -88,6 +87,8 @@ export default function ReservationFormModal({
     professors,
     onSubmit,
     isLoading = false,
+    defaultStartAt,
+    defaultEndAt,
 }: Readonly<ReservationFormModalProps>) {
     const t = useTranslations('admin.reservations');
     const tCommon = useTranslations('common');
@@ -113,8 +114,8 @@ export default function ReservationFormModal({
             title: reservation?.title ?? '',
             roomId: reservation?.roomId ?? '',
             professorId: reservation?.professorId ?? '',
-            startAt: toLocalInputValue(reservation?.startAt),
-            endAt: toLocalInputValue(reservation?.endAt),
+            startAt: reservation ? toLocalInputValue(reservation.startAt) : defaultStartAt ?? '',
+            endAt: reservation ? toLocalInputValue(reservation.endAt) : defaultEndAt ?? '',
             notes: reservation?.notes ?? '',
             status: (reservation?.status ?? 'CONFIRMED') as ReservationStatus,
             isPaid: reservation?.isPaid ?? false,

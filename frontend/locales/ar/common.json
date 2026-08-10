@@ -1476,6 +1476,8 @@
             "week": "أسبوع",
             "month": "شهر",
             "empty": "لا توجد حجوزات",
+            "addReservation": "إضافة حجز",
+            "moreEvents": "+{count}",
             "exportPdf": "تصدير PDF (أسبوع)",
             "exportTitle": "التقويم الأسبوعي — Biblio Squad",
             "exportWeekRange": "من {from} إلى {to}",

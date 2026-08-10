@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import Div from '@/components/Primitives/Div/Div';
@@ -9,19 +9,29 @@ import Label from '@/components/Primitives/Label/Label';
 import Button from '@/components/Primitives/Button/Button';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Badge from '@/components/Primitives/Badge/Badge';
+import Icon from '@/components/Primitives/Icon/Icon';
+import Spinner from '@/components/Primitives/Spinner/Spinner';
+import Tabs from '@/components/Primitives/Tabs/Tabs';
+import ReservationFormModal, {
+    type ReservationFormValues,
+} from '@/components/Modals/ReservationFormModal/ReservationFormModal';
 import {
+    createReservation,
     fetchCalendar,
     formatMoney,
     type ReservationRecord,
 } from '@/lib/reservation-api';
 import { fetchRooms } from '@/lib/room-api';
+import { fetchProfessors } from '@/lib/professor-api';
 import {
     exportWeeklyCalendarPdf,
     startOfWeek as weekStartOf,
     addDays as weekAddDays,
     startOfDay as weekStartOfDay,
 } from '@/lib/export-weekly-calendar-pdf';
+import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import {
     EBadgeSize,
     EBadgeType,
@@ -65,12 +75,31 @@ function addMonths(date: Date, months: number): Date {
     return d;
 }
 
+function isSameDay(a: Date, b: Date): boolean {
+    return a.toDateString() === b.toDateString();
+}
+
+function toLocalDateTimeInput(date: Date, hours: number, minutes = 0): string {
+    const d = new Date(date);
+    d.setHours(hours, minutes, 0, 0);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function formatDayLabel(date: Date): string {
     return date.toLocaleDateString('fr-FR', {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
     });
+}
+
+function formatWeekdayShort(date: Date): string {
+    return date.toLocaleDateString('fr-FR', { weekday: 'short' });
+}
+
+function formatDayMonth(date: Date): string {
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
 function formatMonthLabel(date: Date): string {
@@ -87,6 +116,59 @@ function formatTime(iso: string): string {
     });
 }
 
+function AddDayButton({
+    onClick,
+    className = '',
+}: Readonly<{ onClick: () => void; className?: string }>) {
+    return (
+        <Button
+            id="cal-add-day"
+            type={EButtonType.tertiary}
+            size={EButtonSize.small}
+            iconPosition="only"
+            icon={{ name: IconComponentsEnum.plus, size: ESize.xs, color: 'text-primary-500' }}
+            className={`h-6 w-6 shrink-0 bg-white/80 opacity-0 shadow-xs group-hover:opacity-100 focus-visible:opacity-100 ${className}`}
+            onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                onClick();
+            }}
+        />
+    );
+}
+
+function EmptySlot({
+    label,
+    actionable = false,
+}: Readonly<{ label: string; actionable?: boolean }>) {
+    return (
+        <Div
+            className={`flex flex-col items-center gap-2 rounded-lg py-6 text-center transition-colors ${
+                actionable
+                    ? 'border border-dashed border-gray-200 group-hover:border-primary-300 group-hover:bg-primary-25/60'
+                    : ''
+            }`}
+        >
+            <Div
+                className={`flex size-9 items-center justify-center rounded-full ${
+                    actionable ? 'bg-primary-50' : 'bg-gray-100'
+                }`}
+            >
+                <Icon
+                    name={actionable ? IconComponentsEnum.plus : IconComponentsEnum.calendar}
+                    size={ESize.sm}
+                    color={actionable ? 'text-primary-500' : 'text-gray-400'}
+                />
+            </Div>
+            <Label
+                variant={EVariantLabel.caption}
+                color={actionable ? 'text-primary-600' : 'text-gray-400'}
+            >
+                {label}
+            </Label>
+        </Div>
+    );
+}
+
 function EventCard({
     event,
     paidLabel,
@@ -97,33 +179,41 @@ function EventCard({
     unpaidLabel: string;
 }>) {
     return (
-        <Div className="rounded-lg bg-accent-50 px-2 py-1.5">
-            <Label
-                variant={EVariantLabel.caption}
-                color="text-accent-700"
-                className="block font-semibold"
-            >
-                {formatTime(event.startAt)} – {formatTime(event.endAt)}
-            </Label>
-            <Label variant={EVariantLabel.caption} color="text-gray-800" className="block">
-                {event.title || event.room?.name || '—'}
-            </Label>
-            {event.professor ? (
-                <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
-                    {event.professor.firstName} {event.professor.lastName}
-                </Label>
-            ) : null}
-            <Div className="mt-1 flex flex-wrap items-center gap-1">
-                <Label variant={EVariantLabel.caption} color="text-gray-700" className="block">
-                    {formatMoney(event.price)}
+        <Div
+            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${
+                event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
+            }`}
+        >
+            <Div className="flex items-center justify-between gap-2">
+                <Label
+                    variant={EVariantLabel.caption}
+                    color="text-primary-700"
+                    className="font-semibold tabular-nums"
+                >
+                    {formatTime(event.startAt)} – {formatTime(event.endAt)}
                 </Label>
                 <Badge
                     id={`cal-paid-${event.id}`}
                     text={event.isPaid ? paidLabel : unpaidLabel}
                     type={event.isPaid ? EBadgeType.success : EBadgeType.warning}
-                    size={EBadgeSize.small}
+                    size={EBadgeSize.tiny}
                 />
             </Div>
+            <Label
+                variant={EVariantLabel.bodySmall}
+                color="text-gray-900"
+                className="mt-1 block truncate font-medium"
+            >
+                {event.title || event.room?.name || '—'}
+            </Label>
+            {event.professor ? (
+                <Label variant={EVariantLabel.caption} color="text-gray-500" className="mt-0.5 block truncate">
+                    {event.professor.firstName} {event.professor.lastName}
+                </Label>
+            ) : null}
+            <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-1.5 block font-medium">
+                {formatMoney(event.price)}
+            </Label>
         </Div>
     );
 }
@@ -133,10 +223,17 @@ export default function CalendarPage() {
     const tPay = useTranslations('admin.reservations');
     const tCommon = useTranslations('common');
     const { openToast } = useToast();
+    const { isAllowed } = useAuthorization();
+    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
+    const queryClient = useQueryClient();
     const [view, setView] = useState<CalendarView>('week');
     const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
     const [roomId, setRoomId] = useState('');
     const [isExporting, setIsExporting] = useState(false);
+    const [createDay, setCreateDay] = useState<Date | null>(null);
+    const { openModal, closeModal, modalPortal } = useModal({
+        closeCallBack: () => setCreateDay(null),
+    });
 
     const range = useMemo(() => {
         if (view === 'day') {
@@ -177,6 +274,11 @@ export default function CalendarPage() {
         queryFn: () => fetchRooms({ page: 1, perPage: 100 }),
     });
 
+    const { data: professorsData } = useQuery({
+        queryKey: ['professors-options'],
+        queryFn: () => fetchProfessors({ page: 1, perPage: 100 }),
+    });
+
     const { data: events = [], isLoading } = useQuery({
         queryKey: ['calendar', range.from.toISOString(), range.to.toISOString(), roomId],
         queryFn: () =>
@@ -188,6 +290,46 @@ export default function CalendarPage() {
     });
 
     const rooms = roomsData?.data ?? [];
+    const professors = professorsData?.data ?? [];
+
+    const createMutation = useMutation({
+        mutationFn: createReservation,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            openToast(tCommon('success'), tPay('create'), { type: EToastType.SUCCESS });
+            setCreateDay(null);
+            closeModal();
+        },
+        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
+    const handleCreateSubmit = useCallback(
+        async (values: ReservationFormValues) => {
+            await createMutation.mutateAsync({
+                title: values.title.trim() || undefined,
+                roomId: values.roomId,
+                professorId: values.professorId || undefined,
+                startAt: new Date(values.startAt).toISOString(),
+                endAt: new Date(values.endAt).toISOString(),
+                notes: values.notes.trim() || undefined,
+                status: values.status,
+                isPaid: values.isPaid,
+                ...(values.manualPrice ? { price: Number(values.price) } : {}),
+            });
+        },
+        [createMutation],
+    );
+
+    const openCreateForDay = useCallback(
+        (day: Date) => {
+            if (!isAdmin) return;
+            setCreateDay(day);
+            openModal();
+        },
+        [isAdmin, openModal],
+    );
 
     const roomOptions = useMemo(
         () => [
@@ -297,234 +439,343 @@ export default function CalendarPage() {
         tCommon,
     ]);
 
+    const today = startOfDay(new Date());
+
     return (
-        <LayoutWrapper
-            title={t('title')}
-            subTitle={t('subtitle')}
-            mainSection={
-                <Div className="mx-auto max-w-7xl space-y-4">
-                    <Div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                        <Div className="flex flex-wrap items-center gap-2">
-                            <Button
-                                id="cal-prev"
-                                type={EButtonType.secondary}
-                                size={EButtonSize.small}
-                                text={t('prev')}
-                                onClick={goPrev}
-                            />
-                            <Button
-                                id="cal-today"
-                                type={EButtonType.secondary}
-                                size={EButtonSize.small}
-                                text={t('today')}
-                                onClick={() => setAnchor(startOfDay(new Date()))}
-                            />
-                            <Button
-                                id="cal-next"
-                                type={EButtonType.secondary}
-                                size={EButtonSize.small}
-                                text={t('next')}
-                                onClick={goNext}
-                            />
-                            <Label
-                                variant={EVariantLabel.bodySmall}
-                                color="text-primary-700"
-                                className="px-2"
-                            >
-                                {periodLabel}
-                            </Label>
-                            <Button
-                                id="cal-export-pdf"
-                                type={EButtonType.primary}
-                                size={EButtonSize.small}
-                                text={t('exportPdf')}
-                                isLoading={isExporting}
-                                iconPosition="left"
-                                icon={{
-                                    name: IconComponentsEnum.pdf,
-                                    size: ESize.sm,
-                                    color: 'text-white',
-                                }}
-                                onClick={() => {
-                                    void handleExportPdf();
-                                }}
-                            />
-                        </Div>
-                        <Div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end lg:w-auto">
-                            <Div className="w-full sm:w-40">
-                                <Dropdown
-                                    label={t('view')}
-                                    options={viewOptions}
-                                    value={view}
-                                    onChange={(value) => {
-                                        if (value === 'day' || value === 'week' || value === 'month') {
-                                            setView(value);
-                                        }
-                                    }}
-                                />
-                            </Div>
-                            <Div className="w-full sm:w-64">
-                                <Dropdown
-                                    label={t('filterRoom')}
-                                    options={roomOptions}
-                                    value={roomId}
-                                    onChange={(value) => {
-                                        if (typeof value === 'string') setRoomId(value);
-                                    }}
-                                />
-                            </Div>
-                        </Div>
-                    </Div>
-
-                    {isLoading ? (
-                        <Label variant={EVariantLabel.body} color="text-gray-500">
-                            …
-                        </Label>
-                    ) : null}
-
-                    {view === 'day' ? (
-                        <Div className="min-h-80 rounded-xl border border-gray-100 bg-white p-4">
-                            <Label
-                                variant={EVariantLabel.bodySmall}
-                                color="text-primary-600"
-                                className="mb-3 block"
-                            >
-                                {formatDayLabel(range.days[0])}
-                            </Label>
-                            {(eventsByDay.get(range.days[0].toDateString()) ?? []).length === 0 ? (
-                                <Label variant={EVariantLabel.caption} color="text-gray-400">
-                                    {t('empty')}
-                                </Label>
-                            ) : (
-                                <Div className="space-y-2">
-                                    {(eventsByDay.get(range.days[0].toDateString()) ?? []).map(
-                                        (event) => (
-                                            <EventCard
-                                                key={event.id}
-                                                event={event}
-                                                paidLabel={tPay('paid')}
-                                                unpaidLabel={tPay('unpaid')}
-                                            />
-                                        ),
-                                    )}
-                                </Div>
-                            )}
-                        </Div>
-                    ) : null}
-
-                    {view === 'week' ? (
-                        <Div className="grid gap-3 md:grid-cols-7">
-                            {range.days.map((day) => {
-                                const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
-                                return (
-                                    <Div
-                                        key={day.toISOString()}
-                                        className="min-h-40 rounded-xl border border-gray-100 bg-white p-3"
-                                    >
+        <>
+            {modalPortal(
+                createDay ? (
+                    <ReservationFormModal
+                        mode="create"
+                        reservation={null}
+                        rooms={rooms}
+                        professors={professors}
+                        onSubmit={handleCreateSubmit}
+                        isLoading={createMutation.isPending}
+                        defaultStartAt={toLocalDateTimeInput(createDay, 9)}
+                        defaultEndAt={toLocalDateTimeInput(createDay, 10)}
+                    />
+                ) : null,
+            )}
+            <LayoutWrapper
+                title={t('title')}
+                subTitle={t('subtitle')}
+                mainSection={
+                    <Div className="mx-auto max-w-7xl space-y-4">
+                        <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                            <Div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                <Div className="flex flex-wrap items-center gap-3">
+                                    <Div className="inline-flex items-center gap-1 rounded-xl bg-gray-50 p-1">
+                                        <Button
+                                            id="cal-prev"
+                                            type={EButtonType.tertiary}
+                                            size={EButtonSize.small}
+                                            iconPosition="only"
+                                            icon={{
+                                                name: IconComponentsEnum.chevronLeft,
+                                                size: ESize.sm,
+                                                color: 'text-gray-600',
+                                            }}
+                                            aria-label={t('prev')}
+                                            onClick={goPrev}
+                                        />
+                                        <Button
+                                            id="cal-today"
+                                            type={EButtonType.tertiary}
+                                            size={EButtonSize.small}
+                                            text={t('today')}
+                                            onClick={() => setAnchor(startOfDay(new Date()))}
+                                        />
+                                        <Button
+                                            id="cal-next"
+                                            type={EButtonType.tertiary}
+                                            size={EButtonSize.small}
+                                            iconPosition="only"
+                                            icon={{
+                                                name: IconComponentsEnum.chevronRight,
+                                                size: ESize.sm,
+                                                color: 'text-gray-600',
+                                            }}
+                                            aria-label={t('next')}
+                                            onClick={goNext}
+                                        />
+                                    </Div>
+                                    <Div className="flex items-center gap-2">
                                         <Label
-                                            variant={EVariantLabel.caption}
-                                            color="text-primary-600"
-                                            className="mb-2 block uppercase"
+                                            variant={EVariantLabel.h6}
+                                            color="text-primary-700"
+                                            className="capitalize"
                                         >
-                                            {formatDayLabel(day)}
+                                            {periodLabel}
                                         </Label>
-                                        {dayEvents.length === 0 ? (
+                                        {isLoading ? <Spinner size={ESize.sm} color="text-gray-400" /> : null}
+                                    </Div>
+                                </Div>
+
+                                <Div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                                    <Tabs
+                                        options={viewOptions}
+                                        value={view}
+                                        onChange={(value) => {
+                                            if (value === 'day' || value === 'week' || value === 'month') {
+                                                setView(value);
+                                            }
+                                        }}
+                                        variant="pills"
+                                    />
+                                    <Div className="hidden h-8 w-px bg-gray-100 sm:block" />
+                                    <Div className="flex flex-wrap items-center gap-3">
+                                        <Div className="w-40 sm:w-48">
+                                            <Dropdown
+                                                leftIcon="filter"
+                                                options={roomOptions}
+                                                value={roomId}
+                                                onChange={(value) => {
+                                                    if (typeof value === 'string') setRoomId(value);
+                                                }}
+                                            />
+                                        </Div>
+                                        <Button
+                                            id="cal-export-pdf"
+                                            type={EButtonType.secondary}
+                                            size={EButtonSize.medium}
+                                            text={t('exportPdf')}
+                                            isLoading={isExporting}
+                                            iconPosition="left"
+                                            icon={{
+                                                name: IconComponentsEnum.pdf,
+                                                size: ESize.sm,
+                                                color: 'text-primary-500',
+                                            }}
+                                            onClick={() => {
+                                                void handleExportPdf();
+                                            }}
+                                        />
+                                    </Div>
+                                </Div>
+                            </Div>
+                        </Div>
+
+                        <Div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                            {view === 'day' ? (
+                                <Div
+                                    className={`group ${isAdmin ? 'cursor-pointer' : ''}`}
+                                    onClick={() => openCreateForDay(range.days[0])}
+                                >
+                                    <Div className="flex items-center justify-between border-b border-gray-100 bg-gray-25 px-5 py-3.5">
+                                        <Div>
                                             <Label
                                                 variant={EVariantLabel.caption}
-                                                color="text-gray-400"
+                                                color="text-gray-500"
+                                                className="uppercase tracking-wide"
                                             >
-                                                {t('empty')}
+                                                {formatWeekdayShort(range.days[0])}
                                             </Label>
+                                            <Label
+                                                variant={EVariantLabel.subtitle}
+                                                color="text-gray-900"
+                                                className="block font-semibold"
+                                            >
+                                                {formatDayMonth(range.days[0])}
+                                            </Label>
+                                        </Div>
+                                        {isAdmin ? (
+                                            <AddDayButton onClick={() => openCreateForDay(range.days[0])} />
+                                        ) : null}
+                                    </Div>
+                                    <Div className="p-4 sm:p-5">
+                                        {(eventsByDay.get(range.days[0].toDateString()) ?? []).length === 0 ? (
+                                            <EmptySlot
+                                                label={isAdmin ? t('addReservation') : t('empty')}
+                                                actionable={isAdmin}
+                                            />
                                         ) : (
-                                            <Div className="space-y-2">
-                                                {dayEvents.map((event) => (
-                                                    <EventCard
-                                                        key={event.id}
-                                                        event={event}
-                                                        paidLabel={tPay('paid')}
-                                                        unpaidLabel={tPay('unpaid')}
-                                                    />
-                                                ))}
+                                            <Div
+                                                className="max-w-md space-y-2"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {(eventsByDay.get(range.days[0].toDateString()) ?? []).map(
+                                                    (event) => (
+                                                        <EventCard
+                                                            key={event.id}
+                                                            event={event}
+                                                            paidLabel={tPay('paid')}
+                                                            unpaidLabel={tPay('unpaid')}
+                                                        />
+                                                    ),
+                                                )}
                                             </Div>
                                         )}
                                     </Div>
-                                );
-                            })}
-                        </Div>
-                    ) : null}
+                                </Div>
+                            ) : null}
 
-                    {view === 'month' ? (
-                        <Div className="overflow-hidden rounded-xl border border-gray-100 bg-white">
-                            <Div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
-                                {weekdayHeaders.map((label) => (
-                                    <Div key={label} className="px-2 py-2 text-center">
-                                        <Label
-                                            variant={EVariantLabel.caption}
-                                            color="text-gray-500"
-                                            className="uppercase"
-                                        >
-                                            {label}
-                                        </Label>
-                                    </Div>
-                                ))}
-                            </Div>
-                            <Div className="grid grid-cols-7">
-                                {range.days.map((day) => {
-                                    const inMonth =
-                                        range.monthStart &&
-                                        range.nextMonth &&
-                                        day >= range.monthStart &&
-                                        day < range.nextMonth;
-                                    const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
-                                    const isToday =
-                                        day.toDateString() === startOfDay(new Date()).toDateString();
-                                    return (
-                                        <Div
-                                            key={day.toISOString()}
-                                            className={`min-h-28 border-b border-r border-gray-100 p-2 ${
-                                                inMonth ? 'bg-white' : 'bg-gray-50/60'
-                                            } ${isToday ? 'ring-1 ring-inset ring-accent-300' : ''}`}
-                                        >
-                                            <Label
-                                                variant={EVariantLabel.caption}
-                                                color={inMonth ? 'text-primary-700' : 'text-gray-400'}
-                                                className="mb-1 block font-semibold"
+                            {view === 'week' ? (
+                                <Div className="grid grid-cols-1 divide-y divide-gray-100 md:grid-cols-7 md:divide-x md:divide-y-0">
+                                    {range.days.map((day) => {
+                                        const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
+                                        const isToday = isSameDay(day, today);
+                                        return (
+                                            <Div
+                                                key={day.toISOString()}
+                                                className={`group flex flex-col ${isAdmin ? 'cursor-pointer' : ''}`}
+                                                onClick={() => openCreateForDay(day)}
                                             >
-                                                {day.getDate()}
-                                            </Label>
-                                            <Div className="space-y-1">
-                                                {dayEvents.slice(0, 3).map((event) => (
-                                                    <Div
-                                                        key={event.id}
-                                                        className="truncate rounded bg-accent-50 px-1 py-0.5"
-                                                    >
+                                                <Div
+                                                    className={`flex items-center justify-between border-b px-3 py-2.5 ${
+                                                        isToday
+                                                            ? 'border-b-2 border-b-accent-400 bg-accent-50/60'
+                                                            : 'border-gray-100 bg-gray-25'
+                                                    }`}
+                                                >
+                                                    <Div>
                                                         <Label
                                                             variant={EVariantLabel.caption}
-                                                            color="text-accent-700"
-                                                            className="block truncate"
+                                                            color={isToday ? 'text-accent-700' : 'text-gray-500'}
+                                                            className="block uppercase tracking-wide"
                                                         >
-                                                            {formatTime(event.startAt)}{' '}
-                                                            {event.room?.name || event.title || ''}
+                                                            {formatWeekdayShort(day)}
+                                                        </Label>
+                                                        <Label
+                                                            variant={EVariantLabel.bodySmall}
+                                                            color={isToday ? 'text-accent-700' : 'text-gray-700'}
+                                                            className="block font-semibold"
+                                                        >
+                                                            {formatDayMonth(day)}
                                                         </Label>
                                                     </Div>
-                                                ))}
-                                                {dayEvents.length > 3 ? (
-                                                    <Label
-                                                        variant={EVariantLabel.caption}
-                                                        color="text-gray-500"
-                                                    >
-                                                        +{dayEvents.length - 3}
-                                                    </Label>
-                                                ) : null}
+                                                    {isAdmin ? (
+                                                        <AddDayButton onClick={() => openCreateForDay(day)} />
+                                                    ) : null}
+                                                </Div>
+                                                <Div className="min-h-48 flex-1 p-3">
+                                                    {dayEvents.length === 0 ? (
+                                                        <EmptySlot
+                                                            label={isAdmin ? t('addReservation') : t('empty')}
+                                                            actionable={isAdmin}
+                                                        />
+                                                    ) : (
+                                                        <Div
+                                                            className="space-y-2"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            {dayEvents.map((event) => (
+                                                                <EventCard
+                                                                    key={event.id}
+                                                                    event={event}
+                                                                    paidLabel={tPay('paid')}
+                                                                    unpaidLabel={tPay('unpaid')}
+                                                                />
+                                                            ))}
+                                                        </Div>
+                                                    )}
+                                                </Div>
                                             </Div>
-                                        </Div>
-                                    );
-                                })}
-                            </Div>
+                                        );
+                                    })}
+                                </Div>
+                            ) : null}
+
+                            {view === 'month' ? (
+                                <Div>
+                                    <Div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
+                                        {weekdayHeaders.map((label) => (
+                                            <Div key={label} className="px-2 py-2.5 text-center">
+                                                <Label
+                                                    variant={EVariantLabel.caption}
+                                                    color="text-gray-500"
+                                                    className="uppercase tracking-wide"
+                                                >
+                                                    {label}
+                                                </Label>
+                                            </Div>
+                                        ))}
+                                    </Div>
+                                    <Div className="grid grid-cols-7">
+                                        {range.days.map((day) => {
+                                            const inMonth =
+                                                range.monthStart &&
+                                                range.nextMonth &&
+                                                day >= range.monthStart &&
+                                                day < range.nextMonth;
+                                            const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
+                                            const isToday = isSameDay(day, today);
+                                            return (
+                                                <Div
+                                                    key={day.toISOString()}
+                                                    className={`group min-h-28 border-b border-e border-gray-100 p-2 ${
+                                                        isAdmin ? 'cursor-pointer' : ''
+                                                    } ${inMonth ? 'bg-white hover:bg-primary-25/60' : 'bg-gray-25/70'}`}
+                                                    onClick={() => openCreateForDay(day)}
+                                                >
+                                                    <Div className="mb-1.5 flex items-center justify-between">
+                                                        {isToday ? (
+                                                            <Div className="flex size-6 items-center justify-center rounded-full bg-accent-500">
+                                                                <Label
+                                                                    variant={EVariantLabel.caption}
+                                                                    color="text-white"
+                                                                    className="font-semibold"
+                                                                >
+                                                                    {day.getDate()}
+                                                                </Label>
+                                                            </Div>
+                                                        ) : (
+                                                            <Label
+                                                                variant={EVariantLabel.caption}
+                                                                color={inMonth ? 'text-gray-700' : 'text-gray-300'}
+                                                                className="font-semibold"
+                                                            >
+                                                                {day.getDate()}
+                                                            </Label>
+                                                        )}
+                                                        {isAdmin ? (
+                                                            <AddDayButton onClick={() => openCreateForDay(day)} />
+                                                        ) : null}
+                                                    </Div>
+                                                    <Div
+                                                        className="space-y-1"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        {dayEvents.slice(0, 3).map((event) => (
+                                                            <Div
+                                                                key={event.id}
+                                                                className="flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50"
+                                                            >
+                                                                <Div
+                                                                    className={`size-1.5 shrink-0 rounded-full ${
+                                                                        event.isPaid ? 'bg-success-400' : 'bg-warning-400'
+                                                                    }`}
+                                                                />
+                                                                <Label
+                                                                    variant={EVariantLabel.caption}
+                                                                    color="text-gray-700"
+                                                                    className="block truncate"
+                                                                >
+                                                                    {formatTime(event.startAt)}{' '}
+                                                                    {event.room?.name || event.title || ''}
+                                                                </Label>
+                                                            </Div>
+                                                        ))}
+                                                        {dayEvents.length > 3 ? (
+                                                            <Label
+                                                                variant={EVariantLabel.caption}
+                                                                color="text-gray-500"
+                                                                className="block ps-1"
+                                                            >
+                                                                {t('moreEvents', { count: dayEvents.length - 3 })}
+                                                            </Label>
+                                                        ) : null}
+                                                    </Div>
+                                                </Div>
+                                            );
+                                        })}
+                                    </Div>
+                                </Div>
+                            ) : null}
                         </Div>
-                    ) : null}
-                </Div>
-            }
-        />
+                    </Div>
+                }
+            />
+        </>
     );
 }

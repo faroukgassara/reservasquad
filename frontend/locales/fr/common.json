@@ -1476,6 +1476,8 @@
             "week": "Semaine",
             "month": "Mois",
             "empty": "Aucune réservation",
+            "addReservation": "Ajouter une réservation",
+            "moreEvents": "+{count}",
             "exportPdf": "Exporter PDF (semaine)",
             "exportTitle": "Calendrier hebdomadaire — Biblio Squad",
             "exportWeekRange": "Du {from} au {to}",
