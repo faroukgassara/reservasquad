@@ -147,16 +147,14 @@ function EmptySlot({
 }: Readonly<{ label: string; actionable?: boolean }>) {
     return (
         <Div
-            className={`flex flex-col items-center gap-2 rounded-lg py-6 text-center transition-colors ${
-                actionable
-                    ? 'border border-dashed border-gray-200 group-hover:border-primary-300 group-hover:bg-primary-25/60'
-                    : ''
-            }`}
+            className={`flex flex-col items-center gap-2 rounded-lg py-6 text-center transition-colors ${actionable
+                ? 'border border-dashed border-gray-200 group-hover:border-primary-300 group-hover:bg-primary-25/60'
+                : ''
+                }`}
         >
             <Div
-                className={`flex size-9 items-center justify-center rounded-full ${
-                    actionable ? 'bg-primary-50' : 'bg-gray-100'
-                }`}
+                className={`flex size-9 items-center justify-center rounded-full ${actionable ? 'bg-primary-50' : 'bg-gray-100'
+                    }`}
             >
                 <Icon
                     name={actionable ? IconComponentsEnum.plus : IconComponentsEnum.calendar}
@@ -185,9 +183,8 @@ function EventCard({
 }>) {
     return (
         <Div
-            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${
-                event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
-            }`}
+            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
+                }`}
         >
             <Div className="flex items-center justify-between gap-2">
                 <Label
@@ -204,21 +201,24 @@ function EventCard({
                     size={EBadgeSize.tiny}
                 />
             </Div>
-            <Label
-                variant={EVariantLabel.bodySmall}
-                color="text-gray-900"
-                className="mt-1 block truncate font-medium"
-            >
-                {event.title || event.room?.name || '—'}
-            </Label>
-            {event.professor ? (
-                <Label variant={EVariantLabel.caption} color="text-gray-500" className="mt-0.5 block truncate">
-                    {event.professor.firstName} {event.professor.lastName}
+            <Div className="flex flex-col gap-1">
+                <Label
+                    variant={EVariantLabel.bodySmall}
+                    color="text-gray-900"
+                    className="mt-1 block truncate font-medium"
+                >
+                    {event.room?.name || event.title || '—'}
                 </Label>
-            ) : null}
-            <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-1.5 block font-medium">
-                {formatMoney(event.price)}
-            </Label>
+                {event.professor ? (
+                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="mt-0.5 block truncate">
+                        {event.professor.firstName} {event.professor.lastName}
+                    </Label>
+                ) : null}
+                <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-1.5 block font-medium">
+                    {formatMoney(event.price)}
+                </Label>
+
+            </Div>
         </Div>
     );
 }
@@ -633,11 +633,10 @@ export default function CalendarPage() {
                                                 onClick={() => openCreateForDay(day)}
                                             >
                                                 <Div
-                                                    className={`flex items-center justify-between border-b px-3 py-2.5 ${
-                                                        isToday
-                                                            ? 'border-b-2 border-b-accent-400 bg-accent-50/60'
-                                                            : 'border-gray-100 bg-gray-25'
-                                                    }`}
+                                                    className={`flex items-center justify-between border-b px-3 py-2.5 ${isToday
+                                                        ? 'border-b-2 border-b-accent-400 bg-accent-50/60'
+                                                        : 'border-gray-100 bg-gray-25'
+                                                        }`}
                                                 >
                                                     <Div>
                                                         <Label
@@ -714,9 +713,8 @@ export default function CalendarPage() {
                                             return (
                                                 <Div
                                                     key={day.toISOString()}
-                                                    className={`group min-h-28 border-b border-e border-gray-100 p-2 ${
-                                                        isAdmin ? 'cursor-pointer' : ''
-                                                    } ${inMonth ? 'bg-white hover:bg-primary-25/60' : 'bg-gray-25/70'}`}
+                                                    className={`group min-h-28 border-b border-e border-gray-100 p-2 ${isAdmin ? 'cursor-pointer' : ''
+                                                        } ${inMonth ? 'bg-white hover:bg-primary-25/60' : 'bg-gray-25/70'}`}
                                                     onClick={() => openCreateForDay(day)}
                                                 >
                                                     <Div className="mb-1.5 flex items-center justify-between">
@@ -753,9 +751,8 @@ export default function CalendarPage() {
                                                                 className="flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50"
                                                             >
                                                                 <Div
-                                                                    className={`size-1.5 shrink-0 rounded-full ${
-                                                                        event.isPaid ? 'bg-success-400' : 'bg-warning-400'
-                                                                    }`}
+                                                                    className={`size-1.5 shrink-0 rounded-full ${event.isPaid ? 'bg-success-400' : 'bg-warning-400'
+                                                                        }`}
                                                                 />
                                                                 <Label
                                                                     variant={EVariantLabel.caption}
