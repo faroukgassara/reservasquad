@@ -1455,7 +1455,13 @@
             "unpaid": "Non payé",
             "cancel": "Annuler",
             "deleteConfirm": "Supprimer cette réservation ?",
-            "noProfessor": "Aucun professeur"
+            "noProfessor": "Aucun professeur",
+            "filterAllRooms": "Toutes les salles",
+            "filterAllProfessors": "Tous les professeurs",
+            "filterAllPayments": "Tous les paiements",
+            "filterAllStatuses": "Tous les statuts",
+            "filterFrom": "Du",
+            "filterTo": "Au"
         },
         "calendar": {
             "title": "Calendrier",

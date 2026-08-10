@@ -89,6 +89,8 @@ export async function fetchReservations(params: {
     roomId?: string;
     professorId?: string;
     isPaid?: boolean;
+    from?: string;
+    to?: string;
 }): Promise<PaginatedReservations> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const sp = new URLSearchParams();

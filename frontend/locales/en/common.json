@@ -1455,7 +1455,13 @@
             "unpaid": "Unpaid",
             "cancel": "Cancel",
             "deleteConfirm": "Delete this reservation?",
-            "noProfessor": "No professor"
+            "noProfessor": "No professor",
+            "filterAllRooms": "All rooms",
+            "filterAllProfessors": "All professors",
+            "filterAllPayments": "All payments",
+            "filterAllStatuses": "All statuses",
+            "filterFrom": "From",
+            "filterTo": "To"
         },
         "calendar": {
             "title": "Calendar",

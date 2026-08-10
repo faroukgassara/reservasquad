@@ -93,21 +93,40 @@ export class ReservationBackofficeController {
   }
 
   @Get('list')
-  @swagger.ApiOperation({ summary: 'List reservations' })
+  @swagger.ApiOperation({ summary: 'List reservations (server-side filters)' })
   @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
   @ApiSortingQuery(RESERVATION_SORTING_OPTIONS)
-  @ApiSearchQuery({ fields: ['title', 'notes'] })
+  @ApiSearchQuery({
+    fields: ['title', 'notes', 'room.name', 'professor.firstName', 'professor.lastName'],
+  })
   async list(
     @Res() res: Response,
-    @Query() query: FetchReservationsDto,
+    @Req() req: IRequest,
     @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
     pagination: PaginationData,
     @SortingQuery(RESERVATION_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
-    @SearchQuery({ fields: ['title', 'notes'] }) search: object,
+    @SearchQuery({
+      fields: ['title', 'notes', 'room.name', 'professor.firstName', 'professor.lastName'],
+    })
+    search: object,
   ) {
     try {
+      // Use raw query strings so `isPaid=false` is not coerced by ValidationPipe.
+      const dto = plainToInstance(FetchReservationsDto, req.query);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+
       const data = await this.reservationService.listReservations(
-        query,
+        dto,
         pagination,
         orderBy,
         search as never,

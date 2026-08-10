@@ -7,6 +7,9 @@ import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import Button from '@/components/Primitives/Button/Button';
 import Badge from '@/components/Primitives/Badge/Badge';
+import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
+import Div from '@/components/Primitives/Div/Div';
+import Label from '@/components/Primitives/Label/Label';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
 import ReservationFormModal, {
     type ReservationFormValues,
@@ -22,6 +25,7 @@ import {
     formatMoney,
     updateReservation,
     type ReservationRecord,
+    type ReservationStatus,
 } from '@/lib/reservation-api';
 import { fetchRooms } from '@/lib/room-api';
 import { fetchProfessors } from '@/lib/professor-api';
@@ -32,6 +36,7 @@ import {
     EButtonType,
     ESize,
     EToastType,
+    EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
 import { ITableAction, ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
@@ -41,6 +46,9 @@ type ModalState =
     | { type: 'delete'; reservation: ReservationRecord }
     | { type: 'cancel'; reservation: ReservationRecord }
     | null;
+
+type PaidFilter = 'all' | 'paid' | 'unpaid';
+type StatusFilter = 'all' | ReservationStatus;
 
 function formatDateTime(value: string): string {
     return new Date(value).toLocaleString('fr-FR', {
@@ -57,6 +65,12 @@ export default function ReservationsAdminPage() {
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
+    const [roomFilter, setRoomFilter] = useState('all');
+    const [professorFilter, setProfessorFilter] = useState('all');
+    const [paidFilter, setPaidFilter] = useState<PaidFilter>('all');
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
     const [modalState, setModalState] = useState<ModalState>(null);
     const queryClient = useQueryClient();
     const { openToast } = useToast();
@@ -64,10 +78,36 @@ export default function ReservationsAdminPage() {
         closeCallBack: () => setModalState(null),
     });
 
+    const fromIso = fromDate ? new Date(`${fromDate}T00:00:00`).toISOString() : undefined;
+    const toExclusiveIso = toDate
+        ? new Date(new Date(`${toDate}T00:00:00`).getTime() + 24 * 60 * 60 * 1000).toISOString()
+        : undefined;
+
     const { data, isLoading } = useQuery({
-        queryKey: ['reservations', page, searchValue],
+        queryKey: [
+            'reservations',
+            page,
+            searchValue,
+            roomFilter,
+            professorFilter,
+            paidFilter,
+            statusFilter,
+            fromDate,
+            toDate,
+        ],
         queryFn: () =>
-            fetchReservations({ page, perPage: 10, search: searchValue || undefined }),
+            fetchReservations({
+                page,
+                perPage: 10,
+                search: searchValue || undefined,
+                ...(roomFilter !== 'all' ? { roomId: roomFilter } : {}),
+                ...(professorFilter !== 'all' ? { professorId: professorFilter } : {}),
+                ...(paidFilter === 'paid' ? { isPaid: true } : {}),
+                ...(paidFilter === 'unpaid' ? { isPaid: false } : {}),
+                ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+                ...(fromIso ? { from: fromIso } : {}),
+                ...(toExclusiveIso ? { to: toExclusiveIso } : {}),
+            }),
     });
 
     const { data: roomsData } = useQuery({
@@ -78,11 +118,47 @@ export default function ReservationsAdminPage() {
     const { data: professorsData } = useQuery({
         queryKey: ['professors-options'],
         queryFn: () => fetchProfessors({ page: 1, perPage: 100 }),
-        enabled: isAdmin,
     });
 
     const rooms = roomsData?.data ?? [];
     const professors = professorsData?.data ?? [];
+
+    const roomFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: t('filterAllRooms') },
+            ...rooms.map((room) => ({ value: room.id, label: room.name })),
+        ],
+        [rooms, t],
+    );
+
+    const professorFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: t('filterAllProfessors') },
+            ...professors.map((p) => ({
+                value: p.id,
+                label: `${p.firstName} ${p.lastName}`,
+            })),
+        ],
+        [professors, t],
+    );
+
+    const paidFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: t('filterAllPayments') },
+            { value: 'paid', label: t('paid') },
+            { value: 'unpaid', label: t('unpaid') },
+        ],
+        [t],
+    );
+
+    const statusFilterOptions = useMemo(
+        () => [
+            { value: 'all', label: t('filterAllStatuses') },
+            { value: 'CONFIRMED', label: tStatus('confirmed') },
+            { value: 'CANCELLED', label: tStatus('cancelled') },
+        ],
+        [t, tStatus],
+    );
 
     const createMutation = useMutation({
         mutationFn: createReservation,
@@ -338,7 +414,97 @@ export default function ReservationsAdminPage() {
                 title={t('title')}
                 subTitle={t('subtitle')}
                 mainSection={
-                    <div className="min-h-full">
+                    <Div className="min-h-full space-y-4">
+                        <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                            <Dropdown
+                                label={t('room')}
+                                options={roomFilterOptions}
+                                value={roomFilter}
+                                onChange={(value) => {
+                                    if (typeof value === 'string') {
+                                        setRoomFilter(value);
+                                        setPage(1);
+                                    }
+                                }}
+                            />
+                            <Dropdown
+                                label={t('professor')}
+                                options={professorFilterOptions}
+                                value={professorFilter}
+                                onChange={(value) => {
+                                    if (typeof value === 'string') {
+                                        setProfessorFilter(value);
+                                        setPage(1);
+                                    }
+                                }}
+                            />
+                            <Dropdown
+                                label={t('payment')}
+                                options={paidFilterOptions}
+                                value={paidFilter}
+                                onChange={(value) => {
+                                    if (value === 'all' || value === 'paid' || value === 'unpaid') {
+                                        setPaidFilter(value);
+                                        setPage(1);
+                                    }
+                                }}
+                            />
+                            <Dropdown
+                                label={t('status')}
+                                options={statusFilterOptions}
+                                value={statusFilter}
+                                onChange={(value) => {
+                                    if (
+                                        value === 'all' ||
+                                        value === 'CONFIRMED' ||
+                                        value === 'CANCELLED'
+                                    ) {
+                                        setStatusFilter(value);
+                                        setPage(1);
+                                    }
+                                }}
+                            />
+                            <Div>
+                                <Label
+                                    variant={EVariantLabel.bodySmall}
+                                    color="text-gray-700"
+                                    className="mb-1.5 block"
+                                >
+                                    {t('filterFrom')}
+                                </Label>
+                                <input
+                                    id="reservations-filter-from"
+                                    type="date"
+                                    lang="fr"
+                                    className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
+                                    value={fromDate}
+                                    onChange={(e) => {
+                                        setFromDate(e.target.value);
+                                        setPage(1);
+                                    }}
+                                />
+                            </Div>
+                            <Div>
+                                <Label
+                                    variant={EVariantLabel.bodySmall}
+                                    color="text-gray-700"
+                                    className="mb-1.5 block"
+                                >
+                                    {t('filterTo')}
+                                </Label>
+                                <input
+                                    id="reservations-filter-to"
+                                    type="date"
+                                    lang="fr"
+                                    className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
+                                    value={toDate}
+                                    onChange={(e) => {
+                                        setToDate(e.target.value);
+                                        setPage(1);
+                                    }}
+                                />
+                            </Div>
+                        </Div>
                         <OrganismTable<ReservationRecord>
                             columns={columns}
                             rows={rows}
@@ -377,7 +543,7 @@ export default function ReservationsAdminPage() {
                                 ) : undefined
                             }
                         />
-                    </div>
+                    </Div>
                 }
             />
         </>

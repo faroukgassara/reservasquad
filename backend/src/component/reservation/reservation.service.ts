@@ -214,13 +214,27 @@ export class ReservationService {
     orderBy: Record<string, unknown>[],
     search?: Prisma.ReservationWhereInput,
   ) {
+    const startAtFilter: Prisma.DateTimeFilter | undefined =
+      query.from || query.to
+        ? {
+            ...(query.from ? { gte: new Date(query.from) } : {}),
+            ...(query.to ? { lt: new Date(query.to) } : {}),
+          }
+        : undefined;
+
     const andWhere = buildAndFilters(
       query.status ? { status: query.status } : undefined,
       query.roomId ? { roomId: query.roomId } : undefined,
       query.professorId ? { professorId: query.professorId } : undefined,
-      query.isPaid !== undefined ? { isPaid: query.isPaid } : undefined,
+      query.isPaid === 'true'
+        ? { isPaid: true }
+        : query.isPaid === 'false'
+          ? { isPaid: false }
+          : undefined,
+      startAtFilter ? { startAt: startAtFilter } : undefined,
       search,
     );
+
     const proxied = ProxyPrismaModel(this.prismaService.reservation as any);
     return proxied.findManyPaginated(
       {

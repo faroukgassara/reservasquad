@@ -1455,7 +1455,13 @@
             "unpaid": "غير مدفوع",
             "cancel": "إلغاء",
             "deleteConfirm": "حذف هذا الحجز؟",
-            "noProfessor": "بدون أستاذ"
+            "noProfessor": "بدون أستاذ",
+            "filterAllRooms": "كل القاعات",
+            "filterAllProfessors": "كل الأساتذة",
+            "filterAllPayments": "كل المدفوعات",
+            "filterAllStatuses": "كل الحالات",
+            "filterFrom": "من",
+            "filterTo": "إلى"
         },
         "calendar": {
             "title": "التقويم",
