@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { ConfigService } from '@nestjs/config';
-import { BatchResponse, MulticastMessage } from 'firebase-admin/lib/messaging/messaging-api';
+import { BatchResponse, MulticastMessage } from 'firebase-admin/messaging';
 import { IEnv } from '../env/env';
 @Injectable()
 export class PushNotificationService {
-    private config: IEnv
-    private static firebaseApp: admin.app.App;
+    private readonly config: IEnv
+    private static readonly firebaseApp: admin.app.App;
     constructor(
         private readonly configService: ConfigService,
     ) {

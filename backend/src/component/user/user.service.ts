@@ -5,9 +5,6 @@ import { CreateUserDto } from 'src/dto/user/createUser.dto';
 import { UpdateUserDto } from 'src/dto/user/updateUser.dto';
 import * as bcrypt from 'bcrypt';
 import { ERole, EStatus, Prisma, User } from 'src/generated/prisma/client';
-import { CommonFunctionService } from 'src/common/common-services/common-function';
-import { FileUploadService } from 'src/common/common-services/file-upload.service';
-import { EmailService } from 'src/common/email/email.service';
 import { IEnv } from 'src/common/env/env';
 import { FetchUsersDto } from 'src/dto/user/fetchUsers.dto';
 import { ProxyPrismaModel } from 'src/common/pagination/proxy';
@@ -24,9 +21,6 @@ export class UserService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly commonFunction: CommonFunctionService,
-    private readonly fileUploadService: FileUploadService,
-    private readonly emailService: EmailService,
     private readonly configService: ConfigService,
   ) {
     this.config = this.configService.get<IEnv>('env');
@@ -53,44 +47,7 @@ export class UserService {
       },
     });
 
-    await this.sendInvitationEmail({
-      email: createdUser.email,
-      temporaryPassword: user.password,
-      inviterName,
-    });
-
     return createdUser;
-  }
-
-  private async sendInvitationEmail(params: {
-    email: string;
-    temporaryPassword: string;
-    inviterName: string;
-  }): Promise<void> {
-    try {
-      const frontUrl = this.config.FRONT_URL?.replace(/\/$/, '') || 'http://localhost:3000';
-      const invitationLink = `${frontUrl}/login`;
-      const html = await this.fileUploadService.renderTemplate(
-        {
-          frontUrl,
-          inviterName: params.inviterName,
-          invitationCode: params.temporaryPassword,
-          invitationLink,
-        },
-        'invitationRequestClient.ejs',
-      );
-
-      await this.emailService.sendMail({
-        to: params.email,
-        from: this.config.SMTP_SEND,
-        subject: 'Invitation to join Biblio Squad',
-        template: html,
-        attachments: [this.emailService.getBiblioSquadLogoAttachment()],
-      });
-    } catch (error: unknown) {
-      const detail = error instanceof Error ? error.stack ?? error.message : String(error);
-      this.logger.error(`Failed to send invitation email to ${params.email}`, detail);
-    }
   }
 
   async fetchUsers(
