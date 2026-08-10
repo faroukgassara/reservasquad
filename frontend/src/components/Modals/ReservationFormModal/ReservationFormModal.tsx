@@ -81,6 +81,7 @@ interface ReservationFormModalProps {
     /** Prefills the create form (e.g. when created from a calendar day click). Local `YYYY-MM-DDTHH:mm` format. */
     defaultStartAt?: string;
     defaultEndAt?: string;
+    defaultRoomId?: string;
     onDeleteSeriesFuture?: () => void;
     isDeletingSeries?: boolean;
 }
@@ -94,6 +95,7 @@ export default function ReservationFormModal({
     isLoading = false,
     defaultStartAt,
     defaultEndAt,
+    defaultRoomId,
     onDeleteSeriesFuture,
     isDeletingSeries = false,
 }: Readonly<ReservationFormModalProps>) {
@@ -118,7 +120,7 @@ export default function ReservationFormModal({
 
     const defaultValues: ReservationFormValues = {
         title: reservation?.title ?? '',
-        roomId: reservation?.roomId ?? '',
+        roomId: reservation?.roomId ?? defaultRoomId ?? '',
         professorId: reservation?.professorId ?? '',
         startAt: reservation ? toLocalInputValue(reservation.startAt) : defaultStartAt ?? '',
         endAt: reservation ? toLocalInputValue(reservation.endAt) : defaultEndAt ?? '',

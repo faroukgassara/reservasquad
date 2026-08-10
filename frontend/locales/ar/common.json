@@ -1528,7 +1528,17 @@
             "deleteSeriesFuture": "حذف هذه المرة والمرات القادمة",
             "deleteSeriesFutureConfirm": "حذف هذه المرة وجميع المرات القادمة في السلسلة؟",
             "seriesCreated": "تم إنشاء السلسلة ({count} حجوزات)",
-            "seriesBadge": "سلسلة"
+            "seriesBadge": "سلسلة",
+            "findRoom": "البحث عن قاعة",
+            "findRoomTitle": "البحث عن قاعة متاحة",
+            "findRoomSubtitle": "اختر الفترة الزمنية ثم احجز قاعة متاحة",
+            "findRoomSearch": "بحث",
+            "findRoomEmpty": "لا توجد قاعات متاحة لهذه الفترة",
+            "findRoomResults": "{count} قاعة متاحة",
+            "findRoomCapacity": "السعة {count}",
+            "findRoomEstimated": "تقريبيًا {price}",
+            "findRoomBook": "حجز",
+            "findRoomRangeRequired": "اختر وقت بداية ونهاية صالحين"
         },
         "calendar": {
             "title": "التقويم",

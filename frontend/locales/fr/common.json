@@ -1528,7 +1528,17 @@
             "deleteSeriesFuture": "Supprimer cette occurrence et les suivantes",
             "deleteSeriesFutureConfirm": "Supprimer cette occurrence et toutes les suivantes de la série ?",
             "seriesCreated": "Série créée ({count} réservations)",
-            "seriesBadge": "Série"
+            "seriesBadge": "Série",
+            "findRoom": "Trouver une salle",
+            "findRoomTitle": "Trouver une salle libre",
+            "findRoomSubtitle": "Choisissez un créneau, puis réservez une salle disponible",
+            "findRoomSearch": "Rechercher",
+            "findRoomEmpty": "Aucune salle libre pour ce créneau",
+            "findRoomResults": "{count} salle(s) libre(s)",
+            "findRoomCapacity": "Capacité {count}",
+            "findRoomEstimated": "Est. {price}",
+            "findRoomBook": "Réserver",
+            "findRoomRangeRequired": "Choisissez un début et une fin valides"
         },
         "calendar": {
             "title": "Calendrier",

@@ -1528,7 +1528,17 @@
             "deleteSeriesFuture": "Delete this and future occurrences",
             "deleteSeriesFutureConfirm": "Delete this and all future occurrences in the series?",
             "seriesCreated": "Series created ({count} reservations)",
-            "seriesBadge": "Series"
+            "seriesBadge": "Series",
+            "findRoom": "Find a room",
+            "findRoomTitle": "Find a free room",
+            "findRoomSubtitle": "Choose a time range, then book an available room",
+            "findRoomSearch": "Search",
+            "findRoomEmpty": "No rooms are free for this time range",
+            "findRoomResults": "{count} free room(s)",
+            "findRoomCapacity": "Capacity {count}",
+            "findRoomEstimated": "Est. {price}",
+            "findRoomBook": "Book",
+            "findRoomRangeRequired": "Choose a valid start and end time"
         },
         "calendar": {
             "title": "Calendar",

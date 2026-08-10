@@ -15,6 +15,7 @@ import ConfirmationModal from '@/components/Modals/ConfirmationModal/Confirmatio
 import ReservationFormModal, {
     type ReservationFormValues,
 } from '@/components/Modals/ReservationFormModal/ReservationFormModal';
+import FindFreeRoomModal from '@/components/Modals/FindFreeRoomModal/FindFreeRoomModal';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
@@ -46,7 +47,14 @@ import {
 import { ITableAction, ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
 
 type ModalState =
-    | { type: 'form'; reservation: ReservationRecord | null }
+    | {
+          type: 'form';
+          reservation: ReservationRecord | null;
+          roomId?: string;
+          startAt?: string;
+          endAt?: string;
+      }
+    | { type: 'find-room' }
     | { type: 'delete'; reservation: ReservationRecord }
     | { type: 'cancel'; reservation: ReservationRecord }
     | { type: 'bulk-paid' }
@@ -522,9 +530,29 @@ export default function ReservationsAdminPage() {
                 />
             );
         }
+        if (modalState?.type === 'find-room') {
+            return (
+                <FindFreeRoomModal
+                    onSelect={({ roomId, startAt, endAt }) => {
+                        setModalState({
+                            type: 'form',
+                            reservation: null,
+                            roomId,
+                            startAt,
+                            endAt,
+                        });
+                    }}
+                />
+            );
+        }
         if (modalState?.type === 'form') {
             return (
                 <ReservationFormModal
+                    key={
+                        modalState.reservation
+                            ? modalState.reservation.id
+                            : `create-${modalState.roomId ?? ''}-${modalState.startAt ?? ''}-${modalState.endAt ?? ''}`
+                    }
                     mode={modalState.reservation ? 'edit' : 'create'}
                     reservation={modalState.reservation}
                     rooms={rooms}
@@ -535,6 +563,9 @@ export default function ReservationsAdminPage() {
                         updateMutation.isPending ||
                         seriesMutation.isPending
                     }
+                    defaultRoomId={modalState.roomId}
+                    defaultStartAt={modalState.startAt}
+                    defaultEndAt={modalState.endAt}
                     onDeleteSeriesFuture={
                         modalState.reservation?.seriesId
                             ? () => {
@@ -695,6 +726,16 @@ export default function ReservationsAdminPage() {
                                                 onClick={toggleSelectAllUnpaid}
                                             />
                                         ) : null}
+                                        <Button
+                                            id="reservations-find-room-btn"
+                                            type={EButtonType.secondary}
+                                            size={EButtonSize.medium}
+                                            text={t('findRoom')}
+                                            onClick={() => {
+                                                setModalState({ type: 'find-room' });
+                                                openModal();
+                                            }}
+                                        />
                                         <Button
                                             id="reservations-add-btn"
                                             type={EButtonType.primary}

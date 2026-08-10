@@ -22,6 +22,7 @@ import { FetchReservationsDto } from 'src/dto/reservation/fetchReservations.dto'
 import { CalendarQueryDto } from 'src/dto/reservation/calendarQuery.dto';
 import { BulkMarkPaidDto } from 'src/dto/reservation/bulkMarkPaid.dto';
 import { CreateReservationSeriesDto } from 'src/dto/reservation/createReservationSeries.dto';
+import { AvailabilityQueryDto } from 'src/dto/reservation/availabilityQuery.dto';
 import {
   ApiPaginationQuery,
   PaginationQuery,
@@ -84,6 +85,33 @@ export class ReservationBackofficeController {
       const data = await this.reservationService.occupancy(
         Number.isFinite(y) ? y : undefined,
         Number.isFinite(m) ? m : undefined,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('availability')
+  @swagger.ApiOperation({ summary: 'List free rooms for a time range' })
+  async availability(@Res() res: Response, @Query() query: AvailabilityQueryDto) {
+    try {
+      const dto = plainToInstance(AvailabilityQueryDto, query);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.availability(
+        dto.startAt,
+        dto.endAt,
+        dto.excludeReservationId,
       );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {

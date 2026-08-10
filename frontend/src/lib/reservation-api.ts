@@ -179,6 +179,43 @@ export async function fetchOccupancy(params?: {
     return unwrapData<OccupancyData>(res.data as { data?: OccupancyData });
 }
 
+export interface AvailabilityRoom {
+    id: string;
+    name: string;
+    capacity: number;
+    pricePerHour: number;
+    estimatedPrice: number;
+}
+
+export interface AvailabilityData {
+    startAt: string;
+    endAt: string;
+    rooms: AvailabilityRoom[];
+}
+
+export async function fetchAvailability(params: {
+    startAt: string;
+    endAt: string;
+    excludeReservationId?: string;
+}): Promise<AvailabilityData> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    sp.set('startAt', params.startAt);
+    sp.set('endAt', params.endAt);
+    if (params.excludeReservationId) {
+        sp.set('excludeReservationId', params.excludeReservationId);
+    }
+    const res = await api.get(`/api/reservations/availability?${sp.toString()}`, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.error ||
+            (res.data as { message?: string })?.message ||
+            'Failed to fetch availability';
+        throw new Error(message);
+    }
+    return unwrapData<AvailabilityData>(res.data as { data?: AvailabilityData });
+}
+
 export async function createReservation(body: {
     title?: string;
     roomId: string;

@@ -15,6 +15,7 @@ import Tabs from '@/components/Primitives/Tabs/Tabs';
 import ReservationFormModal, {
     type ReservationFormValues,
 } from '@/components/Modals/ReservationFormModal/ReservationFormModal';
+import FindFreeRoomModal from '@/components/Modals/FindFreeRoomModal/FindFreeRoomModal';
 import {
     createReservation,
     createReservationSeries,
@@ -48,8 +49,15 @@ import {
 type CalendarView = 'day' | 'week' | 'month';
 
 type CalendarModalState =
-    | { mode: 'create'; day: Date }
+    | {
+          mode: 'create';
+          day?: Date;
+          roomId?: string;
+          startAt?: string;
+          endAt?: string;
+      }
     | { mode: 'edit'; reservation: ReservationRecord }
+    | { mode: 'find-room'; day?: Date }
     | null;
 
 function formatExportDate(date: Date): string {
@@ -535,8 +543,34 @@ export default function CalendarPage() {
     return (
         <>
             {modalPortal(
-                modalState ? (
+                modalState?.mode === 'find-room' ? (
+                    <FindFreeRoomModal
+                        defaultStartAt={
+                            modalState.day
+                                ? toLocalDateTimeInput(modalState.day, 9)
+                                : undefined
+                        }
+                        defaultEndAt={
+                            modalState.day
+                                ? toLocalDateTimeInput(modalState.day, 10)
+                                : undefined
+                        }
+                        onSelect={({ roomId, startAt, endAt }) => {
+                            setModalState({
+                                mode: 'create',
+                                roomId,
+                                startAt,
+                                endAt,
+                            });
+                        }}
+                    />
+                ) : modalState ? (
                     <ReservationFormModal
+                        key={
+                            modalState.mode === 'create'
+                                ? `create-${modalState.roomId ?? ''}-${modalState.startAt ?? ''}-${modalState.endAt ?? ''}-${modalState.day?.toISOString() ?? ''}`
+                                : modalState.reservation.id
+                        }
                         mode={modalState.mode}
                         reservation={modalState.mode === 'edit' ? modalState.reservation : null}
                         rooms={rooms}
@@ -547,14 +581,23 @@ export default function CalendarPage() {
                             updateMutation.isPending ||
                             seriesMutation.isPending
                         }
+                        defaultRoomId={
+                            modalState.mode === 'create' ? modalState.roomId : undefined
+                        }
                         defaultStartAt={
                             modalState.mode === 'create'
-                                ? toLocalDateTimeInput(modalState.day, 9)
+                                ? modalState.startAt ??
+                                  (modalState.day
+                                      ? toLocalDateTimeInput(modalState.day, 9)
+                                      : undefined)
                                 : undefined
                         }
                         defaultEndAt={
                             modalState.mode === 'create'
-                                ? toLocalDateTimeInput(modalState.day, 10)
+                                ? modalState.endAt ??
+                                  (modalState.day
+                                      ? toLocalDateTimeInput(modalState.day, 10)
+                                      : undefined)
                                 : undefined
                         }
                     />
@@ -654,6 +697,21 @@ export default function CalendarPage() {
                                                 void handleExportPdf();
                                             }}
                                         />
+                                        {isAdmin ? (
+                                            <Button
+                                                id="cal-find-room"
+                                                type={EButtonType.primary}
+                                                size={EButtonSize.medium}
+                                                text={tPay('findRoom')}
+                                                onClick={() => {
+                                                    setModalState({
+                                                        mode: 'find-room',
+                                                        day: startOfDay(anchor),
+                                                    });
+                                                    openModal();
+                                                }}
+                                            />
+                                        ) : null}
                                     </Div>
                                 </Div>
                             </Div>

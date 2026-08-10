@@ -119,6 +119,53 @@ export class ReservationService {
     return this.calculatePrice(room, startAt, endAt);
   }
 
+  async availability(
+    startAtInput: string,
+    endAtInput: string,
+    excludeReservationId?: string,
+  ) {
+    const startAt = new Date(startAtInput);
+    const endAt = new Date(endAtInput);
+    this.assertValidRange(startAt, endAt);
+
+    const rooms = await this.prismaService.room.findMany({
+      where: { deletedAt: null },
+      orderBy: { name: 'asc' },
+    });
+
+    const conflicts = await this.prismaService.reservation.findMany({
+      where: {
+        deletedAt: null,
+        status: EReservationStatus.CONFIRMED,
+        startAt: { lt: endAt },
+        endAt: { gt: startAt },
+        ...(excludeReservationId ? { id: { not: excludeReservationId } } : {}),
+      },
+      select: { roomId: true },
+    });
+    const busyRoomIds = new Set(conflicts.map((row) => row.roomId));
+
+    const available = rooms
+      .filter((room) => !busyRoomIds.has(room.id))
+      .map((room) => {
+        const estimatedPrice = Number(this.calculatePrice(room, startAt, endAt));
+        return {
+          id: room.id,
+          name: room.name,
+          capacity: room.capacity,
+          pricePerHour: Number(room.pricePerHour),
+          estimatedPrice,
+        };
+      })
+      .sort((a, b) => a.estimatedPrice - b.estimatedPrice || a.name.localeCompare(b.name));
+
+    return {
+      startAt: startAt.toISOString(),
+      endAt: endAt.toISOString(),
+      rooms: available,
+    };
+  }
+
   async createReservation(
     dto: CreateReservationDto,
     createdById?: string,
