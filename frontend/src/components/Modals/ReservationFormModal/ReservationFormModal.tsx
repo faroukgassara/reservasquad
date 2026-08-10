@@ -84,20 +84,18 @@ export default function ReservationFormModal({
         [rooms],
     );
     const professorOptions = useMemo(
-        () => [
-            { value: '', label: t('noProfessor') },
-            ...professors.map((p) => ({
+        () =>
+            professors.map((p) => ({
                 value: p.id,
                 label: `${p.firstName} ${p.lastName}`,
             })),
-        ],
-        [professors, t],
+        [professors],
     );
 
     const form = useForm({
         defaultValues: {
             title: reservation?.title ?? '',
-            roomId: reservation?.roomId ?? rooms[0]?.id ?? '',
+            roomId: reservation?.roomId ?? '',
             professorId: reservation?.professorId ?? '',
             startAt: toLocalInputValue(reservation?.startAt),
             endAt: toLocalInputValue(reservation?.endAt),

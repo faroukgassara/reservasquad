@@ -69,10 +69,15 @@ export default function RoomsAdminPage() {
         enabled: isAdmin,
     });
 
+    const invalidateRooms = () => {
+        queryClient.invalidateQueries({ queryKey: ['rooms'] });
+        queryClient.invalidateQueries({ queryKey: ['rooms-options'] });
+    };
+
     const createMutation = useMutation({
         mutationFn: createRoom,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['rooms'] });
+            invalidateRooms();
             openToast(tCommon('success'), t('create'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
@@ -83,7 +88,7 @@ export default function RoomsAdminPage() {
         mutationFn: ({ id, body }: { id: string; body: Parameters<typeof updateRoom>[1] }) =>
             updateRoom(id, body),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['rooms'] });
+            invalidateRooms();
             openToast(tCommon('success'), tCommon('save'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
@@ -93,7 +98,7 @@ export default function RoomsAdminPage() {
     const deleteMutation = useMutation({
         mutationFn: deleteRoom,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['rooms'] });
+            invalidateRooms();
             openToast(tCommon('success'), tCommon('delete'), { type: EToastType.SUCCESS });
             setModalState(null);
             closeModal();

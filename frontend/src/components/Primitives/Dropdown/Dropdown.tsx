@@ -311,11 +311,17 @@ const DropdownTriggerContent = ({
     }
 
     return (
-        <div className={twMerge('min-w-0 flex-1 truncate', getTriggerHorizontalPadding(size, hasLeftIcon), sizeConfig.text)}>
+        <div
+            className={twMerge(
+                'flex h-full min-w-0 flex-1 items-center',
+                getTriggerHorizontalPadding(size, hasLeftIcon),
+                sizeConfig.text,
+            )}
+        >
             <Label
                 variant={EVariantLabel.bodySmall}
                 color={hasValue ? 'text-gray-900' : 'text-gray-400'}
-                className="truncate"
+                className="truncate leading-none"
             >
                 {displayLabel || placeholder || 'Select an option'}
             </Label>

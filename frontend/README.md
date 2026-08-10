@@ -1,6 +1,6 @@
 # Biblio Squad Frontend
 
-Next.js **15** (App Router) + React **19** + TypeScript app for the Biblio Squad marketing site and admin backoffice.
+Next.js **15** (App Router) + React **19** + TypeScript backoffice for room reservations and daily income.
 
 ## Prerequisites
 
@@ -14,29 +14,11 @@ Typical variables (`.env` / `.env.local`):
 | Variable | Purpose |
 | :--- | :--- |
 | `NEXT_PUBLIC_API_URL` | Backend base URL used by **server** API route proxies (e.g. `http://127.0.0.1:4000`) |
-| `NEXT_PUBLIC_MEDIA_URL` | Optional public URL for uploads. Prefer unset in production (same-origin paths). Locally you may set `http://localhost:4000` |
 | `NEXT_PUBLIC_FRONT_URL` | Public frontend URL |
 | `NEXTAUTH_URL` | Same origin as the frontend (e.g. `http://localhost:3000`) |
 | `NEXTAUTH_SECRET` | NextAuth secret (strong value in production) |
 
 Browser calls go to Next.js `/api/*` proxies; those forward the `Authorization` header to Nest (`/backoffice/...`). Do **not** call `getSession()` with `withToken: true` inside Route Handlers — forward `req.headers.get('authorization')` instead.
-
-### VPS (production) checklist for image uploads
-
-1. **Backend** — persistent uploads:
-   ```env
-   UPLOAD_DIR=/var/www/bibliosquad/uploads
-   ```
-   `mkdir -p /var/www/bibliosquad/uploads && chown -R www-data:www-data /var/www/bibliosquad/uploads`
-
-2. **Frontend**:
-   ```env
-   NEXT_PUBLIC_API_URL=http://127.0.0.1:4000
-   NEXTAUTH_URL=https://bibliosquad.tn
-   ```
-   Then `npm run build && pm2 restart frontend`
-
-3. **Nginx** — proxy upload paths; see [../deploy/nginx-bibliosquad.example.conf](../deploy/nginx-bibliosquad.example.conf)
 
 ## Scripts
 
@@ -54,7 +36,7 @@ npm run lint
 frontend/
 ├── locales/          # fr, en, ar (next-intl JSON)
 ├── src/
-│   ├── app/[locale]/ # App Router: (private) backoffice + public pages
+│   ├── app/[locale]/ # App Router: (private) backoffice
 │   ├── app/api/      # Next.js proxies → Nest API
 │   ├── components/   # Primitives, Organisms, Templates, Layouts, Modals
 │   ├── common/       # Api, validation helpers
@@ -70,20 +52,22 @@ Architecture conventions for agents: [../.cursor/rules/FRONTEND_ARCHITECTURE.mdc
 
 ## Locales
 
-- **fr** (default), **en**, **ar**
+- **en** (default), **fr**, **ar**
 - Config: `src/i18n/routing.ts` (`localePrefix: 'as-needed'`)
 
-## Backoffice (ADMIN)
-
-Notable private routes:
+## Backoffice
 
 | Module | Paths |
 | :--- | :--- |
-| Formations / blog / FAQ / testimonials / users | as in sidebar |
-| Coworking | `/coworking-rooms`, `/coworking-stats`, `/coworking-bookings` |
-| Ventes | `/clients`, `/quotes`, `/quotes/new`, `/quotes/[id]`, `/invoices`, `/invoices/[id]` |
+| Dashboard | `/dashboard` |
+| Calendar | `/calendar` |
+| Reservations | `/reservations` |
+| Rooms | `/rooms` |
+| Professors | `/professors`, `/professors/[id]` |
+| Daily Income | `/daily-income` (ADMIN) |
+| Users | `/users` (ADMIN) |
 
-Sales UI: custom document lines, per-line tax, amounts in **TND**, convert quote → invoice.
+Roles: **ADMIN** (full manage), **USER** (limited read).
 
 ## Documentation
 

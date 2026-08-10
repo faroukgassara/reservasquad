@@ -61,10 +61,15 @@ export default function ProfessorsAdminPage() {
         enabled: isAdmin,
     });
 
+    const invalidateProfessors = () => {
+        queryClient.invalidateQueries({ queryKey: ['professors'] });
+        queryClient.invalidateQueries({ queryKey: ['professors-options'] });
+    };
+
     const createMutation = useMutation({
         mutationFn: createProfessor,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['professors'] });
+            invalidateProfessors();
             openToast(tCommon('success'), t('create'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
@@ -75,7 +80,7 @@ export default function ProfessorsAdminPage() {
         mutationFn: ({ id, body }: { id: string; body: Parameters<typeof updateProfessor>[1] }) =>
             updateProfessor(id, body),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['professors'] });
+            invalidateProfessors();
             openToast(tCommon('success'), tCommon('save'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
@@ -85,7 +90,7 @@ export default function ProfessorsAdminPage() {
     const deleteMutation = useMutation({
         mutationFn: deleteProfessor,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['professors'] });
+            invalidateProfessors();
             openToast(tCommon('success'), tCommon('delete'), { type: EToastType.SUCCESS });
             setModalState(null);
             closeModal();

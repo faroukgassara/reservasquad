@@ -20,7 +20,6 @@ Create `backend/.env` (never commit secrets). Important keys:
 | `JWT_*` | Access, refresh, and reset-password secrets & TTLs |
 | `SMTP_*` / `MAIL_SECURE` | Transactional email |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / … | Seeded super-admin |
-| `UPLOAD_DIR` | Persistent uploads root (production) |
 | `ENVIRONMENT` | e.g. `development` |
 
 Typed loading: `src/common/env/env.ts`.
@@ -64,24 +63,16 @@ API default: **http://localhost:4000**
 
 ## Main modules
 
-Under `src/component/` (non-exhaustive):
+Under `src/component/`:
 
 | Area | Notes |
 | :--- | :--- |
 | `auth` | Login, refresh, reset password; inactive users blocked |
-| `user` | Backoffice users; ADMIN cannot be deactivated/deleted |
-| `formation` / applications / categories | Catalog & candidatures |
-| `blog`, `faq`, `testimonial`, `contactMessage` | Content / inbox |
-| `coworkingRoom` / bookings / stats | Coworking |
-| **`sales`** | Customers, quotes (`DEV-YYYY-####`), invoices (`FAC-YYYY-####`); custom lines + per-line tax; admin-only `/backoffice/customer|quote|invoice` |
-
-## Production uploads
-
-```env
-UPLOAD_DIR=/var/www/bibliosquad/uploads
-```
-
-Files land in `{UPLOAD_DIR}/{type}/` (e.g. `formations/`, `blogs/`) and are served as `/{type}/{file}`. Nginx example: [../deploy/nginx-bibliosquad.example.conf](../deploy/nginx-bibliosquad.example.conf).
+| `user` | Backoffice users (`ADMIN` / `USER`); ADMIN cannot be deactivated/deleted |
+| `room` | Rooms with `pricePerHour` |
+| `professor` | Professors (entities, not login roles) |
+| `reservation` | Bookings; price = hours × room rate; `isPaid` |
+| `dailyIncome` | Day totals + charge/investment lines; auto savings/benefits (20%); ADMIN |
 
 ## Adminer
 

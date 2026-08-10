@@ -1,5 +1,10 @@
 <h1 align="center">Biblio Squad</h1>
-<h3 align="center">Formation, coworking &amp; backoffice platform</h3>
+<p align="center">
+  <img src="frontend/src/assets/images/bibliosquad-logo.png" alt="Biblio Squad" width="280" />
+</p>
+<h3 align="center">Room reservation &amp; daily income backoffice</h3>
+
+Admin-only web app to manage rooms, professors, reservations (calendar + paid status), daily income, and users.
 
 ## Prerequisites
 
@@ -46,7 +51,7 @@ npm run dev
 
 App: [http://localhost:3000](http://localhost:3000)
 
-Default locale: **en** (`/`, `/fr`, `/ar`).
+Locales: **en** (default), **fr**, **ar**.
 
 ## Default credentials (after seed)
 
@@ -81,18 +86,21 @@ Open [http://localhost:8080](http://localhost:8080):
 
 Stop: `docker compose stop adminer`
 
-## Backoffice modules (ADMIN)
+## Backoffice modules
 
-Protected under `/[locale]/(private)/` (sidebar):
+Protected under `/[locale]/(private)/` (sidebar). Roles: **ADMIN** (full manage), **USER** (limited read). Professors are entities, not login roles.
 
 | Area | Routes |
 | :--- | :--- |
-| Formations | `/formations`, categories, applications |
-| Content | `/blogs`, `/faqs`, `/faq-categories`, `/testimonials` |
-| Contact | `/contact-messages` |
-| Coworking | `/coworking-rooms`, `/coworking-stats`, `/coworking-bookings` |
-| Users | `/users` |
-| **Ventes** | `/clients`, `/quotes`, `/invoices` (custom lines, TND, `DEV-` / `FAC-` numbering) |
+| Dashboard | `/dashboard` |
+| Calendar | `/calendar` (day / week / month; weekly PDF export per room) |
+| Reservations | `/reservations` |
+| Rooms | `/rooms` |
+| Professors | `/professors`, `/professors/[id]` |
+| Daily Income | `/daily-income` (ADMIN) |
+| Users | `/users` (ADMIN) |
+
+Reservation price is computed from duration × room `pricePerHour`. Daily income tracks day totals with auto savings/benefits (20% each) plus charge/investment lines.
 
 ## Ports
 
@@ -117,7 +125,7 @@ Protected under `/[locale]/(private)/` (sidebar):
 | :--- | :--- |
 | **Frontend** | Next.js 15 (App Router), React 19, TypeScript, Tailwind 4, TanStack Query/Form, NextAuth, next-intl |
 | **Backend** | NestJS 11, Prisma 7, PostgreSQL, TypeScript |
-| **Ops** | Docker Compose (Adminer), optional Nginx (see `deploy/`) |
+| **Ops** | Docker Compose (Adminer only) |
 
 ## Docs
 
