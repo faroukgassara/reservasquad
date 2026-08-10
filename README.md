@@ -8,10 +8,28 @@ Admin-only web app to manage rooms, professors, reservations (calendar + paid st
 
 ## Prerequisites
 
-- **Node.js** (LTS recommended)
-- **PostgreSQL** (16+ recommended)
+- **Node.js** (LTS recommended) — for local (non-Docker) development
+- **PostgreSQL** (16+ recommended) — or use Docker Compose below
 - **npm** (or compatible package manager)
-- **Docker** (optional — for [Adminer](#adminer-db-ui) on port 8080)
+- **Docker** + **Docker Compose** — recommended full-stack run
+
+## Quick start (Docker)
+
+Uses your existing **`backend/.env`** and **`frontend/.env`**. Postgres stays on the host (`localhost` in `DATABASE_URL`).
+
+```bash
+docker compose up --build -d
+```
+
+| Service | URL |
+| :--- | :--- |
+| App | [http://localhost:3000](http://localhost:3000) |
+| API / Swagger | [http://localhost:4000/api](http://localhost:4000/api) |
+| Adminer | [http://localhost:8080](http://localhost:8080) — server: `host.docker.internal` |
+
+Stop: `docker compose down`
+
+On first boot the backend applies Prisma migrations and seeds the admin user from `ADMIN_*` in `backend/.env`.
 
 ## Quick start (local)
 
@@ -31,7 +49,7 @@ Ensure PostgreSQL listens on `localhost:5432` (or adjust the URL).
 
 ```bash
 cd backend
-cp .env.example .env   # if you maintain an example file; otherwise create .env
+# ensure backend/.env exists with DATABASE_URL, JWT_*, ADMIN_*, etc.
 npm install
 npx prisma migrate deploy
 npx prisma generate
@@ -72,11 +90,13 @@ Do **not** commit real passwords in docs or git.
 
 ## Adminer (DB UI)
 
+With Compose, Adminer is on [http://localhost:8080](http://localhost:8080) (server: `host.docker.internal`).
+
+Adminer-only:
+
 ```bash
 docker compose up -d adminer
 ```
-
-Open [http://localhost:8080](http://localhost:8080):
 
 | Field | Value |
 | :--- | :--- |
@@ -113,10 +133,12 @@ Reservation price is computed from duration × room `pricePerHour`. Daily income
 
 ## Troubleshooting
 
-- **Port in use:** Free the ports above or change them in `.env` / `.env.local`.
-- **Database connection errors:** Confirm `DATABASE_URL` uses `localhost` (not a Docker hostname) for local Prisma / Nest.
+- **Docker:** Needs `backend/.env` and `frontend/.env`. Rebuild after changing public URLs: `docker compose up --build -d`.
+- **Port in use:** Free the ports above or change them in compose / local `.env` files.
+- **Database connection errors (local npm):** Confirm `DATABASE_URL` uses `localhost` in `backend/.env`.
+- **Database connection errors (Docker):** Backend rewrites `localhost` → `host.docker.internal` so the container can reach host Postgres. Keep Postgres running on the host.
 - **Adminer cannot reach Postgres:** Use server `host.docker.internal`, not `localhost`.
-- **Migrations:** From `backend/`, run `npx prisma migrate deploy` (prefer this over `db push`).
+- **Migrations:** From `backend/`, run `npx prisma migrate deploy` (prefer this over `db push`). Compose entrypoint also runs migrate on start.
 - **Reset database:** `npx prisma migrate reset` from `backend/` (destructive).
 
 ## Tech stack
@@ -125,7 +147,7 @@ Reservation price is computed from duration × room `pricePerHour`. Daily income
 | :--- | :--- |
 | **Frontend** | Next.js 15 (App Router), React 19, TypeScript, Tailwind 4, TanStack Query/Form, NextAuth, next-intl |
 | **Backend** | NestJS 11, Prisma 7, PostgreSQL, TypeScript |
-| **Ops** | Docker Compose (Adminer only) |
+| **Ops** | Docker Compose (API + web + Adminer; host Postgres) |
 
 ## Docs
 

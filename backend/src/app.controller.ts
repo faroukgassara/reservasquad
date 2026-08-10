@@ -1,8 +1,11 @@
-import { Controller } from '@nestjs/common';
-import { IEnv } from './common/env/env';
+import { Controller, Get } from '@nestjs/common';
+import { Public } from './common/decorator/public.decorator';
 
 @Controller()
 export class AppController {
-  readonly config: IEnv;
-  constructor() {}
+  @Get('health')
+  @Public(true)
+  health() {
+    return { status: 'ok' };
+  }
 }

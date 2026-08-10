@@ -1,7 +1,54 @@
+# Local Docker: uses backend/.env + frontend/.env.
+# Postgres is expected on the host (DATABASE_URL with localhost) — rewritten to host.docker.internal inside the backend container.
+
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reservasquad-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4000
+      UPLOAD_DIR: /app/uploads
+      # Rewrites @localhost / @127.0.0.1 in DATABASE_URL to reach host Postgres
+      DOCKER_DB_HOST: host.docker.internal
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - reservasquad_uploads:/app/uploads
+    ports:
+      - '4000:4000'
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://backend:4000
+        NEXT_PUBLIC_FRONT_URL: http://localhost:3000
+        NEXT_PUBLIC_MEDIA_URL: http://localhost:4000
+        NEXTAUTH_URL: http://localhost:3000
+    container_name: reservasquad-frontend
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:4000
+      NEXT_PUBLIC_FRONT_URL: http://localhost:3000
+      NEXT_PUBLIC_MEDIA_URL: http://localhost:4000
+      NEXTAUTH_URL: http://localhost:3000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
+
   adminer:
     image: adminer:latest
-    container_name: bibliosquad-adminer
+    container_name: reservasquad-adminer
     restart: unless-stopped
     ports:
       - '8080:8080'
@@ -10,3 +57,6 @@ services:
       ADMINER_DESIGN: pepa-linha-dark
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+
+volumes:
+  reservasquad_uploads:

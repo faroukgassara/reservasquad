@@ -12,9 +12,7 @@ import Badge from '@/components/Primitives/Badge/Badge';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
-import ReservationFormModal, {
-    type ReservationFormValues,
-} from '@/components/Modals/ReservationFormModal/ReservationFormModal';
+import ReservationFormModal, { type ReservationFormValues } from '@/components/Modals/ReservationFormModal/ReservationFormModal';
 import FindFreeRoomModal from '@/components/Modals/FindFreeRoomModal/FindFreeRoomModal';
 import {
     createReservation,
@@ -50,12 +48,12 @@ type CalendarView = 'day' | 'week' | 'month';
 
 type CalendarModalState =
     | {
-          mode: 'create';
-          day?: Date;
-          roomId?: string;
-          startAt?: string;
-          endAt?: string;
-      }
+        mode: 'create';
+        day?: Date;
+        roomId?: string;
+        startAt?: string;
+        endAt?: string;
+    }
     | { mode: 'edit'; reservation: ReservationRecord }
     | { mode: 'find-room'; day?: Date }
     | null;
@@ -200,9 +198,8 @@ function EventCard({
 }>) {
     return (
         <Div
-            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${
-                event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
-            } ${onClick ? 'cursor-pointer' : ''}`}
+            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
+                } ${onClick ? 'cursor-pointer' : ''}`}
             onClick={(e: MouseEvent) => {
                 e.stopPropagation();
                 onClick?.();
@@ -587,17 +584,17 @@ export default function CalendarPage() {
                         defaultStartAt={
                             modalState.mode === 'create'
                                 ? modalState.startAt ??
-                                  (modalState.day
-                                      ? toLocalDateTimeInput(modalState.day, 9)
-                                      : undefined)
+                                (modalState.day
+                                    ? toLocalDateTimeInput(modalState.day, 9)
+                                    : undefined)
                                 : undefined
                         }
                         defaultEndAt={
                             modalState.mode === 'create'
                                 ? modalState.endAt ??
-                                  (modalState.day
-                                      ? toLocalDateTimeInput(modalState.day, 10)
-                                      : undefined)
+                                (modalState.day
+                                    ? toLocalDateTimeInput(modalState.day, 10)
+                                    : undefined)
                                 : undefined
                         }
                     />
@@ -908,20 +905,18 @@ export default function CalendarPage() {
                                                         {dayEvents.slice(0, 3).map((event) => (
                                                             <Div
                                                                 key={event.id}
-                                                                className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${
-                                                                    isAdmin ? 'cursor-pointer' : ''
-                                                                }`}
+                                                                className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${isAdmin ? 'cursor-pointer' : ''
+                                                                    }`}
                                                                 onClick={(e: MouseEvent) => {
                                                                     e.stopPropagation();
                                                                     openEditReservation(event);
                                                                 }}
                                                             >
                                                                 <Div
-                                                                    className={`size-1.5 shrink-0 rounded-full ${
-                                                                        event.isPaid
-                                                                            ? 'bg-success-400'
-                                                                            : 'bg-warning-400'
-                                                                    }`}
+                                                                    className={`size-1.5 shrink-0 rounded-full ${event.isPaid
+                                                                        ? 'bg-success-400'
+                                                                        : 'bg-warning-400'
+                                                                        }`}
                                                                 />
                                                                 <Label
                                                                     variant={EVariantLabel.caption}

@@ -425,7 +425,6 @@ export default function DailyIncomePage() {
             exportDailyIncomePdf({
                 year,
                 month,
-                monthLabel: t(`months.${month}` as 'months.1'),
                 days,
                 lines: allLines,
                 summary,

@@ -202,13 +202,12 @@ const TABLE_BODY_STYLES = {
 export function exportDailyIncomePdf(params: {
     year: number;
     month: number;
-    monthLabel: string;
     days: DailyIncomeRecord[];
     lines: IncomeLineRecord[];
     summary: DailyIncomeSummary | null | undefined;
     labels: DailyIncomePdfLabels;
 }): void {
-    const { year, month, monthLabel, days, lines, summary, labels } = params;
+    const { year, month, days, lines, summary, labels } = params;
     const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -223,12 +222,12 @@ export function exportDailyIncomePdf(params: {
     const dayBody =
         days.length > 0
             ? days.map((day) => [
-                  formatDateDdMmYyyy(day.date),
-                  formatAmount(day.totalIncome),
-                  formatAmount(day.chargesInvestment ?? 0),
-                  formatAmount(day.savings),
-                  formatAmount(day.benefits ?? 0),
-              ])
+                formatDateDdMmYyyy(day.date),
+                formatAmount(day.totalIncome),
+                formatAmount(day.chargesInvestment ?? 0),
+                formatAmount(day.savings),
+                formatAmount(day.benefits ?? 0),
+            ])
             : [[labels.empty, '—', '—', '—', '—']];
 
     autoTable(doc, {
@@ -269,11 +268,11 @@ export function exportDailyIncomePdf(params: {
     const lineBody =
         lines.length > 0
             ? lines.map((line) => [
-                  formatDateDdMmYyyy(line.date),
-                  line.type === 'CHARGE' ? labels.charge : labels.investment,
-                  line.label,
-                  formatAmount(line.amount),
-              ])
+                formatDateDdMmYyyy(line.date),
+                line.type === 'CHARGE' ? labels.charge : labels.investment,
+                line.label,
+                formatAmount(line.amount),
+            ])
             : [[labels.empty, '—', '—', '—']];
 
     autoTable(doc, {

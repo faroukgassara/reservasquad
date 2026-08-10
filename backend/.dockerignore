@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+*.md
+.git
+.gitignore
+Dockerfile
+**/*.spec.ts
+test
+uploads
