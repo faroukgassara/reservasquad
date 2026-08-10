@@ -145,6 +145,9 @@ export default function ReservationsAdminPage() {
                 notes: values.notes.trim() || undefined,
                 status: values.status,
                 isPaid: values.isPaid,
+                ...((values.manualPrice
+                    ? { price: Number(values.price) }
+                    : {})),
             };
             if (modalState?.type === 'form' && modalState.reservation) {
                 await updateMutation.mutateAsync({

@@ -1448,6 +1448,8 @@
             "status": "Status",
             "price": "Price",
             "priceHint": "Calculated: duration × {rate}/h",
+            "manualPrice": "Set price manually",
+            "priceInvalid": "Enter a valid price",
             "payment": "Payment",
             "paid": "Paid",
             "unpaid": "Unpaid",

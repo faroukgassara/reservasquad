@@ -121,8 +121,9 @@ model Reservation {
   createdById String?
   createdBy   User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([roomId])
   @@index([professorId])
@@ -131,6 +132,7 @@ model Reservation {
   @@index([status])
   @@index([isPaid])
   @@index([createdById])
+  @@index([deletedAt])
 }
 
 enum EStatus {
@@ -155,16 +157,18 @@ enum EIncomeLineType {
 
 model DailyIncome {
   id          String   @id @default(uuid())
-  date        DateTime @db.Date @unique
+  date        DateTime @db.Date
   totalIncome Decimal  @db.Decimal(10, 2)
   savings     Decimal  @db.Decimal(10, 2)
   benefits    Decimal  @default(0) @db.Decimal(10, 2)
   notes       String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([date])
+  @@index([deletedAt])
 }
 
 model IncomeLine {
@@ -174,9 +178,11 @@ model IncomeLine {
   label  String
   amount Decimal         @db.Decimal(10, 2)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([date])
   @@index([type])
+  @@index([deletedAt])
 }

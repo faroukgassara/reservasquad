@@ -14,8 +14,9 @@ import Label from '@/components/Primitives/Label/Label';
 import Div from '@/components/Primitives/Div/Div';
 import Button from '@/components/Primitives/Button/Button';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
+import Checkbox from '@/components/Primitives/Checkbox/Checkbox';
 import { useCurrentModal } from '@/contexts/ModalContext';
-import { EButtonSize, EButtonType, EVariantLabel } from '@/Enum/Enum';
+import { EButtonSize, EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import type { ReservationRecord, ReservationStatus } from '@/lib/reservation-api';
 import { calculateReservationPrice, formatMoney } from '@/lib/reservation-api';
 import type { RoomRecord } from '@/lib/room-api';
@@ -30,6 +31,21 @@ export interface ReservationFormValues {
     notes: string;
     status: ReservationStatus;
     isPaid: boolean;
+    manualPrice: boolean;
+    price: string;
+}
+
+function priceToInput(value?: number | string | null): string {
+    if (value === undefined || value === null || value === '') return '';
+    const amount = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(amount)) return '';
+    return String(amount);
+}
+
+function isValidPrice(value: string): boolean {
+    if (!value.trim()) return false;
+    const amount = Number(value);
+    return !Number.isNaN(amount) && amount >= 0;
 }
 
 function toLocalInputValue(iso?: string | null): string {
@@ -102,6 +118,8 @@ export default function ReservationFormModal({
             notes: reservation?.notes ?? '',
             status: (reservation?.status ?? 'CONFIRMED') as ReservationStatus,
             isPaid: reservation?.isPaid ?? false,
+            manualPrice: isEdit,
+            price: priceToInput(reservation?.price),
         },
         onSubmit: async ({ value }) => {
             await onSubmit(value as ReservationFormValues);
@@ -119,6 +137,8 @@ export default function ReservationFormModal({
         form.setFieldValue('notes', reservation.notes ?? '');
         form.setFieldValue('status', reservation.status);
         form.setFieldValue('isPaid', reservation.isPaid);
+        form.setFieldValue('manualPrice', true);
+        form.setFieldValue('price', priceToInput(reservation.price));
     }, [reservation, form]);
 
     return (
@@ -338,14 +358,95 @@ export default function ReservationFormModal({
                             />
                         )}
                     </form.Field>
-                    <form.Subscribe selector={(s) => [s.values.roomId, s.values.startAt, s.values.endAt]}>
-                        {([roomId, startAt, endAt]) => {
+                    <form.Field name="manualPrice">
+                        {({ state, handleChange }) => (
+                            <Checkbox
+                                id="reservation-manual-price"
+                                checked={state.value}
+                                label={t('manualPrice')}
+                                onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    handleChange(checked);
+                                    if (checked) {
+                                        const roomId = form.getFieldValue('roomId');
+                                        const startAt = form.getFieldValue('startAt');
+                                        const endAt = form.getFieldValue('endAt');
+                                        const room = rooms.find((r) => r.id === roomId);
+                                        const calculated = calculateReservationPrice(
+                                            room?.pricePerHour,
+                                            startAt,
+                                            endAt,
+                                        );
+                                        if (calculated !== null) {
+                                            form.setFieldValue('price', String(calculated));
+                                        }
+                                    }
+                                }}
+                            />
+                        )}
+                    </form.Field>
+                    <form.Subscribe
+                        selector={(s) => ({
+                            manualPrice: s.values.manualPrice,
+                            roomId: s.values.roomId,
+                            startAt: s.values.startAt,
+                            endAt: s.values.endAt,
+                        })}
+                    >
+                        {({ manualPrice, roomId, startAt, endAt }) => {
                             const room = rooms.find((r) => r.id === roomId);
-                            const price = calculateReservationPrice(
+                            const calculated = calculateReservationPrice(
                                 room?.pricePerHour,
                                 startAt,
                                 endAt,
                             );
+                            const showManualInput = Boolean(manualPrice);
+
+                            if (showManualInput) {
+                                return (
+                                    <form.Field
+                                        name="price"
+                                        validators={{
+                                            onSubmit: ({ value }) =>
+                                                isValidPrice(value) ? undefined : t('priceInvalid'),
+                                        }}
+                                    >
+                                        {({ state, handleChange }) => (
+                                            <div>
+                                                <Input
+                                                    label={t('price')}
+                                                    value={state.value}
+                                                    id="reservation-price"
+                                                    type={EInputType.number}
+                                                    onChange={(e) => handleChange(e.target.value)}
+                                                />
+                                                {room && calculated !== null ? (
+                                                    <Label
+                                                        variant={EVariantLabel.caption}
+                                                        color="text-gray-500"
+                                                        className="mt-1 block"
+                                                    >
+                                                        {t('priceHint', {
+                                                            rate: formatMoney(room.pricePerHour),
+                                                        })}{' '}
+                                                        ({formatMoney(calculated)})
+                                                    </Label>
+                                                ) : null}
+                                                {state.meta.errors?.[0] ? (
+                                                    <Label
+                                                        variant={EVariantLabel.bodySmall}
+                                                        color="text-danger-500"
+                                                        className="mt-1 block"
+                                                    >
+                                                        {state.meta.errors[0]}
+                                                    </Label>
+                                                ) : null}
+                                            </div>
+                                        )}
+                                    </form.Field>
+                                );
+                            }
+
                             return (
                                 <Div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
                                     <Label
@@ -360,7 +461,7 @@ export default function ReservationFormModal({
                                         color="text-primary-700"
                                         className="block font-semibold"
                                     >
-                                        {price === null ? '—' : formatMoney(price)}
+                                        {calculated === null ? '—' : formatMoney(calculated)}
                                     </Label>
                                     {room ? (
                                         <Label

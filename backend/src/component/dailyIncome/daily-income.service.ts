@@ -50,8 +50,8 @@ export class DailyIncomeService {
 
   async createDailyIncome(dto: CreateDailyIncomeDto) {
     const date = this.toDateOnly(dto.date);
-    const existing = await this.prismaService.dailyIncome.findUnique({
-      where: { date },
+    const existing = await this.prismaService.dailyIncome.findFirst({
+      where: { date, deletedAt: null },
     });
     if (existing) {
       throw new ConflictException('A daily income entry already exists for this date');
@@ -76,7 +76,7 @@ export class DailyIncomeService {
     if (dto.date !== undefined) {
       date = this.toDateOnly(dto.date);
       const conflict = await this.prismaService.dailyIncome.findFirst({
-        where: { date, id: { not: id } },
+        where: { date, deletedAt: null, id: { not: id } },
       });
       if (conflict) {
         throw new ConflictException('A daily income entry already exists for this date');
@@ -99,26 +99,31 @@ export class DailyIncomeService {
   }
 
   async getDailyIncomeById(id: string) {
-    const row = await this.prismaService.dailyIncome.findUnique({ where: { id } });
+    const row = await this.prismaService.dailyIncome.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!row) throw new NotFoundException('Daily income not found');
     return row;
   }
 
   async deleteDailyIncome(id: string) {
     await this.getDailyIncomeById(id);
-    return this.prismaService.dailyIncome.delete({ where: { id } });
+    return this.prismaService.dailyIncome.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async listDailyIncomes(query: FetchDailyIncomeDto) {
     const { from, to, year, month } = this.resolvePeriod(query);
 
     const days = await this.prismaService.dailyIncome.findMany({
-      where: { date: { gte: from, lt: to } },
+      where: { deletedAt: null, date: { gte: from, lt: to } },
       orderBy: { date: 'asc' },
     });
 
     const lines = await this.prismaService.incomeLine.findMany({
-      where: { date: { gte: from, lt: to } },
+      where: { deletedAt: null, date: { gte: from, lt: to } },
       select: { date: true, amount: true, type: true },
     });
 
@@ -154,15 +159,23 @@ export class DailyIncomeService {
 
     const [incomeAgg, chargeAgg, investmentAgg] = await Promise.all([
       this.prismaService.dailyIncome.aggregate({
-        where: { date: { gte: from, lt: to } },
+        where: { deletedAt: null, date: { gte: from, lt: to } },
         _sum: { totalIncome: true, savings: true, benefits: true },
       }),
       this.prismaService.incomeLine.aggregate({
-        where: { date: { gte: from, lt: to }, type: EIncomeLineType.CHARGE },
+        where: {
+          deletedAt: null,
+          date: { gte: from, lt: to },
+          type: EIncomeLineType.CHARGE,
+        },
         _sum: { amount: true },
       }),
       this.prismaService.incomeLine.aggregate({
-        where: { date: { gte: from, lt: to }, type: EIncomeLineType.INVESTMENT },
+        where: {
+          deletedAt: null,
+          date: { gte: from, lt: to },
+          type: EIncomeLineType.INVESTMENT,
+        },
         _sum: { amount: true },
       }),
     ]);
@@ -213,20 +226,26 @@ export class DailyIncomeService {
   }
 
   async getIncomeLineById(id: string) {
-    const row = await this.prismaService.incomeLine.findUnique({ where: { id } });
+    const row = await this.prismaService.incomeLine.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!row) throw new NotFoundException('Income line not found');
     return row;
   }
 
   async deleteIncomeLine(id: string) {
     await this.getIncomeLineById(id);
-    return this.prismaService.incomeLine.delete({ where: { id } });
+    return this.prismaService.incomeLine.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async listIncomeLines(query: FetchIncomeLinesDto) {
     const { from, to, year, month } = this.resolvePeriod(query);
     const data = await this.prismaService.incomeLine.findMany({
       where: {
+        deletedAt: null,
         date: { gte: from, lt: to },
         ...(query.type ? { type: query.type } : {}),
       },

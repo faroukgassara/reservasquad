@@ -87,6 +87,7 @@ export class ReservationService {
 
     const conflict = await this.prismaService.reservation.findFirst({
       where: {
+        deletedAt: null,
         roomId: params.roomId,
         status: EReservationStatus.CONFIRMED,
         ...(params.excludeId ? { id: { not: params.excludeId } } : {}),
@@ -98,6 +99,18 @@ export class ReservationService {
     if (conflict) {
       throw new ConflictException('This room is already reserved for the selected time range');
     }
+  }
+
+  private resolvePrice(
+    room: Room,
+    startAt: Date,
+    endAt: Date,
+    manualPrice?: number,
+  ): string {
+    if (manualPrice !== undefined && manualPrice !== null && !Number.isNaN(Number(manualPrice))) {
+      return Number(manualPrice).toFixed(2);
+    }
+    return this.calculatePrice(room, startAt, endAt);
   }
 
   async createReservation(
@@ -124,7 +137,7 @@ export class ReservationService {
         professorId: dto.professorId || null,
         startAt,
         endAt,
-        price: this.calculatePrice(room, startAt, endAt),
+        price: this.resolvePrice(room, startAt, endAt, dto.price),
         isPaid: dto.isPaid ?? false,
         status,
         notes: dto.notes?.trim() || null,
@@ -145,7 +158,7 @@ export class ReservationService {
 
     const roomId = dto.roomId ?? existing.roomId;
     const room =
-      dto.roomId || dto.startAt || dto.endAt
+      dto.roomId || dto.startAt || dto.endAt || dto.price !== undefined
         ? await this.assertRoomExists(roomId)
         : existing.room;
 
@@ -161,7 +174,8 @@ export class ReservationService {
     });
 
     const shouldRecalcPrice =
-      dto.roomId !== undefined || dto.startAt !== undefined || dto.endAt !== undefined;
+      dto.price === undefined &&
+      (dto.roomId !== undefined || dto.startAt !== undefined || dto.endAt !== undefined);
 
     return this.prismaService.reservation.update({
       where: { id },
@@ -173,6 +187,9 @@ export class ReservationService {
         }),
         ...(dto.startAt !== undefined && { startAt }),
         ...(dto.endAt !== undefined && { endAt }),
+        ...(dto.price !== undefined && {
+          price: this.resolvePrice(room, startAt, endAt, dto.price),
+        }),
         ...(shouldRecalcPrice && { price: this.calculatePrice(room, startAt, endAt) }),
         ...(dto.isPaid !== undefined && { isPaid: dto.isPaid }),
         ...(dto.status !== undefined && { status: dto.status }),
@@ -183,8 +200,8 @@ export class ReservationService {
   }
 
   async getReservationById(id: string) {
-    const reservation = await this.prismaService.reservation.findUnique({
-      where: { id },
+    const reservation = await this.prismaService.reservation.findFirst({
+      where: { id, deletedAt: null },
       include: reservationInclude,
     });
     if (!reservation) throw new NotFoundException('Reservation not found');
@@ -207,7 +224,7 @@ export class ReservationService {
     const proxied = ProxyPrismaModel(this.prismaService.reservation as any);
     return proxied.findManyPaginated(
       {
-        where: composeWhere({}, andWhere),
+        where: composeWhere({ deletedAt: null }, andWhere),
         include: reservationInclude,
         orderBy,
       },
@@ -222,6 +239,7 @@ export class ReservationService {
 
     return this.prismaService.reservation.findMany({
       where: {
+        deletedAt: null,
         status: EReservationStatus.CONFIRMED,
         startAt: { lt: to },
         endAt: { gt: from },
@@ -243,7 +261,11 @@ export class ReservationService {
 
   async deleteReservation(id: string) {
     await this.getReservationById(id);
-    return this.prismaService.reservation.delete({ where: { id } });
+    return this.prismaService.reservation.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+      include: reservationInclude,
+    });
   }
 
   async dashboardStats() {
@@ -262,6 +284,7 @@ export class ReservationService {
       }),
       this.prismaService.reservation.count({
         where: {
+          deletedAt: null,
           status: EReservationStatus.CONFIRMED,
           startAt: { lt: endOfDay },
           endAt: { gt: startOfDay },

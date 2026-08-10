@@ -129,6 +129,7 @@ export async function createReservation(body: {
     professorId?: string;
     startAt: string;
     endAt: string;
+    price?: number;
     status?: ReservationStatus;
     isPaid?: boolean;
     notes?: string;
@@ -153,6 +154,7 @@ export async function updateReservation(
         professorId: string | null;
         startAt: string;
         endAt: string;
+        price: number;
         status: ReservationStatus;
         isPaid: boolean;
         notes: string;

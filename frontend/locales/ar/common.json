@@ -1448,6 +1448,8 @@
             "status": "الحالة",
             "price": "السعر",
             "priceHint": "محسوب: المدة × {rate}/ساعة",
+            "manualPrice": "تعيين السعر يدوياً",
+            "priceInvalid": "أدخل سعراً صالحاً",
             "payment": "الدفع",
             "paid": "مدفوع",
             "unpaid": "غير مدفوع",
