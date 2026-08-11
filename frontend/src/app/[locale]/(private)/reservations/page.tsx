@@ -76,7 +76,6 @@ export default function ReservationsAdminPage() {
     const tCommon = useTranslations('common');
     const tStatus = useTranslations('status');
     const { isAllowed } = useAuthorization();
-    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
@@ -333,7 +332,7 @@ export default function ReservationsAdminPage() {
 
     const columns = useMemo(
         (): ITableColumn<ReservationRecord>[] => [
-            ...(isAdmin
+            ...(canManage
                 ? [
                       {
                           headerElement: {
@@ -440,7 +439,7 @@ export default function ReservationsAdminPage() {
                 },
             },
         ],
-        [isAdmin, selectedIds, t, tStatus, toggleSelectRow],
+        [canManage, selectedIds, t, tStatus, toggleSelectRow],
     );
 
     const actions = useMemo(
@@ -703,7 +702,7 @@ export default function ReservationsAdminPage() {
                             primaryAction={
                                 canManage ? (
                                     <Div className="flex flex-wrap items-center gap-2">
-                                        {isAdmin && selectedIds.length > 0 ? (
+                                        {selectedIds.length > 0 ? (
                                             <Button
                                                 id="reservations-bulk-paid-btn"
                                                 type={EButtonType.secondary}
@@ -715,7 +714,7 @@ export default function ReservationsAdminPage() {
                                                 }}
                                             />
                                         ) : null}
-                                        {isAdmin && unpaidSelectableIds.length > 0 ? (
+                                        {unpaidSelectableIds.length > 0 ? (
                                             <Button
                                                 id="reservations-select-unpaid-btn"
                                                 type={EButtonType.tertiary}

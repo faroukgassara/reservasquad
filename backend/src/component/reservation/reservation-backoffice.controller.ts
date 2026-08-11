@@ -230,7 +230,7 @@ export class ReservationBackofficeController {
   }
 
   @Post('bulk-paid')
-  @Roles({ roles: ['ADMIN'] })
+  @Roles({ roles: ['ADMIN', 'USER'] })
   @swagger.ApiOperation({ summary: 'Mark multiple reservations as paid' })
   async bulkMarkPaid(
     @Res() res: Response,
