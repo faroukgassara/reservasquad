@@ -17,7 +17,8 @@ import { CommonFunction } from '@/common/Function/Function';
 
 export default function ForgotPasswordPage() {
     const t = useTranslations();
-    const formSchema = FormSchema.getInstance(t as any);
+    const tAuth = useTranslations('auth');
+    const formSchema = FormSchema.getInstance(tAuth);
     const locale = useLocale();
     const router = useRouter();
     const searchParams = useSearchParams();

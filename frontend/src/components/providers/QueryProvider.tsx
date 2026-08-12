@@ -1,7 +1,6 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 
 export default function QueryProvider({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -10,16 +9,12 @@ export default function QueryProvider({ children }: Readonly<{ children: React.R
             new QueryClient({
                 defaultOptions: {
                     queries: {
-                        // With SSR, we usually want to set some default staleTime
-                        // above 0 to avoid refetching immediately on the client
-                        staleTime: 60 * 1000, // 1 minute
+                        staleTime: 30 * 1000,
                         retry: (failureCount, error: any) => {
-                            // Don't retry on 4xx errors
                             if (error?.status >= 400 && error?.status < 500) {
                                 return false;
                             }
-                            // Retry up to 3 times for other errors
-                            return failureCount < 3;
+                            return failureCount < 2;
                         },
                     },
                     mutations: {
@@ -32,7 +27,6 @@ export default function QueryProvider({ children }: Readonly<{ children: React.R
     return (
         <QueryClientProvider client={queryClient}>
             {children}
-            <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
     );
 }

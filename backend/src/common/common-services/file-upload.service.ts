@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { imageToBase64 } from 'image-to-base64';
 import * as ejs from 'ejs';
 import * as path from 'path';
-import axios from 'axios';
 import { getUploadTypeDir } from '../upload/upload-paths';
 
 @Injectable()
@@ -91,16 +90,6 @@ export class FileUploadService {
           reject(error);
         });
     });
-  }
-
-  async loadFileIntoBuffer(url: string): Promise<Buffer> {
-    try {
-      const response = await axios.get(url, { responseType: 'arraybuffer' });
-      return response.data;
-    } catch (error) {
-      console.error('Error loading file:', error);
-      throw error;
-    }
   }
 
   async renderTemplate(content, templateName): Promise<any> {

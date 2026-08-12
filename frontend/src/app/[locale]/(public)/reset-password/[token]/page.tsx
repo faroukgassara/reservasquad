@@ -18,7 +18,8 @@ import { CommonFunction } from '@/common/Function/Function';
 
 export default function ResetPasswordPage() {
     const t = useTranslations();
-    const formSchema = FormSchema.getInstance(t as any);
+    const tAuth = useTranslations('auth');
+    const formSchema = FormSchema.getInstance(tAuth);
     const locale = useLocale();
     const params = useParams<{ token: string }>();
     const router = useRouter();

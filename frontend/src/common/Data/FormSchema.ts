@@ -1,15 +1,17 @@
-import { useTranslation } from "next-i18next";
+import type { useTranslations } from 'next-intl';
 import { z } from "zod";
+
+type AuthTranslateFn = ReturnType<typeof useTranslations<'auth'>>;
 
 class FormSchema {
     private static instance: FormSchema
-    private t: ReturnType<typeof useTranslation>['t']
+    private t: AuthTranslateFn
 
-    constructor(t: ReturnType<typeof useTranslation>['t']) {
+    constructor(t: AuthTranslateFn) {
         this.t = t
     }
 
-    public static getInstance(t: ReturnType<typeof useTranslation>['t']): FormSchema {
+    public static getInstance(t: AuthTranslateFn): FormSchema {
         if (!FormSchema.instance) {
             FormSchema.instance = new FormSchema(t)
         }
@@ -19,20 +21,20 @@ class FormSchema {
     public loginFormSchema() {
         return z.object({
             email: z
-                .email(this.t('auth.validation.invalidEmail'))
-                .min(1, this.t('auth.validation.emailRequired')),
+                .email(this.t('validation.invalidEmail'))
+                .min(1, this.t('validation.emailRequired')),
             password: z
                 .string()
-                .min(1, this.t('auth.validation.passwordRequired'))
-                .max(120, this.t('auth.validation.passwordTooLong')),
+                .min(1, this.t('validation.passwordRequired'))
+                .max(120, this.t('validation.passwordTooLong')),
         });
     }
 
     public forgotPasswordFormSchema() {
         return z.object({
             email: z
-                .email(this.t('auth.validation.invalidEmail'))
-                .min(1, this.t('auth.validation.emailRequired')),
+                .email(this.t('validation.invalidEmail'))
+                .min(1, this.t('validation.emailRequired')),
         });
     }
 
@@ -40,15 +42,15 @@ class FormSchema {
         return z.object({
             newPassword: z
                 .string()
-                .min(8, this.t('auth.validation.passwordMinLength'))
-                .regex(/[a-z]/, this.t('auth.validation.passwordLowercase'))
-                .regex(/[A-Z]/, this.t('auth.validation.passwordUppercase'))
-                .regex(/[^A-Za-z0-9]/, this.t('auth.validation.passwordSpecialChar')),
+                .min(8, this.t('validation.passwordMinLength'))
+                .regex(/[a-z]/, this.t('validation.passwordLowercase'))
+                .regex(/[A-Z]/, this.t('validation.passwordUppercase'))
+                .regex(/[^A-Za-z0-9]/, this.t('validation.passwordSpecialChar')),
             confirmPassword: z
                 .string()
-                .min(1, this.t('auth.validation.confirmPasswordRequired')),
+                .min(1, this.t('validation.confirmPasswordRequired')),
         }).refine((data) => data.newPassword === data.confirmPassword, {
-            message: this.t('auth.validation.passwordsDoNotMatch'),
+            message: this.t('validation.passwordsDoNotMatch'),
             path: ['confirmPassword'],
         });
     }

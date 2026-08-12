@@ -17,8 +17,9 @@ export default function LoginPage() {
     const router = useRouter();
     const failedAttemptsRef = useRef(0);
     const t = useTranslations();
+    const tAuth = useTranslations('auth');
     const { openToast } = useToast();
-    const formSchema = FormSchema.getInstance(t as any);
+    const formSchema = FormSchema.getInstance(tAuth);
     type FormData = z.infer<ReturnType<typeof formSchema.loginFormSchema>>;
     const defaultValues: FormData = FormDefaultData.loginDefaultValues()
 
