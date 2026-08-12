@@ -908,7 +908,7 @@
     "dashboard": {
         "title": "Dashboard",
         "subtitle": "Overview",
-        "welcome": "Welcome to Reserva Squad",
+        "welcome": "Welcome to Biblio Squad",
         "welcomeBody": "Manage rooms, professors, and reservations.",
         "statsRooms": "Active rooms",
         "statsProfessors": "Professors",

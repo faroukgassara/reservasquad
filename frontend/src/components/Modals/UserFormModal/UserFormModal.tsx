@@ -194,7 +194,7 @@ const UserFormModal = ({
                         {({ state, handleChange }) => (
                             <Input
                                 label="Téléphone"
-                                placeholder="+216 XX XXX XXX"
+                                placeholder={t('placeholders.phone')}
                                 value={state.value}
                                 id="user-phone"
                                 onChange={(e) => handleChange(e.target.value)}

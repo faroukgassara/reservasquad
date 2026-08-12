@@ -13,9 +13,7 @@ type LabelProps = WithChildren<{
     required?: boolean
 }>
 
-// Headings variant → real semantic element. Restoring real <h1>..<h6> is the
-// single highest-leverage SEO fix on this codebase; otherwise forms/pages look
-// correct on screen but expose no document outline to Googlebot/screen readers.
+// Headings variant → real semantic element for accessibility (document outline).
 const HEADING_TAG: Record<EVariantLabel.h1 | EVariantLabel.h2 | EVariantLabel.h3 | EVariantLabel.h4 | EVariantLabel.h5 | EVariantLabel.h6, keyof React.JSX.IntrinsicElements> = {
     [EVariantLabel.h1]: 'h1',
     [EVariantLabel.h2]: 'h2',
@@ -72,7 +70,7 @@ const Label: React.FC<LabelProps> = ({
         )
     }
 
-    // Semantics: render real <h1>..<h6> so SEO + a11y see a real document outline.
+    // Semantics: render real <h1>..<h6> for screen readers and document outline.
     if (isHeadingVariant(variant)) {
         const Tag = HEADING_TAG[variant] as React.ElementType
         return (
