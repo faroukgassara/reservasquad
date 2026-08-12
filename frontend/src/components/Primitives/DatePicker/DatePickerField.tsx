@@ -11,6 +11,8 @@ import DatePickerCalendar from './DatePickerCalendar';
 
 export interface IDatePickerFieldProps {
     id: string;
+    label?: string;
+    required?: boolean;
     prefix?: string;
     value?: string;
     min?: string;
@@ -20,6 +22,7 @@ export interface IDatePickerFieldProps {
     status?: EInputStatus;
     size?: EInputSize;
     className?: string;
+    containerClassName?: string;
     placeholder?: string;
     onChange?: (value: string) => void;
 }
@@ -55,6 +58,8 @@ function getDateFieldWrapperClassName({
 
 const DatePickerField = ({
     id,
+    label,
+    required,
     prefix,
     value,
     min,
@@ -64,6 +69,7 @@ const DatePickerField = ({
     status,
     size = EInputSize.medium,
     className,
+    containerClassName,
     placeholder = 'jj/mm/aaaa',
     onChange,
 }: IDatePickerFieldProps) => {
@@ -95,72 +101,88 @@ const DatePickerField = ({
     };
 
     return (
-        <div ref={containerRef} className="relative w-full">
-            <button
-                id={id}
-                type="button"
-                disabled={disabled}
-                aria-expanded={isOpen}
-                aria-haspopup="dialog"
-                aria-controls={calendarId}
-                onClick={() => !disabled && setIsOpen((open) => !open)}
-                className={getDateFieldWrapperClassName({
-                    status: resolvedStatus,
-                    size,
-                    disabled,
-                    hasValue: filled,
-                    isOpen,
-                    className,
-                })}
-            >
-                {prefix && (
+        <div
+            ref={containerRef}
+            className={twMerge('relative flex w-full flex-col', containerClassName)}
+        >
+            {label ? (
+                <Label htmlFor={id} className="mb-1.5" variant={EVariantLabel.bodySmall} color="text-gray-900">
+                    {label}
+                    {required ? (
+                        <Label color="text-primary-500" className="align-middle" variant={EVariantLabel.bodySmall}>
+                            *
+                        </Label>
+                    ) : null}
+                </Label>
+            ) : null}
+
+            <div className="relative w-full">
+                <button
+                    id={id}
+                    type="button"
+                    disabled={disabled}
+                    aria-expanded={isOpen}
+                    aria-haspopup="dialog"
+                    aria-controls={calendarId}
+                    onClick={() => !disabled && setIsOpen((open) => !open)}
+                    className={getDateFieldWrapperClassName({
+                        status: resolvedStatus,
+                        size,
+                        disabled,
+                        hasValue: filled,
+                        isOpen,
+                        className,
+                    })}
+                >
+                    {prefix ? (
+                        <Label
+                            variant={EVariantLabel.bodySmall}
+                            color={filled ? 'text-gray-900' : 'text-gray-500'}
+                            className={twMerge(
+                                'pointer-events-none shrink-0 whitespace-nowrap',
+                                size === EInputSize.large ? 'pl-4' : 'pl-3',
+                            )}
+                        >
+                            {prefix} :
+                        </Label>
+                    ) : null}
                     <Label
                         variant={EVariantLabel.bodySmall}
-                        color={filled ? 'text-gray-900' : 'text-gray-500'}
+                        color={filled ? 'text-gray-900' : 'text-gray-400'}
                         className={twMerge(
-                            'pointer-events-none shrink-0 whitespace-nowrap',
-                            size === EInputSize.large ? 'pl-4' : 'pl-3',
+                            'min-w-0 flex-1 truncate text-left leading-none',
+                            !prefix && (size === EInputSize.large ? 'pl-4' : 'pl-3'),
+                            size === EInputSize.large ? 'pr-11' : 'pr-10',
+                            sizeConfig.text,
                         )}
                     >
-                        {prefix} :
+                        {displayValue || placeholder}
                     </Label>
-                )}
-                <Label
-                    variant={EVariantLabel.bodySmall}
-                    color={filled ? 'text-gray-900' : 'text-gray-400'}
-                    className={twMerge(
-                        'min-w-0 flex-1 truncate text-left',
-                        !prefix && (size === EInputSize.large ? 'pl-4' : 'pl-3'),
-                        size === EInputSize.large ? 'pr-11' : 'pr-10',
-                        sizeConfig.text,
-                    )}
-                >
-                    {displayValue || placeholder}
-                </Label>
-                <Icon
-                    name={IconComponentsEnum.calendar}
-                    color={iconColor}
-                    className={twMerge('pointer-events-none absolute top-1/2 -translate-y-1/2', sizeConfig.iconRight)}
-                    size={sizeConfig.iconSize}
-                />
-            </button>
-
-            {isOpen && !disabled && (
-                <div
-                    id={calendarId}
-                    role="dialog"
-                    aria-label="Calendrier"
-                    className="absolute left-0 top-full z-dropdown mt-1"
-                >
-                    <DatePickerCalendar
-                        value={value}
-                        min={min}
-                        max={max}
-                        onChange={handleChange}
-                        onClose={() => setIsOpen(false)}
+                    <Icon
+                        name={IconComponentsEnum.calendar}
+                        color={iconColor}
+                        className={twMerge('pointer-events-none absolute top-1/2 -translate-y-1/2', sizeConfig.iconRight)}
+                        size={sizeConfig.iconSize}
                     />
-                </div>
-            )}
+                </button>
+
+                {isOpen && !disabled ? (
+                    <div
+                        id={calendarId}
+                        role="dialog"
+                        aria-label="Calendrier"
+                        className="absolute left-0 top-full z-dropdown mt-1"
+                    >
+                        <DatePickerCalendar
+                            value={value}
+                            min={min}
+                            max={max}
+                            onChange={handleChange}
+                            onClose={() => setIsOpen(false)}
+                        />
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 };

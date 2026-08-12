@@ -11,11 +11,8 @@ import Checkbox from '@/components/Primitives/Checkbox/Checkbox';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Div from '@/components/Primitives/Div/Div';
-import Label from '@/components/Primitives/Label/Label';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
-import ReservationFormModal, {
-    type ReservationFormValues,
-} from '@/components/Modals/ReservationFormModal/ReservationFormModal';
+import ReservationFormModal, { type ReservationFormValues } from '@/components/Modals/ReservationFormModal/ReservationFormModal';
 import FindFreeRoomModal from '@/components/Modals/FindFreeRoomModal/FindFreeRoomModal';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -42,19 +39,18 @@ import {
     EButtonType,
     ESize,
     EToastType,
-    EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
 import { ITableAction, ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
 
 type ModalState =
     | {
-          type: 'form';
-          reservation: ReservationRecord | null;
-          roomId?: string;
-          startAt?: string;
-          endAt?: string;
-      }
+        type: 'form';
+        reservation: ReservationRecord | null;
+        roomId?: string;
+        startAt?: string;
+        endAt?: string;
+    }
     | { type: 'find-room' }
     | { type: 'delete'; reservation: ReservationRecord }
     | { type: 'cancel'; reservation: ReservationRecord }
@@ -335,25 +331,25 @@ export default function ReservationsAdminPage() {
         (): ITableColumn<ReservationRecord>[] => [
             ...(canManage
                 ? [
-                      {
-                          headerElement: {
-                              value: 'select',
-                              label: '',
-                              width: '48px',
-                              render: (_: unknown, row: ReservationRecord) =>
-                                  row.isPaid ? (
-                                      <Div className="size-5" />
-                                  ) : (
-                                      <Checkbox
-                                          id={`reservation-select-${row.id}`}
-                                          checked={selectedIds.includes(row.id)}
-                                          onChange={() => toggleSelectRow(row.id)}
-                                          label=""
-                                      />
-                                  ),
-                          },
-                      } satisfies ITableColumn<ReservationRecord>,
-                  ]
+                    {
+                        headerElement: {
+                            value: 'select',
+                            label: '',
+                            width: '48px',
+                            render: (_: unknown, row: ReservationRecord) =>
+                                row.isPaid ? (
+                                    <Div className="size-5" />
+                                ) : (
+                                    <Checkbox
+                                        id={`reservation-select-${row.id}`}
+                                        checked={selectedIds.includes(row.id)}
+                                        onChange={() => toggleSelectRow(row.id)}
+                                        label=""
+                                    />
+                                ),
+                        },
+                    } satisfies ITableColumn<ReservationRecord>,
+                ]
                 : []),
             {
                 headerElement: {
@@ -571,11 +567,11 @@ export default function ReservationsAdminPage() {
                     onDeleteSeriesFuture={
                         modalState.reservation?.seriesId
                             ? () => {
-                                  setModalState({
-                                      type: 'delete-series',
-                                      reservation: modalState.reservation!,
-                                  });
-                              }
+                                setModalState({
+                                    type: 'delete-series',
+                                    reservation: modalState.reservation!,
+                                });
+                            }
                             : undefined
                     }
                     isDeletingSeries={deleteSeriesMutation.isPending}
@@ -642,42 +638,26 @@ export default function ReservationsAdminPage() {
                                     }
                                 }}
                             />
-                            <Div>
-                                <Label
-                                    variant={EVariantLabel.bodySmall}
-                                    color="text-gray-900"
-                                    className="mb-1.5"
-                                >
-                                    {t('filterFrom')}
-                                </Label>
-                                <DatePickerField
-                                    id="reservations-filter-from"
-                                    value={fromDate}
-                                    max={toDate || undefined}
-                                    onChange={(value) => {
-                                        setFromDate(value);
-                                        setPage(1);
-                                    }}
-                                />
-                            </Div>
-                            <Div>
-                                <Label
-                                    variant={EVariantLabel.bodySmall}
-                                    color="text-gray-700"
-                                    className="mb-1.5 block"
-                                >
-                                    {t('filterTo')}
-                                </Label>
-                                <DatePickerField
-                                    id="reservations-filter-to"
-                                    value={toDate}
-                                    min={fromDate || undefined}
-                                    onChange={(value) => {
-                                        setToDate(value);
-                                        setPage(1);
-                                    }}
-                                />
-                            </Div>
+                            <DatePickerField
+                                id="reservations-filter-from"
+                                label={t('filterFrom')}
+                                value={fromDate}
+                                max={toDate || undefined}
+                                onChange={(value) => {
+                                    setFromDate(value);
+                                    setPage(1);
+                                }}
+                            />
+                            <DatePickerField
+                                id="reservations-filter-to"
+                                label={t('filterTo')}
+                                value={toDate}
+                                min={fromDate || undefined}
+                                onChange={(value) => {
+                                    setToDate(value);
+                                    setPage(1);
+                                }}
+                            />
                         </Div>
                         <OrganismTable<ReservationRecord>
                             columns={columns}
