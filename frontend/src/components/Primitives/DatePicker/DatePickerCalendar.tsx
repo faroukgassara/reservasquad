@@ -56,7 +56,7 @@ const DatePickerCalendar = ({ value, min, max, onChange, onClose }: IDatePickerC
     };
 
     return (
-        <div className="w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-lg">
+        <div className="w-[min(100vw-1rem,18rem)] min-w-[15rem] rounded-xl border border-gray-200 bg-white p-2.5 shadow-lg sm:p-3">
             <div className="mb-3 flex items-center justify-between">
                 <Icon
                     name={IconComponentsEnum.chevronLeft}
@@ -81,20 +81,20 @@ const DatePickerCalendar = ({ value, min, max, onChange, onClose }: IDatePickerC
                 />
             </div>
 
-            <div className="mb-1 grid grid-cols-7 gap-1">
+            <div className="mb-1 grid grid-cols-7 gap-0.5 sm:gap-1">
                 {WEEKDAY_LABELS.map((weekday) => (
                     <Label
                         key={weekday}
                         variant={EVariantLabel.hint}
                         color="text-gray-500"
-                        className="text-center font-medium"
+                        className="text-center text-[0.65rem] font-medium sm:text-xs"
                     >
                         {weekday}
                     </Label>
                 ))}
             </div>
 
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                 {days.map(({ date, inCurrentMonth }) => {
                     const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
                     const isToday = isSameDay(date, today);
@@ -107,7 +107,7 @@ const DatePickerCalendar = ({ value, min, max, onChange, onClose }: IDatePickerC
                             disabled={disabled}
                             onClick={() => handleSelect(date)}
                             className={twMerge(
-                                'flex size-9 items-center justify-center rounded-lg text-sm transition-colors',
+                                'flex aspect-square w-full max-h-9 items-center justify-center rounded-lg text-xs transition-colors sm:text-sm',
                                 inCurrentMonth ? 'text-gray-900' : 'text-gray-300',
                                 !disabled && !isSelected && 'hover:bg-primary-50',
                                 isToday && !isSelected && 'ring-1 ring-primary-300',

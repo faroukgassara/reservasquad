@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
 import { EInputSize, EInputStatus, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { INPUT_SIZES, INPUT_STATUS_FIELD, INPUT_STATUS_ICON_COLOR } from '@/common/Data/Data';
@@ -8,6 +9,7 @@ import { resolveInputStatus } from './datePicker.utils';
 import Label from '../Label/Label';
 import Icon from '../Icon/Icon';
 import TimePickerWheel from './TimePickerWheel';
+import { useFloatingPopover } from './useFloatingPopover';
 
 export interface ITimePickerFieldProps {
     id: string;
@@ -71,6 +73,7 @@ const TimePickerField = ({
 }: ITimePickerFieldProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const { mounted, triggerRef, popoverRef, popoverStyle } = useFloatingPopover(isOpen);
     const resolvedStatus = resolveInputStatus(error, status);
     const sizeConfig = INPUT_SIZES[size];
     const iconColor = INPUT_STATUS_ICON_COLOR[resolvedStatus];
@@ -79,26 +82,55 @@ const TimePickerField = ({
     const displayValue = hasValue ? `${hour}:${minute}` : '';
     const wheelId = useId();
 
+    const handleClickOutside = useCallback((event: MouseEvent) => {
+        const target = event.target as Node;
+        if (containerRef.current?.contains(target) || popoverRef.current?.contains(target)) {
+            return;
+        }
+        setIsOpen(false);
+    }, [popoverRef]);
+
     useEffect(() => {
         if (!isOpen) return;
 
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen]);
+    }, [isOpen, handleClickOutside]);
 
     const handleWheelChange = (nextHour: string, nextMinute: string) => {
         onChange?.(`${nextHour}:${nextMinute}`);
     };
 
+    const wheelPopover =
+        isOpen && !disabled && mounted
+            ? createPortal(
+                  <div
+                      ref={popoverRef}
+                      id={wheelId}
+                      role="dialog"
+                      aria-label="Sélection de l'heure"
+                      style={popoverStyle}
+                  >
+                      <TimePickerWheel
+                          hour={hour || '00'}
+                          minute={minute || '00'}
+                          onChange={handleWheelChange}
+                          onConfirm={() => {
+                              if (!hasValue) {
+                                  onChange?.(`${hour || '00'}:${minute || '00'}`);
+                              }
+                              setIsOpen(false);
+                          }}
+                      />
+                  </div>,
+                  document.body,
+              )
+            : null;
+
     return (
-        <div ref={containerRef} className="relative w-full">
+        <div ref={containerRef} className="relative w-full min-w-0">
             <button
+                ref={triggerRef}
                 id={id}
                 type="button"
                 disabled={disabled}
@@ -119,7 +151,7 @@ const TimePickerField = ({
                     variant={EVariantLabel.bodySmall}
                     color={hasValue ? 'text-gray-900' : 'text-gray-400'}
                     className={twMerge(
-                        'min-w-0 flex-1 truncate text-left tabular-nums',
+                        'min-w-0 flex-1 truncate text-left tabular-nums leading-none',
                         size === EInputSize.large ? 'pl-4 pr-11' : 'pl-3 pr-10',
                         sizeConfig.text,
                     )}
@@ -134,26 +166,7 @@ const TimePickerField = ({
                 />
             </button>
 
-            {isOpen && !disabled && (
-                <div
-                    id={wheelId}
-                    role="dialog"
-                    aria-label="Sélection de l'heure"
-                    className="absolute left-0 top-full z-dropdown mt-1"
-                >
-                    <TimePickerWheel
-                        hour={hour || '00'}
-                        minute={minute || '00'}
-                        onChange={handleWheelChange}
-                        onConfirm={() => {
-                            if (!hasValue) {
-                                onChange?.(`${hour || '00'}:${minute || '00'}`);
-                            }
-                            setIsOpen(false);
-                        }}
-                    />
-                </div>
-            )}
+            {wheelPopover}
         </div>
     );
 };

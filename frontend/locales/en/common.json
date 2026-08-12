@@ -1328,7 +1328,8 @@
             "placeholders": {
                 "firstName": "First name",
                 "lastName": "Last name",
-                "email": "name@example.com"
+                "email": "name@example.com",
+                "phone": "+216 XX XXX XXX"
             },
             "fields": {
                 "role": "Role"

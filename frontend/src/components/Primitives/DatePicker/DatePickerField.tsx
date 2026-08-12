@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
 import { EInputSize, EInputStatus, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { INPUT_SIZES, INPUT_STATUS_FIELD, INPUT_STATUS_ICON_COLOR } from '@/common/Data/Data';
@@ -8,6 +9,7 @@ import { formatDateDisplay, hasDateValue, resolveInputStatus } from './datePicke
 import Label from '../Label/Label';
 import Icon from '../Icon/Icon';
 import DatePickerCalendar from './DatePickerCalendar';
+import { useFloatingPopover } from './useFloatingPopover';
 
 export interface IDatePickerFieldProps {
     id: string;
@@ -75,6 +77,7 @@ const DatePickerField = ({
 }: IDatePickerFieldProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const { mounted, triggerRef, popoverRef, popoverStyle } = useFloatingPopover(isOpen);
     const resolvedStatus = resolveInputStatus(error, status);
     const sizeConfig = INPUT_SIZES[size];
     const iconColor = INPUT_STATUS_ICON_COLOR[resolvedStatus];
@@ -82,28 +85,53 @@ const DatePickerField = ({
     const displayValue = formatDateDisplay(value);
     const calendarId = useId();
 
+    const handleClickOutside = useCallback((event: MouseEvent) => {
+        const target = event.target as Node;
+        if (containerRef.current?.contains(target) || popoverRef.current?.contains(target)) {
+            return;
+        }
+        setIsOpen(false);
+    }, [popoverRef]);
+
     useEffect(() => {
         if (!isOpen) return;
 
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen]);
+    }, [isOpen, handleClickOutside]);
 
     const handleChange = (nextValue: string) => {
         onChange?.(nextValue);
         setIsOpen(false);
     };
 
+    const calendarPopover =
+        isOpen && !disabled && mounted
+            ? createPortal(
+                  <div
+                      ref={popoverRef}
+                      id={calendarId}
+                      role="dialog"
+                      aria-label="Calendrier"
+                      style={popoverStyle}
+                      className="w-max max-w-[calc(100vw-1rem)]"
+                  >
+                      <DatePickerCalendar
+                          value={value}
+                          min={min}
+                          max={max}
+                          onChange={handleChange}
+                          onClose={() => setIsOpen(false)}
+                      />
+                  </div>,
+                  document.body,
+              )
+            : null;
+
     return (
         <div
             ref={containerRef}
-            className={twMerge('relative flex w-full flex-col', containerClassName)}
+            className={twMerge('relative flex w-full min-w-0 flex-col', containerClassName)}
         >
             {label ? (
                 <Label htmlFor={id} className="mb-1.5" variant={EVariantLabel.bodySmall} color="text-gray-900">
@@ -116,8 +144,9 @@ const DatePickerField = ({
                 </Label>
             ) : null}
 
-            <div className="relative w-full">
+            <div className="relative w-full min-w-0">
                 <button
+                    ref={triggerRef}
                     id={id}
                     type="button"
                     disabled={disabled}
@@ -165,24 +194,9 @@ const DatePickerField = ({
                         size={sizeConfig.iconSize}
                     />
                 </button>
-
-                {isOpen && !disabled ? (
-                    <div
-                        id={calendarId}
-                        role="dialog"
-                        aria-label="Calendrier"
-                        className="absolute left-0 top-full z-dropdown mt-1"
-                    >
-                        <DatePickerCalendar
-                            value={value}
-                            min={min}
-                            max={max}
-                            onChange={handleChange}
-                            onClose={() => setIsOpen(false)}
-                        />
-                    </div>
-                ) : null}
             </div>
+
+            {calendarPopover}
         </div>
     );
 };
