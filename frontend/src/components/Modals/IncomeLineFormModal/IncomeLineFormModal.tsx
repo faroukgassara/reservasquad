@@ -11,6 +11,7 @@ import {
 } from '@/components/Primitives/DrawerLayout/DrawerLayout';
 import Input from '@/components/Primitives/Input/Input';
 import Label from '@/components/Primitives/Label/Label';
+import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Button from '@/components/Primitives/Button/Button';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import { useCurrentModal } from '@/contexts/ModalContext';
@@ -100,14 +101,21 @@ export default function IncomeLineFormModal({
                                 >
                                     {t('date')}
                                 </Label>
-                                <input
+                                <DatePickerField
                                     id="income-line-date"
-                                    type="date"
-                                    className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
                                     value={state.value}
-                                    onChange={(e) => handleChange(e.target.value)}
-                                    required
+                                    error={!!state.meta.errors?.length}
+                                    onChange={handleChange}
                                 />
+                                {state.meta.errors?.[0] ? (
+                                    <Label
+                                        variant={EVariantLabel.hint}
+                                        color="text-danger-500"
+                                        className="mt-1.5 block"
+                                    >
+                                        {state.meta.errors[0]}
+                                    </Label>
+                                ) : null}
                             </div>
                         )}
                     </form.Field>

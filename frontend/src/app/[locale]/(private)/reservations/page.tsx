@@ -9,6 +9,7 @@ import Button from '@/components/Primitives/Button/Button';
 import Badge from '@/components/Primitives/Badge/Badge';
 import Checkbox from '@/components/Primitives/Checkbox/Checkbox';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
+import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
@@ -644,19 +645,17 @@ export default function ReservationsAdminPage() {
                             <Div>
                                 <Label
                                     variant={EVariantLabel.bodySmall}
-                                    color="text-gray-700"
-                                    className="mb-1.5 block"
+                                    color="text-gray-900"
+                                    className="mb-1.5"
                                 >
                                     {t('filterFrom')}
                                 </Label>
-                                <input
+                                <DatePickerField
                                     id="reservations-filter-from"
-                                    type="date"
-                                    lang="fr"
-                                    className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
                                     value={fromDate}
-                                    onChange={(e) => {
-                                        setFromDate(e.target.value);
+                                    max={toDate || undefined}
+                                    onChange={(value) => {
+                                        setFromDate(value);
                                         setPage(1);
                                     }}
                                 />
@@ -669,14 +668,12 @@ export default function ReservationsAdminPage() {
                                 >
                                     {t('filterTo')}
                                 </Label>
-                                <input
+                                <DatePickerField
                                     id="reservations-filter-to"
-                                    type="date"
-                                    lang="fr"
-                                    className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
                                     value={toDate}
-                                    onChange={(e) => {
-                                        setToDate(e.target.value);
+                                    min={fromDate || undefined}
+                                    onChange={(value) => {
+                                        setToDate(value);
                                         setPage(1);
                                     }}
                                 />

@@ -1493,7 +1493,6 @@
             "startAt": "Start",
             "endAt": "End",
             "endAfterStart": "End ({end}) must be after start ({start})",
-            "time24hHint": "{time} (24h)",
             "notes": "Notes",
             "status": "Status",
             "price": "Price",

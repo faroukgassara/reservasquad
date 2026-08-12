@@ -8,6 +8,7 @@ import { DrawerActions, DrawerForm, DrawerScrollContent } from '@/components/Pri
 import Label from '@/components/Primitives/Label/Label';
 import Div from '@/components/Primitives/Div/Div';
 import Button from '@/components/Primitives/Button/Button';
+import DateTimeField from '@/components/Primitives/DatePicker/DateTimeField';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, EVariantLabel } from '@/Enum/Enum';
 import {
@@ -46,65 +47,12 @@ function defaultRange(): { startAt: string; endAt: string } {
     return { startAt: toLocalInputValue(start), endAt: toLocalInputValue(end) };
 }
 
-function splitLocalDateTime(value: string): { date: string; time: string } {
-    if (!value) return { date: '', time: '' };
-    const [date = '', timePart = ''] = value.split('T');
-    return { date, time: timePart.slice(0, 5) };
-}
-
-function joinLocalDateTime(date: string, time: string): string {
-    if (!date || !time) return '';
-    return `${date}T${time}`;
-}
-
 function localInputToIso(value: string): string {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
         throw new TypeError('Invalid date');
     }
     return date.toISOString();
-}
-
-function DateTimeFields({
-    idPrefix,
-    label,
-    value,
-    onChange,
-}: Readonly<{
-    idPrefix: string;
-    label: string;
-    value: string;
-    onChange: (next: string) => void;
-}>) {
-    const { date, time } = splitLocalDateTime(value);
-    return (
-        <Div>
-            <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="mb-1.5 block">
-                {label}
-            </Label>
-            <Div className="grid grid-cols-2 gap-2">
-                <input
-                    id={`${idPrefix}-date`}
-                    type="date"
-                    lang="fr"
-                    className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
-                    value={date}
-                    onChange={(e) => onChange(joinLocalDateTime(e.target.value, time || '00:00'))}
-                    required
-                />
-                <input
-                    id={`${idPrefix}-time`}
-                    type="time"
-                    lang="fr"
-                    step={60}
-                    className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
-                    value={time}
-                    onChange={(e) => onChange(joinLocalDateTime(date, e.target.value))}
-                    required
-                />
-            </Div>
-        </Div>
-    );
 }
 
 function ResultsList({
@@ -242,14 +190,14 @@ export default function FindFreeRoomModal({
                 }}
             >
                 <DrawerScrollContent className="gap-0 space-y-4 p-6">
-                    <DateTimeFields
-                        idPrefix="find-room-start"
+                    <DateTimeField
+                        id="find-room-start"
                         label={t('startAt')}
                         value={startAt}
                         onChange={setStartAt}
                     />
-                    <DateTimeFields
-                        idPrefix="find-room-end"
+                    <DateTimeField
+                        id="find-room-end"
                         label={t('endAt')}
                         value={endAt}
                         onChange={setEndAt}

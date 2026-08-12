@@ -1493,7 +1493,6 @@
             "startAt": "البداية",
             "endAt": "النهاية",
             "endAfterStart": "يجب أن تكون النهاية ({end}) بعد البداية ({start})",
-            "time24hHint": "{time} (24 ساعة)",
             "notes": "ملاحظات",
             "status": "الحالة",
             "price": "السعر",

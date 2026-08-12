@@ -11,6 +11,8 @@ import Div from '@/components/Primitives/Div/Div';
 import Button from '@/components/Primitives/Button/Button';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Checkbox from '@/components/Primitives/Checkbox/Checkbox';
+import DateTimeField from '@/components/Primitives/DatePicker/DateTimeField';
+import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import type { ReservationRecord, ReservationStatus } from '@/lib/reservation-api';
@@ -55,20 +57,10 @@ function toLocalInputValue(iso?: string | null): string {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function splitLocalDateTime(value: string): { date: string; time: string } {
-    if (!value) return { date: '', time: '' };
-    const [date = '', timePart = ''] = value.split('T');
-    return { date, time: timePart.slice(0, 5) };
-}
-
-function joinLocalDateTime(date: string, time: string): string {
-    if (!date || !time) return '';
-    return `${date}T${time}`;
-}
-
 function formatTime24h(value: string): string {
-    const { time } = splitLocalDateTime(value);
-    return time || '—';
+    if (!value) return '—';
+    const [, timePart = ''] = value.split('T');
+    return timePart.slice(0, 5) || '—';
 }
 
 interface ReservationFormModalProps {
@@ -221,63 +213,19 @@ export default function ReservationFormModal({
                             onSubmit: ({ value }) => (value ? undefined : t('startAt')),
                         }}
                     >
-                        {({ state, handleChange }) => {
-                            const { date, time } = splitLocalDateTime(state.value);
-                            return (
-                                <div>
-                                    <Label
-                                        variant={EVariantLabel.bodySmall}
-                                        color="text-gray-700"
-                                        className="mb-1.5 block"
-                                    >
-                                        {t('startAt')}
-                                    </Label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <input
-                                            id="reservation-start-date"
-                                            type="date"
-                                            lang="fr"
-                                            className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
-                                            value={date}
-                                            onChange={(e) =>
-                                                handleChange(joinLocalDateTime(e.target.value, time || '00:00'))
-                                            }
-                                            required
-                                        />
-                                        <input
-                                            id="reservation-start-time"
-                                            type="time"
-                                            lang="fr"
-                                            step={60}
-                                            className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
-                                            value={time}
-                                            onChange={(e) =>
-                                                handleChange(joinLocalDateTime(date, e.target.value))
-                                            }
-                                            required
-                                        />
-                                    </div>
-                                    {state.value ? (
-                                        <Label
-                                            variant={EVariantLabel.bodySmall}
-                                            color="text-gray-500"
-                                            className="mt-1 block"
-                                        >
-                                            {t('time24hHint', { time: formatTime24h(state.value) })}
-                                        </Label>
-                                    ) : null}
-                                    {state.meta.errors?.[0] ? (
-                                        <Label
-                                            variant={EVariantLabel.bodySmall}
-                                            color="text-danger-500"
-                                            className="mt-1 block"
-                                        >
-                                            {state.meta.errors[0]}
-                                        </Label>
-                                    ) : null}
-                                </div>
-                            );
-                        }}
+                        {({ state, handleChange }) => (
+                            <DateTimeField
+                                id="reservation-start"
+                                label={t('startAt')}
+                                value={state.value}
+                                onChange={handleChange}
+                                error={
+                                    typeof state.meta.errors?.[0] === 'string'
+                                        ? state.meta.errors[0]
+                                        : undefined
+                                }
+                            />
+                        )}
                     </form.Field>
                     <form.Field
                         name="endAt"
@@ -307,63 +255,19 @@ export default function ReservationFormModal({
                             },
                         }}
                     >
-                        {({ state, handleChange }) => {
-                            const { date, time } = splitLocalDateTime(state.value);
-                            return (
-                                <div>
-                                    <Label
-                                        variant={EVariantLabel.bodySmall}
-                                        color="text-gray-700"
-                                        className="mb-1.5 block"
-                                    >
-                                        {t('endAt')}
-                                    </Label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <input
-                                            id="reservation-end-date"
-                                            type="date"
-                                            lang="fr"
-                                            className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
-                                            value={date}
-                                            onChange={(e) =>
-                                                handleChange(joinLocalDateTime(e.target.value, time || '00:00'))
-                                            }
-                                            required
-                                        />
-                                        <input
-                                            id="reservation-end-time"
-                                            type="time"
-                                            lang="fr"
-                                            step={60}
-                                            className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
-                                            value={time}
-                                            onChange={(e) =>
-                                                handleChange(joinLocalDateTime(date, e.target.value))
-                                            }
-                                            required
-                                        />
-                                    </div>
-                                    {state.value ? (
-                                        <Label
-                                            variant={EVariantLabel.bodySmall}
-                                            color="text-gray-500"
-                                            className="mt-1 block"
-                                        >
-                                            {t('time24hHint', { time: formatTime24h(state.value) })}
-                                        </Label>
-                                    ) : null}
-                                    {state.meta.errors?.[0] ? (
-                                        <Label
-                                            variant={EVariantLabel.bodySmall}
-                                            color="text-danger-500"
-                                            className="mt-1 block"
-                                        >
-                                            {state.meta.errors[0]}
-                                        </Label>
-                                    ) : null}
-                                </div>
-                            );
-                        }}
+                        {({ state, handleChange }) => (
+                            <DateTimeField
+                                id="reservation-end"
+                                label={t('endAt')}
+                                value={state.value}
+                                onChange={handleChange}
+                                error={
+                                    typeof state.meta.errors?.[0] === 'string'
+                                        ? state.meta.errors[0]
+                                        : undefined
+                                }
+                            />
+                        )}
                     </form.Field>
                     <form.Field name="notes">
                         {({ state, handleChange }) => (
@@ -583,22 +487,17 @@ export default function ReservationFormModal({
                                                         >
                                                             {t('until')}
                                                         </Label>
-                                                        <input
+                                                        <DatePickerField
                                                             id="reservation-until"
-                                                            type="date"
-                                                            lang="fr"
-                                                            className="ds-input-field h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900"
                                                             value={state.value}
-                                                            onChange={(e) =>
-                                                                handleChange(e.target.value)
-                                                            }
-                                                            required
+                                                            error={!!state.meta.errors?.length}
+                                                            onChange={handleChange}
                                                         />
                                                         {state.meta.errors?.[0] ? (
                                                             <Label
-                                                                variant={EVariantLabel.bodySmall}
+                                                                variant={EVariantLabel.hint}
                                                                 color="text-danger-500"
-                                                                className="mt-1 block"
+                                                                className="mt-1.5 block"
                                                             >
                                                                 {state.meta.errors[0]}
                                                             </Label>
