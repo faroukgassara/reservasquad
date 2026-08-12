@@ -7,8 +7,6 @@ import Button from '@/components/Primitives/Button/Button';
 import Input from '@/components/Primitives/Input/Input';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Routes } from '@/lib/routes';
 import { ITemplateLogin } from '@/interfaces';
 import { EInputType, EVariantLabel } from '@/Enum/Enum';
 import colors from '@/theme/colors';
@@ -83,22 +81,13 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                             )}
                         </form.Field>
 
-                        <div className="mb-4 mt-4 flex items-center justify-end">
-                            <Link
-                                href={Routes.ForgotPassword}
-                                className="block text-sm font-semibold text-primary-500 hover:underline"
-                            >
-                                {t('auth.forgotPassword')}
-                            </Link>
-                        </div>
-
                         <form.Subscribe
                             selector={(state: any) => [state.canSubmit, state.isSubmitting]}
                         >
                             {([canSubmit, isSubmitting]: [boolean, boolean]) => (
                                 <Button
                                     id="login-submit-btn"
-                                    className="group relative flex w-full justify-center rounded-lg"
+                                    className="group relative flex w-full justify-center rounded-lg mt-8"
                                     disabled={!canSubmit}
                                     isLoading={isSubmitting}
                                     text={isSubmitting ? 'Submitting...' : t('auth.signIn')}

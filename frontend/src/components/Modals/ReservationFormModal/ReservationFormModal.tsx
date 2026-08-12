@@ -641,6 +641,7 @@ export default function ReservationFormModal({
                         size={EButtonSize.medium}
                         text={tCommon('cancel')}
                         onClick={closeModal}
+                        className="flex-1"
                     />
                     <Button
                         id="reservation-submit"
@@ -649,6 +650,7 @@ export default function ReservationFormModal({
                         text={tCommon('save')}
                         isLoading={isLoading}
                         onClick={() => form.handleSubmit()}
+                        className="flex-1"
                     />
                 </DrawerActions>
             </DrawerForm>

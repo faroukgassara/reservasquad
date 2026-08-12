@@ -6,9 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
-import Label from '@/components/Primitives/Label/Label';
+import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Div from '@/components/Primitives/Div/Div';
-import { EVariantLabel } from '@/Enum/Enum';
 import { fetchAuditLogs, type AuditLogRecord } from '@/lib/audit-log-api';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { Routes } from '@/lib/routes';
@@ -84,10 +83,22 @@ export default function AuditLogPage() {
                 sortOrder,
             }),
         enabled: isAdmin,
+        staleTime: 0,
+        refetchOnMount: 'always',
     });
 
     const rows = data?.data ?? [];
     const totalRows = data?.meta.total ?? 0;
+
+    const entityTypeOptions = useMemo(
+        () => [
+            { value: '', label: t('entities.all') },
+            { value: 'RESERVATION', label: t('entities.RESERVATION') },
+            { value: 'DAILY_INCOME', label: t('entities.DAILY_INCOME') },
+            { value: 'INCOME_LINE', label: t('entities.INCOME_LINE') },
+        ],
+        [t],
+    );
 
     const columns = useMemo(
         (): ITableColumn<AuditLogRecord>[] => [
@@ -157,23 +168,18 @@ export default function AuditLogPage() {
             subTitle={t('subtitle')}
             mainSection={
                 <Div className="min-h-full space-y-4">
-                    <Div className="flex flex-wrap items-center gap-2">
-                        <Label variant={EVariantLabel.bodySmall} color="text-gray-600">
-                            {t('filterEntity')}
-                        </Label>
-                        <select
-                            className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-gray-800"
+                    <Div className="w-full sm:w-56">
+                        <Dropdown
+                            label={t('filterEntity')}
+                            options={entityTypeOptions}
                             value={entityType}
-                            onChange={(event) => {
-                                setEntityType(event.target.value);
-                                setPage(1);
+                            onChange={(value) => {
+                                if (typeof value === 'string') {
+                                    setEntityType(value);
+                                    setPage(1);
+                                }
                             }}
-                        >
-                            <option value="">{t('entities.all')}</option>
-                            <option value="RESERVATION">{t('entities.RESERVATION')}</option>
-                            <option value="DAILY_INCOME">{t('entities.DAILY_INCOME')}</option>
-                            <option value="INCOME_LINE">{t('entities.INCOME_LINE')}</option>
-                        </select>
+                        />
                     </Div>
 
                     <OrganismTable<AuditLogRecord>

@@ -155,6 +155,7 @@ export default function ProfessorFormModal({
                         size={EButtonSize.medium}
                         text={tCommon('cancel')}
                         onClick={closeModal}
+                        className="flex-1"
                     />
                     <Button
                         id="professor-submit"
@@ -163,6 +164,7 @@ export default function ProfessorFormModal({
                         text={tCommon('save')}
                         isLoading={isLoading}
                         onClick={() => form.handleSubmit()}
+                        className="flex-1"
                     />
                 </DrawerActions>
             </DrawerForm>

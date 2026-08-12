@@ -158,9 +158,9 @@ export default function DailyIncomeFormModal({
                             const fromEntry =
                                 entry && toDateInputValue(entry.date) === date
                                     ? {
-                                          charges: entry.charges ?? 0,
-                                          investments: entry.investments ?? 0,
-                                      }
+                                        charges: entry.charges ?? 0,
+                                        investments: entry.investments ?? 0,
+                                    }
                                     : null;
                             const fromLines = date ? linesTotalsByDate[date] : undefined;
                             const charges = fromEntry?.charges ?? fromLines?.charges ?? 0;
@@ -216,6 +216,7 @@ export default function DailyIncomeFormModal({
                         size={EButtonSize.medium}
                         text={tCommon('cancel')}
                         onClick={closeModal}
+                        className="flex-1"
                     />
                     <Button
                         id="daily-income-submit"
@@ -224,6 +225,7 @@ export default function DailyIncomeFormModal({
                         text={tCommon('save')}
                         isLoading={isLoading}
                         onClick={() => form.handleSubmit()}
+                        className="flex-1"
                     />
                 </DrawerActions>
             </DrawerForm>

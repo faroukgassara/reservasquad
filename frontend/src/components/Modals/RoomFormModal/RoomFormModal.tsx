@@ -140,6 +140,7 @@ export default function RoomFormModal({
                         size={EButtonSize.medium}
                         text={tCommon('cancel')}
                         onClick={closeModal}
+                        className="flex-1"
                     />
                     <Button
                         id="room-submit"
@@ -148,6 +149,7 @@ export default function RoomFormModal({
                         text={tCommon('save')}
                         isLoading={isLoading}
                         onClick={() => form.handleSubmit()}
+                        className="flex-1"
                     />
                 </DrawerActions>
             </DrawerForm>

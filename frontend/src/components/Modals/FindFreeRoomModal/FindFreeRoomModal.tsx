@@ -146,7 +146,7 @@ function ResultsList({
                         <Label
                             variant={EVariantLabel.bodySmall}
                             color="text-gray-900"
-                            className="font-medium"
+                            className="font-medium mr-1"
                         >
                             {room.name}
                         </Label>
@@ -289,6 +289,7 @@ export default function FindFreeRoomModal({
                         size={EButtonSize.medium}
                         text={tCommon('cancel')}
                         onClick={closeModal}
+                        className="flex-1"
                     />
                     <Button
                         id="find-room-search"
@@ -297,6 +298,7 @@ export default function FindFreeRoomModal({
                         text={t('findRoomSearch')}
                         isLoading={searchMutation.isPending}
                         onClick={() => searchMutation.mutate()}
+                        className="flex-1"
                     />
                 </DrawerActions>
             </DrawerForm>

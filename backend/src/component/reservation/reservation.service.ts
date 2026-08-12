@@ -204,7 +204,7 @@ export class ReservationService {
       entityId: created.id,
       action: 'CREATE',
       userId: createdById,
-      summary: `Created reservation ${created.id}`,
+      summary: `Created reservation for ${created.room.name}`,
       metadata: { roomId: created.roomId, startAt: created.startAt, endAt: created.endAt },
     });
 
@@ -318,7 +318,7 @@ export class ReservationService {
       entityId: seriesId,
       action: 'SERIES_CREATE',
       userId: createdById,
-      summary: `Created series of ${created.length} reservations`,
+      summary: `Created series of ${created.length} reservations for ${created[0].room.name}`,
       metadata: {
         seriesId,
         count: created.length,
@@ -350,7 +350,7 @@ export class ReservationService {
       entityId: existing.seriesId,
       action: 'DELETE',
       userId: actorId,
-      summary: `Deleted ${result.count} future series occurrences`,
+      summary: `Deleted ${result.count} future series occurrences for ${existing.room.name}`,
       metadata: {
         seriesId: existing.seriesId,
         fromReservationId: id,
@@ -418,7 +418,7 @@ export class ReservationService {
       entityId: updated.id,
       action: 'UPDATE',
       userId: actorId,
-      summary: `Updated reservation ${updated.id}`,
+      summary: `Updated reservation for ${updated.room.name}`,
     });
 
     return updated;
@@ -509,7 +509,7 @@ export class ReservationService {
       entityId: cancelled.id,
       action: 'CANCEL',
       userId: actorId,
-      summary: `Cancelled reservation ${cancelled.id}`,
+      summary: `Cancelled reservation for ${cancelled.room.name}`,
     });
 
     return cancelled;
@@ -528,7 +528,7 @@ export class ReservationService {
       entityId: deleted.id,
       action: 'DELETE',
       userId: actorId,
-      summary: `Deleted reservation ${deleted.id}`,
+      summary: `Deleted reservation for ${deleted.room.name}`,
     });
 
     return deleted;
