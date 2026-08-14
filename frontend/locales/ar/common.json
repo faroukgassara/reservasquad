@@ -315,7 +315,13 @@
             "findRoomCapacity": "السعة {count}",
             "findRoomEstimated": "تقريبيًا {price}",
             "findRoomBook": "حجز",
-            "findRoomRangeRequired": "اختر وقت بداية ونهاية صالحين"
+            "findRoomRangeRequired": "اختر وقت بداية ونهاية صالحين",
+            "conflicts": {
+                "room": "هذه القاعة محجوزة بالفعل في هذه الفترة الزمنية",
+                "professor": "هذا الأستاذ محجوز بالفعل في هذه الفترة الزمنية",
+                "roomOn": "هذه القاعة محجوزة بالفعل في {at}",
+                "professorOn": "هذا الأستاذ محجوز بالفعل في {at}"
+            }
         },
         "calendar": {
             "title": "التقويم",

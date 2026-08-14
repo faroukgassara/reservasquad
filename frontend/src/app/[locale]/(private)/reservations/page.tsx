@@ -30,6 +30,7 @@ import {
     type ReservationRecord,
     type ReservationStatus,
 } from '@/lib/reservation-api';
+import { mapReservationConflictMessage } from '@/lib/reservation-conflicts';
 import { fetchRooms } from '@/lib/room-api';
 import { fetchProfessors } from '@/lib/professor-api';
 import {
@@ -182,7 +183,10 @@ export default function ReservationsAdminPage() {
             openToast(tCommon('success'), t('create'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
-        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+        onError: (error: Error) =>
+            openToast(tCommon('error'), mapReservationConflictMessage(error.message, t), {
+                type: EToastType.ERROR,
+            }),
     });
 
     const seriesMutation = useMutation({
@@ -196,7 +200,10 @@ export default function ReservationsAdminPage() {
             });
             setModalState(null);
         },
-        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+        onError: (error: Error) =>
+            openToast(tCommon('error'), mapReservationConflictMessage(error.message, t), {
+                type: EToastType.ERROR,
+            }),
     });
 
     const updateMutation = useMutation({
@@ -209,7 +216,10 @@ export default function ReservationsAdminPage() {
             openToast(tCommon('success'), tCommon('save'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
-        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+        onError: (error: Error) =>
+            openToast(tCommon('error'), mapReservationConflictMessage(error.message, t), {
+                type: EToastType.ERROR,
+            }),
     });
 
     const cancelMutation = useMutation({

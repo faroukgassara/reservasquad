@@ -315,7 +315,13 @@
             "findRoomCapacity": "Capacity {count}",
             "findRoomEstimated": "Est. {price}",
             "findRoomBook": "Book",
-            "findRoomRangeRequired": "Choose a valid start and end time"
+            "findRoomRangeRequired": "Choose a valid start and end time",
+            "conflicts": {
+                "room": "This room is already reserved for the selected time range",
+                "professor": "This professor is already booked for the selected time range",
+                "roomOn": "This room is already reserved on {at}",
+                "professorOn": "This professor is already booked on {at}"
+            }
         },
         "calendar": {
             "title": "Calendar",

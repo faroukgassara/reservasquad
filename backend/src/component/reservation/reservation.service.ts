@@ -82,28 +82,61 @@ export class ReservationService {
     return professor;
   }
 
-  private async assertNoOverlap(params: {
+  private async assertNoConflicts(params: {
     roomId: string;
+    professorId?: string | null;
     startAt: Date;
     endAt: Date;
     excludeId?: string;
     status: EReservationStatus;
+    /** When set, conflict messages include this ISO timestamp (series create). */
+    occurrenceAt?: Date;
   }) {
     if (params.status !== EReservationStatus.CONFIRMED) return;
 
-    const conflict = await this.prismaService.reservation.findFirst({
+    const excludeFilter = params.excludeId
+      ? { id: { not: params.excludeId } }
+      : {};
+    const at = params.occurrenceAt?.toISOString();
+
+    const roomConflict = await this.prismaService.reservation.findFirst({
       where: {
         deletedAt: null,
         roomId: params.roomId,
         status: EReservationStatus.CONFIRMED,
-        ...(params.excludeId ? { id: { not: params.excludeId } } : {}),
+        ...excludeFilter,
         startAt: { lt: params.endAt },
         endAt: { gt: params.startAt },
       },
     });
 
-    if (conflict) {
-      throw new ConflictException('This room is already reserved for the selected time range');
+    if (roomConflict) {
+      throw new ConflictException(
+        at
+          ? `This room is already reserved on ${at}`
+          : 'This room is already reserved for the selected time range',
+      );
+    }
+
+    if (!params.professorId) return;
+
+    const professorConflict = await this.prismaService.reservation.findFirst({
+      where: {
+        deletedAt: null,
+        professorId: params.professorId,
+        status: EReservationStatus.CONFIRMED,
+        ...excludeFilter,
+        startAt: { lt: params.endAt },
+        endAt: { gt: params.startAt },
+      },
+    });
+
+    if (professorConflict) {
+      throw new ConflictException(
+        at
+          ? `This professor is already booked on ${at}`
+          : 'This professor is already booked for the selected time range',
+      );
     }
   }
 
@@ -176,8 +209,9 @@ export class ReservationService {
     const room = await this.assertRoomExists(dto.roomId);
     await this.assertProfessorExists(dto.professorId);
     const status = dto.status ?? EReservationStatus.CONFIRMED;
-    await this.assertNoOverlap({
+    await this.assertNoConflicts({
       roomId: dto.roomId,
+      professorId: dto.professorId,
       startAt,
       endAt,
       status,
@@ -269,21 +303,14 @@ export class ReservationService {
     );
 
     for (const occurrence of occurrences) {
-      try {
-        await this.assertNoOverlap({
-          roomId: dto.roomId,
-          startAt: occurrence.startAt,
-          endAt: occurrence.endAt,
-          status,
-        });
-      } catch (error) {
-        if (error instanceof ConflictException) {
-          throw new ConflictException(
-            `This room is already reserved on ${occurrence.startAt.toISOString()}`,
-          );
-        }
-        throw error;
-      }
+      await this.assertNoConflicts({
+        roomId: dto.roomId,
+        professorId: dto.professorId,
+        startAt: occurrence.startAt,
+        endAt: occurrence.endAt,
+        status,
+        occurrenceAt: occurrence.startAt,
+      });
     }
 
     const seriesId = randomUUID();
@@ -379,9 +406,12 @@ export class ReservationService {
 
     if (dto.professorId !== undefined) await this.assertProfessorExists(dto.professorId);
 
+    const professorId =
+      dto.professorId !== undefined ? dto.professorId || null : existing.professorId;
     const status = dto.status ?? existing.status;
-    await this.assertNoOverlap({
+    await this.assertNoConflicts({
       roomId,
+      professorId,
       startAt,
       endAt,
       excludeId: id,

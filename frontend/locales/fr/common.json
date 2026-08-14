@@ -315,7 +315,13 @@
             "findRoomCapacity": "Capacité {count}",
             "findRoomEstimated": "Est. {price}",
             "findRoomBook": "Réserver",
-            "findRoomRangeRequired": "Choisissez un début et une fin valides"
+            "findRoomRangeRequired": "Choisissez un début et une fin valides",
+            "conflicts": {
+                "room": "Cette salle est déjà réservée pour cette plage horaire",
+                "professor": "Ce professeur est déjà réservé pour cette plage horaire",
+                "roomOn": "Cette salle est déjà réservée le {at}",
+                "professorOn": "Ce professeur est déjà réservé le {at}"
+            }
         },
         "calendar": {
             "title": "Calendrier",

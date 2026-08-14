@@ -22,6 +22,7 @@ import {
     updateReservation,
     type ReservationRecord,
 } from '@/lib/reservation-api';
+import { mapReservationConflictMessage } from '@/lib/reservation-conflicts';
 import { fetchRooms } from '@/lib/room-api';
 import { fetchProfessors } from '@/lib/professor-api';
 import {
@@ -325,7 +326,10 @@ export default function CalendarPage() {
             setModalState(null);
             closeModal();
         },
-        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+        onError: (error: Error) =>
+            openToast(tCommon('error'), mapReservationConflictMessage(error.message, tPay), {
+                type: EToastType.ERROR,
+            }),
     });
 
     const seriesMutation = useMutation({
@@ -340,7 +344,10 @@ export default function CalendarPage() {
             setModalState(null);
             closeModal();
         },
-        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+        onError: (error: Error) =>
+            openToast(tCommon('error'), mapReservationConflictMessage(error.message, tPay), {
+                type: EToastType.ERROR,
+            }),
     });
 
     const updateMutation = useMutation({
@@ -359,7 +366,10 @@ export default function CalendarPage() {
             setModalState(null);
             closeModal();
         },
-        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+        onError: (error: Error) =>
+            openToast(tCommon('error'), mapReservationConflictMessage(error.message, tPay), {
+                type: EToastType.ERROR,
+            }),
     });
 
     const handleFormSubmit = useCallback(
