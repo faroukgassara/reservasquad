@@ -109,6 +109,13 @@ export default function PrivateLayout({
             href: Routes.AuditLog.index,
             hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
         },
+        {
+            id: 'recycle-bin',
+            iconName: IconComponentsEnum.archive,
+            label: t('recycleBin'),
+            href: Routes.RecycleBin.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
+        },
     ];
 
     let sidebarLayoutClass =

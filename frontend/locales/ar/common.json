@@ -146,6 +146,7 @@
         "dailyIncome": "الدخل اليومي",
         "users": "المستخدمون",
         "auditLog": "سجل التدقيق",
+        "recycleBin": "سلة المحذوفات",
         "closeMenu": "إغلاق القائمة",
         "openMenu": "فتح القائمة"
     },
@@ -453,6 +454,27 @@
                 "LATER": "لاحقاً",
                 "ENDED": "انتهت"
             }
+        },
+        "recycleBin": {
+            "title": "سلة المحذوفات",
+            "subtitle": "استعادة أو حذف نهائي للعناصر المحذوفة مؤقتاً",
+            "tabs": {
+                "reservations": "الحجوزات",
+                "professors": "الأساتذة"
+            },
+            "columns": {
+                "deletedAt": "تاريخ الحذف",
+                "name": "الاسم",
+                "specialty": "التخصص"
+            },
+            "restore": "استعادة",
+            "hardDelete": "حذف نهائي",
+            "confirmRestore": "استعادة هذا العنصر؟",
+            "confirmHardDelete": "حذف هذا العنصر نهائياً؟ لا يمكن التراجع.",
+            "restored": "تمت الاستعادة",
+            "hardDeleted": "تم الحذف النهائي",
+            "emptyReservations": "لا توجد حجوزات محذوفة",
+            "emptyProfessors": "لا يوجد أساتذة محذوفون"
         }
     }
 }

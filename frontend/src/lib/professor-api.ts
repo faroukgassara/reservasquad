@@ -98,3 +98,42 @@ export async function deleteProfessor(id: string): Promise<void> {
     const res = await api.delete(`/api/professors/${id}`, {}, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to delete professor');
 }
+
+export async function fetchDeletedProfessors(params: {
+    page?: number;
+    perPage?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+}): Promise<PaginatedProfessors> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params.page) sp.set('page', String(params.page));
+    if (params.perPage) sp.set('perPage', String(params.perPage));
+    if (params.search) sp.set('search', params.search);
+    if (params.sortBy) sp.set('sortBy', params.sortBy);
+    if (params.sortOrder) sp.set('sortOrder', params.sortOrder);
+    const q = sp.toString();
+    const res = await api.get(`/api/professors/deleted${q ? `?${q}` : ''}`, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch deleted professors');
+    return unwrapData<PaginatedProfessors>(res.data as { data?: PaginatedProfessors });
+}
+
+export async function restoreProfessor(id: string): Promise<ProfessorRecord> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/professors/${id}/restore`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.message ||
+            (res.data as { error?: string })?.error ||
+            'Failed to restore professor';
+        throw new Error(message);
+    }
+    return unwrapData<ProfessorRecord>(res.data as { data?: ProfessorRecord });
+}
+
+export async function hardDeleteProfessor(id: string): Promise<void> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.delete(`/api/professors/${id}/hard`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to permanently delete professor');
+}

@@ -593,6 +593,77 @@ export class ReservationService {
     return deleted;
   }
 
+  async getDeletedReservationById(id: string) {
+    const reservation = await this.prismaService.reservation.findFirst({
+      where: { id, deletedAt: { not: null } },
+      include: reservationInclude,
+    });
+    if (!reservation) throw new NotFoundException('Deleted reservation not found');
+    return reservation;
+  }
+
+  async listDeletedReservations(
+    pagination: PaginationData,
+    orderBy: Record<string, unknown>[],
+    search?: Prisma.ReservationWhereInput,
+  ) {
+    const andWhere = buildAndFilters(search);
+    const proxied = ProxyPrismaModel(this.prismaService.reservation as any);
+    return proxied.findManyPaginated(
+      {
+        where: composeWhere({ deletedAt: { not: null } }, andWhere),
+        include: reservationInclude,
+        orderBy,
+      },
+      pagination,
+    );
+  }
+
+  async restoreReservation(id: string, actorId?: string) {
+    const existing = await this.getDeletedReservationById(id);
+    await this.assertNoConflicts({
+      roomId: existing.roomId,
+      professorId: existing.professorId,
+      startAt: existing.startAt,
+      endAt: existing.endAt,
+      status: existing.status,
+    });
+
+    const restored = await this.prismaService.reservation.update({
+      where: { id },
+      data: { deletedAt: null },
+      include: reservationInclude,
+    });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: restored.id,
+      action: 'RESTORE',
+      userId: actorId,
+      summary: `Restored reservation for ${restored.room.name}`,
+    });
+
+    return restored;
+  }
+
+  async hardDeleteReservation(id: string, actorId?: string) {
+    const existing = await this.getDeletedReservationById(id);
+    const removed = await this.prismaService.reservation.delete({
+      where: { id },
+      include: reservationInclude,
+    });
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: existing.id,
+      action: 'HARD_DELETE',
+      userId: actorId,
+      summary: `Permanently deleted reservation for ${existing.room.name}`,
+    });
+
+    return removed;
+  }
+
   async bulkMarkPaid(ids: string[], actorId?: string) {
     const uniqueIds = Array.from(new Set(ids));
     const result = await this.prismaService.reservation.updateMany({

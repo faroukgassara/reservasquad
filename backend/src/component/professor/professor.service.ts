@@ -97,6 +97,57 @@ export class ProfessorService {
     });
   }
 
+  async getDeletedProfessorById(id: string): Promise<Professor> {
+    const professor = await this.prismaService.professor.findFirst({
+      where: { id, deletedAt: { not: null } },
+    });
+    if (!professor) throw new NotFoundException('Deleted professor not found');
+    return professor;
+  }
+
+  async listDeletedProfessors(
+    pagination: PaginationData,
+    orderBy: Record<string, unknown>[],
+    search?: Prisma.ProfessorWhereInput,
+  ) {
+    const andWhere = buildAndFilters(search);
+    const proxied = ProxyPrismaModel(this.prismaService.professor as any);
+    return proxied.findManyPaginated(
+      {
+        where: composeWhere({ deletedAt: { not: null } }, andWhere),
+        orderBy,
+      },
+      pagination,
+    );
+  }
+
+  async restoreProfessor(id: string): Promise<Professor> {
+    const professor = await this.getDeletedProfessorById(id);
+    if (professor.email) {
+      const conflict = await this.prismaService.professor.findFirst({
+        where: {
+          email: professor.email,
+          deletedAt: null,
+          id: { not: id },
+        },
+      });
+      if (conflict) {
+        throw new ConflictException(
+          'Another active professor already uses this email',
+        );
+      }
+    }
+    return this.prismaService.professor.update({
+      where: { id },
+      data: { deletedAt: null },
+    });
+  }
+
+  async hardDeleteProfessor(id: string): Promise<Professor> {
+    await this.getDeletedProfessorById(id);
+    return this.prismaService.professor.delete({ where: { id } });
+  }
+
   async countActive(): Promise<number> {
     return this.prismaService.professor.count({
       where: { deletedAt: null },

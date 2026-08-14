@@ -42,7 +42,7 @@ import { sendCaughtError } from 'src/common/utils/caught-error.util';
 import { IRequest } from 'src/interface/request/request.interface';
 
 const RESERVATION_SORTING_OPTIONS: SortingDecoratorOptions = {
-  allowedFields: ['createdAt', 'updatedAt', 'startAt', 'endAt', 'status'],
+  allowedFields: ['createdAt', 'updatedAt', 'startAt', 'endAt', 'status', 'deletedAt'],
   defaultSort: 'startAt',
 };
 
@@ -193,6 +193,36 @@ export class ReservationBackofficeController {
 
       const data = await this.reservationService.listReservations(
         dto,
+        pagination,
+        orderBy,
+        search as never,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('deleted')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'List soft-deleted reservations' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  @ApiSortingQuery(RESERVATION_SORTING_OPTIONS)
+  @ApiSearchQuery({
+    fields: ['title', 'notes', 'room.name', 'professor.firstName', 'professor.lastName'],
+  })
+  async listDeleted(
+    @Res() res: Response,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+    @SortingQuery(RESERVATION_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
+    @SearchQuery({
+      fields: ['title', 'notes', 'room.name', 'professor.firstName', 'professor.lastName'],
+    })
+    search: object,
+  ) {
+    try {
+      const data = await this.reservationService.listDeletedReservations(
         pagination,
         orderBy,
         search as never,
@@ -375,6 +405,44 @@ export class ReservationBackofficeController {
         req.user?.id,
       );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/restore')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted reservation' })
+  async restore(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
+    try {
+      const data = await this.reservationService.restoreReservation(
+        id,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete(':id/hard')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Permanently delete a soft-deleted reservation' })
+  async hardRemove(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
+    try {
+      await this.reservationService.hardDeleteReservation(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({
+        statusCode: HttpStatus.OK,
+        message: 'Reservation permanently deleted',
+      });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
     }

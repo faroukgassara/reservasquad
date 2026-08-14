@@ -28,6 +28,9 @@ export const Routes = {
     AuditLog: {
         index: '/audit-log',
     },
+    RecycleBin: {
+        index: '/recycle-bin',
+    },
 } as const;
 
 export const PublicRoutes = [

@@ -146,6 +146,7 @@
         "dailyIncome": "Revenus journaliers",
         "users": "Utilisateurs",
         "auditLog": "Journal d'audit",
+        "recycleBin": "Corbeille",
         "closeMenu": "Fermer le menu",
         "openMenu": "Ouvrir le menu"
     },
@@ -453,6 +454,27 @@
                 "LATER": "Plus tard",
                 "ENDED": "Terminé"
             }
+        },
+        "recycleBin": {
+            "title": "Corbeille",
+            "subtitle": "Restaurer ou supprimer définitivement les éléments soft-deleted",
+            "tabs": {
+                "reservations": "Réservations",
+                "professors": "Professeurs"
+            },
+            "columns": {
+                "deletedAt": "Supprimé le",
+                "name": "Nom",
+                "specialty": "Spécialité"
+            },
+            "restore": "Restaurer",
+            "hardDelete": "Supprimer définitivement",
+            "confirmRestore": "Restaurer cet élément ?",
+            "confirmHardDelete": "Supprimer définitivement cet élément ? Action irréversible.",
+            "restored": "Élément restauré",
+            "hardDeleted": "Élément définitivement supprimé",
+            "emptyReservations": "Aucune réservation supprimée",
+            "emptyProfessors": "Aucun professeur supprimé"
         }
     }
 }

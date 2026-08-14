@@ -36,7 +36,7 @@ import { validate } from 'class-validator';
 import { sendCaughtError } from 'src/common/utils/caught-error.util';
 
 const PROFESSOR_SORTING_OPTIONS: SortingDecoratorOptions = {
-  allowedFields: ['createdAt', 'updatedAt', 'firstName', 'lastName'],
+  allowedFields: ['createdAt', 'updatedAt', 'firstName', 'lastName', 'deletedAt'],
   defaultSort: 'createdAt',
 };
 
@@ -132,11 +132,60 @@ export class ProfessorBackofficeController {
     }
   }
 
+  @Get('deleted')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'List soft-deleted professors' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  @ApiSortingQuery(PROFESSOR_SORTING_OPTIONS)
+  @ApiSearchQuery({ fields: ['firstName', 'lastName', 'email', 'specialty'] })
+  async listDeleted(
+    @Res() res: Response,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+    @SortingQuery(PROFESSOR_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
+    @SearchQuery({ fields: ['firstName', 'lastName', 'email', 'specialty'] }) search: object,
+  ) {
+    try {
+      const data = await this.professorService.listDeletedProfessors(
+        pagination,
+        orderBy,
+        search as never,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get(':id')
   @swagger.ApiOperation({ summary: 'Get professor by id' })
   async getOne(@Res() res: Response, @Param('id') id: string) {
     try {
       const professor = await this.professorService.getProfessorById(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: professor });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/restore')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted professor' })
+  async restore(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const professor = await this.professorService.restoreProfessor(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: professor });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete(':id/hard')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Permanently delete a soft-deleted professor' })
+  async hardRemove(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const professor = await this.professorService.hardDeleteProfessor(id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: professor });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

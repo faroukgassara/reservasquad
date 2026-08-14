@@ -359,6 +359,47 @@ export async function deleteReservation(id: string): Promise<void> {
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to delete reservation');
 }
 
+export async function fetchDeletedReservations(params: {
+    page?: number;
+    perPage?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+}): Promise<PaginatedReservations> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params.page) sp.set('page', String(params.page));
+    if (params.perPage) sp.set('perPage', String(params.perPage));
+    if (params.search) sp.set('search', params.search);
+    if (params.sortBy) sp.set('sortBy', params.sortBy);
+    if (params.sortOrder) sp.set('sortOrder', params.sortOrder);
+    const q = sp.toString();
+    const res = await api.get(`/api/reservations/deleted${q ? `?${q}` : ''}`, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch deleted reservations');
+    return unwrapData<PaginatedReservations>(res.data as { data?: PaginatedReservations });
+}
+
+export async function restoreReservation(id: string): Promise<ReservationRecord> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/reservations/${id}/restore`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.message ||
+            (res.data as { error?: string })?.error ||
+            'Failed to restore reservation';
+        throw new Error(message);
+    }
+    return unwrapData<ReservationRecord>(res.data as { data?: ReservationRecord });
+}
+
+export async function hardDeleteReservation(id: string): Promise<void> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.delete(`/api/reservations/${id}/hard`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        throw new Error('Failed to permanently delete reservation');
+    }
+}
+
 export async function bulkMarkReservationsPaid(ids: string[]): Promise<{ updated: number }> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.post('/api/reservations/bulk-paid', { ids }, headers);

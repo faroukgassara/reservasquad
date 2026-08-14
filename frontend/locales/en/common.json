@@ -146,6 +146,7 @@
         "dailyIncome": "Daily income",
         "users": "Users",
         "auditLog": "Audit log",
+        "recycleBin": "Recycle bin",
         "closeMenu": "Close menu",
         "openMenu": "Open menu"
     },
@@ -453,6 +454,27 @@
                 "LATER": "Later",
                 "ENDED": "Ended"
             }
+        },
+        "recycleBin": {
+            "title": "Recycle bin",
+            "subtitle": "Restore or permanently delete soft-deleted items",
+            "tabs": {
+                "reservations": "Reservations",
+                "professors": "Professors"
+            },
+            "columns": {
+                "deletedAt": "Deleted at",
+                "name": "Name",
+                "specialty": "Specialty"
+            },
+            "restore": "Restore",
+            "hardDelete": "Delete permanently",
+            "confirmRestore": "Restore this item?",
+            "confirmHardDelete": "Permanently delete this item? This cannot be undone.",
+            "restored": "Item restored",
+            "hardDeleted": "Item permanently deleted",
+            "emptyReservations": "No deleted reservations",
+            "emptyProfessors": "No deleted professors"
         }
     }
 }
