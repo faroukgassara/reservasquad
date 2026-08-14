@@ -322,6 +322,14 @@
                 "professor": "Ce professeur est déjà réservé pour cette plage horaire",
                 "roomOn": "Cette salle est déjà réservée le {at}",
                 "professorOn": "Ce professeur est déjà réservé le {at}"
+            },
+            "alternatives": {
+                "checking": "Vérification de disponibilité…",
+                "roomFree": "Cette salle est libre pour ce créneau",
+                "busyTitle": "Cette salle est occupée pour ce créneau",
+                "busyHint": "Salles libres les plus proches (capacité similaire d'abord) :",
+                "none": "Aucune autre salle libre. Utilisez Trouver une salle ou un autre créneau.",
+                "useRoom": "Utiliser cette salle"
             }
         },
         "calendar": {

@@ -127,6 +127,7 @@ export class ReservationBackofficeController {
         dto.startAt,
         dto.endAt,
         dto.excludeReservationId,
+        dto.preferredRoomId,
       );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {

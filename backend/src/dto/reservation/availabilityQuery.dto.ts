@@ -16,4 +16,11 @@ export class AvailabilityQueryDto {
   @IsOptional()
   @IsUUID()
   excludeReservationId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Preferred room — used to rank free alternatives by similar capacity',
+  })
+  @IsOptional()
+  @IsUUID()
+  preferredRoomId?: string;
 }

@@ -322,6 +322,14 @@
                 "professor": "This professor is already booked for the selected time range",
                 "roomOn": "This room is already reserved on {at}",
                 "professorOn": "This professor is already booked on {at}"
+            },
+            "alternatives": {
+                "checking": "Checking room availability…",
+                "roomFree": "This room is free for the selected time",
+                "busyTitle": "This room is busy for this time",
+                "busyHint": "Nearest free rooms (similar capacity first):",
+                "none": "No other rooms are free for this time. Try Find a room or another slot.",
+                "useRoom": "Use this room"
             }
         },
         "calendar": {

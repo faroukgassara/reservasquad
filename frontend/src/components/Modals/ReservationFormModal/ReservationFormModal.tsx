@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useForm } from '@tanstack/react-form';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
 import { DrawerActions, DrawerForm, DrawerScrollContent } from '@/components/Primitives/DrawerLayout/DrawerLayout';
@@ -15,8 +16,12 @@ import DateTimeField from '@/components/Primitives/DatePicker/DateTimeField';
 import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
-import type { ReservationRecord, ReservationStatus } from '@/lib/reservation-api';
-import { calculateReservationPrice, formatMoney } from '@/lib/reservation-api';
+import type { AvailabilityRoom, ReservationRecord, ReservationStatus } from '@/lib/reservation-api';
+import {
+    calculateReservationPrice,
+    fetchAvailability,
+    formatMoney,
+} from '@/lib/reservation-api';
 import type { RoomRecord } from '@/lib/room-api';
 import type { ProfessorRecord } from '@/lib/professor-api';
 
@@ -61,6 +66,133 @@ function formatTime24h(value: string): string {
     if (!value) return '—';
     const [, timePart = ''] = value.split('T');
     return timePart.slice(0, 5) || '—';
+}
+
+function localInputToIso(value: string): string | null {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toISOString();
+}
+
+function RoomAlternativesPanel({
+    preferredRoomId,
+    startAt,
+    endAt,
+    status,
+    excludeReservationId,
+    onSelectRoom,
+}: Readonly<{
+    preferredRoomId: string;
+    startAt: string;
+    endAt: string;
+    status: ReservationStatus;
+    excludeReservationId?: string;
+    onSelectRoom: (roomId: string) => void;
+}>) {
+    const t = useTranslations('admin.reservations');
+
+    const range = useMemo(() => {
+        if (!preferredRoomId || !startAt || !endAt || status !== 'CONFIRMED') {
+            return null;
+        }
+        const start = new Date(startAt);
+        const end = new Date(endAt);
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+            return null;
+        }
+        const startIso = localInputToIso(startAt);
+        const endIso = localInputToIso(endAt);
+        if (!startIso || !endIso) return null;
+        return { startIso, endIso };
+    }, [preferredRoomId, startAt, endAt, status]);
+
+    const { data, isFetching } = useQuery({
+        queryKey: [
+            'room-alternatives',
+            range?.startIso,
+            range?.endIso,
+            preferredRoomId,
+            excludeReservationId,
+        ],
+        queryFn: () =>
+            fetchAvailability({
+                startAt: range!.startIso,
+                endAt: range!.endIso,
+                preferredRoomId,
+                excludeReservationId,
+            }),
+        enabled: Boolean(range),
+        staleTime: 15_000,
+    });
+
+    if (!range) return null;
+
+    const preferredBusy = data?.preferredAvailable === false;
+    const alternatives = (data?.alternatives ?? []).slice(0, 5);
+
+    if (!preferredBusy) {
+        if (data?.preferredAvailable === true) {
+            return (
+                <Div className="rounded-xl border border-success-100 bg-success-50 px-3 py-2">
+                    <Label variant={EVariantLabel.caption} color="text-success-700">
+                        {t('alternatives.roomFree')}
+                    </Label>
+                </Div>
+            );
+        }
+        return isFetching ? (
+            <Label variant={EVariantLabel.caption} color="text-gray-500">
+                {t('alternatives.checking')}
+            </Label>
+        ) : null;
+    }
+
+    return (
+        <Div className="space-y-2 rounded-xl border border-warning-200 bg-warning-50 px-3 py-3">
+            <Label variant={EVariantLabel.bodySmall} color="text-warning-800" className="block font-medium">
+                {t('alternatives.busyTitle')}
+            </Label>
+            <Label variant={EVariantLabel.caption} color="text-warning-700" className="block">
+                {t('alternatives.busyHint')}
+            </Label>
+            {alternatives.length === 0 ? (
+                <Label variant={EVariantLabel.caption} color="text-gray-600" className="block">
+                    {t('alternatives.none')}
+                </Label>
+            ) : (
+                <Div className="space-y-2">
+                    {alternatives.map((room: AvailabilityRoom) => (
+                        <Div
+                            key={room.id}
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warning-100 bg-white px-3 py-2"
+                        >
+                            <Div className="min-w-0">
+                                <Label
+                                    variant={EVariantLabel.bodySmall}
+                                    color="text-gray-900"
+                                    className="block font-medium"
+                                >
+                                    {room.name}
+                                </Label>
+                                <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
+                                    {t('findRoomCapacity', { count: room.capacity })}
+                                    {' · '}
+                                    {t('findRoomEstimated', { price: formatMoney(room.estimatedPrice) })}
+                                </Label>
+                            </Div>
+                            <Button
+                                id={`alt-room-${room.id}`}
+                                type={EButtonType.secondary}
+                                size={EButtonSize.small}
+                                text={t('alternatives.useRoom')}
+                                onClick={() => onSelectRoom(room.id)}
+                            />
+                        </Div>
+                    ))}
+                </Div>
+            )}
+        </Div>
+    );
 }
 
 interface ReservationFormModalProps {
@@ -269,6 +401,38 @@ export default function ReservationFormModal({
                             />
                         )}
                     </form.Field>
+                    <form.Subscribe
+                        selector={(s) => ({
+                            roomId: s.values.roomId,
+                            startAt: s.values.startAt,
+                            endAt: s.values.endAt,
+                            status: s.values.status,
+                        })}
+                    >
+                        {({ roomId, startAt, endAt, status }) => (
+                            <RoomAlternativesPanel
+                                preferredRoomId={roomId}
+                                startAt={startAt}
+                                endAt={endAt}
+                                status={status}
+                                excludeReservationId={isEdit ? reservation?.id : undefined}
+                                onSelectRoom={(nextRoomId) => {
+                                    form.setFieldValue('roomId', nextRoomId);
+                                    if (!form.getFieldValue('manualPrice')) {
+                                        const room = rooms.find((r) => r.id === nextRoomId);
+                                        const calculated = calculateReservationPrice(
+                                            room?.pricePerHour,
+                                            startAt,
+                                            endAt,
+                                        );
+                                        if (calculated !== null) {
+                                            form.setFieldValue('price', String(calculated));
+                                        }
+                                    }
+                                }}
+                            />
+                        )}
+                    </form.Subscribe>
                     <form.Field name="notes">
                         {({ state, handleChange }) => (
                             <Input

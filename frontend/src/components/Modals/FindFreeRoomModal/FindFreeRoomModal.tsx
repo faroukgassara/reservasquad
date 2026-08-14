@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
@@ -174,6 +174,13 @@ export default function FindFreeRoomModal({
             setError(err.message);
         },
     });
+
+    useEffect(() => {
+        if (!defaultStartAt || !defaultEndAt) return;
+        searchMutation.mutate();
+        // Auto-search once when opened with a prefilled range (e.g. calendar).
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional one-shot on mount defaults
+    }, []);
 
     return (
         <Modal

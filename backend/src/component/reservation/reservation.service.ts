@@ -156,6 +156,7 @@ export class ReservationService {
     startAtInput: string,
     endAtInput: string,
     excludeReservationId?: string,
+    preferredRoomId?: string,
   ) {
     const startAt = new Date(startAtInput);
     const endAt = new Date(endAtInput);
@@ -178,6 +179,13 @@ export class ReservationService {
     });
     const busyRoomIds = new Set(conflicts.map((row) => row.roomId));
 
+    const preferred = preferredRoomId
+      ? rooms.find((room) => room.id === preferredRoomId)
+      : undefined;
+    const preferredAvailable = Boolean(
+      preferred && !busyRoomIds.has(preferred.id),
+    );
+
     const available = rooms
       .filter((room) => !busyRoomIds.has(room.id))
       .map((room) => {
@@ -189,13 +197,34 @@ export class ReservationService {
           pricePerHour: Number(room.pricePerHour),
           estimatedPrice,
         };
-      })
-      .sort((a, b) => a.estimatedPrice - b.estimatedPrice || a.name.localeCompare(b.name));
+      });
+
+    if (preferred) {
+      available.sort((a, b) => {
+        const capacityDelta =
+          Math.abs(a.capacity - preferred.capacity) -
+          Math.abs(b.capacity - preferred.capacity);
+        if (capacityDelta !== 0) return capacityDelta;
+        return a.estimatedPrice - b.estimatedPrice || a.name.localeCompare(b.name);
+      });
+    } else {
+      available.sort(
+        (a, b) =>
+          a.estimatedPrice - b.estimatedPrice || a.name.localeCompare(b.name),
+      );
+    }
+
+    const alternatives = preferred
+      ? available.filter((room) => room.id !== preferred.id)
+      : available;
 
     return {
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
+      preferredRoomId: preferred?.id ?? null,
+      preferredAvailable: preferred ? preferredAvailable : null,
       rooms: available,
+      alternatives,
     };
   }
 

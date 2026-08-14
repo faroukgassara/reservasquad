@@ -265,12 +265,16 @@ export interface AvailabilityData {
     startAt: string;
     endAt: string;
     rooms: AvailabilityRoom[];
+    preferredRoomId?: string | null;
+    preferredAvailable?: boolean | null;
+    alternatives?: AvailabilityRoom[];
 }
 
 export async function fetchAvailability(params: {
     startAt: string;
     endAt: string;
     excludeReservationId?: string;
+    preferredRoomId?: string;
 }): Promise<AvailabilityData> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const sp = new URLSearchParams();
@@ -278,6 +282,9 @@ export async function fetchAvailability(params: {
     sp.set('endAt', params.endAt);
     if (params.excludeReservationId) {
         sp.set('excludeReservationId', params.excludeReservationId);
+    }
+    if (params.preferredRoomId) {
+        sp.set('preferredRoomId', params.preferredRoomId);
     }
     const res = await api.get(`/api/reservations/availability?${sp.toString()}`, headers);
     if (res.status !== HttpStatus.SuccessOK) {
