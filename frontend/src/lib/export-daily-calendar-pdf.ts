@@ -46,7 +46,6 @@ function fileDateStamp(day: Date): string {
 }
 
 function hourSlotLabel(startHour: number): string {
-    const endHour = (startHour + 1) % 24;
     return `${startHour}h`;
 }
 
