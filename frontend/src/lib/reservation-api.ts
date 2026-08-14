@@ -223,36 +223,6 @@ export async function fetchTodaySnapshot(): Promise<TodaySnapshot> {
     return unwrapData<TodaySnapshot>(res.data as { data?: TodaySnapshot });
 }
 
-export interface OccupancyCell {
-    roomId: string;
-    hour: number;
-    ratio: number;
-    bookedMinutes: number;
-}
-
-export interface OccupancyData {
-    year: number;
-    month: number;
-    hours: number[];
-    rooms: { id: string; name: string }[];
-    cells: OccupancyCell[];
-}
-
-export async function fetchOccupancy(params?: {
-    year?: number;
-    month?: number;
-}): Promise<OccupancyData> {
-    const headers = await CommonFunction.createHeaders({ withToken: true });
-    const sp = new URLSearchParams();
-    if (params?.year) sp.set('year', String(params.year));
-    if (params?.month) sp.set('month', String(params.month));
-    const q = sp.toString();
-    const path = q ? `/api/reservations/occupancy?${q}` : '/api/reservations/occupancy';
-    const res = await api.get(path, headers);
-    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch occupancy');
-    return unwrapData<OccupancyData>(res.data as { data?: OccupancyData });
-}
-
 export interface AvailabilityRoom {
     id: string;
     name: string;

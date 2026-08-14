@@ -181,9 +181,7 @@
         "chartIncome": "Income",
         "chartCharges": "Charges",
         "chartInvestments": "Investments",
-        "chartNetBalance": "Net balance",
-        "occupancyHeatmapTitle": "Room occupancy — this month",
-        "occupancyEmpty": "No room occupancy data for this month"
+        "chartNetBalance": "Net balance"
     },
     "admin": {
         "users": {

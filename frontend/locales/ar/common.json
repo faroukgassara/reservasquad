@@ -181,9 +181,7 @@
         "chartIncome": "الدخل",
         "chartCharges": "المصاريف",
         "chartInvestments": "الاستثمارات",
-        "chartNetBalance": "الصافي",
-        "occupancyHeatmapTitle": "إشغال القاعات — هذا الشهر",
-        "occupancyEmpty": "لا توجد بيانات إشغال لهذا الشهر"
+        "chartNetBalance": "الصافي"
     },
     "admin": {
         "users": {

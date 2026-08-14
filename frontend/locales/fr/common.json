@@ -181,9 +181,7 @@
         "chartIncome": "Revenus",
         "chartCharges": "Charges",
         "chartInvestments": "Investissements",
-        "chartNetBalance": "Solde net",
-        "occupancyHeatmapTitle": "Occupation des salles — ce mois-ci",
-        "occupancyEmpty": "Aucune donnée d'occupation pour ce mois"
+        "chartNetBalance": "Solde net"
     },
     "admin": {
         "users": {

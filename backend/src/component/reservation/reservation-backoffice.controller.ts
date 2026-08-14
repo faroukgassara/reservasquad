@@ -87,26 +87,6 @@ export class ReservationBackofficeController {
     }
   }
 
-  @Get('occupancy')
-  @swagger.ApiOperation({ summary: 'Room × hour occupancy for a month' })
-  async occupancy(
-    @Res() res: Response,
-    @Query('year') year?: string,
-    @Query('month') month?: string,
-  ) {
-    try {
-      const y = year !== undefined ? Number(year) : undefined;
-      const m = month !== undefined ? Number(month) : undefined;
-      const data = await this.reservationService.occupancy(
-        Number.isFinite(y) ? y : undefined,
-        Number.isFinite(m) ? m : undefined,
-      );
-      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
-    } catch (error: unknown) {
-      return sendCaughtError(res, error);
-    }
-  }
-
   @Get('availability')
   @swagger.ApiOperation({ summary: 'List free rooms for a time range' })
   async availability(@Res() res: Response, @Query() query: AvailabilityQueryDto) {

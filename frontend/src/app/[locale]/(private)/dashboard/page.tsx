@@ -23,7 +23,7 @@ import Label from '@/components/Primitives/Label/Label';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import { EVariantLabel, ESize, IconComponentsEnum } from '@/Enum/Enum';
-import { fetchDashboardStats, fetchOccupancy, formatMoney, type DashboardRoomBreakdown } from '@/lib/reservation-api';
+import { fetchDashboardStats, formatMoney, type DashboardRoomBreakdown } from '@/lib/reservation-api';
 import { fetchDailyIncomeSummary, fetchIncomeTrend } from '@/lib/daily-income-api';
 import { Link } from '@/i18n/navigation';
 import { Routes } from '@/lib/routes';
@@ -151,7 +151,7 @@ function ChartPanel({
 }: Readonly<{ title: string; className?: string; children: ReactNode }>) {
     return (
         <Div className={`rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 ${className}`}>
-            <Label variant={EVariantLabel.body} color="text-gray-900" className="mb-4 block font-semibold">
+            <Label variant={EVariantLabel.body} color="text-gray-900" className="mb-4 block">
                 {title}
             </Label>
             {children}
@@ -227,80 +227,6 @@ function TopRoomsList({
     );
 }
 
-function occupancyCellClass(ratio: number): string {
-    if (ratio <= 0) return 'bg-gray-50';
-    if (ratio < 0.15) return 'bg-primary-50';
-    if (ratio < 0.35) return 'bg-primary-100';
-    if (ratio < 0.55) return 'bg-primary-200';
-    if (ratio < 0.75) return 'bg-primary-300';
-    return 'bg-primary-500';
-}
-
-function OccupancyHeatmap({
-    rooms,
-    hours,
-    cells,
-    emptyLabel,
-}: Readonly<{
-    rooms: { id: string; name: string }[];
-    hours: number[];
-    cells: { roomId: string; hour: number; ratio: number }[];
-    emptyLabel: string;
-}>) {
-    if (rooms.length === 0) return <EmptyChartState label={emptyLabel} />;
-
-    const ratioMap = new Map(cells.map((cell) => [`${cell.roomId}-${cell.hour}`, cell.ratio]));
-
-    return (
-        <Div className="overflow-x-auto">
-            <Div className="min-w-max space-y-1">
-                <Div
-                    className="grid gap-1"
-                    style={{ gridTemplateColumns: `7rem repeat(${hours.length}, 2rem)` }}
-                >
-                    <Div />
-                    {hours.map((hour) => (
-                        <Label
-                            key={hour}
-                            variant={EVariantLabel.caption}
-                            color="text-gray-400"
-                            className="block text-center tabular-nums"
-                        >
-                            {hour}
-                        </Label>
-                    ))}
-                </Div>
-                {rooms.map((room) => (
-                    <Div
-                        key={room.id}
-                        className="grid items-center gap-1"
-                        style={{ gridTemplateColumns: `7rem repeat(${hours.length}, 2rem)` }}
-                    >
-                        <Label
-                            variant={EVariantLabel.caption}
-                            color="text-gray-700"
-                            className="truncate font-medium"
-                        >
-                            {room.name}
-                        </Label>
-                        {hours.map((hour) => {
-                            const ratio = ratioMap.get(`${room.id}-${hour}`) ?? 0;
-                            const pct = Math.round(ratio * 100);
-                            return (
-                                <Div
-                                    key={`${room.id}-${hour}`}
-                                    title={`${room.name} · ${hour}h · ${pct}%`}
-                                    className={`h-6 rounded-sm ${occupancyCellClass(ratio)}`}
-                                />
-                            );
-                        })}
-                    </Div>
-                ))}
-            </Div>
-        </Div>
-    );
-}
-
 export default function DashboardPage() {
     const t = useTranslations('dashboard');
     const tRes = useTranslations('admin.reservations');
@@ -325,11 +251,6 @@ export default function DashboardPage() {
     const { data: incomeTrend } = useQuery({
         queryKey: ['daily-income-trend', 6],
         queryFn: () => fetchIncomeTrend({ months: 6 }),
-    });
-
-    const { data: occupancy } = useQuery({
-        queryKey: ['reservation-occupancy', year, month],
-        queryFn: () => fetchOccupancy({ year, month }),
     });
 
     const dailyTrendData = useMemo(
@@ -588,15 +509,6 @@ export default function DashboardPage() {
                                 <TopRoomsList rooms={data?.topRooms ?? []} emptyLabel={t('noRooms')} />
                             </ChartPanel>
                         </Div>
-
-                        <ChartPanel title={t('occupancyHeatmapTitle')}>
-                            <OccupancyHeatmap
-                                rooms={occupancy?.rooms ?? []}
-                                hours={occupancy?.hours ?? []}
-                                cells={occupancy?.cells ?? []}
-                                emptyLabel={t('occupancyEmpty')}
-                            />
-                        </ChartPanel>
                     </Div>
 
                     <Div className="space-y-4">
