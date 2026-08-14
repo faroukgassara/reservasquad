@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { useCallback, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -23,6 +23,12 @@ import {
     type ReservationRecord,
 } from '@/lib/reservation-api';
 import { mapReservationConflictMessage } from '@/lib/reservation-conflicts';
+import {
+    buildColorLegend,
+    getEventAccent,
+    moveReservationToDay,
+    type CalendarColorBy,
+} from '@/lib/calendar-event-colors';
 import { fetchRooms } from '@/lib/room-api';
 import { fetchProfessors } from '@/lib/professor-api';
 import {
@@ -31,6 +37,7 @@ import {
     addDays as weekAddDays,
     startOfDay as weekStartOfDay,
 } from '@/lib/export-weekly-calendar-pdf';
+import { exportDailyCalendarPdf } from '@/lib/export-daily-calendar-pdf';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
@@ -190,20 +197,38 @@ function EventCard({
     event,
     paidLabel,
     unpaidLabel,
+    colorBy,
+    noProfessorLabel,
+    draggable,
     onClick,
+    onDragStart,
 }: Readonly<{
     event: ReservationRecord;
     paidLabel: string;
     unpaidLabel: string;
+    colorBy: CalendarColorBy;
+    noProfessorLabel: string;
+    draggable?: boolean;
     onClick?: () => void;
+    onDragStart?: (event: ReservationRecord, e: DragEvent) => void;
 }>) {
+    const accent = getEventAccent(event, colorBy, {
+        paid: paidLabel,
+        unpaid: unpaidLabel,
+        noProfessor: noProfessorLabel,
+    });
+
     return (
         <Div
-            className={`rounded-lg border border-gray-100 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${event.isPaid ? 'border-s-2 border-s-success-400' : 'border-s-2 border-s-warning-400'
-                } ${onClick ? 'cursor-pointer' : ''}`}
+            draggable={draggable}
+            className={`rounded-lg border border-gray-100 border-s-2 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${accent.borderClass} ${onClick ? 'cursor-pointer' : ''} ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
             onClick={(e: MouseEvent) => {
                 e.stopPropagation();
                 onClick?.();
+            }}
+            onDragStart={(e: DragEvent) => {
+                e.stopPropagation();
+                onDragStart?.(event, e);
             }}
         >
             <Div className="flex items-center justify-between gap-2">
@@ -253,8 +278,11 @@ export default function CalendarPage() {
     const [view, setView] = useState<CalendarView>('week');
     const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
     const [roomId, setRoomId] = useState('');
+    const [colorBy, setColorBy] = useState<CalendarColorBy>('payment');
     const [isExporting, setIsExporting] = useState(false);
     const [modalState, setModalState] = useState<CalendarModalState>(null);
+    const dragEventRef = useRef<ReservationRecord | null>(null);
+    const suppressClickRef = useRef(false);
     const { openModal, closeModal, modalPortal } = useModal({
         closeCallBack: () => setModalState(null),
     });
@@ -372,6 +400,26 @@ export default function CalendarPage() {
             }),
     });
 
+    const rescheduleMutation = useMutation({
+        mutationFn: ({
+            id,
+            body,
+        }: {
+            id: string;
+            body: Parameters<typeof updateReservation>[1];
+        }) => updateReservation(id, body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            openToast(tCommon('success'), t('rescheduleSuccess'), { type: EToastType.SUCCESS });
+        },
+        onError: (error: Error) =>
+            openToast(tCommon('error'), mapReservationConflictMessage(error.message, tPay), {
+                type: EToastType.ERROR,
+            }),
+    });
+
     const handleFormSubmit = useCallback(
         async (values: ReservationFormValues) => {
             const payload = {
@@ -416,6 +464,10 @@ export default function CalendarPage() {
     const openCreateForDay = useCallback(
         (day: Date) => {
             if (!canManage) return;
+            if (suppressClickRef.current) {
+                suppressClickRef.current = false;
+                return;
+            }
             setModalState({ mode: 'create', day });
             openModal();
         },
@@ -425,10 +477,57 @@ export default function CalendarPage() {
     const openEditReservation = useCallback(
         (reservation: ReservationRecord) => {
             if (!canManage) return;
+            if (suppressClickRef.current) {
+                suppressClickRef.current = false;
+                return;
+            }
             setModalState({ mode: 'edit', reservation });
             openModal();
         },
         [canManage, openModal],
+    );
+
+    const handleEventDragStart = useCallback(
+        (event: ReservationRecord, e: DragEvent) => {
+            if (!canManage) return;
+            dragEventRef.current = event;
+            e.dataTransfer.setData('text/plain', event.id);
+            e.dataTransfer.effectAllowed = 'move';
+        },
+        [canManage],
+    );
+
+    const handleDayDrop = useCallback(
+        (day: Date, e: DragEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!canManage) return;
+
+            const dragged =
+                dragEventRef.current ??
+                events.find((item) => item.id === e.dataTransfer.getData('text/plain'));
+            dragEventRef.current = null;
+            if (!dragged) return;
+
+            const next = moveReservationToDay(dragged, day);
+            if (!next) return;
+
+            suppressClickRef.current = true;
+            rescheduleMutation.mutate({
+                id: dragged.id,
+                body: { startAt: next.startAt, endAt: next.endAt },
+            });
+        },
+        [canManage, events, rescheduleMutation],
+    );
+
+    const allowDayDrop = useCallback(
+        (e: DragEvent) => {
+            if (!canManage) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        },
+        [canManage],
     );
 
     const roomOptions = useMemo(
@@ -449,6 +548,29 @@ export default function CalendarPage() {
             { value: 'month', label: t('month') },
         ],
         [t],
+    );
+
+    const colorByOptions = useMemo(
+        () => [
+            { value: 'payment', label: t('colorByPayment') },
+            { value: 'room', label: t('colorByRoom') },
+            { value: 'professor', label: t('colorByProfessor') },
+        ],
+        [t],
+    );
+
+    const colorLabels = useMemo(
+        () => ({
+            paid: tPay('paid'),
+            unpaid: tPay('unpaid'),
+            noProfessor: tPay('noProfessor'),
+        }),
+        [tPay],
+    );
+
+    const legendItems = useMemo(
+        () => buildColorLegend(events, colorBy, colorLabels),
+        [events, colorBy, colorLabels],
     );
 
     const eventsByDay = useMemo(() => {
@@ -506,27 +628,50 @@ export default function CalendarPage() {
 
         setIsExporting(true);
         try {
-            const weekEvents = await fetchCalendar({
-                from: exportWeek.from.toISOString(),
-                to: exportWeek.to.toISOString(),
-                roomId: roomId || undefined,
-            });
-
-            exportWeeklyCalendarPdf({
-                anchor,
-                rooms: roomsToExport,
-                events: weekEvents,
-                labels: {
-                    title: t('exportTitle'),
-                    weekRange: t('exportWeekRange', {
-                        from: formatExportDate(exportWeek.from),
-                        to: formatExportDate(exportWeek.to),
-                    }),
-                    morningSection: t('exportMorningSection'),
-                    eveningSection: t('exportEveningSection'),
-                    empty: t('empty'),
-                },
-            });
+            if (view === 'day') {
+                const day = startOfDay(anchor);
+                const dayEvents = await fetchCalendar({
+                    from: day.toISOString(),
+                    to: endOfDay(day).toISOString(),
+                    roomId: roomId || undefined,
+                });
+                exportDailyCalendarPdf({
+                    day,
+                    rooms: roomsToExport,
+                    events: dayEvents,
+                    labels: {
+                        title: t('exportDayTitle'),
+                        dayLabel: t('exportDayLabel', {
+                            date: formatExportDate(day),
+                        }),
+                        morningSection: t('exportMorningSection'),
+                        eveningSection: t('exportEveningSection'),
+                        empty: t('empty'),
+                        roomColumn: t('exportRoomColumn'),
+                    },
+                });
+            } else {
+                const weekEvents = await fetchCalendar({
+                    from: exportWeek.from.toISOString(),
+                    to: exportWeek.to.toISOString(),
+                    roomId: roomId || undefined,
+                });
+                exportWeeklyCalendarPdf({
+                    anchor,
+                    rooms: roomsToExport,
+                    events: weekEvents,
+                    labels: {
+                        title: t('exportTitle'),
+                        weekRange: t('exportWeekRange', {
+                            from: formatExportDate(exportWeek.from),
+                            to: formatExportDate(exportWeek.to),
+                        }),
+                        morningSection: t('exportMorningSection'),
+                        eveningSection: t('exportEveningSection'),
+                        empty: t('empty'),
+                    },
+                });
+            }
             openToast(tCommon('success'), t('exportSuccess'), { type: EToastType.SUCCESS });
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : t('exportError');
@@ -543,6 +688,7 @@ export default function CalendarPage() {
         rooms,
         t,
         tCommon,
+        view,
     ]);
 
     const today = startOfDay(new Date());
@@ -688,11 +834,26 @@ export default function CalendarPage() {
                                                 }}
                                             />
                                         </Div>
+                                        <Div className="w-44 sm:w-52">
+                                            <Dropdown
+                                                options={colorByOptions}
+                                                value={colorBy}
+                                                onChange={(value) => {
+                                                    if (
+                                                        value === 'payment' ||
+                                                        value === 'room' ||
+                                                        value === 'professor'
+                                                    ) {
+                                                        setColorBy(value);
+                                                    }
+                                                }}
+                                            />
+                                        </Div>
                                         <Button
                                             id="cal-export-pdf"
                                             type={EButtonType.secondary}
                                             size={EButtonSize.medium}
-                                            text={t('exportPdf')}
+                                            text={view === 'day' ? t('exportDayPdf') : t('exportPdf')}
                                             isLoading={isExporting}
                                             iconPosition="left"
                                             icon={{
@@ -722,6 +883,30 @@ export default function CalendarPage() {
                                     </Div>
                                 </Div>
                             </Div>
+                            {legendItems.length > 0 ? (
+                                <Div className="mt-4 flex flex-wrap items-center gap-3 border-t border-gray-100 pt-3">
+                                    <Label variant={EVariantLabel.caption} color="text-gray-500">
+                                        {t('legend')}
+                                    </Label>
+                                    {legendItems.map((item) => (
+                                        <Div key={item.label} className="inline-flex items-center gap-1.5">
+                                            <Div className={`size-2.5 rounded-full ${item.swatchClass}`} />
+                                            <Label variant={EVariantLabel.caption} color="text-gray-600">
+                                                {item.label}
+                                            </Label>
+                                        </Div>
+                                    ))}
+                                    {canManage ? (
+                                        <Label
+                                            variant={EVariantLabel.caption}
+                                            color="text-gray-400"
+                                            className="ms-auto hidden sm:block"
+                                        >
+                                            {t('dragHint')}
+                                        </Label>
+                                    ) : null}
+                                </Div>
+                            ) : null}
                         </Div>
 
                         <Div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
@@ -729,6 +914,8 @@ export default function CalendarPage() {
                                 <Div
                                     className={`group ${canManage ? 'cursor-pointer' : ''}`}
                                     onClick={() => openCreateForDay(range.days[0])}
+                                    onDragOver={allowDayDrop}
+                                    onDrop={(e) => handleDayDrop(range.days[0], e)}
                                 >
                                     <Div className="flex items-center justify-between border-b border-gray-100 bg-gray-25 px-5 py-3.5">
                                         <Div>
@@ -769,6 +956,10 @@ export default function CalendarPage() {
                                                             event={event}
                                                             paidLabel={tPay('paid')}
                                                             unpaidLabel={tPay('unpaid')}
+                                                            colorBy={colorBy}
+                                                            noProfessorLabel={tPay('noProfessor')}
+                                                            draggable={canManage}
+                                                            onDragStart={handleEventDragStart}
                                                             onClick={
                                                                 canManage
                                                                     ? () => openEditReservation(event)
@@ -793,6 +984,8 @@ export default function CalendarPage() {
                                                 key={day.toISOString()}
                                                 className={`group flex flex-col ${canManage ? 'cursor-pointer' : ''}`}
                                                 onClick={() => openCreateForDay(day)}
+                                                onDragOver={allowDayDrop}
+                                                onDrop={(e) => handleDayDrop(day, e)}
                                             >
                                                 <Div
                                                     className={`flex items-center justify-between border-b px-3 py-2.5 ${isToday
@@ -837,6 +1030,10 @@ export default function CalendarPage() {
                                                                     event={event}
                                                                     paidLabel={tPay('paid')}
                                                                     unpaidLabel={tPay('unpaid')}
+                                                                    colorBy={colorBy}
+                                                                    noProfessorLabel={tPay('noProfessor')}
+                                                                    draggable={canManage}
+                                                                    onDragStart={handleEventDragStart}
                                                                     onClick={
                                                                         canManage
                                                                             ? () => openEditReservation(event)
@@ -883,6 +1080,8 @@ export default function CalendarPage() {
                                                     className={`group min-h-28 border-b border-e border-gray-100 p-2 ${canManage ? 'cursor-pointer' : ''
                                                         } ${inMonth ? 'bg-white hover:bg-primary-25/60' : 'bg-gray-25/70'}`}
                                                     onClick={() => openCreateForDay(day)}
+                                                    onDragOver={allowDayDrop}
+                                                    onDrop={(e) => handleDayDrop(day, e)}
                                                 >
                                                     <Div className="mb-1.5 flex items-center justify-between">
                                                         {isToday ? (
@@ -912,33 +1111,41 @@ export default function CalendarPage() {
                                                         className="space-y-1"
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        {dayEvents.slice(0, 3).map((event) => (
-                                                            <Div
-                                                                key={event.id}
-                                                                className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${canManage ? 'cursor-pointer' : ''
-                                                                    }`}
-                                                                onClick={(e: MouseEvent) => {
-                                                                    e.stopPropagation();
-                                                                    openEditReservation(event);
-                                                                }}
-                                                            >
+                                                        {dayEvents.slice(0, 3).map((event) => {
+                                                            const accent = getEventAccent(
+                                                                event,
+                                                                colorBy,
+                                                                colorLabels,
+                                                            );
+                                                            return (
                                                                 <Div
-                                                                    className={`size-1.5 shrink-0 rounded-full ${event.isPaid
-                                                                        ? 'bg-success-400'
-                                                                        : 'bg-warning-400'
+                                                                    key={event.id}
+                                                                    draggable={canManage}
+                                                                    className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${canManage ? 'cursor-grab active:cursor-grabbing' : ''
                                                                         }`}
-                                                                />
-                                                                <Label
-                                                                    variant={EVariantLabel.caption}
-                                                                    color="text-gray-700"
-                                                                    className="block truncate"
+                                                                    onDragStart={(e: DragEvent) =>
+                                                                        handleEventDragStart(event, e)
+                                                                    }
+                                                                    onClick={(e: MouseEvent) => {
+                                                                        e.stopPropagation();
+                                                                        openEditReservation(event);
+                                                                    }}
                                                                 >
-                                                                    {formatTime(event.startAt)} –{' '}
-                                                                    {formatTime(event.endAt)}{' '}
-                                                                    {event.room?.name || event.title || ''}
-                                                                </Label>
-                                                            </Div>
-                                                        ))}
+                                                                    <Div
+                                                                        className={`size-1.5 shrink-0 rounded-full ${accent.dotClass}`}
+                                                                    />
+                                                                    <Label
+                                                                        variant={EVariantLabel.caption}
+                                                                        color="text-gray-700"
+                                                                        className="block truncate"
+                                                                    >
+                                                                        {formatTime(event.startAt)} –{' '}
+                                                                        {formatTime(event.endAt)}{' '}
+                                                                        {event.room?.name || event.title || ''}
+                                                                    </Label>
+                                                                </Div>
+                                                            );
+                                                        })}
                                                         {dayEvents.length > 3 ? (
                                                             <Label
                                                                 variant={EVariantLabel.caption}
