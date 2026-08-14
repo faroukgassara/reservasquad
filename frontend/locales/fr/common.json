@@ -138,6 +138,7 @@
     },
     "sidebar": {
         "dashboard": "Dashboard",
+        "today": "Aujourd'hui",
         "calendar": "Calendrier",
         "reservations": "Réservations",
         "rooms": "Salles",
@@ -400,6 +401,39 @@
                 "10": "Octobre",
                 "11": "Novembre",
                 "12": "Décembre"
+            }
+        },
+        "today": {
+            "title": "Aujourd'hui",
+            "subtitle": "État des salles, prochains créneaux libres et impayés du jour",
+            "refresh": "Actualiser",
+            "updatedAt": "Mis à jour {time}",
+            "kpiOccupied": "Occupées maintenant",
+            "kpiFree": "Libres maintenant",
+            "kpiConfirmed": "Confirmées aujourd'hui",
+            "kpiUnpaid": "Impayées aujourd'hui",
+            "roomsSection": "Salles maintenant",
+            "nextFreeSection": "Prochains créneaux libres",
+            "unpaidSection": "Impayés du jour",
+            "occupied": "Occupée",
+            "free": "Libre",
+            "capacity": "Capacité {count}",
+            "untitled": "Sans titre",
+            "freesAt": "Libre à {time}",
+            "freeUntil": "Libre jusqu'à {time}",
+            "freeRestOfDay": "Libre pour le reste de la journée",
+            "nextBusy": "Prochain : {time} · {who}",
+            "availableNow": "Disponible maintenant",
+            "availableAt": "Disponible à {time}",
+            "noRooms": "Aucune salle configurée",
+            "noFreeSlots": "Aucun créneau libre restant aujourd'hui",
+            "noUnpaid": "Aucun impayé aujourd'hui",
+            "openReservations": "Réservations",
+            "timing": {
+                "ONGOING": "En cours",
+                "STARTING": "Commence aujourd'hui",
+                "LATER": "Plus tard",
+                "ENDED": "Terminé"
             }
         }
     }

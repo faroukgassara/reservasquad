@@ -7,6 +7,7 @@ export const Routes = {
     },
     Home: '/',
     Dashboard: '/dashboard',
+    Today: '/today',
     Calendar: '/calendar',
     Rooms: {
         index: '/rooms',

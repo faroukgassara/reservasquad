@@ -479,16 +479,27 @@ export default function DashboardPage() {
                         />
 
                         <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                            {reservationCards.map((card) => (
-                                <StatCard
-                                    key={card.key}
-                                    icon={card.icon}
-                                    iconBg={card.iconBg}
-                                    iconColor={card.iconColor}
-                                    label={isLoading ? '—' : card.label}
-                                    value={isLoading ? '—' : card.value}
-                                />
-                            ))}
+                            {reservationCards.map((card) => {
+                                const cardNode = (
+                                    <StatCard
+                                        icon={card.icon}
+                                        iconBg={card.iconBg}
+                                        iconColor={card.iconColor}
+                                        label={isLoading ? '—' : card.label}
+                                        value={isLoading ? '—' : card.value}
+                                    />
+                                );
+                                if (card.key === 'today') {
+                                    return (
+                                        <Link key={card.key} href={Routes.Today} className="block">
+                                            {cardNode}
+                                        </Link>
+                                    );
+                                }
+                                return (
+                                    <Div key={card.key}>{cardNode}</Div>
+                                );
+                            })}
                         </Div>
 
                         <Div className="grid gap-4 lg:grid-cols-3">

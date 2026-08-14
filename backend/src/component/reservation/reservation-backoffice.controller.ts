@@ -72,6 +72,21 @@ export class ReservationBackofficeController {
     }
   }
 
+  @Get('today')
+  @swagger.ApiOperation({
+    summary: 'Today ops snapshot',
+    description:
+      'Rooms occupied now, next free slots, and unpaid confirmed reservations overlapping today',
+  })
+  async today(@Res() res: Response) {
+    try {
+      const data = await this.reservationService.todaySnapshot();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get('occupancy')
   @swagger.ApiOperation({ summary: 'Room × hour occupancy for a month' })
   async occupancy(

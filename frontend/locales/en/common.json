@@ -138,6 +138,7 @@
     },
     "sidebar": {
         "dashboard": "Dashboard",
+        "today": "Today",
         "calendar": "Calendar",
         "reservations": "Reservations",
         "rooms": "Rooms",
@@ -400,6 +401,39 @@
                 "10": "October",
                 "11": "November",
                 "12": "December"
+            }
+        },
+        "today": {
+            "title": "Today",
+            "subtitle": "Live room status, next free slots, and unpaid reservations",
+            "refresh": "Refresh",
+            "updatedAt": "Updated {time}",
+            "kpiOccupied": "Occupied now",
+            "kpiFree": "Free now",
+            "kpiConfirmed": "Confirmed today",
+            "kpiUnpaid": "Unpaid today",
+            "roomsSection": "Rooms now",
+            "nextFreeSection": "Next free slots",
+            "unpaidSection": "Unpaid today",
+            "occupied": "Occupied",
+            "free": "Free",
+            "capacity": "Capacity {count}",
+            "untitled": "Untitled",
+            "freesAt": "Frees at {time}",
+            "freeUntil": "Free until {time}",
+            "freeRestOfDay": "Free for the rest of the day",
+            "nextBusy": "Next: {time} · {who}",
+            "availableNow": "Available now",
+            "availableAt": "Available at {time}",
+            "noRooms": "No rooms configured",
+            "noFreeSlots": "No free slots remaining today",
+            "noUnpaid": "No unpaid reservations today",
+            "openReservations": "Reservations",
+            "timing": {
+                "ONGOING": "Ongoing",
+                "STARTING": "Starts today",
+                "LATER": "Later",
+                "ENDED": "Ended"
             }
         }
     }

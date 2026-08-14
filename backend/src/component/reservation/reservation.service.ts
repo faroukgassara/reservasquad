@@ -593,6 +593,195 @@ export class ReservationService {
     ).padStart(2, '0')}`;
   }
 
+  private mapTodayProfessor(
+    professor: {
+      id: string;
+      firstName: string;
+      lastName: string;
+    } | null,
+  ) {
+    if (!professor) return null;
+    return {
+      id: professor.id,
+      firstName: professor.firstName,
+      lastName: professor.lastName,
+    };
+  }
+
+  async todaySnapshot() {
+    const now = new Date();
+    const dayStart = new Date(now);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(now);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const [rooms, reservations] = await Promise.all([
+      this.prismaService.room.findMany({
+        where: { deletedAt: null },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, capacity: true },
+      }),
+      this.prismaService.reservation.findMany({
+        where: {
+          deletedAt: null,
+          status: EReservationStatus.CONFIRMED,
+          startAt: { lt: dayEnd },
+          endAt: { gt: dayStart },
+        },
+        include: {
+          professor: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+          room: { select: { id: true, name: true } },
+        },
+        orderBy: { startAt: 'asc' },
+      }),
+    ]);
+
+    const byRoom = new Map<string, typeof reservations>();
+    for (const reservation of reservations) {
+      const list = byRoom.get(reservation.roomId) ?? [];
+      list.push(reservation);
+      byRoom.set(reservation.roomId, list);
+    }
+
+    const roomRows = rooms.map((room) => {
+      const roomReservations = byRoom.get(room.id) ?? [];
+      const current =
+        roomReservations.find(
+          (reservation) => reservation.startAt <= now && reservation.endAt > now,
+        ) ?? null;
+      const upcoming = roomReservations.filter(
+        (reservation) => reservation.startAt > now,
+      );
+      const nextBusy = upcoming[0] ?? null;
+
+      if (current) {
+        return {
+          roomId: room.id,
+          roomName: room.name,
+          capacity: room.capacity,
+          status: 'OCCUPIED' as const,
+          current: {
+            reservationId: current.id,
+            title: current.title,
+            professor: this.mapTodayProfessor(current.professor),
+            startAt: current.startAt.toISOString(),
+            endAt: current.endAt.toISOString(),
+            isPaid: current.isPaid,
+          },
+          nextFreeAt: current.endAt.toISOString(),
+          freeUntil: null,
+          nextBusy: nextBusy
+            ? {
+                reservationId: nextBusy.id,
+                title: nextBusy.title,
+                professor: this.mapTodayProfessor(nextBusy.professor),
+                startAt: nextBusy.startAt.toISOString(),
+                endAt: nextBusy.endAt.toISOString(),
+              }
+            : null,
+        };
+      }
+
+      return {
+        roomId: room.id,
+        roomName: room.name,
+        capacity: room.capacity,
+        status: 'FREE' as const,
+        current: null,
+        nextFreeAt: null,
+        freeUntil: nextBusy ? nextBusy.startAt.toISOString() : dayEnd.toISOString(),
+        nextBusy: nextBusy
+          ? {
+              reservationId: nextBusy.id,
+              title: nextBusy.title,
+              professor: this.mapTodayProfessor(nextBusy.professor),
+              startAt: nextBusy.startAt.toISOString(),
+              endAt: nextBusy.endAt.toISOString(),
+            }
+          : null,
+      };
+    });
+
+    const freeNow = roomRows
+      .filter((row) => row.status === 'FREE')
+      .map((row) => ({
+        roomId: row.roomId,
+        roomName: row.roomName,
+        availableAt: now.toISOString(),
+        freeUntil: row.freeUntil,
+      }));
+
+    const freeingSoon = roomRows
+      .filter((row) => row.status === 'OCCUPIED' && row.nextFreeAt)
+      .map((row) => ({
+        roomId: row.roomId,
+        roomName: row.roomName,
+        availableAt: row.nextFreeAt as string,
+        freeUntil: row.nextBusy?.startAt ?? dayEnd.toISOString(),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(a.availableAt).getTime() - new Date(b.availableAt).getTime(),
+      );
+
+    const nextFreeSlots = [...freeNow, ...freeingSoon];
+
+    const unpaidToday = reservations
+      .filter((reservation) => !reservation.isPaid)
+      .map((reservation) => {
+        let timing: 'ONGOING' | 'STARTING' | 'LATER' | 'ENDED' = 'LATER';
+        if (reservation.startAt <= now && reservation.endAt > now) {
+          timing = 'ONGOING';
+        } else if (reservation.endAt <= now) {
+          timing = 'ENDED';
+        } else if (reservation.startAt > now) {
+          timing =
+            this.dayKey(reservation.startAt) === this.dayKey(now)
+              ? 'STARTING'
+              : 'LATER';
+        }
+
+        return {
+          id: reservation.id,
+          title: reservation.title,
+          room: {
+            id: reservation.room.id,
+            name: reservation.room.name,
+          },
+          professor: this.mapTodayProfessor(reservation.professor),
+          startAt: reservation.startAt.toISOString(),
+          endAt: reservation.endAt.toISOString(),
+          price: Number(reservation.price),
+          isPaid: reservation.isPaid,
+          timing,
+        };
+      })
+      .sort(
+        (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+      );
+
+    const occupiedCount = roomRows.filter((row) => row.status === 'OCCUPIED').length;
+
+    return {
+      asOf: now.toISOString(),
+      day: {
+        start: dayStart.toISOString(),
+        end: dayEnd.toISOString(),
+      },
+      counts: {
+        roomsOccupied: occupiedCount,
+        roomsFree: roomRows.length - occupiedCount,
+        confirmedToday: reservations.length,
+        unpaidToday: unpaidToday.length,
+      },
+      rooms: roomRows,
+      nextFreeSlots,
+      unpaidToday,
+    };
+  }
+
   async dashboardStats() {
     const now = new Date();
     const startOfDay = new Date(now);

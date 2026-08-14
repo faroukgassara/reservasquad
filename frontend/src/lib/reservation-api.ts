@@ -149,6 +149,80 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
     return unwrapData<DashboardStats>(res.data as { data?: DashboardStats });
 }
 
+export interface TodayProfessor {
+    id: string;
+    firstName: string;
+    lastName: string;
+}
+
+export interface TodayRoomCurrent {
+    reservationId: string;
+    title: string | null;
+    professor: TodayProfessor | null;
+    startAt: string;
+    endAt: string;
+    isPaid: boolean;
+}
+
+export interface TodayRoomBusy {
+    reservationId: string;
+    title: string | null;
+    professor: TodayProfessor | null;
+    startAt: string;
+    endAt: string;
+}
+
+export interface TodayRoomRow {
+    roomId: string;
+    roomName: string;
+    capacity: number;
+    status: 'OCCUPIED' | 'FREE';
+    current: TodayRoomCurrent | null;
+    nextFreeAt: string | null;
+    freeUntil: string | null;
+    nextBusy: TodayRoomBusy | null;
+}
+
+export interface TodayFreeSlot {
+    roomId: string;
+    roomName: string;
+    availableAt: string;
+    freeUntil: string | null;
+}
+
+export interface TodayUnpaidReservation {
+    id: string;
+    title: string | null;
+    room: { id: string; name: string };
+    professor: TodayProfessor | null;
+    startAt: string;
+    endAt: string;
+    price: number;
+    isPaid: boolean;
+    timing: 'ONGOING' | 'STARTING' | 'LATER' | 'ENDED';
+}
+
+export interface TodaySnapshot {
+    asOf: string;
+    day: { start: string; end: string };
+    counts: {
+        roomsOccupied: number;
+        roomsFree: number;
+        confirmedToday: number;
+        unpaidToday: number;
+    };
+    rooms: TodayRoomRow[];
+    nextFreeSlots: TodayFreeSlot[];
+    unpaidToday: TodayUnpaidReservation[];
+}
+
+export async function fetchTodaySnapshot(): Promise<TodaySnapshot> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.get('/api/reservations/today', headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch today snapshot');
+    return unwrapData<TodaySnapshot>(res.data as { data?: TodaySnapshot });
+}
+
 export interface OccupancyCell {
     roomId: string;
     hour: number;

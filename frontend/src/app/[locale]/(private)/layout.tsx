@@ -57,6 +57,12 @@ export default function PrivateLayout({
             href: Routes.Dashboard,
         },
         {
+            id: 'today',
+            iconName: IconComponentsEnum.clock,
+            label: t('today'),
+            href: Routes.Today,
+        },
+        {
             id: 'calendar',
             iconName: IconComponentsEnum.calendar,
             label: t('calendar'),

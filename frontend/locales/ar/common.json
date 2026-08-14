@@ -138,6 +138,7 @@
     },
     "sidebar": {
         "dashboard": "لوحة التحكم",
+        "today": "اليوم",
         "calendar": "التقويم",
         "reservations": "الحجوزات",
         "rooms": "القاعات",
@@ -400,6 +401,39 @@
                 "10": "أكتوبر",
                 "11": "نوفمبر",
                 "12": "ديسمبر"
+            }
+        },
+        "today": {
+            "title": "اليوم",
+            "subtitle": "حالة القاعات الآن، أقرب الأوقات المتاحة، والحجوزات غير المدفوعة اليوم",
+            "refresh": "تحديث",
+            "updatedAt": "آخر تحديث {time}",
+            "kpiOccupied": "مشغولة الآن",
+            "kpiFree": "متاحة الآن",
+            "kpiConfirmed": "مؤكدة اليوم",
+            "kpiUnpaid": "غير مدفوعة اليوم",
+            "roomsSection": "القاعات الآن",
+            "nextFreeSection": "أقرب الأوقات المتاحة",
+            "unpaidSection": "غير المدفوعة اليوم",
+            "occupied": "مشغولة",
+            "free": "متاحة",
+            "capacity": "السعة {count}",
+            "untitled": "بدون عنوان",
+            "freesAt": "تتحرر في {time}",
+            "freeUntil": "متاحة حتى {time}",
+            "freeRestOfDay": "متاحة لبقية اليوم",
+            "nextBusy": "التالي: {time} · {who}",
+            "availableNow": "متاحة الآن",
+            "availableAt": "متاحة في {time}",
+            "noRooms": "لا توجد قاعات",
+            "noFreeSlots": "لا توجد أوقات متاحة متبقية اليوم",
+            "noUnpaid": "لا توجد حجوزات غير مدفوعة اليوم",
+            "openReservations": "الحجوزات",
+            "timing": {
+                "ONGOING": "جارية",
+                "STARTING": "تبدأ اليوم",
+                "LATER": "لاحقاً",
+                "ENDED": "انتهت"
             }
         }
     }
