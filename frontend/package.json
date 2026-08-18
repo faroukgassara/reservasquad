@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@csstools/postcss-oklab-function": "^4.0.12",
+    "@svgr/webpack": "^8.1.0",
+    "@tailwindcss/postcss": "^4",
     "@floating-ui/react": "^0.27.19",
     "@tanstack/react-form": "^1.23.7",
     "@tanstack/react-query": "^5.90.2",
@@ -27,6 +29,7 @@
     "react-toastify": "^11.0.5",
     "recharts": "^3.10.1",
     "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4",
     "zod": "^4.1.12"
   },
   "overrides": {
@@ -34,8 +37,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@svgr/webpack": "^8.1.0",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.19",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -46,7 +47,6 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-sort-imports-es6-autofix": "^0.6.0",
     "prettier": "^3.6.2",
-    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }
