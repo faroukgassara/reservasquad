@@ -68,7 +68,7 @@ function StatCard({
                 <Div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
                     <Icon name={icon} size={ESize.sm} color={iconColor} />
                 </Div>
-                <Div className="min-w-0">
+                <Div className="min-w-0 flex flex-col">
                     <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
                         {label}
                     </Label>
