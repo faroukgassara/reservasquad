@@ -103,7 +103,7 @@ function RoomStatusCard({
     return (
         <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <Div className="mb-3 flex items-start justify-between gap-2">
-                <Div className="min-w-0">
+                <Div className="min-w-0 flex items-center gap-2">
                     <Label variant={EVariantLabel.body} color="text-gray-900" className="block truncate">
                         {room.roomName}
                     </Label>
@@ -131,13 +131,13 @@ function RoomStatusCard({
                         {formatRange(room.current.startAt, room.current.endAt)}
                     </Label>
                     {room.nextFreeAt ? (
-                        <Label variant={EVariantLabel.caption} color="text-primary-600" className="block">
+                        <Label variant={EVariantLabel.caption} color="text-primary-600" className="block ml-1">
                             {t('freesAt', { time: formatTime(room.nextFreeAt) })}
                         </Label>
                     ) : null}
                 </Div>
             ) : (
-                <Div className="space-y-1">
+                <Div className="flex justify-between space-y-1">
                     {room.freeUntil ? (
                         <Label variant={EVariantLabel.caption} color="text-success-600" className="block">
                             {t('freeUntil', { time: formatTime(room.freeUntil) })}
@@ -315,7 +315,7 @@ export default function TodayPage() {
                                                         <Label
                                                             variant={EVariantLabel.caption}
                                                             color="text-gray-500"
-                                                            className="block"
+                                                            className="block ml-1"
                                                         >
                                                             {new Date(slot.availableAt).getTime() <= Date.now() + 1000
                                                                 ? t('availableNow')
