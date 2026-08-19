@@ -33,6 +33,11 @@ export const Routes = {
     },
 } as const;
 
+/** Staff (USER) land on Today; admins land on Dashboard. */
+export function homePathForRole(role?: string | null): string {
+    return role === 'ADMIN' ? Routes.Dashboard : Routes.Today;
+}
+
 export const PublicRoutes = [
     Routes.Login,
     Routes.ForgotPassword,

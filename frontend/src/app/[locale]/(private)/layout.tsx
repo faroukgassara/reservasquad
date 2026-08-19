@@ -49,12 +49,15 @@ export default function PrivateLayout({
         [isMobile, openSidebar, closeSidebar],
     );
 
+    const homeHref = isAllowed({ anyRoles: ['ADMIN'] }) ? Routes.Dashboard : Routes.Today;
+
     const navigationItems = [
         {
             id: 'dashboard',
             iconName: IconComponentsEnum.home,
             label: t('dashboard'),
             href: Routes.Dashboard,
+            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
         },
         {
             id: 'today',
@@ -149,11 +152,11 @@ export default function PrivateLayout({
                     >
                         <SidebarHeader className="p-4">
                             {(sidebarOpen || isMobile) && (
-                                <Link href={Routes.Dashboard} className="flex shrink-0 items-center gap-2">
+                                <Link href={homeHref} className="flex shrink-0 items-center gap-2">
                                     <Image
                                         src={BiblioSquadLogo}
                                         alt={tCommon('brandLogoAlt')}
-                                        height={40}
+                                        height={30}
                                         className="w-auto object-contain"
                                         priority
                                     />

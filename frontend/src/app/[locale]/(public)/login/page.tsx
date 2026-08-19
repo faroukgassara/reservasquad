@@ -8,7 +8,7 @@ import TemplateLogin from '@/components/Templates/TemplateLogin/TemplateLogin';
 import { FormSchema } from '@/common/Data/FormSchema';
 import { FormDefaultData } from '@/common/Data/FormDefaultData';
 import { useTranslations } from 'next-intl';
-import { Routes } from '@/lib/routes';
+import { homePathForRole, Routes } from '@/lib/routes';
 import { useRef } from 'react';
 import { EToastType } from '@/Enum/Enum';
 import { useToast } from '@/contexts/ToastContext';
@@ -56,7 +56,7 @@ export default function LoginPage() {
                 failedAttemptsRef.current = 0;
                 const session = await getSession();
                 if (session) {
-                    router.push(Routes.Dashboard);
+                    router.push(homePathForRole(session.user?.role));
                 }
             }
         } catch (error) {

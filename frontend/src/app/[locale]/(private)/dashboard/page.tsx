@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, type Key, type ReactNode } from 'react';
+import { useEffect, useMemo, type Key, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -29,6 +30,7 @@ import { Link } from '@/i18n/navigation';
 import { Routes } from '@/lib/routes';
 import colors from '@/theme/colors';
 import type { ELabelColor } from '@/theme/labelColors';
+import { useAuthorization } from '@/hooks/useAuthorization';
 
 function formatDayShort(dateStr: string): string {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -233,24 +235,34 @@ export default function DashboardPage() {
     const tStatus = useTranslations('status');
     const tIncome = useTranslations('admin.dailyIncome');
     const tCommon = useTranslations('common');
+    const router = useRouter();
+    const { isAllowed } = useAuthorization();
+    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
 
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
 
+    useEffect(() => {
+        if (!isAdmin) router.replace(Routes.Today);
+    }, [isAdmin, router]);
+
     const { data, isLoading } = useQuery({
         queryKey: ['dashboard-stats'],
         queryFn: fetchDashboardStats,
+        enabled: isAdmin,
     });
 
     const { data: incomeSummary } = useQuery({
         queryKey: ['daily-income-summary', year, month],
         queryFn: () => fetchDailyIncomeSummary({ year, month }),
+        enabled: isAdmin,
     });
 
     const { data: incomeTrend } = useQuery({
         queryKey: ['daily-income-trend', 6],
         queryFn: () => fetchIncomeTrend({ months: 6 }),
+        enabled: isAdmin,
     });
 
     const dailyTrendData = useMemo(
@@ -375,6 +387,8 @@ export default function DashboardPage() {
         { key: 'savings', icon: IconComponentsEnum.checkCircle, label: tIncome('totalSavings'), value: incomeSummary?.totalSavings ?? 0 },
         { key: 'net', icon: IconComponentsEnum.home, label: tIncome('netBalance'), value: incomeSummary?.netBalance ?? 0 },
     ];
+
+    if (!isAdmin) return null;
 
     return (
         <LayoutWrapper

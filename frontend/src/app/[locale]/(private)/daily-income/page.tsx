@@ -86,7 +86,7 @@ export default function DailyIncomePage() {
     });
 
     useEffect(() => {
-        if (!isAdmin) router.replace(Routes.Dashboard);
+        if (!isAdmin) router.replace(Routes.Today);
     }, [isAdmin, router]);
 
     const invalidateAll = useCallback(() => {

@@ -52,7 +52,7 @@ export default function ProfessorDetailPage() {
     const [statusFilter, setStatusFilter] = useState<'all' | 'CONFIRMED' | 'CANCELLED'>('all');
 
     useEffect(() => {
-        if (!canManage) router.replace(Routes.Dashboard);
+        if (!canManage) router.replace(Routes.Today);
     }, [canManage, router]);
 
     const { data: professor, isLoading: professorLoading } = useQuery({

@@ -66,7 +66,7 @@ export default function UsersAdminPage() {
 
     useEffect(() => {
         if (!isAdmin) {
-            router.replace(Routes.Dashboard);
+            router.replace(Routes.Today);
         }
     }, [isAdmin, router]);
 

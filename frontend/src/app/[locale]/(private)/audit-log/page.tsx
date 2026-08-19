@@ -68,7 +68,7 @@ export default function AuditLogPage() {
 
     useEffect(() => {
         if (!isAdmin) {
-            router.replace(Routes.Dashboard);
+            router.replace(Routes.Today);
         }
     }, [isAdmin, router]);
 

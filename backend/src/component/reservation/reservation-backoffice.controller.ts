@@ -62,6 +62,7 @@ export class ReservationBackofficeController {
   constructor(private readonly reservationService: ReservationService) {}
 
   @Get('stats')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Dashboard stats' })
   async stats(@Res() res: Response) {
     try {

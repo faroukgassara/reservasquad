@@ -70,7 +70,7 @@ export default function RecycleBinPage() {
     });
 
     useEffect(() => {
-        if (!isAdmin) router.replace(Routes.Dashboard);
+        if (!isAdmin) router.replace(Routes.Today);
     }, [isAdmin, router]);
 
     useEffect(() => {

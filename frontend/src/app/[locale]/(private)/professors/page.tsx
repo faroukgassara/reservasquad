@@ -53,7 +53,7 @@ export default function ProfessorsAdminPage() {
     });
 
     useEffect(() => {
-        if (!canManage) router.replace(Routes.Dashboard);
+        if (!canManage) router.replace(Routes.Today);
     }, [canManage, router]);
 
     const { data, isLoading } = useQuery({

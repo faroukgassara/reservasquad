@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from 'next-auth/middleware';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
-import { PublicRoutes, Routes } from './lib/routes';
+import { homePathForRole, PublicRoutes, Routes } from './lib/routes';
 import { getToken } from 'next-auth/jwt';
 import { isRouteAllowed } from './lib/route-access';
 
@@ -14,11 +14,10 @@ function localizedLoginUrl(req: NextRequest, locale: string): URL {
   return new URL(path, req.url);
 }
 
-function localizedDashboardUrl(req: NextRequest, locale: string): URL {
+function localizedHomeUrl(req: NextRequest, locale: string, role?: string): URL {
+  const home = homePathForRole(role);
   const path =
-    locale === routing.defaultLocale
-      ? Routes.Dashboard
-      : `/${locale}${Routes.Dashboard}`;
+    locale === routing.defaultLocale ? home : `/${locale}${home}`;
   return new URL(path, req.url);
 }
 
@@ -61,14 +60,14 @@ export default async function middleware(req: NextRequest) {
 
   if (isHomePage) {
     if (token) {
-      return NextResponse.redirect(localizedDashboardUrl(req, locale));
+      return NextResponse.redirect(localizedHomeUrl(req, locale, role));
     }
     return NextResponse.redirect(localizedLoginUrl(req, locale));
   }
 
   if (isPublicPage) {
     if (token && !isActivatePath) {
-      return NextResponse.redirect(localizedDashboardUrl(req, locale));
+      return NextResponse.redirect(localizedHomeUrl(req, locale, role));
     }
     return intlMiddleware(req);
   }
@@ -76,7 +75,7 @@ export default async function middleware(req: NextRequest) {
   const authContext = { role };
 
   if (token && !isRouteAllowed(pathWithoutLocale, authContext)) {
-    return NextResponse.redirect(localizedDashboardUrl(req, locale));
+    return NextResponse.redirect(localizedHomeUrl(req, locale, role));
   }
 
   return (authMiddleware as any)(req);
