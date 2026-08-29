@@ -385,6 +385,12 @@ export default function DashboardPage() {
         { key: 'charges', icon: IconComponentsEnum.alert, label: tIncome('totalCharges'), value: incomeSummary?.totalCharges ?? 0 },
         { key: 'investments', icon: IconComponentsEnum.star, label: tIncome('totalInvestments'), value: incomeSummary?.totalInvestments ?? 0 },
         { key: 'savings', icon: IconComponentsEnum.checkCircle, label: tIncome('totalSavings'), value: incomeSummary?.totalSavings ?? 0 },
+        {
+            key: 'savingsForCharges',
+            icon: IconComponentsEnum.archive,
+            label: tIncome('totalSavingsForCharges'),
+            value: incomeSummary?.totalSavingsForCharges ?? 0,
+        },
         { key: 'net', icon: IconComponentsEnum.home, label: tIncome('netBalance'), value: incomeSummary?.netBalance ?? 0 },
     ];
 
@@ -533,7 +539,7 @@ export default function DashboardPage() {
                             viewAllLabel={t('viewAll')}
                         />
 
-                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                             {incomeCards.map((card) => (
                                 <StatCard
                                     key={card.key}

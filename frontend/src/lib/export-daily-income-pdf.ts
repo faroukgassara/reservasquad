@@ -14,6 +14,7 @@ export interface DailyIncomePdfLabels {
     totalInvestments: string;
     totalSavings: string;
     totalBenefits: string;
+    totalSavingsForCharges: string;
     netBalance: string;
     daysTitle: string;
     linesTitle: string;
@@ -21,6 +22,7 @@ export interface DailyIncomePdfLabels {
     chargesInvestment: string;
     savings: string;
     benefits: string;
+    savingsForCharges: string;
     type: string;
     label: string;
     amount: string;
@@ -124,7 +126,6 @@ function drawSummaryCards(
     const cols = 3;
     const cardWidth = (contentWidth - gap * (cols - 1)) / cols;
     const cardHeight = 18;
-    const rows = 2;
 
     const items: { label: string; value: string; highlight?: boolean }[] = [
         { label: labels.totalIncome, value: formatAmount(summary?.totalIncome ?? 0) },
@@ -132,8 +133,13 @@ function drawSummaryCards(
         { label: labels.totalInvestments, value: formatAmount(summary?.totalInvestments ?? 0) },
         { label: labels.totalSavings, value: formatAmount(summary?.totalSavings ?? 0) },
         { label: labels.totalBenefits, value: formatAmount(summary?.totalBenefits ?? 0) },
+        {
+            label: labels.totalSavingsForCharges,
+            value: formatAmount(summary?.totalSavingsForCharges ?? 0),
+        },
         { label: labels.netBalance, value: formatAmount(summary?.netBalance ?? 0), highlight: true },
     ];
+    const rows = Math.ceil(items.length / cols);
 
     items.forEach((item, index) => {
         const col = index % cols;
@@ -227,8 +233,9 @@ export function exportDailyIncomePdf(params: {
                 formatAmount(day.chargesInvestment ?? 0),
                 formatAmount(day.savings),
                 formatAmount(day.benefits ?? 0),
+                formatAmount(day.savingsForCharges ?? 0),
             ])
-            : [[labels.empty, '—', '—', '—', '—']];
+            : [[labels.empty, '—', '—', '—', '—', '—']];
 
     autoTable(doc, {
         startY: cursorY,
@@ -239,6 +246,7 @@ export function exportDailyIncomePdf(params: {
                 labels.chargesInvestment,
                 labels.savings,
                 labels.benefits,
+                labels.savingsForCharges,
             ],
         ],
         body: dayBody,
@@ -247,11 +255,12 @@ export function exportDailyIncomePdf(params: {
         headStyles: TABLE_HEAD_STYLES,
         alternateRowStyles: { fillColor: [249, 250, 251] },
         columnStyles: {
-            0: { cellWidth: 28 },
+            0: { cellWidth: 24 },
             1: { halign: 'right' },
             2: { halign: 'right' },
             3: { halign: 'right' },
             4: { halign: 'right' },
+            5: { halign: 'right' },
         },
         margin: { left: MARGIN, right: MARGIN, bottom: 16 },
     });

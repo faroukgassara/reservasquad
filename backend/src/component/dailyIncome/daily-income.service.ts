@@ -35,8 +35,16 @@ export class DailyIncomeService {
     return d.toISOString().slice(0, 10);
   }
 
-  private calcTwentyPercent(totalIncome: number): string {
-    return Math.round(totalIncome * 0.2).toFixed(2);
+  private calcPercent(totalIncome: number, rate: number): string {
+    return Math.round(totalIncome * rate).toFixed(2);
+  }
+
+  private calcShares(totalIncome: number) {
+    return {
+      savings: this.calcPercent(totalIncome, 0.2),
+      benefits: this.calcPercent(totalIncome, 0.2),
+      savingsForCharges: this.calcPercent(totalIncome, 0.1),
+    };
   }
 
   private monthRange(year: number, month: number): { from: Date; to: Date } {
@@ -62,12 +70,14 @@ export class DailyIncomeService {
     }
 
     const totalIncome = Number(dto.totalIncome);
+    const shares = this.calcShares(totalIncome);
     const created = await this.prismaService.dailyIncome.create({
       data: {
         date,
         totalIncome: totalIncome.toFixed(2),
-        savings: this.calcTwentyPercent(totalIncome),
-        benefits: this.calcTwentyPercent(totalIncome),
+        savings: shares.savings,
+        benefits: shares.benefits,
+        savingsForCharges: shares.savingsForCharges,
         notes: dto.notes?.trim() || null,
       },
     });
@@ -103,14 +113,16 @@ export class DailyIncomeService {
 
     const totalIncome =
       dto.totalIncome !== undefined ? Number(dto.totalIncome) : Number(existing.totalIncome);
+    const shares = this.calcShares(totalIncome);
 
     const updated = await this.prismaService.dailyIncome.update({
       where: { id },
       data: {
         date,
         totalIncome: totalIncome.toFixed(2),
-        savings: this.calcTwentyPercent(totalIncome),
-        benefits: this.calcTwentyPercent(totalIncome),
+        savings: shares.savings,
+        benefits: shares.benefits,
+        savingsForCharges: shares.savingsForCharges,
         ...(dto.notes !== undefined && { notes: dto.notes?.trim() || null }),
       },
     });
@@ -198,7 +210,7 @@ export class DailyIncomeService {
     const [incomeAgg, chargeAgg, investmentAgg] = await Promise.all([
       this.prismaService.dailyIncome.aggregate({
         where: { deletedAt: null, date: { gte: from, lt: to } },
-        _sum: { totalIncome: true, savings: true, benefits: true },
+        _sum: { totalIncome: true, savings: true, benefits: true, savingsForCharges: true },
       }),
       this.prismaService.incomeLine.aggregate({
         where: {
@@ -221,10 +233,19 @@ export class DailyIncomeService {
     const totalIncome = Number(incomeAgg._sum.totalIncome ?? 0);
     const totalSavings = Number(incomeAgg._sum.savings ?? 0);
     const totalBenefits = Number(incomeAgg._sum.benefits ?? 0);
+    const totalSavingsForCharges = Number(incomeAgg._sum.savingsForCharges ?? 0);
     const totalCharges = Number(chargeAgg._sum.amount ?? 0);
     const totalInvestments = Number(investmentAgg._sum.amount ?? 0);
     const netBalance =
-      Math.round((totalIncome - totalCharges - totalInvestments) * 100) / 100;
+      Math.round(
+        (totalIncome -
+          totalCharges -
+          totalInvestments -
+          totalSavings -
+          totalBenefits -
+          totalSavingsForCharges) *
+          100,
+      ) / 100;
 
     return {
       year,
@@ -234,6 +255,7 @@ export class DailyIncomeService {
       totalInvestments: Math.round(totalInvestments * 100) / 100,
       totalSavings: Math.round(totalSavings * 100) / 100,
       totalBenefits: Math.round(totalBenefits * 100) / 100,
+      totalSavingsForCharges: Math.round(totalSavingsForCharges * 100) / 100,
       netBalance,
     };
   }

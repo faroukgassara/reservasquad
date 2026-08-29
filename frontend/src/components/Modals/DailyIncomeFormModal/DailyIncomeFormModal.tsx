@@ -159,10 +159,12 @@ export default function DailyIncomeFormModal({
                     <form.Subscribe selector={(s) => [s.values.date, s.values.totalIncome]}>
                         {([date, totalIncome]) => {
                             const income = Number(totalIncome);
-                            const share =
-                                totalIncome && !Number.isNaN(income)
-                                    ? Math.round(income * 0.2)
-                                    : null;
+                            const hasIncome = Boolean(totalIncome) && !Number.isNaN(income);
+                            const savingsShare = hasIncome ? Math.round(income * 0.2) : null;
+                            const benefitsShare = hasIncome ? Math.round(income * 0.2) : null;
+                            const savingsForChargesShare = hasIncome
+                                ? Math.round(income * 0.1)
+                                : null;
                             const fromEntry =
                                 entry && toDateInputValue(entry.date) === date
                                     ? {
@@ -190,13 +192,25 @@ export default function DailyIncomeFormModal({
                                         <AutoField
                                             label={t('savings')}
                                             value={
-                                                share === null ? '—' : formatMoney(share)
+                                                savingsShare === null
+                                                    ? '—'
+                                                    : formatMoney(savingsShare)
                                             }
                                         />
                                         <AutoField
                                             label={t('benefits')}
                                             value={
-                                                share === null ? '—' : formatMoney(share)
+                                                benefitsShare === null
+                                                    ? '—'
+                                                    : formatMoney(benefitsShare)
+                                            }
+                                        />
+                                        <AutoField
+                                            label={t('savingsForCharges')}
+                                            value={
+                                                savingsForChargesShare === null
+                                                    ? '—'
+                                                    : formatMoney(savingsForChargesShare)
                                             }
                                         />
                                         <AutoField

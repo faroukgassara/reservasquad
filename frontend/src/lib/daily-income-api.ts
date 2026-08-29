@@ -12,6 +12,7 @@ export interface DailyIncomeRecord {
     totalIncome: number | string;
     savings: number | string;
     benefits: number | string;
+    savingsForCharges: number | string;
     notes: string | null;
     createdAt: string;
     updatedAt: string;
@@ -50,6 +51,7 @@ export interface DailyIncomeSummary {
     totalInvestments: number;
     totalSavings: number;
     totalBenefits: number;
+    totalSavingsForCharges: number;
     netBalance: number;
 }
 

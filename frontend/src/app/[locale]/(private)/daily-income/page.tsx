@@ -309,6 +309,17 @@ export default function DailyIncomePage() {
                     ),
                 },
             },
+            {
+                headerElement: {
+                    value: 'savingsForCharges',
+                    label: t('savingsForCharges'),
+                    render: (_: unknown, row: DailyIncomeRecord) => (
+                        <OrganismTable.Cell
+                            mainText={formatMoney(row.savingsForCharges ?? 0)}
+                        />
+                    ),
+                },
+            },
         ],
         [t],
     );
@@ -416,6 +427,11 @@ export default function DailyIncomePage() {
         },
         { key: 'savings', label: t('totalSavings'), value: summary?.totalSavings ?? 0 },
         { key: 'benefits', label: t('totalBenefits'), value: summary?.totalBenefits ?? 0 },
+        {
+            key: 'savingsForCharges',
+            label: t('totalSavingsForCharges'),
+            value: summary?.totalSavingsForCharges ?? 0,
+        },
         { key: 'net', label: t('netBalance'), value: summary?.netBalance ?? 0 },
     ];
 
@@ -439,6 +455,7 @@ export default function DailyIncomePage() {
                     totalInvestments: t('totalInvestments'),
                     totalSavings: t('totalSavings'),
                     totalBenefits: t('totalBenefits'),
+                    totalSavingsForCharges: t('totalSavingsForCharges'),
                     netBalance: t('netBalance'),
                     daysTitle: t('daysTitle'),
                     linesTitle: t('linesTitle'),
@@ -446,6 +463,7 @@ export default function DailyIncomePage() {
                     chargesInvestment: t('chargesInvestment'),
                     savings: t('savings'),
                     benefits: t('benefits'),
+                    savingsForCharges: t('savingsForCharges'),
                     type: t('type'),
                     label: t('label'),
                     amount: t('amount'),
