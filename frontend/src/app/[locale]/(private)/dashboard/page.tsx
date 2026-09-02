@@ -28,11 +28,6 @@ import colors from '@/theme/colors';
 import type { ELabelColor } from '@/theme/labelColors';
 import { useAuthorization } from '@/hooks/useAuthorization';
 
-function formatDayShort(dateStr: string): string {
-    const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-}
-
 function formatMonthLabel(year: number, month: number): string {
     return new Date(year, month - 1, 1).toLocaleDateString('fr-FR', {
         month: 'long',
@@ -269,14 +264,18 @@ export default function DashboardPage() {
         enabled: isAdmin,
     });
 
-    const dailyTrendData = useMemo(
+    const reservationTrendData = useMemo(
         () =>
-            (data?.dailyTrend ?? []).map((point) => ({
-                ...point,
-                label: formatDayShort(point.date),
+            (reservationTrend ?? []).map((point) => ({
+                label: formatMonthLabel(point.year, point.month),
+                count: point.count,
+                revenue: point.revenue,
+                paidRevenue: point.paidRevenue,
             })),
-        [data?.dailyTrend],
+        [reservationTrend],
     );
+
+    const hasReservationTrend = (reservationTrend ?? []).some((point) => point.count > 0);
 
     const incomeTrendData = useMemo(
         () =>
@@ -288,18 +287,6 @@ export default function DashboardPage() {
         [incomeTrend],
     );
 
-    const reservationTrendData = useMemo(
-        () =>
-            (reservationTrend ?? []).map((point) => ({
-                label: formatMonthLabel(point.year, point.month),
-                revenue: point.revenue,
-                paidRevenue: point.paidRevenue,
-            })),
-        [reservationTrend],
-    );
-
-    const hasReservationTrend = (reservationTrend ?? []).some((point) => point.count > 0);
-
     const reservationCards: {
         key: string;
         icon: IconComponentsEnum;
@@ -308,14 +295,6 @@ export default function DashboardPage() {
         label: string;
         value: string;
     }[] = [
-        {
-            key: 'month',
-            icon: IconComponentsEnum.calendar,
-            iconBg: 'bg-primary-50',
-            iconColor: 'text-primary-600',
-            label: t('kpiMonthTotal'),
-            value: String(data?.month.total ?? 0),
-        },
         {
             key: 'revenue',
             icon: IconComponentsEnum.star,
@@ -339,6 +318,14 @@ export default function DashboardPage() {
             iconColor: 'text-warning-600',
             label: t('kpiUnpaidMonth'),
             value: formatMoney(data?.month.unpaidRevenue ?? 0),
+        },
+        {
+            key: 'totalRevenue',
+            icon: IconComponentsEnum.layers,
+            iconBg: 'bg-accent-50',
+            iconColor: 'text-accent-600',
+            label: t('kpiTotalRevenue'),
+            value: formatMoney(data?.totalRevenue ?? 0),
         },
         {
             key: 'totalPaid',
@@ -449,7 +436,7 @@ export default function DashboardPage() {
                             viewAllLabel={t('viewAll')}
                         />
 
-                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                             {reservationCards.map((card) => (
                                 <Div key={card.key}>
                                     <StatCard
@@ -511,8 +498,12 @@ export default function DashboardPage() {
                         </ChartPanel>
 
                         <ChartPanel title={t('trendTitle')}>
+                            {hasReservationTrend ? (
                                 <ResponsiveContainer width="100%" height={260}>
-                                    <ComposedChart data={dailyTrendData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                                    <ComposedChart
+                                        data={reservationTrendData}
+                                        margin={{ top: 4, right: 8, left: -12, bottom: 0 }}
+                                    >
                                         <CartesianGrid vertical={false} stroke={colors.gray[100]} />
                                         <XAxis
                                             dataKey="label"
@@ -537,6 +528,9 @@ export default function DashboardPage() {
                                         />
                                     </ComposedChart>
                                 </ResponsiveContainer>
+                            ) : (
+                                <EmptyChartState label={tCommon('empty')} />
+                            )}
                         </ChartPanel>
 
                         <ChartPanel title={t('topRoomsTitle')}>

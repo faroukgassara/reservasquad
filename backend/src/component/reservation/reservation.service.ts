@@ -993,7 +993,7 @@ export class ReservationService {
     const trendFrom = new Date(startOfDay);
     trendFrom.setDate(trendFrom.getDate() - 13);
 
-    const [rooms, professors, todayReservations, monthReservations, trendReservations, paidAggregate, unpaidAggregate, allRooms, totalRoomRevenue] =
+    const [rooms, professors, todayReservations, monthReservations, trendReservations, paidAggregate, unpaidAggregate, totalRevenueAggregate, allRooms, totalRoomRevenue] =
       await Promise.all([
         this.prismaService.room.count({
           where: { deletedAt: null },
@@ -1039,6 +1039,13 @@ export class ReservationService {
           where: {
             deletedAt: null,
             isPaid: false,
+            status: EReservationStatus.CONFIRMED,
+          },
+          _sum: { price: true },
+        }),
+        this.prismaService.reservation.aggregate({
+          where: {
+            deletedAt: null,
             status: EReservationStatus.CONFIRMED,
           },
           _sum: { price: true },
@@ -1150,6 +1157,7 @@ export class ReservationService {
       dailyTrend,
       totalPaid: Math.round(Number(paidAggregate._sum.price ?? 0) * 100) / 100,
       totalUnpaid: Math.round(Number(unpaidAggregate._sum.price ?? 0) * 100) / 100,
+      totalRevenue: Math.round(Number(totalRevenueAggregate._sum.price ?? 0) * 100) / 100,
     };
   }
 }

@@ -79,6 +79,7 @@ export interface DashboardStats {
     dailyTrend: DashboardDailyTrendPoint[];
     totalPaid: number;
     totalUnpaid: number;
+    totalRevenue: number;
 }
 
 function unwrapData<T>(raw: { data?: T } | T): T {
