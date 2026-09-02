@@ -10,7 +10,6 @@ import Button from '@/components/Primitives/Button/Button';
 import Badge from '@/components/Primitives/Badge/Badge';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
-import Label from '@/components/Primitives/Label/Label';
 import UnpaidStatCard from '@/components/Primitives/UnpaidStatCard/UnpaidStatCard';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { Routes } from '@/lib/routes';
@@ -24,10 +23,10 @@ import {
     EBadgeSize,
     EBadgeType,
     EButtonSize,
-    EButtonType,
-    EVariantLabel,
+    EButtonType
 } from '@/Enum/Enum';
 import { ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
+import Spinner from '@/components/Primitives/Spinner/Spinner';
 
 function formatDateTime(value: string): string {
     return new Date(value).toLocaleString('fr-FR', {
@@ -184,6 +183,12 @@ export default function ProfessorDetailPage() {
         }
     }
 
+    if (professorLoading) {
+        return <div className="flex min-h-48 w-full items-center justify-center py-16">
+            <Spinner color="text-primary-500" size="lg" />
+        </div>
+    }
+
     return (
         <LayoutWrapper
             title={t('detailTitle')}
@@ -231,12 +236,6 @@ export default function ProfessorDetailPage() {
                             </Div>
                         </Div>
                     </Div>
-
-                    {professorLoading ? (
-                        <Label variant={EVariantLabel.body} color="text-gray-500">
-                            …
-                        </Label>
-                    ) : null}
 
                     <UnpaidStatCard
                         label={t('unpaidTotal')}

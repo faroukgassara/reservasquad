@@ -376,7 +376,7 @@ export default function DashboardPage() {
             iconBg: 'bg-success-50',
             iconColor: 'text-success-600',
             label: t('kpiPaidMonth'),
-            value: String(data?.month.paid ?? 0),
+            value: formatMoney(data?.month.paidRevenue ?? 0),
         },
         {
             key: 'totalPaid',

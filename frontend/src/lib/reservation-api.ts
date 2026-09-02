@@ -64,6 +64,7 @@ export interface DashboardStats {
         paid: number;
         unpaid: number;
         revenue: number;
+        paidRevenue: number;
     };
     topRooms: DashboardRoomBreakdown[];
     dailyTrend: DashboardDailyTrendPoint[];

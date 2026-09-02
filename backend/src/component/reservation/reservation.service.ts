@@ -971,13 +971,18 @@ export class ReservationService {
         } else {
           acc.cancelled += 1;
         }
-        if (r.isPaid) acc.paid += 1;
-        else acc.unpaid += 1;
+        if (r.isPaid) {
+          acc.paid += 1;
+          if (r.status === EReservationStatus.CONFIRMED) {
+            acc.paidRevenue += Number(r.price);
+          }
+        } else acc.unpaid += 1;
         return acc;
       },
-      { total: 0, confirmed: 0, cancelled: 0, paid: 0, unpaid: 0, revenue: 0 },
+      { total: 0, confirmed: 0, cancelled: 0, paid: 0, unpaid: 0, revenue: 0, paidRevenue: 0 },
     );
     month.revenue = Math.round(month.revenue * 100) / 100;
+    month.paidRevenue = Math.round(month.paidRevenue * 100) / 100;
 
     const roomBuckets = new Map<
       string,
