@@ -12,7 +12,7 @@
     "start:dev": "rimraf dist tsconfig.build.tsbuildinfo && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "start:deploy": "prisma migrate deploy && npm run seed:prod && npm run start:prod",
+    "start:deploy": "node scripts/migrate-deploy.mjs && npm run seed:prod && npm run start:prod",
     "prisma:migrate": "prisma migrate deploy && prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:setup": "prisma migrate dev && prisma generate",

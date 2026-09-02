@@ -9,7 +9,7 @@ if [ -n "$DOCKER_DB_HOST" ] && [ -n "$DATABASE_URL" ]; then
 fi
 
 echo "Applying database schema..."
-if npx prisma migrate deploy; then
+if node scripts/migrate-deploy.mjs; then
   echo "Migrations applied."
 else
   echo "migrate deploy failed - falling back to prisma db push"

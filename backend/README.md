@@ -59,6 +59,15 @@ npm run test
 npm run test:e2e
 ```
 
+## Deploy on Render (Neon)
+
+| Render setting | Value |
+| :--- | :--- |
+| Build command | `npm install && npm run build` |
+| Start command | `npm run start:deploy` |
+
+Set `DATABASE_URL` to your Neon **pooled** connection string. Migrations auto-use a **direct** connection by stripping `-pooler` from the hostname (or set `DIRECT_URL` explicitly).
+
 API default: **http://localhost:4000**
 
 ## Main modules
