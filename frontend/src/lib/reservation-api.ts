@@ -24,7 +24,7 @@ export interface ReservationRecord {
     createdAt: string;
     updatedAt: string;
     room?: Pick<RoomRecord, 'id' | 'name' | 'capacity' | 'pricePerHour'>;
-    professor?: Pick<ProfessorRecord, 'id' | 'firstName' | 'lastName'> | null;
+    professor?: Pick<ProfessorRecord, 'id' | 'firstName' | 'lastName' | 'specialPrice'> | null;
 }
 
 export interface PaginatedReservations {
@@ -115,12 +115,13 @@ export function formatMoney(value: number | string): string {
     }).format(amount);
 }
 
-export function calculateReservationPrice(
+export function calculateRoomReservationPrice(
     pricePerHour: number | string | undefined,
     startAt: string,
     endAt: string,
 ): number | null {
-    if (!pricePerHour || !startAt || !endAt) return null;
+    if (pricePerHour === undefined || pricePerHour === null || pricePerHour === '') return null;
+    if (!startAt || !endAt) return null;
     const start = new Date(startAt);
     const end = new Date(endAt);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
@@ -130,6 +131,103 @@ export function calculateReservationPrice(
     const rate = typeof pricePerHour === 'number' ? pricePerHour : Number(pricePerHour);
     if (Number.isNaN(rate)) return null;
     return Math.round(hours * rate * 100) / 100;
+}
+
+export function calculateReservationPrice(
+    room: { pricePerHour?: number | string | null } | null | undefined,
+    professor: { specialPrice?: number | string | null } | null | undefined,
+    startAt: string,
+    endAt: string,
+): number | null {
+    if (professor?.specialPrice != null && professor.specialPrice !== '') {
+        const flat =
+            typeof professor.specialPrice === 'number'
+                ? professor.specialPrice
+                : Number(professor.specialPrice);
+        if (!Number.isNaN(flat)) return flat;
+    }
+    return calculateRoomReservationPrice(room?.pricePerHour ?? undefined, startAt, endAt);
+}
+
+export type ReservationPriceMode = 'MANUAL' | 'ROOM' | 'PROFESSOR';
+
+export function resolveReservationPriceFromMode(
+    mode: ReservationPriceMode,
+    params: {
+        manualPrice: string;
+        room?: { pricePerHour?: number | string | null } | null;
+        professor?: { specialPrice?: number | string | null } | null;
+        startAt: string;
+        endAt: string;
+    },
+): number | null {
+    if (mode === 'MANUAL') {
+        const amount = Number(params.manualPrice);
+        return Number.isNaN(amount) ? null : amount;
+    }
+    if (mode === 'PROFESSOR') {
+        if (params.professor?.specialPrice == null || params.professor.specialPrice === '') {
+            return null;
+        }
+        const flat =
+            typeof params.professor.specialPrice === 'number'
+                ? params.professor.specialPrice
+                : Number(params.professor.specialPrice);
+        return Number.isNaN(flat) ? null : flat;
+    }
+    return calculateRoomReservationPrice(
+        params.room?.pricePerHour ?? undefined,
+        params.startAt,
+        params.endAt,
+    );
+}
+
+export function inferReservationPriceMode(
+    storedPrice: number | string,
+    room: { pricePerHour?: number | string | null } | null | undefined,
+    professor: { specialPrice?: number | string | null } | null | undefined,
+    startAt: string,
+    endAt: string,
+): ReservationPriceMode {
+    const amount = typeof storedPrice === 'number' ? storedPrice : Number(storedPrice);
+    if (Number.isNaN(amount)) return 'MANUAL';
+
+    if (professor?.specialPrice != null) {
+        const special = Number(professor.specialPrice);
+        if (!Number.isNaN(special) && Math.abs(amount - special) < 0.005) {
+            return 'PROFESSOR';
+        }
+    }
+
+    const roomPrice = calculateRoomReservationPrice(room?.pricePerHour ?? undefined, startAt, endAt);
+    if (roomPrice != null && Math.abs(amount - roomPrice) < 0.005) {
+        return 'ROOM';
+    }
+
+    return 'MANUAL';
+}
+
+export function resolveReservationFormPrice(
+    values: {
+        priceMode: ReservationPriceMode;
+        price: string;
+        roomId: string;
+        professorId: string;
+        startAt: string;
+        endAt: string;
+    },
+    rooms: { id: string; pricePerHour?: number | string | null }[],
+    professors: { id: string; specialPrice?: number | string | null }[],
+): number | null {
+    const room = rooms.find((item) => item.id === values.roomId);
+    const professor = professors.find((item) => item.id === values.professorId);
+    return resolveReservationPriceFromMode(values.priceMode, {
+        manualPrice: values.price,
+        room,
+        professor,
+        startAt: values.startAt,
+        endAt: values.endAt,
+    });
 }
 
 export async function fetchReservations(params: {

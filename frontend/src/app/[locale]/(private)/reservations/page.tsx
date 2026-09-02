@@ -28,6 +28,7 @@ import {
     fetchReservations,
     fetchUnpaidSummary,
     formatMoney,
+    resolveReservationFormPrice,
     updateReservation,
     type ReservationRecord,
     type ReservationStatus,
@@ -313,6 +314,12 @@ export default function ReservationsAdminPage() {
 
     const handleFormSubmit = useCallback(
         async (values: ReservationFormValues) => {
+            const resolvedPrice = resolveReservationFormPrice(values, rooms, professors);
+            if (resolvedPrice === null) {
+                openToast(tCommon('error'), t('priceInvalid'), { type: EToastType.ERROR });
+                return;
+            }
+
             const payload = {
                 title: values.title.trim() || undefined,
                 roomId: values.roomId,
@@ -322,7 +329,7 @@ export default function ReservationsAdminPage() {
                 notes: values.notes.trim() || undefined,
                 status: values.status,
                 isPaid: values.isPaid,
-                ...(values.manualPrice ? { price: Number(values.price) } : {}),
+                price: resolvedPrice,
             };
             if (modalState?.type === 'form' && modalState.reservation) {
                 await updateMutation.mutateAsync({
@@ -344,7 +351,7 @@ export default function ReservationsAdminPage() {
             }
             await createMutation.mutateAsync(payload);
         },
-        [createMutation, modalState, seriesMutation, updateMutation],
+        [createMutation, modalState, openToast, professors, rooms, seriesMutation, t, tCommon, updateMutation],
     );
 
     const columns = useMemo(

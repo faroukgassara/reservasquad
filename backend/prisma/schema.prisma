@@ -72,12 +72,13 @@ model File {
 }
 
 model Professor {
-  id        String  @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String? @unique
-  phone     String?
-  specialty String?
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String?  @unique
+  phone        String?
+  specialty    String?
+  specialPrice Decimal? @db.Decimal(10, 2)
 
   reservations Reservation[]
 

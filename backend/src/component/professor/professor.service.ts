@@ -31,6 +31,10 @@ export class ProfessorService {
         email,
         phone: dto.phone?.replaceAll(/\s+/g, '') || null,
         specialty: dto.specialty?.trim() || null,
+        specialPrice:
+          dto.specialPrice != null && !Number.isNaN(Number(dto.specialPrice))
+            ? dto.specialPrice
+            : null,
       },
     });
   }
@@ -58,6 +62,12 @@ export class ProfessorService {
       }),
       ...(dto.specialty !== undefined && {
         specialty: dto.specialty?.trim() || null,
+      }),
+      ...(dto.specialPrice !== undefined && {
+        specialPrice:
+          dto.specialPrice != null && !Number.isNaN(Number(dto.specialPrice))
+            ? dto.specialPrice
+            : null,
       }),
     };
 

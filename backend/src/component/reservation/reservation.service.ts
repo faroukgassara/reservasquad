@@ -14,6 +14,7 @@ import { randomUUID } from 'crypto';
 import {
   EReservationStatus,
   Prisma,
+  Professor,
   Reservation,
   Room,
 } from 'src/generated/prisma/client';
@@ -58,7 +59,15 @@ export class ReservationService {
     return (endAt.getTime() - startAt.getTime()) / (1000 * 60 * 60);
   }
 
-  private calculatePrice(room: Room, startAt: Date, endAt: Date): string {
+  private calculatePrice(
+    room: Room,
+    startAt: Date,
+    endAt: Date,
+    professor?: Pick<Professor, 'specialPrice'> | null,
+  ): string {
+    if (professor?.specialPrice != null) {
+      return Number(professor.specialPrice).toFixed(2);
+    }
     const hours = this.hoursBetween(startAt, endAt);
     const rate = Number(room.pricePerHour);
     const total = Math.round(hours * rate * 100) / 100;
@@ -145,11 +154,12 @@ export class ReservationService {
     startAt: Date,
     endAt: Date,
     manualPrice?: number,
+    professor?: Pick<Professor, 'specialPrice'> | null,
   ): string {
     if (manualPrice !== undefined && manualPrice !== null && !Number.isNaN(Number(manualPrice))) {
       return Number(manualPrice).toFixed(2);
     }
-    return this.calculatePrice(room, startAt, endAt);
+    return this.calculatePrice(room, startAt, endAt, professor);
   }
 
   async availability(
@@ -236,7 +246,7 @@ export class ReservationService {
     const endAt = new Date(dto.endAt);
     this.assertValidRange(startAt, endAt);
     const room = await this.assertRoomExists(dto.roomId);
-    await this.assertProfessorExists(dto.professorId);
+    const professor = await this.assertProfessorExists(dto.professorId);
     const status = dto.status ?? EReservationStatus.CONFIRMED;
     await this.assertNoConflicts({
       roomId: dto.roomId,
@@ -253,7 +263,7 @@ export class ReservationService {
         professorId: dto.professorId || null,
         startAt,
         endAt,
-        price: this.resolvePrice(room, startAt, endAt, dto.price),
+        price: this.resolvePrice(room, startAt, endAt, dto.price, professor),
         isPaid: dto.isPaid ?? false,
         status,
         notes: dto.notes?.trim() || null,
@@ -322,7 +332,7 @@ export class ReservationService {
     }
 
     const room = await this.assertRoomExists(dto.roomId);
-    await this.assertProfessorExists(dto.professorId);
+    const professor = await this.assertProfessorExists(dto.professorId);
     const status = dto.status ?? EReservationStatus.CONFIRMED;
     const occurrences = this.expandSeriesOccurrences(
       startAt,
@@ -357,6 +367,7 @@ export class ReservationService {
               occurrence.startAt,
               occurrence.endAt,
               dto.price,
+              professor,
             ),
             isPaid: dto.isPaid ?? false,
             status,
@@ -437,6 +448,10 @@ export class ReservationService {
 
     const professorId =
       dto.professorId !== undefined ? dto.professorId || null : existing.professorId;
+    let professor: Pick<Professor, 'specialPrice'> | null =
+      dto.professorId !== undefined
+        ? await this.assertProfessorExists(dto.professorId)
+        : existing.professor;
     const status = dto.status ?? existing.status;
     await this.assertNoConflicts({
       roomId,
@@ -449,7 +464,14 @@ export class ReservationService {
 
     const shouldRecalcPrice =
       dto.price === undefined &&
-      (dto.roomId !== undefined || dto.startAt !== undefined || dto.endAt !== undefined);
+      (dto.roomId !== undefined ||
+        dto.startAt !== undefined ||
+        dto.endAt !== undefined ||
+        dto.professorId !== undefined);
+
+    if (shouldRecalcPrice && professorId && dto.professorId === undefined) {
+      professor = await this.assertProfessorExists(professorId);
+    }
 
     const updated = await this.prismaService.reservation.update({
       where: { id },
@@ -462,9 +484,11 @@ export class ReservationService {
         ...(dto.startAt !== undefined && { startAt }),
         ...(dto.endAt !== undefined && { endAt }),
         ...(dto.price !== undefined && {
-          price: this.resolvePrice(room, startAt, endAt, dto.price),
+          price: this.resolvePrice(room, startAt, endAt, dto.price, professor),
         }),
-        ...(shouldRecalcPrice && { price: this.calculatePrice(room, startAt, endAt) }),
+        ...(shouldRecalcPrice && {
+          price: this.calculatePrice(room, startAt, endAt, professor),
+        }),
         ...(dto.isPaid !== undefined && { isPaid: dto.isPaid }),
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.notes !== undefined && { notes: dto.notes?.trim() || null }),

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useForm } from '@tanstack/react-form';
+import { useForm, type ReactFormExtendedApi } from '@tanstack/react-form';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
@@ -18,7 +18,10 @@ import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import type { AvailabilityRoom, ReservationRecord, ReservationStatus } from '@/lib/reservation-api';
 import {
-    calculateReservationPrice,
+    calculateRoomReservationPrice,
+    inferReservationPriceMode,
+    resolveReservationPriceFromMode,
+    type ReservationPriceMode,
     fetchAvailability,
     formatMoney,
 } from '@/lib/reservation-api';
@@ -34,7 +37,7 @@ export interface ReservationFormValues {
     notes: string;
     status: ReservationStatus;
     isPaid: boolean;
-    manualPrice: boolean;
+    priceMode: ReservationPriceMode;
     price: string;
     recurring: boolean;
     frequency: 'WEEKLY' | 'MONTHLY';
@@ -52,6 +55,59 @@ function isValidPrice(value: string): boolean {
     if (!value.trim()) return false;
     const amount = Number(value);
     return !Number.isNaN(amount) && amount >= 0;
+}
+
+type ReservationFormInstance = ReactFormExtendedApi<
+    ReservationFormValues,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    unknown
+>;
+
+interface ReservationFormPriceHelpers {
+    getFieldValue: ReservationFormInstance['getFieldValue'];
+    setFieldValue: ReservationFormInstance['setFieldValue'];
+}
+
+function applyPriceFromMode(
+    form: ReservationFormPriceHelpers,
+    rooms: RoomRecord[],
+    professors: ProfessorRecord[],
+) {
+    const mode = form.getFieldValue('priceMode');
+    if (mode === 'MANUAL') return;
+
+    const room = rooms.find((item) => item.id === form.getFieldValue('roomId'));
+    const professor = professors.find((item) => item.id === form.getFieldValue('professorId'));
+    const calculated = resolveReservationPriceFromMode(mode, {
+        manualPrice: form.getFieldValue('price'),
+        room,
+        professor,
+        startAt: form.getFieldValue('startAt'),
+        endAt: form.getFieldValue('endAt'),
+    });
+
+    if (calculated !== null) {
+        form.setFieldValue('price', String(calculated));
+    }
+}
+
+function normalizePriceMode(
+    mode: ReservationPriceMode,
+    professor?: ProfessorRecord | null,
+): ReservationPriceMode {
+    if (mode === 'PROFESSOR' && professor?.specialPrice == null) {
+        return 'ROOM';
+    }
+    return mode;
 }
 
 function toLocalInputValue(iso?: string | null): string {
@@ -253,7 +309,7 @@ export default function ReservationFormModal({
         notes: reservation?.notes ?? '',
         status: (reservation?.status ?? 'CONFIRMED') as ReservationStatus,
         isPaid: reservation?.isPaid ?? false,
-        manualPrice: isEdit,
+        priceMode: 'ROOM',
         price: priceToInput(reservation?.price),
         recurring: false,
         frequency: 'WEEKLY',
@@ -270,17 +326,29 @@ export default function ReservationFormModal({
 
     useEffect(() => {
         if (!reservation) return;
+        const room = rooms.find((item) => item.id === reservation.roomId);
+        const professor = professors.find((item) => item.id === reservation.professorId);
+        const startAt = toLocalInputValue(reservation.startAt);
+        const endAt = toLocalInputValue(reservation.endAt);
+        const priceMode = inferReservationPriceMode(
+            reservation.price,
+            room,
+            professor,
+            startAt,
+            endAt,
+        );
+
         form.setFieldValue('title', reservation.title ?? '');
         form.setFieldValue('roomId', reservation.roomId);
         form.setFieldValue('professorId', reservation.professorId ?? '');
-        form.setFieldValue('startAt', toLocalInputValue(reservation.startAt));
-        form.setFieldValue('endAt', toLocalInputValue(reservation.endAt));
+        form.setFieldValue('startAt', startAt);
+        form.setFieldValue('endAt', endAt);
         form.setFieldValue('notes', reservation.notes ?? '');
         form.setFieldValue('status', reservation.status);
         form.setFieldValue('isPaid', reservation.isPaid);
-        form.setFieldValue('manualPrice', true);
+        form.setFieldValue('priceMode', priceMode);
         form.setFieldValue('price', priceToInput(reservation.price));
-    }, [reservation, form]);
+    }, [reservation, form, rooms, professors]);
 
     return (
         <Modal
@@ -321,6 +389,7 @@ export default function ReservationFormModal({
                                 value={state.value}
                                 onChange={(value) => {
                                     if (typeof value === 'string') handleChange(value);
+                                    applyPriceFromMode(form, rooms, professors);
                                 }}
                                 placeholder={t('room')}
                             />
@@ -333,7 +402,16 @@ export default function ReservationFormModal({
                                 options={professorOptions}
                                 value={state.value}
                                 onChange={(value) => {
-                                    if (typeof value === 'string') handleChange(value);
+                                    if (typeof value === 'string') {
+                                        handleChange(value);
+                                        const professor = professors.find((item) => item.id === value);
+                                        const currentMode = form.getFieldValue('priceMode');
+                                        const nextMode = normalizePriceMode(currentMode, professor);
+                                        if (nextMode !== currentMode) {
+                                            form.setFieldValue('priceMode', nextMode);
+                                        }
+                                        applyPriceFromMode(form, rooms, professors);
+                                    }
                                 }}
                                 placeholder={t('noProfessor')}
                             />
@@ -350,7 +428,10 @@ export default function ReservationFormModal({
                                 id="reservation-start"
                                 label={t('startAt')}
                                 value={state.value}
-                                onChange={handleChange}
+                                onChange={(value) => {
+                                    handleChange(value);
+                                    applyPriceFromMode(form, rooms, professors);
+                                }}
                                 error={
                                     typeof state.meta.errors?.[0] === 'string'
                                         ? state.meta.errors[0]
@@ -392,7 +473,10 @@ export default function ReservationFormModal({
                                 id="reservation-end"
                                 label={t('endAt')}
                                 value={state.value}
-                                onChange={handleChange}
+                                onChange={(value) => {
+                                    handleChange(value);
+                                    applyPriceFromMode(form, rooms, professors);
+                                }}
                                 error={
                                     typeof state.meta.errors?.[0] === 'string'
                                         ? state.meta.errors[0]
@@ -418,17 +502,7 @@ export default function ReservationFormModal({
                                 excludeReservationId={isEdit ? reservation?.id : undefined}
                                 onSelectRoom={(nextRoomId) => {
                                     form.setFieldValue('roomId', nextRoomId);
-                                    if (!form.getFieldValue('manualPrice')) {
-                                        const room = rooms.find((r) => r.id === nextRoomId);
-                                        const calculated = calculateReservationPrice(
-                                            room?.pricePerHour,
-                                            startAt,
-                                            endAt,
-                                        );
-                                        if (calculated !== null) {
-                                            form.setFieldValue('price', String(calculated));
-                                        }
-                                    }
+                                    applyPriceFromMode(form, rooms, professors);
                                 }}
                             />
                         )}
@@ -443,51 +517,67 @@ export default function ReservationFormModal({
                             />
                         )}
                     </form.Field>
-                    <form.Field name="manualPrice">
-                        {({ state, handleChange }) => (
-                            <Checkbox
-                                id="reservation-manual-price"
-                                checked={state.value}
-                                label={t('manualPrice')}
-                                onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    handleChange(checked);
-                                    if (checked) {
-                                        const roomId = form.getFieldValue('roomId');
-                                        const startAt = form.getFieldValue('startAt');
-                                        const endAt = form.getFieldValue('endAt');
-                                        const room = rooms.find((r) => r.id === roomId);
-                                        const calculated = calculateReservationPrice(
-                                            room?.pricePerHour,
-                                            startAt,
-                                            endAt,
-                                        );
-                                        if (calculated !== null) {
-                                            form.setFieldValue('price', String(calculated));
-                                        }
-                                    }
-                                }}
-                            />
-                        )}
-                    </form.Field>
+                    <form.Subscribe selector={(s) => s.values.professorId}>
+                        {(professorId) => {
+                            const professor = professors.find((p) => p.id === professorId);
+                            const canUseProfessorPrice = professor?.specialPrice != null;
+                            const priceModeOptions = [
+                                { value: 'MANUAL', label: t('priceModeManual') },
+                                { value: 'ROOM', label: t('priceModeRoom') },
+                                ...(canUseProfessorPrice
+                                    ? [{ value: 'PROFESSOR', label: t('priceModeProfessor') }]
+                                    : []),
+                            ];
+
+                            return (
+                                <form.Field name="priceMode">
+                                    {({ state, handleChange }) => (
+                                        <Dropdown
+                                            label={t('priceMode')}
+                                            options={priceModeOptions}
+                                            value={state.value}
+                                            onChange={(value) => {
+                                                if (
+                                                    value === 'MANUAL' ||
+                                                    value === 'ROOM' ||
+                                                    value === 'PROFESSOR'
+                                                ) {
+                                                    handleChange(value);
+                                                    applyPriceFromMode(form, rooms, professors);
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                </form.Field>
+                            );
+                        }}
+                    </form.Subscribe>
                     <form.Subscribe
                         selector={(s) => ({
-                            manualPrice: s.values.manualPrice,
+                            priceMode: s.values.priceMode,
                             roomId: s.values.roomId,
+                            professorId: s.values.professorId,
                             startAt: s.values.startAt,
                             endAt: s.values.endAt,
                         })}
                     >
-                        {({ manualPrice, roomId, startAt, endAt }) => {
+                        {({ priceMode, roomId, professorId, startAt, endAt }) => {
                             const room = rooms.find((r) => r.id === roomId);
-                            const calculated = calculateReservationPrice(
-                                room?.pricePerHour,
+                            const professor = professors.find((p) => p.id === professorId);
+                            const calculated = resolveReservationPriceFromMode(priceMode, {
+                                manualPrice: form.getFieldValue('price'),
+                                room,
+                                professor,
+                                startAt,
+                                endAt,
+                            });
+                            const roomCalculated = calculateRoomReservationPrice(
+                                room?.pricePerHour ?? undefined,
                                 startAt,
                                 endAt,
                             );
-                            const showManualInput = Boolean(manualPrice);
 
-                            if (showManualInput) {
+                            if (priceMode === 'MANUAL') {
                                 return (
                                     <form.Field
                                         name="price"
@@ -505,18 +595,6 @@ export default function ReservationFormModal({
                                                     type={EInputType.number}
                                                     onChange={(e) => handleChange(e.target.value)}
                                                 />
-                                                {room && calculated !== null ? (
-                                                    <Label
-                                                        variant={EVariantLabel.caption}
-                                                        color="text-gray-500"
-                                                        className="mt-1 block"
-                                                    >
-                                                        {t('priceHint', {
-                                                            rate: formatMoney(room.pricePerHour),
-                                                        })}{' '}
-                                                        ({formatMoney(calculated)})
-                                                    </Label>
-                                                ) : null}
                                                 {state.meta.errors?.[0] ? (
                                                     <Label
                                                         variant={EVariantLabel.bodySmall}
@@ -548,7 +626,17 @@ export default function ReservationFormModal({
                                     >
                                         {calculated === null ? '—' : formatMoney(calculated)}
                                     </Label>
-                                    {room ? (
+                                    {priceMode === 'PROFESSOR' && professor?.specialPrice != null ? (
+                                        <Label
+                                            variant={EVariantLabel.caption}
+                                            color="text-gray-500"
+                                            className="mt-1 block"
+                                        >
+                                            {t('priceHintSpecial', {
+                                                price: formatMoney(professor.specialPrice),
+                                            })}
+                                        </Label>
+                                    ) : room ? (
                                         <Label
                                             variant={EVariantLabel.caption}
                                             color="text-gray-500"
@@ -557,6 +645,9 @@ export default function ReservationFormModal({
                                             {t('priceHint', {
                                                 rate: formatMoney(room.pricePerHour),
                                             })}
+                                            {roomCalculated !== null
+                                                ? ` (${formatMoney(roomCalculated)})`
+                                                : ''}
                                         </Label>
                                     ) : null}
                                 </Div>

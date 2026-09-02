@@ -21,6 +21,7 @@ export interface ProfessorFormValues {
     email: string;
     phone: string;
     specialty: string;
+    specialPrice: string;
 }
 
 interface ProfessorFormModalProps {
@@ -48,6 +49,8 @@ export default function ProfessorFormModal({
             email: professor?.email ?? '',
             phone: professor?.phone ?? '',
             specialty: professor?.specialty ?? '',
+            specialPrice:
+                professor?.specialPrice != null ? String(professor.specialPrice) : '',
         },
         onSubmit: async ({ value }) => {
             await onSubmit(value as ProfessorFormValues);
@@ -62,6 +65,10 @@ export default function ProfessorFormModal({
         form.setFieldValue('email', professor.email ?? '');
         form.setFieldValue('phone', professor.phone ?? '');
         form.setFieldValue('specialty', professor.specialty ?? '');
+        form.setFieldValue(
+            'specialPrice',
+            professor.specialPrice != null ? String(professor.specialPrice) : '',
+        );
     }, [professor, form]);
 
     return (
@@ -144,6 +151,27 @@ export default function ProfessorFormModal({
                                 value={state.value}
                                 id="professor-specialty"
                                 onChange={(e) => handleChange(e.target.value)}
+                            />
+                        )}
+                    </form.Field>
+                    <form.Field
+                        name="specialPrice"
+                        validators={{
+                            onSubmit: ({ value }) =>
+                                !value.trim() || Number(value) >= 0
+                                    ? undefined
+                                    : t('specialPriceInvalid'),
+                        }}
+                    >
+                        {({ state, handleChange }) => (
+                            <Input
+                                label={t('specialPrice')}
+                                type={EInputType.number}
+                                value={state.value}
+                                id="professor-special-price"
+                                onChange={(e) => handleChange(e.target.value)}
+                                hintText={state.meta.errors?.[0] ?? t('specialPriceHint')}
+                                error={!!state.meta.errors?.length}
                             />
                         )}
                     </form.Field>

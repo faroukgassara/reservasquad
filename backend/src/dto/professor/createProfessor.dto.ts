@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateProfessorDto {
   @ApiProperty({ example: 'Amine' })
@@ -26,4 +27,14 @@ export class CreateProfessorDto {
   @IsOptional()
   @IsString()
   specialty?: string;
+
+  @ApiPropertyOptional({
+    example: 40,
+    description: 'Optional flat reservation price in TND when this professor is assigned',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  specialPrice?: number | null;
 }

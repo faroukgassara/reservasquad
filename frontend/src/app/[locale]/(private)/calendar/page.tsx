@@ -19,6 +19,7 @@ import {
     createReservationSeries,
     fetchCalendar,
     formatMoney,
+    resolveReservationFormPrice,
     updateReservation,
     type ReservationRecord,
 } from '@/lib/reservation-api';
@@ -422,6 +423,12 @@ export default function CalendarPage() {
 
     const handleFormSubmit = useCallback(
         async (values: ReservationFormValues) => {
+            const resolvedPrice = resolveReservationFormPrice(values, rooms, professors);
+            if (resolvedPrice === null) {
+                openToast(tCommon('error'), tPay('priceInvalid'), { type: EToastType.ERROR });
+                return;
+            }
+
             const payload = {
                 title: values.title.trim() || undefined,
                 roomId: values.roomId,
@@ -431,7 +438,7 @@ export default function CalendarPage() {
                 notes: values.notes.trim() || undefined,
                 status: values.status,
                 isPaid: values.isPaid,
-                ...(values.manualPrice ? { price: Number(values.price) } : {}),
+                price: resolvedPrice,
             };
 
             if (modalState?.mode === 'edit') {
@@ -458,7 +465,7 @@ export default function CalendarPage() {
                 notes: values.notes.trim() || undefined,
             });
         },
-        [createMutation, modalState, seriesMutation, updateMutation],
+        [createMutation, modalState, openToast, professors, rooms, seriesMutation, tPay, tCommon, updateMutation],
     );
 
     const openCreateForDay = useCallback(

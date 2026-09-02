@@ -183,6 +183,11 @@ export default function ProfessorDetailPage() {
         if (professor.specialty) {
             subtitle = `${subtitle} · ${professor.specialty}`;
         }
+        if (professor.specialPrice != null) {
+            subtitle = `${subtitle} · ${t('specialPriceShort', {
+                price: formatMoney(professor.specialPrice),
+            })}`;
+        }
     }
 
     const backButton = (

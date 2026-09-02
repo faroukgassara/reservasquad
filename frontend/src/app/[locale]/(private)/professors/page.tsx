@@ -22,6 +22,7 @@ import {
     updateProfessor,
     type ProfessorRecord,
 } from '@/lib/professor-api';
+import { formatMoney } from '@/lib/reservation-api';
 import {
     EButtonSize,
     EButtonType,
@@ -104,12 +105,20 @@ export default function ProfessorsAdminPage() {
 
     const handleFormSubmit = useCallback(
         async (values: ProfessorFormValues) => {
+            const specialPrice = values.specialPrice.trim()
+                ? Number(values.specialPrice)
+                : null;
             const payload = {
                 firstName: values.firstName.trim(),
                 lastName: values.lastName.trim(),
                 email: values.email.trim() || undefined,
                 phone: values.phone.trim() || undefined,
                 specialty: values.specialty.trim() || undefined,
+                ...(modalState?.type === 'form' && modalState.professor
+                    ? { specialPrice }
+                    : specialPrice != null
+                      ? { specialPrice }
+                      : {}),
             };
             if (modalState?.type === 'form' && modalState.professor) {
                 await updateMutation.mutateAsync({ id: modalState.professor.id, body: payload });
@@ -149,6 +158,19 @@ export default function ProfessorsAdminPage() {
                     label: t('phone'),
                     render: (_: unknown, row: ProfessorRecord) => (
                         <OrganismTable.Cell mainText={row.phone ?? '—'} />
+                    ),
+                },
+            },
+            {
+                headerElement: {
+                    value: 'specialPrice',
+                    label: t('specialPrice'),
+                    render: (_: unknown, row: ProfessorRecord) => (
+                        <OrganismTable.Cell
+                            mainText={
+                                row.specialPrice != null ? formatMoney(row.specialPrice) : '—'
+                            }
+                        />
                     ),
                 },
             },

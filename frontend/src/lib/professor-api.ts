@@ -11,6 +11,7 @@ export interface ProfessorRecord {
     email: string | null;
     phone: string | null;
     specialty: string | null;
+    specialPrice: number | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -75,6 +76,7 @@ export async function createProfessor(body: {
     email?: string;
     phone?: string;
     specialty?: string;
+    specialPrice?: number | null;
 }): Promise<ProfessorRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.post('/api/professors', body, headers);
@@ -92,6 +94,7 @@ export async function updateProfessor(
         email: string;
         phone: string;
         specialty: string;
+        specialPrice: number | null;
     }>,
 ): Promise<ProfessorRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
