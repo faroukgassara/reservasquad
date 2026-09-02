@@ -139,6 +139,20 @@ export class ReservationBackofficeController {
     }
   }
 
+  @Get('trend')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Reservation trend over the last N months' })
+  async trend(@Res() res: Response, @Query('months') months?: string) {
+    try {
+      const data = await this.reservationService.getReservationTrend(
+        months ? Number(months) : 6,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get('unpaid-summary')
   @swagger.ApiOperation({ summary: 'Total unpaid amount for confirmed reservations' })
   async unpaidSummary(

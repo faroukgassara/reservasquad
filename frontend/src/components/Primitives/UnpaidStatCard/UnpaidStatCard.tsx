@@ -8,6 +8,7 @@ export interface IUnpaidStatCard {
     value: string;
     supportingText: string;
     isLoading?: boolean;
+    tone?: 'paid' | 'unpaid';
 }
 
 const UnpaidStatCard = ({
@@ -15,15 +16,22 @@ const UnpaidStatCard = ({
     value,
     supportingText,
     isLoading = false,
+    tone = 'unpaid',
 }: IUnpaidStatCard) => {
+    const isPaid = tone === 'paid';
+
     return (
         <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <Div className="flex items-center gap-3">
-                <Div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-warning-50">
+                <Div
+                    className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
+                        isPaid ? 'bg-success-50' : 'bg-warning-50'
+                    }`}
+                >
                     <Icon
-                        name={IconComponentsEnum.alert}
+                        name={isPaid ? IconComponentsEnum.checkCircle : IconComponentsEnum.alert}
                         size={ESize.sm}
-                        color="text-warning-600"
+                        color={isPaid ? 'text-success-600' : 'text-warning-600'}
                     />
                 </Div>
                 <Div className="min-w-0 flex flex-col">

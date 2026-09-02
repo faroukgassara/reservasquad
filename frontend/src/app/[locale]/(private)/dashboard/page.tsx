@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, type Key, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
@@ -9,14 +9,10 @@ import {
     CartesianGrid,
     ComposedChart,
     Line,
-    Pie,
-    PieChart,
     ResponsiveContainer,
-    Sector,
     Tooltip,
     XAxis,
     YAxis,
-    type PieSectorShapeProps,
     type TooltipContentProps,
 } from 'recharts';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -24,7 +20,7 @@ import Label from '@/components/Primitives/Label/Label';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import { EVariantLabel, ESize, IconComponentsEnum } from '@/Enum/Enum';
-import { fetchDashboardStats, formatMoney, type DashboardRoomBreakdown } from '@/lib/reservation-api';
+import { fetchDashboardStats, fetchReservationTrend, formatMoney, type DashboardRoomBreakdown } from '@/lib/reservation-api';
 import { fetchDailyIncomeSummary, fetchIncomeTrend } from '@/lib/daily-income-api';
 import { Link } from '@/i18n/navigation';
 import { Routes } from '@/lib/routes';
@@ -42,12 +38,6 @@ function formatMonthLabel(year: number, month: number): string {
         month: 'long',
         year: 'numeric',
     });
-}
-
-function ColoredSector(props: Readonly<PieSectorShapeProps>) {
-    const { key, payload, ...rest } = props as PieSectorShapeProps & { key?: Key };
-    const color = (payload as { color?: string } | undefined)?.color ?? rest.fill;
-    return <Sector key={key} {...rest} fill={color} />;
 }
 
 function ChartTooltip({ active, payload, label, formatter }: Readonly<TooltipContentProps>) {
@@ -174,38 +164,35 @@ function EmptyChartState({ label }: Readonly<{ label: string }>) {
     );
 }
 
-function LegendRow({
-    entries,
-    formatValue = String,
-}: Readonly<{
-    entries: { key: string; name: string; value: number; color: string }[];
-    formatValue?: (value: number) => string;
-}>) {
-    return (
-        <Div className="mt-3 flex flex-wrap items-center justify-center gap-4">
-            {entries.map((entry) => (
-                <Div key={entry.key} className="flex items-center gap-1.5">
-                    <Div className="size-2 shrink-0 rounded-full" style={{ backgroundColor: entry.color }} />
-                    <Label variant={EVariantLabel.caption} color="text-gray-600">
-                        {entry.name} ({formatValue(entry.value)})
-                    </Label>
-                </Div>
-            ))}
-        </Div>
-    );
-}
-
 function TopRoomsList({
     rooms,
     emptyLabel,
-}: Readonly<{ rooms: DashboardRoomBreakdown[]; emptyLabel: string }>) {
+    monthLabel,
+    totalLabel,
+}: Readonly<{
+    rooms: DashboardRoomBreakdown[];
+    emptyLabel: string;
+    monthLabel: string;
+    totalLabel: string;
+}>) {
     if (rooms.length === 0) return <EmptyChartState label={emptyLabel} />;
-    const max = Math.max(...rooms.map((room) => room.count), 1);
+    const maxMonthRevenue = Math.max(...rooms.map((room) => room.monthRevenue), 1);
     return (
         <Div className="space-y-3.5">
+            <Div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-3 px-1">
+                <Label variant={EVariantLabel.caption} color="text-gray-400" className="font-medium">
+                    {' '}
+                </Label>
+                <Label variant={EVariantLabel.caption} color="text-gray-400" className="text-right font-medium">
+                    {monthLabel}
+                </Label>
+                <Label variant={EVariantLabel.caption} color="text-gray-400" className="text-right font-medium">
+                    {totalLabel}
+                </Label>
+            </Div>
             {rooms.map((room) => (
                 <Div key={room.roomId}>
-                    <Div className="mb-1 flex items-center justify-between gap-2">
+                    <Div className="mb-1 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3">
                         <Label
                             variant={EVariantLabel.bodySmall}
                             color="text-gray-700"
@@ -213,14 +200,27 @@ function TopRoomsList({
                         >
                             {room.roomName}
                         </Label>
-                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="shrink-0 tabular-nums">
-                            {room.count} · {formatMoney(room.revenue)}
+                        <Label
+                            variant={EVariantLabel.caption}
+                            color="text-gray-600"
+                            className="shrink-0 text-right tabular-nums"
+                        >
+                            {formatMoney(room.monthRevenue)}
+                        </Label>
+                        <Label
+                            variant={EVariantLabel.caption}
+                            color="text-gray-500"
+                            className="shrink-0 text-right tabular-nums"
+                        >
+                            {formatMoney(room.totalRevenue)}
                         </Label>
                     </Div>
                     <Div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
                         <Div
                             className="h-full rounded-full bg-primary-500"
-                            style={{ width: `${Math.max((room.count / max) * 100, 6)}%` }}
+                            style={{
+                                width: `${Math.max((room.monthRevenue / maxMonthRevenue) * 100, room.monthRevenue > 0 ? 6 : 0)}%`,
+                            }}
                         />
                     </Div>
                 </Div>
@@ -231,8 +231,6 @@ function TopRoomsList({
 
 export default function DashboardPage() {
     const t = useTranslations('dashboard');
-    const tRes = useTranslations('admin.reservations');
-    const tStatus = useTranslations('status');
     const tIncome = useTranslations('admin.dailyIncome');
     const tCommon = useTranslations('common');
     const router = useRouter();
@@ -253,7 +251,7 @@ export default function DashboardPage() {
         enabled: isAdmin,
     });
 
-    const { data: incomeSummary } = useQuery({
+    const { data: incomeSummary, isLoading: incomeSummaryLoading } = useQuery({
         queryKey: ['daily-income-summary', year, month],
         queryFn: () => fetchDailyIncomeSummary({ year, month }),
         enabled: isAdmin,
@@ -262,6 +260,12 @@ export default function DashboardPage() {
     const { data: incomeTrend } = useQuery({
         queryKey: ['daily-income-trend', 6],
         queryFn: () => fetchIncomeTrend({ months: 6 }),
+        enabled: isAdmin,
+    });
+
+    const { data: reservationTrend } = useQuery({
+        queryKey: ['reservation-trend', 6],
+        queryFn: () => fetchReservationTrend({ months: 6 }),
         enabled: isAdmin,
     });
 
@@ -274,34 +278,6 @@ export default function DashboardPage() {
         [data?.dailyTrend],
     );
 
-    const statusData = useMemo(
-        () => [
-            {
-                key: 'confirmed',
-                name: tStatus('confirmed'),
-                value: data?.month.confirmed ?? 0,
-                color: colors.success[500],
-            },
-            {
-                key: 'cancelled',
-                name: tStatus('cancelled'),
-                value: data?.month.cancelled ?? 0,
-                color: colors.warning[500],
-            },
-        ],
-        [data?.month.confirmed, data?.month.cancelled, tStatus],
-    );
-
-    const paymentData = useMemo(
-        () => [
-            { key: 'paid', name: tRes('paid'), value: data?.month.paid ?? 0, color: colors.success[500] },
-            { key: 'unpaid', name: tRes('unpaid'), value: data?.month.unpaid ?? 0, color: colors.warning[500] },
-        ],
-        [data?.month.paid, data?.month.unpaid, tRes],
-    );
-
-    const hasReservationsThisMonth = (data?.month.total ?? 0) > 0;
-
     const incomeTrendData = useMemo(
         () =>
             (incomeTrend ?? []).map((point) => ({
@@ -312,31 +288,17 @@ export default function DashboardPage() {
         [incomeTrend],
     );
 
-    const incomeBreakdownData = useMemo(() => {
-        if (!incomeSummary) return [];
-        return [
-            {
-                key: 'charges',
-                name: tIncome('totalCharges'),
-                value: incomeSummary.totalCharges,
-                color: colors.warning[500],
-            },
-            {
-                key: 'investments',
-                name: tIncome('totalInvestments'),
-                value: incomeSummary.totalInvestments,
-                color: colors.primary[400],
-            },
-            {
-                key: 'net',
-                name: tIncome('netBalance'),
-                value: Math.max(incomeSummary.netBalance, 0),
-                color: colors.success[500],
-            },
-        ].filter((entry) => entry.value > 0);
-    }, [incomeSummary, tIncome]);
+    const reservationTrendData = useMemo(
+        () =>
+            (reservationTrend ?? []).map((point) => ({
+                label: formatMonthLabel(point.year, point.month),
+                revenue: point.revenue,
+                paidRevenue: point.paidRevenue,
+            })),
+        [reservationTrend],
+    );
 
-    const hasIncomeThisMonth = (incomeSummary?.totalIncome ?? 0) > 0;
+    const hasReservationTrend = (reservationTrend ?? []).some((point) => point.count > 0);
 
     const reservationCards: {
         key: string;
@@ -346,14 +308,6 @@ export default function DashboardPage() {
         label: string;
         value: string;
     }[] = [
-        {
-            key: 'today',
-            icon: IconComponentsEnum.clock,
-            iconBg: 'bg-primary-50',
-            iconColor: 'text-primary-600',
-            label: t('kpiToday'),
-            value: String(data?.todayReservations ?? 0),
-        },
         {
             key: 'month',
             icon: IconComponentsEnum.calendar,
@@ -379,6 +333,14 @@ export default function DashboardPage() {
             value: formatMoney(data?.month.paidRevenue ?? 0),
         },
         {
+            key: 'unpaidMonth',
+            icon: IconComponentsEnum.alert,
+            iconBg: 'bg-warning-50',
+            iconColor: 'text-warning-600',
+            label: t('kpiUnpaidMonth'),
+            value: formatMoney(data?.month.unpaidRevenue ?? 0),
+        },
+        {
             key: 'totalPaid',
             icon: IconComponentsEnum.check,
             iconBg: 'bg-success-50',
@@ -386,20 +348,80 @@ export default function DashboardPage() {
             label: t('kpiTotalPaid'),
             value: formatMoney(data?.totalPaid ?? 0),
         },
+        {
+            key: 'totalUnpaid',
+            icon: IconComponentsEnum.alert,
+            iconBg: 'bg-warning-50',
+            iconColor: 'text-warning-600',
+            label: t('kpiTotalUnpaid'),
+            value: formatMoney(data?.totalUnpaid ?? 0),
+        },
     ];
 
-    const incomeCards = [
-        { key: 'income', icon: IconComponentsEnum.layers, label: tIncome('totalIncome'), value: incomeSummary?.totalIncome ?? 0 },
-        { key: 'charges', icon: IconComponentsEnum.alert, label: tIncome('totalCharges'), value: incomeSummary?.totalCharges ?? 0 },
-        { key: 'investments', icon: IconComponentsEnum.star, label: tIncome('totalInvestments'), value: incomeSummary?.totalInvestments ?? 0 },
-        { key: 'savings', icon: IconComponentsEnum.checkCircle, label: tIncome('totalSavings'), value: incomeSummary?.totalSavings ?? 0 },
+    const incomeCards: {
+        key: string;
+        icon: IconComponentsEnum;
+        iconBg: string;
+        iconColor: ELabelColor;
+        label: string;
+        value: string;
+    }[] = [
+        {
+            key: 'income',
+            icon: IconComponentsEnum.layers,
+            iconBg: 'bg-success-50',
+            iconColor: 'text-success-600',
+            label: tIncome('totalIncome'),
+            value: formatMoney(incomeSummary?.totalIncome ?? 0),
+        },
+        {
+            key: 'charges',
+            icon: IconComponentsEnum.alert,
+            iconBg: 'bg-warning-50',
+            iconColor: 'text-warning-600',
+            label: tIncome('totalCharges'),
+            value: formatMoney(incomeSummary?.totalCharges ?? 0),
+        },
+        {
+            key: 'investments',
+            icon: IconComponentsEnum.star,
+            iconBg: 'bg-primary-50',
+            iconColor: 'text-primary-600',
+            label: tIncome('totalInvestments'),
+            value: formatMoney(incomeSummary?.totalInvestments ?? 0),
+        },
+        {
+            key: 'savings',
+            icon: IconComponentsEnum.checkCircle,
+            iconBg: 'bg-success-50',
+            iconColor: 'text-success-600',
+            label: tIncome('totalSavings'),
+            value: formatMoney(incomeSummary?.totalSavings ?? 0),
+        },
+        {
+            key: 'benefits',
+            icon: IconComponentsEnum.gift,
+            iconBg: 'bg-accent-50',
+            iconColor: 'text-accent-600',
+            label: tIncome('totalBenefits'),
+            value: formatMoney(incomeSummary?.totalBenefits ?? 0),
+        },
         {
             key: 'savingsForCharges',
             icon: IconComponentsEnum.archive,
+            iconBg: 'bg-gray-100',
+            iconColor: 'text-gray-600',
             label: tIncome('totalSavingsForCharges'),
-            value: incomeSummary?.totalSavingsForCharges ?? 0,
+            value: formatMoney(incomeSummary?.totalSavingsForCharges ?? 0),
         },
-        { key: 'net', icon: IconComponentsEnum.home, label: tIncome('netBalance'), value: incomeSummary?.netBalance ?? 0 },
+        {
+            key: 'net',
+            icon: IconComponentsEnum.home,
+            iconBg: 'bg-primary-50',
+            iconColor: 'text-primary-600',
+            label: tIncome('netBalance'),
+            value: formatMoney(incomeSummary?.netBalance ?? 0),
+        },
     ];
 
     if (!isAdmin) return null;
@@ -427,9 +449,9 @@ export default function DashboardPage() {
                             viewAllLabel={t('viewAll')}
                         />
 
-                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                            {reservationCards.map((card) => {
-                                const cardNode = (
+                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {reservationCards.map((card) => (
+                                <Div key={card.key}>
                                     <StatCard
                                         icon={card.icon}
                                         iconBg={card.iconBg}
@@ -437,22 +459,58 @@ export default function DashboardPage() {
                                         label={isLoading ? '—' : card.label}
                                         value={isLoading ? '—' : card.value}
                                     />
-                                );
-                                if (card.key === 'today') {
-                                    return (
-                                        <Link key={card.key} href={Routes.Today} className="block">
-                                            {cardNode}
-                                        </Link>
-                                    );
-                                }
-                                return (
-                                    <Div key={card.key}>{cardNode}</Div>
-                                );
-                            })}
+                                </Div>
+                            ))}
                         </Div>
 
-                        <Div className="grid gap-4 lg:grid-cols-3">
-                            <ChartPanel title={t('trendTitle')} className="lg:col-span-2">
+                        <ChartPanel title={t('reservationTrendTitle')}>
+                            {hasReservationTrend ? (
+                                <ResponsiveContainer width="100%" height={260}>
+                                    <ComposedChart
+                                        data={reservationTrendData}
+                                        margin={{ top: 4, right: 8, left: -12, bottom: 0 }}
+                                    >
+                                        <CartesianGrid vertical={false} stroke={colors.gray[100]} />
+                                        <XAxis
+                                            dataKey="label"
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <YAxis
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            width={40}
+                                        />
+                                        <Tooltip
+                                            content={ChartTooltip}
+                                            cursor={{ fill: colors.primary[25] }}
+                                            formatter={(value) => formatMoney(value as number)}
+                                        />
+                                        <Bar
+                                            dataKey="revenue"
+                                            name={t('chartRevenue')}
+                                            fill={colors.primary[300]}
+                                            radius={[4, 4, 0, 0]}
+                                            maxBarSize={32}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="paidRevenue"
+                                            name={t('chartPaidRevenue')}
+                                            stroke={colors.accent[500]}
+                                            strokeWidth={2}
+                                            dot={{ r: 3, fill: colors.accent[500], strokeWidth: 0 }}
+                                        />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <EmptyChartState label={tCommon('empty')} />
+                            )}
+                        </ChartPanel>
+
+                        <ChartPanel title={t('trendTitle')}>
                                 <ResponsiveContainer width="100%" height={260}>
                                     <ComposedChart data={dailyTrendData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                                         <CartesianGrid vertical={false} stroke={colors.gray[100]} />
@@ -479,64 +537,16 @@ export default function DashboardPage() {
                                         />
                                     </ComposedChart>
                                 </ResponsiveContainer>
-                            </ChartPanel>
+                        </ChartPanel>
 
-                            <ChartPanel title={t('statusTitle')}>
-                                {hasReservationsThisMonth ? (
-                                    <>
-                                        <ResponsiveContainer width="100%" height={200}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={statusData}
-                                                    dataKey="value"
-                                                    nameKey="name"
-                                                    innerRadius={55}
-                                                    outerRadius={80}
-                                                    paddingAngle={3}
-                                                    strokeWidth={0}
-                                                    shape={ColoredSector}
-                                                />
-                                                <Tooltip content={ChartTooltip} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        <LegendRow entries={statusData} />
-                                    </>
-                                ) : (
-                                    <EmptyChartState label={tCommon('empty')} />
-                                )}
-                            </ChartPanel>
-                        </Div>
-
-                        <Div className="grid gap-4 lg:grid-cols-2">
-                            <ChartPanel title={t('paymentTitle')}>
-                                {hasReservationsThisMonth ? (
-                                    <>
-                                        <ResponsiveContainer width="100%" height={200}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={paymentData}
-                                                    dataKey="value"
-                                                    nameKey="name"
-                                                    innerRadius={55}
-                                                    outerRadius={80}
-                                                    paddingAngle={3}
-                                                    strokeWidth={0}
-                                                    shape={ColoredSector}
-                                                />
-                                                <Tooltip content={ChartTooltip} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        <LegendRow entries={paymentData} />
-                                    </>
-                                ) : (
-                                    <EmptyChartState label={tCommon('empty')} />
-                                )}
-                            </ChartPanel>
-
-                            <ChartPanel title={t('topRoomsTitle')}>
-                                <TopRoomsList rooms={data?.topRooms ?? []} emptyLabel={t('noRooms')} />
-                            </ChartPanel>
-                        </Div>
+                        <ChartPanel title={t('topRoomsTitle')}>
+                            <TopRoomsList
+                                rooms={data?.topRooms ?? []}
+                                emptyLabel={t('noRoomsConfigured')}
+                                monthLabel={t('roomRevenueMonth')}
+                                totalLabel={t('roomRevenueTotal')}
+                            />
+                        </ChartPanel>
                     </Div>
 
                     <Div className="space-y-4">
@@ -547,21 +557,21 @@ export default function DashboardPage() {
                             viewAllLabel={t('viewAll')}
                         />
 
-                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {incomeCards.map((card) => (
-                                <StatCard
-                                    key={card.key}
-                                    icon={card.icon}
-                                    iconBg="bg-primary-50"
-                                    iconColor="text-primary-600"
-                                    label={card.label}
-                                    value={formatMoney(card.value)}
-                                />
+                                <Div key={card.key}>
+                                    <StatCard
+                                        icon={card.icon}
+                                        iconBg={card.iconBg}
+                                        iconColor={card.iconColor}
+                                        label={incomeSummaryLoading ? '—' : card.label}
+                                        value={incomeSummaryLoading ? '—' : card.value}
+                                    />
+                                </Div>
                             ))}
                         </Div>
 
-                        <Div className="grid gap-4 lg:grid-cols-3">
-                            <ChartPanel title={t('incomeTrendTitle')} className="lg:col-span-2">
+                        <ChartPanel title={t('incomeTrendTitle')}>
                                 <ResponsiveContainer width="100%" height={260}>
                                     <ComposedChart data={incomeTrendData} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
                                         <CartesianGrid vertical={false} stroke={colors.gray[100]} />
@@ -599,36 +609,7 @@ export default function DashboardPage() {
                                         />
                                     </ComposedChart>
                                 </ResponsiveContainer>
-                            </ChartPanel>
-
-                            <ChartPanel title={t('incomeBreakdownTitle')}>
-                                {hasIncomeThisMonth && incomeBreakdownData.length > 0 ? (
-                                    <>
-                                        <ResponsiveContainer width="100%" height={200}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={incomeBreakdownData}
-                                                    dataKey="value"
-                                                    nameKey="name"
-                                                    innerRadius={55}
-                                                    outerRadius={80}
-                                                    paddingAngle={3}
-                                                    strokeWidth={0}
-                                                    shape={ColoredSector}
-                                                />
-                                                <Tooltip
-                                                    content={ChartTooltip}
-                                                    formatter={(value) => formatMoney(value as number)}
-                                                />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        <LegendRow entries={incomeBreakdownData} formatValue={formatMoney} />
-                                    </>
-                                ) : (
-                                    <EmptyChartState label={tCommon('empty')} />
-                                )}
-                            </ChartPanel>
-                        </Div>
+                        </ChartPanel>
                     </Div>
                 </Div>
             }

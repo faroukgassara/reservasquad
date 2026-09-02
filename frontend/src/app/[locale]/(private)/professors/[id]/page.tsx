@@ -23,7 +23,9 @@ import {
     EBadgeSize,
     EBadgeType,
     EButtonSize,
-    EButtonType
+    EButtonType,
+    ESize,
+    IconComponentsEnum,
 } from '@/Enum/Enum';
 import { ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
@@ -183,28 +185,51 @@ export default function ProfessorDetailPage() {
         }
     }
 
-    if (professorLoading) {
-        return <div className="flex min-h-48 w-full items-center justify-center py-16">
-            <Spinner color="text-primary-500" size="lg" />
-        </div>
-    }
+    const backButton = (
+        <Button
+            id="professor-back"
+            type={EButtonType.tertiary}
+            size={EButtonSize.medium}
+            iconPosition="only"
+            icon={{
+                name: IconComponentsEnum.arrowLeft,
+                size: ESize.md,
+                color: 'text-primary-600',
+            }}
+            onClick={() => router.push(Routes.Professors.index)}
+            aria-label={tCommon('back')}
+            className="mt-0.5 shrink-0 border-none bg-gray-100 hover:bg-gray-100 hover:opacity-70"
+        />
+    );
 
     return (
         <LayoutWrapper
             title={t('detailTitle')}
-            subTitle={subtitle}
+            subTitle={professorLoading ? '…' : subtitle}
+            leftActions={backButton}
             mainSection={
-                <Div className="min-h-full space-y-4">
-                    <Div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                        <Button
-                            id="professor-back"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.small}
-                            text={tCommon('back')}
-                            onClick={() => router.push(Routes.Professors.index)}
-                        />
-                        <Div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                            <Div className="w-full sm:w-48">
+                professorLoading ? (
+                    <Div className="flex min-h-48 items-center justify-center py-16">
+                        <Spinner color="text-primary-500" size="lg" />
+                    </Div>
+                ) : (
+                    <Div className="min-h-full space-y-4">
+                        <Div className="grid gap-3 sm:grid-cols-2">
+                            <UnpaidStatCard
+                                label={t('unpaidTotal')}
+                                value={formatMoney(professor?.unpaidTotal ?? 0)}
+                                supportingText={t('unpaidCount', { count: professor?.unpaidCount ?? 0 })}
+                            />
+                            <UnpaidStatCard
+                                tone="paid"
+                                label={t('paidTotal')}
+                                value={formatMoney(professor?.paidTotal ?? 0)}
+                                supportingText={t('paidCount', { count: professor?.paidCount ?? 0 })}
+                            />
+                        </Div>
+
+                        <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                            <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-xl">
                                 <Dropdown
                                     label={tRes('payment')}
                                     options={paidOptions}
@@ -216,8 +241,6 @@ export default function ProfessorDetailPage() {
                                         }
                                     }}
                                 />
-                            </Div>
-                            <Div className="w-full sm:w-48">
                                 <Dropdown
                                     label={tRes('status')}
                                     options={statusOptions}
@@ -235,27 +258,20 @@ export default function ProfessorDetailPage() {
                                 />
                             </Div>
                         </Div>
+
+                        <OrganismTable<ReservationRecord>
+                            columns={columns}
+                            rows={rows}
+                            pageSize={10}
+                            searchable={false}
+                            isLoading={reservationsLoading}
+                            emptyMessage={tCommon('empty')}
+                            page={page}
+                            totalRows={totalRows}
+                            onPageChange={setPage}
+                        />
                     </Div>
-
-                    <UnpaidStatCard
-                        label={t('unpaidTotal')}
-                        value={formatMoney(professor?.unpaidTotal ?? 0)}
-                        supportingText={t('unpaidCount', { count: professor?.unpaidCount ?? 0 })}
-                        isLoading={professorLoading}
-                    />
-
-                    <OrganismTable<ReservationRecord>
-                        columns={columns}
-                        rows={rows}
-                        pageSize={10}
-                        searchable={false}
-                        isLoading={reservationsLoading}
-                        emptyMessage={tCommon('empty')}
-                        page={page}
-                        totalRows={totalRows}
-                        onPageChange={setPage}
-                    />
-                </Div>
+                )
             }
         />
     );

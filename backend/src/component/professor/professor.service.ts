@@ -74,21 +74,31 @@ export class ProfessorService {
 
   async getProfessorDetail(id: string) {
     const professor = await this.getProfessorById(id);
-    const unpaid = await this.prismaService.reservation.aggregate({
-      where: {
-        professorId: id,
-        deletedAt: null,
-        isPaid: false,
-        status: EReservationStatus.CONFIRMED,
-      },
-      _sum: { price: true },
-      _count: true,
-    });
+    const baseWhere = {
+      professorId: id,
+      deletedAt: null,
+      status: EReservationStatus.CONFIRMED,
+    };
+
+    const [unpaid, paid] = await Promise.all([
+      this.prismaService.reservation.aggregate({
+        where: { ...baseWhere, isPaid: false },
+        _sum: { price: true },
+        _count: true,
+      }),
+      this.prismaService.reservation.aggregate({
+        where: { ...baseWhere, isPaid: true },
+        _sum: { price: true },
+        _count: true,
+      }),
+    ]);
 
     return {
       ...professor,
       unpaidTotal: Number(unpaid._sum.price ?? 0),
       unpaidCount: unpaid._count,
+      paidTotal: Number(paid._sum.price ?? 0),
+      paidCount: paid._count,
     };
   }
 

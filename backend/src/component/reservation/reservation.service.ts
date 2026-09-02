@@ -545,21 +545,72 @@ export class ReservationService {
           ? { professorId }
           : undefined;
 
-    const unpaid = await this.prismaService.reservation.aggregate({
-      where: {
-        deletedAt: null,
-        isPaid: false,
-        status: EReservationStatus.CONFIRMED,
-        ...professorFilter,
-      },
-      _sum: { price: true },
-      _count: true,
-    });
+    const baseWhere = {
+      deletedAt: null,
+      status: EReservationStatus.CONFIRMED,
+      ...professorFilter,
+    };
+
+    const [unpaid, paid] = await Promise.all([
+      this.prismaService.reservation.aggregate({
+        where: { ...baseWhere, isPaid: false },
+        _sum: { price: true },
+        _count: true,
+      }),
+      this.prismaService.reservation.aggregate({
+        where: { ...baseWhere, isPaid: true },
+        _sum: { price: true },
+        _count: true,
+      }),
+    ]);
 
     return {
       unpaidTotal: Number(unpaid._sum.price ?? 0),
       unpaidCount: unpaid._count,
+      paidTotal: Number(paid._sum.price ?? 0),
+      paidCount: paid._count,
     };
+  }
+
+  async getReservationTrend(months: number) {
+    const now = new Date();
+    const count = Math.min(Math.max(Math.trunc(months) || 6, 1), 24);
+    const periods = Array.from({ length: count }, (_, i) => {
+      const start = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
+      const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+      return {
+        year: start.getFullYear(),
+        month: start.getMonth() + 1,
+        start,
+        end,
+      };
+    });
+
+    return Promise.all(
+      periods.map(async (period) => {
+        const reservations = await this.prismaService.reservation.findMany({
+          where: {
+            deletedAt: null,
+            status: EReservationStatus.CONFIRMED,
+            startAt: { gte: period.start, lt: period.end },
+          },
+          select: { price: true, isPaid: true },
+        });
+
+        const revenue = reservations.reduce((sum, row) => sum + Number(row.price), 0);
+        const paidRevenue = reservations
+          .filter((row) => row.isPaid)
+          .reduce((sum, row) => sum + Number(row.price), 0);
+
+        return {
+          year: period.year,
+          month: period.month,
+          count: reservations.length,
+          revenue: Math.round(revenue * 100) / 100,
+          paidRevenue: Math.round(paidRevenue * 100) / 100,
+        };
+      }),
+    );
   }
 
   async calendar(query: CalendarQueryDto) {
@@ -918,7 +969,7 @@ export class ReservationService {
     const trendFrom = new Date(startOfDay);
     trendFrom.setDate(trendFrom.getDate() - 13);
 
-    const [rooms, professors, todayReservations, monthReservations, trendReservations, paidAggregate] =
+    const [rooms, professors, todayReservations, monthReservations, trendReservations, paidAggregate, unpaidAggregate, allRooms, totalRoomRevenue] =
       await Promise.all([
         this.prismaService.room.count({
           where: { deletedAt: null },
@@ -960,6 +1011,27 @@ export class ReservationService {
           },
           _sum: { price: true },
         }),
+        this.prismaService.reservation.aggregate({
+          where: {
+            deletedAt: null,
+            isPaid: false,
+            status: EReservationStatus.CONFIRMED,
+          },
+          _sum: { price: true },
+        }),
+        this.prismaService.room.findMany({
+          where: { deletedAt: null },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+        this.prismaService.reservation.groupBy({
+          by: ['roomId'],
+          where: {
+            deletedAt: null,
+            status: EReservationStatus.CONFIRMED,
+          },
+          _sum: { price: true },
+        }),
       ]);
 
     const month = monthReservations.reduce(
@@ -976,33 +1048,55 @@ export class ReservationService {
           if (r.status === EReservationStatus.CONFIRMED) {
             acc.paidRevenue += Number(r.price);
           }
-        } else acc.unpaid += 1;
+        } else {
+          acc.unpaid += 1;
+          if (r.status === EReservationStatus.CONFIRMED) {
+            acc.unpaidRevenue += Number(r.price);
+          }
+        }
         return acc;
       },
-      { total: 0, confirmed: 0, cancelled: 0, paid: 0, unpaid: 0, revenue: 0, paidRevenue: 0 },
+      {
+        total: 0,
+        confirmed: 0,
+        cancelled: 0,
+        paid: 0,
+        unpaid: 0,
+        revenue: 0,
+        paidRevenue: 0,
+        unpaidRevenue: 0,
+      },
     );
     month.revenue = Math.round(month.revenue * 100) / 100;
     month.paidRevenue = Math.round(month.paidRevenue * 100) / 100;
+    month.unpaidRevenue = Math.round(month.unpaidRevenue * 100) / 100;
 
-    const roomBuckets = new Map<
-      string,
-      { roomId: string; roomName: string; count: number; revenue: number }
-    >();
+    const monthRevenueByRoom = new Map<string, number>();
     for (const r of monthReservations) {
       if (r.status !== EReservationStatus.CONFIRMED) continue;
-      const bucket =
-        roomBuckets.get(r.roomId) ??
-        ({ roomId: r.roomId, roomName: r.room?.name ?? '—', count: 0, revenue: 0 } as const);
-      roomBuckets.set(r.roomId, {
-        ...bucket,
-        count: bucket.count + 1,
-        revenue: bucket.revenue + Number(r.price),
-      });
+      monthRevenueByRoom.set(
+        r.roomId,
+        (monthRevenueByRoom.get(r.roomId) ?? 0) + Number(r.price),
+      );
     }
-    const topRooms = Array.from(roomBuckets.values())
-      .map((bucket) => ({ ...bucket, revenue: Math.round(bucket.revenue * 100) / 100 }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
+
+    const totalRevenueByRoom = new Map(
+      totalRoomRevenue.map((row) => [row.roomId, Number(row._sum.price ?? 0)]),
+    );
+
+    const topRooms = allRooms
+      .map((room) => ({
+        roomId: room.id,
+        roomName: room.name,
+        monthRevenue: Math.round((monthRevenueByRoom.get(room.id) ?? 0) * 100) / 100,
+        totalRevenue: Math.round((totalRevenueByRoom.get(room.id) ?? 0) * 100) / 100,
+      }))
+      .sort(
+        (a, b) =>
+          b.monthRevenue - a.monthRevenue ||
+          b.totalRevenue - a.totalRevenue ||
+          a.roomName.localeCompare(b.roomName),
+      );
 
     const trendMap = new Map<string, { count: number; revenue: number }>();
     for (let i = 0; i < 14; i++) {
@@ -1031,6 +1125,7 @@ export class ReservationService {
       topRooms,
       dailyTrend,
       totalPaid: Math.round(Number(paidAggregate._sum.price ?? 0) * 100) / 100,
+      totalUnpaid: Math.round(Number(unpaidAggregate._sum.price ?? 0) * 100) / 100,
     };
   }
 }

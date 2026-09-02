@@ -18,6 +18,8 @@ export interface ProfessorRecord {
 export interface ProfessorDetailRecord extends ProfessorRecord {
     unpaidTotal: number;
     unpaidCount: number;
+    paidTotal: number;
+    paidCount: number;
 }
 
 export interface PaginatedProfessors {

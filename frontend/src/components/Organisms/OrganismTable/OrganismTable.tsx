@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
@@ -239,25 +239,47 @@ const TableActionMenu = <TRow,>({ actions = [], row, rowIndex }: ITableActionMen
 
     const visibleActions = actions.filter((action) => !action.isVisible || action.isVisible(row));
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!open || !triggerRef.current) return;
 
+        const menuWidth = 176;
+        const gap = 4;
+        const viewportPadding = 8;
+        const estimatedItemHeight = 40;
+
         const updatePosition = () => {
-            const rect = triggerRef.current!.getBoundingClientRect();
-            const menuWidth = 176;
-            const left = Math.min(
-                Math.max(8, rect.right - menuWidth),
-                window.innerWidth - menuWidth - 8,
+            const trigger = triggerRef.current;
+            if (!trigger) return;
+
+            const rect = trigger.getBoundingClientRect();
+            const menuHeight =
+                menuRef.current?.offsetHeight ??
+                visibleActions.length * estimatedItemHeight + gap * 2;
+
+            let top = rect.bottom + gap;
+            if (top + menuHeight > window.innerHeight - viewportPadding) {
+                top = rect.top - menuHeight - gap;
+            }
+            top = Math.max(
+                viewportPadding,
+                Math.min(top, window.innerHeight - menuHeight - viewportPadding),
             );
+
+            const left = Math.min(
+                Math.max(viewportPadding, rect.right - menuWidth),
+                window.innerWidth - menuWidth - viewportPadding,
+            );
+
             setMenuStyle({
                 position: 'fixed',
-                top: rect.bottom + 4,
+                top,
                 left,
                 zIndex: 10050,
             });
         };
 
         updatePosition();
+        const frameId = requestAnimationFrame(updatePosition);
 
         const onPointerDown = (event: MouseEvent) => {
             const target = event.target as Node;
@@ -272,11 +294,12 @@ const TableActionMenu = <TRow,>({ actions = [], row, rowIndex }: ITableActionMen
         window.addEventListener('scroll', onScrollOrResize, true);
 
         return () => {
+            cancelAnimationFrame(frameId);
             document.removeEventListener('mousedown', onPointerDown);
             window.removeEventListener('resize', onScrollOrResize);
             window.removeEventListener('scroll', onScrollOrResize, true);
         };
-    }, [open]);
+    }, [open, visibleActions.length]);
 
     if (visibleActions.length === 0) return null;
 

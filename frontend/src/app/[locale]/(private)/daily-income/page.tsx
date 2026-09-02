@@ -38,6 +38,7 @@ import {
     type IncomeLineType,
 } from '@/lib/daily-income-api';
 import { exportDailyIncomePdf } from '@/lib/export-daily-income-pdf';
+import StatCard from '@/components/Primitives/StatCard/StatCard';
 import {
     EBadgeSize,
     EBadgeType,
@@ -48,6 +49,7 @@ import {
     EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
+import type { ELabelColor } from '@/theme/labelColors';
 import { ITableAction, ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
 
 type ModalState =
@@ -101,7 +103,7 @@ export default function DailyIncomePage() {
         enabled: isAdmin,
     });
 
-    const { data: summary } = useQuery({
+    const { data: summary, isLoading: summaryLoading } = useQuery({
         queryKey: ['daily-income-summary', year, month],
         queryFn: () => fetchDailyIncomeSummary({ year, month }),
         enabled: isAdmin,
@@ -417,22 +419,70 @@ export default function DailyIncomePage() {
         [openModal, tCommon],
     );
 
-    const summaryCards = [
-        { key: 'income', label: t('totalIncome'), value: summary?.totalIncome ?? 0 },
-        { key: 'charges', label: t('totalCharges'), value: summary?.totalCharges ?? 0 },
+    const summaryCards: {
+        key: string;
+        icon: IconComponentsEnum;
+        iconBg: string;
+        iconColor: ELabelColor;
+        label: string;
+        value: string;
+    }[] = [
+        {
+            key: 'income',
+            icon: IconComponentsEnum.layers,
+            iconBg: 'bg-success-50',
+            iconColor: 'text-success-600',
+            label: t('totalIncome'),
+            value: formatMoney(summary?.totalIncome ?? 0),
+        },
+        {
+            key: 'charges',
+            icon: IconComponentsEnum.alert,
+            iconBg: 'bg-warning-50',
+            iconColor: 'text-warning-600',
+            label: t('totalCharges'),
+            value: formatMoney(summary?.totalCharges ?? 0),
+        },
         {
             key: 'investments',
+            icon: IconComponentsEnum.star,
+            iconBg: 'bg-primary-50',
+            iconColor: 'text-primary-600',
             label: t('totalInvestments'),
-            value: summary?.totalInvestments ?? 0,
+            value: formatMoney(summary?.totalInvestments ?? 0),
         },
-        { key: 'savings', label: t('totalSavings'), value: summary?.totalSavings ?? 0 },
-        { key: 'benefits', label: t('totalBenefits'), value: summary?.totalBenefits ?? 0 },
+        {
+            key: 'savings',
+            icon: IconComponentsEnum.checkCircle,
+            iconBg: 'bg-success-50',
+            iconColor: 'text-success-600',
+            label: t('totalSavings'),
+            value: formatMoney(summary?.totalSavings ?? 0),
+        },
+        {
+            key: 'benefits',
+            icon: IconComponentsEnum.gift,
+            iconBg: 'bg-accent-50',
+            iconColor: 'text-accent-600',
+            label: t('totalBenefits'),
+            value: formatMoney(summary?.totalBenefits ?? 0),
+        },
         {
             key: 'savingsForCharges',
+            icon: IconComponentsEnum.archive,
+            iconBg: 'bg-gray-100',
+            iconColor: 'text-gray-600',
             label: t('totalSavingsForCharges'),
-            value: summary?.totalSavingsForCharges ?? 0,
+            value: formatMoney(summary?.totalSavingsForCharges ?? 0),
         },
-        { key: 'net', label: t('netBalance'), value: summary?.netBalance ?? 0 },
+        {
+            key: 'net',
+            icon: IconComponentsEnum.home,
+            iconBg: 'bg-primary-50',
+            iconColor: 'text-primary-600',
+            label: t('netBalance'),
+            value: formatMoney(summary?.netBalance ?? 0),
+        },
     ];
 
     const handleExportPdf = useCallback(() => {
@@ -579,26 +629,16 @@ export default function DailyIncomePage() {
                             />
                         </Div>
 
-                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {summaryCards.map((card) => (
-                                <Div
-                                    key={card.key}
-                                    className="rounded-xl border border-gray-100 bg-white p-4 flex flex-col justify-center"
-                                >
-                                    <Label
-                                        variant={EVariantLabel.caption}
-                                        color="text-gray-500"
-                                        className="mb-1 block"
-                                    >
-                                        {card.label}
-                                    </Label>
-                                    <Label
-                                        variant={EVariantLabel.body}
-                                        color="text-primary-700"
-                                        className="block font-semibold"
-                                    >
-                                        {formatMoney(card.value)}
-                                    </Label>
+                                <Div key={card.key}>
+                                    <StatCard
+                                        icon={card.icon}
+                                        iconBg={card.iconBg}
+                                        iconColor={card.iconColor}
+                                        label={summaryLoading ? '—' : card.label}
+                                        value={summaryLoading ? '—' : card.value}
+                                    />
                                 </Div>
                             ))}
                         </Div>

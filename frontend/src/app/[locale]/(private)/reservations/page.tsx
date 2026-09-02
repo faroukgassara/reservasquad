@@ -680,14 +680,25 @@ export default function ReservationsAdminPage() {
                             />
                         </Div>
 
-                        <UnpaidStatCard
-                            label={tProf('unpaidTotal')}
-                            value={formatMoney(unpaidSummary?.unpaidTotal ?? 0)}
-                            supportingText={tProf('unpaidCount', {
-                                count: unpaidSummary?.unpaidCount ?? 0,
-                            })}
-                            isLoading={unpaidSummaryLoading}
-                        />
+                        <Div className="grid gap-3 sm:grid-cols-2">
+                            <UnpaidStatCard
+                                label={tProf('unpaidTotal')}
+                                value={formatMoney(unpaidSummary?.unpaidTotal ?? 0)}
+                                supportingText={tProf('unpaidCount', {
+                                    count: unpaidSummary?.unpaidCount ?? 0,
+                                })}
+                                isLoading={unpaidSummaryLoading}
+                            />
+                            <UnpaidStatCard
+                                tone="paid"
+                                label={tProf('paidTotal')}
+                                value={formatMoney(unpaidSummary?.paidTotal ?? 0)}
+                                supportingText={tProf('paidCount', {
+                                    count: unpaidSummary?.paidCount ?? 0,
+                                })}
+                                isLoading={unpaidSummaryLoading}
+                            />
+                        </Div>
 
                         <OrganismTable<ReservationRecord>
                             columns={columns}

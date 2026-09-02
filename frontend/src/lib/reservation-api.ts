@@ -43,14 +43,22 @@ export interface PaginatedReservations {
 export interface DashboardRoomBreakdown {
     roomId: string;
     roomName: string;
-    count: number;
-    revenue: number;
+    monthRevenue: number;
+    totalRevenue: number;
 }
 
 export interface DashboardDailyTrendPoint {
     date: string;
     count: number;
     revenue: number;
+}
+
+export interface ReservationMonthlyTrendPoint {
+    year: number;
+    month: number;
+    count: number;
+    revenue: number;
+    paidRevenue: number;
 }
 
 export interface DashboardStats {
@@ -65,10 +73,12 @@ export interface DashboardStats {
         unpaid: number;
         revenue: number;
         paidRevenue: number;
+        unpaidRevenue: number;
     };
     topRooms: DashboardRoomBreakdown[];
     dailyTrend: DashboardDailyTrendPoint[];
     totalPaid: number;
+    totalUnpaid: number;
 }
 
 function unwrapData<T>(raw: { data?: T } | T): T {
@@ -78,19 +88,21 @@ function unwrapData<T>(raw: { data?: T } | T): T {
     return raw as T;
 }
 
-export interface UnpaidSummary {
+export interface PaymentSummary {
     unpaidTotal: number;
     unpaidCount: number;
+    paidTotal: number;
+    paidCount: number;
 }
 
-export async function fetchUnpaidSummary(professorId?: string): Promise<UnpaidSummary> {
+export async function fetchUnpaidSummary(professorId?: string): Promise<PaymentSummary> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const sp = new URLSearchParams();
     if (professorId) sp.set('professorId', professorId);
     const q = sp.toString();
     const res = await api.get(`/api/reservations/unpaid-summary${q ? `?${q}` : ''}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch unpaid summary');
-    return unwrapData<UnpaidSummary>(res.data as { data?: UnpaidSummary });
+    return unwrapData<PaymentSummary>(res.data as { data?: PaymentSummary });
 }
 
 export function formatMoney(value: number | string): string {
@@ -164,6 +176,21 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
     const res = await api.get('/api/reservations/stats', headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch stats');
     return unwrapData<DashboardStats>(res.data as { data?: DashboardStats });
+}
+
+export async function fetchReservationTrend(params: {
+    months?: number;
+}): Promise<ReservationMonthlyTrendPoint[]> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params.months) sp.set('months', String(params.months));
+    const q = sp.toString();
+    const path = q ? `/api/reservations/trend?${q}` : '/api/reservations/trend';
+    const res = await api.get(path, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch reservation trend');
+    return unwrapData<ReservationMonthlyTrendPoint[]>(
+        res.data as { data?: ReservationMonthlyTrendPoint[] },
+    );
 }
 
 export interface TodayProfessor {
