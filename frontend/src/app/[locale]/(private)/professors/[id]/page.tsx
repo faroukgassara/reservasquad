@@ -11,6 +11,7 @@ import Badge from '@/components/Primitives/Badge/Badge';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Label from '@/components/Primitives/Label/Label';
+import UnpaidStatCard from '@/components/Primitives/UnpaidStatCard/UnpaidStatCard';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import { Routes } from '@/lib/routes';
 import { fetchProfessorById } from '@/lib/professor-api';
@@ -236,6 +237,13 @@ export default function ProfessorDetailPage() {
                             …
                         </Label>
                     ) : null}
+
+                    <UnpaidStatCard
+                        label={t('unpaidTotal')}
+                        value={formatMoney(professor?.unpaidTotal ?? 0)}
+                        supportingText={t('unpaidCount', { count: professor?.unpaidCount ?? 0 })}
+                        isLoading={professorLoading}
+                    />
 
                     <OrganismTable<ReservationRecord>
                         columns={columns}

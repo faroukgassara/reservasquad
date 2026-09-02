@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProfessorDto } from 'src/dto/professor/createProfessor.dto';
 import { UpdateProfessorDto } from 'src/dto/professor/updateProfessor.dto';
 import { FetchProfessorsDto } from 'src/dto/professor/fetchProfessors.dto';
-import { Prisma, Professor } from 'src/generated/prisma/client';
+import { EReservationStatus, Prisma, Professor } from 'src/generated/prisma/client';
 import { ProxyPrismaModel } from 'src/common/pagination/proxy';
 import { buildAndFilters, composeWhere } from 'src/common/pagination/prisma-query.builder';
 import { PaginationData } from 'src/common/pagination/types';
@@ -70,6 +70,26 @@ export class ProfessorService {
     });
     if (!professor) throw new NotFoundException('Professor not found');
     return professor;
+  }
+
+  async getProfessorDetail(id: string) {
+    const professor = await this.getProfessorById(id);
+    const unpaid = await this.prismaService.reservation.aggregate({
+      where: {
+        professorId: id,
+        deletedAt: null,
+        isPaid: false,
+        status: EReservationStatus.CONFIRMED,
+      },
+      _sum: { price: true },
+      _count: true,
+    });
+
+    return {
+      ...professor,
+      unpaidTotal: Number(unpaid._sum.price ?? 0),
+      unpaidCount: unpaid._count,
+    };
   }
 
   async listProfessors(

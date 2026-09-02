@@ -378,6 +378,14 @@ export default function DashboardPage() {
             label: t('kpiPaidMonth'),
             value: String(data?.month.paid ?? 0),
         },
+        {
+            key: 'totalPaid',
+            icon: IconComponentsEnum.check,
+            iconBg: 'bg-success-50',
+            iconColor: 'text-success-600',
+            label: t('kpiTotalPaid'),
+            value: formatMoney(data?.totalPaid ?? 0),
+        },
     ];
 
     const incomeCards = [
@@ -419,7 +427,7 @@ export default function DashboardPage() {
                             viewAllLabel={t('viewAll')}
                         />
 
-                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                             {reservationCards.map((card) => {
                                 const cardNode = (
                                     <StatCard

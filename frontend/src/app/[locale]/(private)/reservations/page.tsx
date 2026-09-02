@@ -17,6 +17,7 @@ import FindFreeRoomModal from '@/components/Modals/FindFreeRoomModal/FindFreeRoo
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
+import UnpaidStatCard from '@/components/Primitives/UnpaidStatCard/UnpaidStatCard';
 import {
     bulkMarkReservationsPaid,
     cancelReservation,
@@ -25,6 +26,7 @@ import {
     deleteFutureInSeries,
     deleteReservation,
     fetchReservations,
+    fetchUnpaidSummary,
     formatMoney,
     updateReservation,
     type ReservationRecord,
@@ -71,6 +73,7 @@ function formatDateTime(value: string): string {
 
 export default function ReservationsAdminPage() {
     const t = useTranslations('admin.reservations');
+    const tProf = useTranslations('admin.professors');
     const tCommon = useTranslations('common');
     const tStatus = useTranslations('status');
     const { isAllowed } = useAuthorization();
@@ -133,6 +136,14 @@ export default function ReservationsAdminPage() {
         queryFn: () => fetchProfessors({ page: 1, perPage: 100 }),
     });
 
+    const unpaidProfessorId =
+        professorFilter !== 'all' ? professorFilter : undefined;
+
+    const { data: unpaidSummary, isLoading: unpaidSummaryLoading } = useQuery({
+        queryKey: ['unpaid-summary', unpaidProfessorId ?? 'all'],
+        queryFn: () => fetchUnpaidSummary(unpaidProfessorId),
+    });
+
     const rooms = roomsData?.data ?? [];
     const professors = professorsData?.data ?? [];
 
@@ -174,12 +185,18 @@ export default function ReservationsAdminPage() {
         [t, tStatus],
     );
 
+    const invalidateReservations = () => {
+        queryClient.invalidateQueries({ queryKey: ['reservations'] });
+        queryClient.invalidateQueries({ queryKey: ['calendar'] });
+        queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+        queryClient.invalidateQueries({ queryKey: ['professor'] });
+        queryClient.invalidateQueries({ queryKey: ['unpaid-summary'] });
+    };
+
     const createMutation = useMutation({
         mutationFn: createReservation,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
-            queryClient.invalidateQueries({ queryKey: ['calendar'] });
-            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            invalidateReservations();
             openToast(tCommon('success'), t('create'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
@@ -192,9 +209,7 @@ export default function ReservationsAdminPage() {
     const seriesMutation = useMutation({
         mutationFn: createReservationSeries,
         onSuccess: (result) => {
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
-            queryClient.invalidateQueries({ queryKey: ['calendar'] });
-            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            invalidateReservations();
             openToast(tCommon('success'), t('seriesCreated', { count: result.count }), {
                 type: EToastType.SUCCESS,
             });
@@ -210,9 +225,7 @@ export default function ReservationsAdminPage() {
         mutationFn: ({ id, body }: { id: string; body: Parameters<typeof updateReservation>[1] }) =>
             updateReservation(id, body),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
-            queryClient.invalidateQueries({ queryKey: ['calendar'] });
-            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            invalidateReservations();
             openToast(tCommon('success'), tCommon('save'), { type: EToastType.SUCCESS });
             setModalState(null);
         },
@@ -225,7 +238,7 @@ export default function ReservationsAdminPage() {
     const cancelMutation = useMutation({
         mutationFn: cancelReservation,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            invalidateReservations();
             openToast(tCommon('success'), t('cancel'), { type: EToastType.SUCCESS });
             setModalState(null);
             closeModal();
@@ -236,7 +249,7 @@ export default function ReservationsAdminPage() {
     const deleteMutation = useMutation({
         mutationFn: deleteReservation,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
+            invalidateReservations();
             openToast(tCommon('success'), tCommon('delete'), { type: EToastType.SUCCESS });
             setModalState(null);
             closeModal();
@@ -247,8 +260,7 @@ export default function ReservationsAdminPage() {
     const bulkPaidMutation = useMutation({
         mutationFn: bulkMarkReservationsPaid,
         onSuccess: (result) => {
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
-            queryClient.invalidateQueries({ queryKey: ['calendar'] });
+            invalidateReservations();
             queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
             openToast(tCommon('success'), t('bulkPaidSuccess', { count: result.updated }), {
                 type: EToastType.SUCCESS,
@@ -263,9 +275,7 @@ export default function ReservationsAdminPage() {
     const deleteSeriesMutation = useMutation({
         mutationFn: deleteFutureInSeries,
         onSuccess: (result) => {
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
-            queryClient.invalidateQueries({ queryKey: ['calendar'] });
-            queryClient.invalidateQueries({ queryKey: ['professor-reservations'] });
+            invalidateReservations();
             openToast(tCommon('success'), t('deleteSeriesFuture'), {
                 type: EToastType.SUCCESS,
             });
@@ -669,6 +679,16 @@ export default function ReservationsAdminPage() {
                                 }}
                             />
                         </Div>
+
+                        <UnpaidStatCard
+                            label={tProf('unpaidTotal')}
+                            value={formatMoney(unpaidSummary?.unpaidTotal ?? 0)}
+                            supportingText={tProf('unpaidCount', {
+                                count: unpaidSummary?.unpaidCount ?? 0,
+                            })}
+                            isLoading={unpaidSummaryLoading}
+                        />
+
                         <OrganismTable<ReservationRecord>
                             columns={columns}
                             rows={rows}

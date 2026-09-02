@@ -537,6 +537,31 @@ export class ReservationService {
     );
   }
 
+  async getUnpaidSummary(professorId?: string) {
+    const professorFilter: Prisma.ReservationWhereInput | undefined =
+      professorId === 'none'
+        ? { professorId: null }
+        : professorId
+          ? { professorId }
+          : undefined;
+
+    const unpaid = await this.prismaService.reservation.aggregate({
+      where: {
+        deletedAt: null,
+        isPaid: false,
+        status: EReservationStatus.CONFIRMED,
+        ...professorFilter,
+      },
+      _sum: { price: true },
+      _count: true,
+    });
+
+    return {
+      unpaidTotal: Number(unpaid._sum.price ?? 0),
+      unpaidCount: unpaid._count,
+    };
+  }
+
   async calendar(query: CalendarQueryDto) {
     const from = new Date(query.from);
     const to = new Date(query.to);
@@ -893,7 +918,7 @@ export class ReservationService {
     const trendFrom = new Date(startOfDay);
     trendFrom.setDate(trendFrom.getDate() - 13);
 
-    const [rooms, professors, todayReservations, monthReservations, trendReservations] =
+    const [rooms, professors, todayReservations, monthReservations, trendReservations, paidAggregate] =
       await Promise.all([
         this.prismaService.room.count({
           where: { deletedAt: null },
@@ -926,6 +951,14 @@ export class ReservationService {
             startAt: { gte: trendFrom, lt: endOfDay },
           },
           select: { startAt: true, price: true },
+        }),
+        this.prismaService.reservation.aggregate({
+          where: {
+            deletedAt: null,
+            isPaid: true,
+            status: EReservationStatus.CONFIRMED,
+          },
+          _sum: { price: true },
         }),
       ]);
 
@@ -985,6 +1018,14 @@ export class ReservationService {
       revenue: Math.round(value.revenue * 100) / 100,
     }));
 
-    return { rooms, professors, todayReservations, month, topRooms, dailyTrend };
+    return {
+      rooms,
+      professors,
+      todayReservations,
+      month,
+      topRooms,
+      dailyTrend,
+      totalPaid: Math.round(Number(paidAggregate._sum.price ?? 0) * 100) / 100,
+    };
   }
 }

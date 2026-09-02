@@ -169,6 +169,7 @@
         "kpiMonthTotal": "هذا الشهر",
         "kpiRevenueMonth": "الإيرادات هذا الشهر",
         "kpiPaidMonth": "المدفوعة هذا الشهر",
+        "kpiTotalPaid": "إجمالي المدفوع",
         "trendTitle": "الحجوزات — آخر 14 يومًا",
         "statusTitle": "التوزيع حسب الحالة",
         "paymentTitle": "توزيع الدفع",
@@ -258,7 +259,9 @@
             "reservations": "الحجوزات",
             "detailTitle": "حجوزات الأستاذ",
             "filterAllPayments": "كل المدفوعات",
-            "filterAllStatuses": "كل الحالات"
+            "filterAllStatuses": "كل الحالات",
+            "unpaidTotal": "إجمالي غير المدفوع",
+            "unpaidCount": "{count, plural, =0 {لا توجد حجوزات غير مدفوعة} one {حجز غير مدفوع واحد} other {# حجوزات غير مدفوعة}}"
         },
         "reservations": {
             "title": "الحجوزات",

@@ -169,6 +169,7 @@
         "kpiMonthTotal": "This month",
         "kpiRevenueMonth": "Revenue this month",
         "kpiPaidMonth": "Paid this month",
+        "kpiTotalPaid": "Total paid",
         "trendTitle": "Reservations — last 14 days",
         "statusTitle": "Status breakdown",
         "paymentTitle": "Payment breakdown",
@@ -258,7 +259,9 @@
             "reservations": "Reservations",
             "detailTitle": "Professor reservations",
             "filterAllPayments": "All payments",
-            "filterAllStatuses": "All statuses"
+            "filterAllStatuses": "All statuses",
+            "unpaidTotal": "Total unpaid",
+            "unpaidCount": "{count, plural, =0 {No unpaid reservations} one {# unpaid reservation} other {# unpaid reservations}}"
         },
         "reservations": {
             "title": "Reservations",

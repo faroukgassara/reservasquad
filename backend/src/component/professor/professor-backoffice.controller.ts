@@ -161,7 +161,7 @@ export class ProfessorBackofficeController {
   @swagger.ApiOperation({ summary: 'Get professor by id' })
   async getOne(@Res() res: Response, @Param('id') id: string) {
     try {
-      const professor = await this.professorService.getProfessorById(id);
+      const professor = await this.professorService.getProfessorDetail(id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: professor });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

@@ -67,6 +67,7 @@ export interface DashboardStats {
     };
     topRooms: DashboardRoomBreakdown[];
     dailyTrend: DashboardDailyTrendPoint[];
+    totalPaid: number;
 }
 
 function unwrapData<T>(raw: { data?: T } | T): T {
@@ -74,6 +75,21 @@ function unwrapData<T>(raw: { data?: T } | T): T {
         return (raw as { data: T }).data;
     }
     return raw as T;
+}
+
+export interface UnpaidSummary {
+    unpaidTotal: number;
+    unpaidCount: number;
+}
+
+export async function fetchUnpaidSummary(professorId?: string): Promise<UnpaidSummary> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (professorId) sp.set('professorId', professorId);
+    const q = sp.toString();
+    const res = await api.get(`/api/reservations/unpaid-summary${q ? `?${q}` : ''}`, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch unpaid summary');
+    return unwrapData<UnpaidSummary>(res.data as { data?: UnpaidSummary });
 }
 
 export function formatMoney(value: number | string): string {

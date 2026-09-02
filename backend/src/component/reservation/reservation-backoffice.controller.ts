@@ -139,6 +139,20 @@ export class ReservationBackofficeController {
     }
   }
 
+  @Get('unpaid-summary')
+  @swagger.ApiOperation({ summary: 'Total unpaid amount for confirmed reservations' })
+  async unpaidSummary(
+    @Res() res: Response,
+    @Query('professorId') professorId?: string,
+  ) {
+    try {
+      const data = await this.reservationService.getUnpaidSummary(professorId);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get('list')
   @swagger.ApiOperation({ summary: 'List reservations (server-side filters)' })
   @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })

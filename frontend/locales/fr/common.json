@@ -169,6 +169,7 @@
         "kpiMonthTotal": "Ce mois-ci",
         "kpiRevenueMonth": "Revenus ce mois-ci",
         "kpiPaidMonth": "Payées ce mois-ci",
+        "kpiTotalPaid": "Total payé",
         "trendTitle": "Réservations — 14 derniers jours",
         "statusTitle": "Répartition par statut",
         "paymentTitle": "Répartition des paiements",
@@ -258,7 +259,9 @@
             "reservations": "Réservations",
             "detailTitle": "Réservations du professeur",
             "filterAllPayments": "Tous les paiements",
-            "filterAllStatuses": "Tous les statuts"
+            "filterAllStatuses": "Tous les statuts",
+            "unpaidTotal": "Total impayé",
+            "unpaidCount": "{count, plural, =0 {Aucune réservation impayée} one {# réservation impayée} other {# réservations impayées}}"
         },
         "reservations": {
             "title": "Réservations",

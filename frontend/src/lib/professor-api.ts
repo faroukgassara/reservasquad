@@ -15,6 +15,11 @@ export interface ProfessorRecord {
     updatedAt: string;
 }
 
+export interface ProfessorDetailRecord extends ProfessorRecord {
+    unpaidTotal: number;
+    unpaidCount: number;
+}
+
 export interface PaginatedProfessors {
     data: ProfessorRecord[];
     meta: {
@@ -55,11 +60,11 @@ export async function fetchProfessors(params: {
     return unwrapData<PaginatedProfessors>(res.data as { data?: PaginatedProfessors });
 }
 
-export async function fetchProfessorById(id: string): Promise<ProfessorRecord> {
+export async function fetchProfessorById(id: string): Promise<ProfessorDetailRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.get(`/api/professors/${id}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch professor');
-    return unwrapData<ProfessorRecord>(res.data as { data?: ProfessorRecord });
+    return unwrapData<ProfessorDetailRecord>(res.data as { data?: ProfessorDetailRecord });
 }
 
 export async function createProfessor(body: {
