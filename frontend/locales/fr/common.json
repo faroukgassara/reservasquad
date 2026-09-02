@@ -177,6 +177,7 @@
         "statusTitle": "Répartition par statut",
         "paymentTitle": "Répartition des paiements",
         "topRoomsTitle": "Revenus par salle",
+        "roomRevenueRoom": "Salle",
         "roomRevenueMonth": "Ce mois-ci",
         "roomRevenueTotal": "Total",
         "noRoomsConfigured": "Aucune salle configurée",

@@ -177,6 +177,7 @@
         "statusTitle": "Status breakdown",
         "paymentTitle": "Payment breakdown",
         "topRoomsTitle": "Room revenue",
+        "roomRevenueRoom": "Room",
         "roomRevenueMonth": "This month",
         "roomRevenueTotal": "Total",
         "noRoomsConfigured": "No rooms configured",

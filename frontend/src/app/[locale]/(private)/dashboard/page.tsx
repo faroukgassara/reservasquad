@@ -162,64 +162,69 @@ function EmptyChartState({ label }: Readonly<{ label: string }>) {
 function TopRoomsList({
     rooms,
     emptyLabel,
+    roomLabel,
     monthLabel,
     totalLabel,
 }: Readonly<{
     rooms: DashboardRoomBreakdown[];
     emptyLabel: string;
+    roomLabel: string;
     monthLabel: string;
     totalLabel: string;
 }>) {
     if (rooms.length === 0) return <EmptyChartState label={emptyLabel} />;
-    const maxMonthRevenue = Math.max(...rooms.map((room) => room.monthRevenue), 1);
+
     return (
-        <Div className="space-y-3.5">
-            <Div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-3 px-1">
-                <Label variant={EVariantLabel.caption} color="text-gray-400" className="font-medium">
-                    {' '}
+        <Div className="overflow-hidden rounded-xl border border-gray-100">
+            <Div className="grid grid-cols-[minmax(0,1fr)_6.5rem_6.5rem] items-center gap-x-4 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
+                <Label variant={EVariantLabel.caption} color="text-gray-500" className="font-medium">
+                    {roomLabel}
                 </Label>
-                <Label variant={EVariantLabel.caption} color="text-gray-400" className="text-right font-medium">
+                <Label
+                    variant={EVariantLabel.caption}
+                    color="text-gray-500"
+                    className="text-right font-medium"
+                >
                     {monthLabel}
                 </Label>
-                <Label variant={EVariantLabel.caption} color="text-gray-400" className="text-right font-medium">
+                <Label
+                    variant={EVariantLabel.caption}
+                    color="text-gray-500"
+                    className="text-right font-medium"
+                >
                     {totalLabel}
                 </Label>
             </Div>
-            {rooms.map((room) => (
-                <Div key={room.roomId}>
-                    <Div className="mb-1 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3">
+            <Div className="divide-y divide-gray-100">
+                {rooms.map((room) => (
+                    <Div
+                        key={room.roomId}
+                        className="grid grid-cols-[minmax(0,1fr)_6.5rem_6.5rem] items-center gap-x-4 px-4 py-3 transition-colors hover:bg-gray-50/80"
+                    >
                         <Label
                             variant={EVariantLabel.bodySmall}
-                            color="text-gray-700"
+                            color="text-gray-800"
                             className="truncate font-medium"
                         >
                             {room.roomName}
                         </Label>
                         <Label
-                            variant={EVariantLabel.caption}
-                            color="text-gray-600"
-                            className="shrink-0 text-right tabular-nums"
+                            variant={EVariantLabel.bodySmall}
+                            color="text-primary-700"
+                            className="text-right font-semibold tabular-nums"
                         >
                             {formatMoney(room.monthRevenue)}
                         </Label>
                         <Label
                             variant={EVariantLabel.caption}
-                            color="text-gray-500"
-                            className="shrink-0 text-right tabular-nums"
+                            color="text-gray-600"
+                            className="text-right tabular-nums"
                         >
                             {formatMoney(room.totalRevenue)}
                         </Label>
                     </Div>
-                    <Div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                        <Div
-                            className="h-full rounded-full bg-primary-500"
-                            style={{
-                                width: `${Math.max((room.monthRevenue / maxMonthRevenue) * 100, room.monthRevenue > 0 ? 6 : 0)}%`,
-                            }}
-                        />
-                    </Div>
-                </Div>
-            ))}
+                ))}
+            </Div>
         </Div>
     );
 }
@@ -537,6 +542,7 @@ export default function DashboardPage() {
                             <TopRoomsList
                                 rooms={data?.topRooms ?? []}
                                 emptyLabel={t('noRoomsConfigured')}
+                                roomLabel={t('roomRevenueRoom')}
                                 monthLabel={t('roomRevenueMonth')}
                                 totalLabel={t('roomRevenueTotal')}
                             />

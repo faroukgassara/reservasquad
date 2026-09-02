@@ -177,6 +177,7 @@
         "statusTitle": "التوزيع حسب الحالة",
         "paymentTitle": "توزيع الدفع",
         "topRoomsTitle": "إيرادات القاعات",
+        "roomRevenueRoom": "القاعة",
         "roomRevenueMonth": "هذا الشهر",
         "roomRevenueTotal": "الإجمالي",
         "noRoomsConfigured": "لا توجد قاعات",
