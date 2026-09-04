@@ -12,6 +12,7 @@ export interface IDateTimeFieldProps {
     value: string;
     onChange: (value: string) => void;
     error?: string;
+    required?: boolean;
     disabled?: boolean;
     size?: EInputSize;
     status?: EInputStatus;
@@ -34,6 +35,7 @@ const DateTimeField = ({
     value,
     onChange,
     error,
+    required,
     disabled,
     size = EInputSize.medium,
     status,
@@ -45,6 +47,11 @@ const DateTimeField = ({
         <Div>
             <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="mb-1.5 block">
                 {label}
+                {required ? (
+                    <Label color="text-primary-500" className="align-middle" variant={EVariantLabel.bodySmall}>
+                        *
+                    </Label>
+                ) : null}
             </Label>
             <Div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-2">
                 <DatePickerField

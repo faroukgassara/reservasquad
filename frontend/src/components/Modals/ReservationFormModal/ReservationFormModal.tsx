@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { useForm, type ReactFormExtendedApi } from '@tanstack/react-form';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -12,10 +12,11 @@ import Div from '@/components/Primitives/Div/Div';
 import Button from '@/components/Primitives/Button/Button';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Checkbox from '@/components/Primitives/Checkbox/Checkbox';
-import DateTimeField from '@/components/Primitives/DatePicker/DateTimeField';
 import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
+import TimePickerField from '@/components/Primitives/DatePicker/TimePickerField';
 import { useCurrentModal } from '@/contexts/ModalContext';
-import { EButtonSize, EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
+import { useToast } from '@/contexts/ToastContext';
+import { EButtonSize, EButtonType, EInputType, EToastType, EVariantLabel } from '@/Enum/Enum';
 import type { AvailabilityRoom, ReservationRecord, ReservationStatus } from '@/lib/reservation-api';
 import {
     calculateRoomReservationPrice,
@@ -32,6 +33,9 @@ export interface ReservationFormValues {
     title: string;
     roomId: string;
     professorId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
     startAt: string;
     endAt: string;
     notes: string;
@@ -118,10 +122,59 @@ function toLocalInputValue(iso?: string | null): string {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function formatTime24h(value: string): string {
-    if (!value) return '—';
+function dateFromLocal(value?: string): string {
+    if (!value) return '';
+    return value.split('T')[0] ?? '';
+}
+
+function timeFromLocal(value?: string): string {
+    if (!value) return '';
     const [, timePart = ''] = value.split('T');
-    return timePart.slice(0, 5) || '—';
+    return timePart.slice(0, 5);
+}
+
+function joinLocal(date: string, time: string): string {
+    if (!date || !time) return '';
+    return `${date}T${time}`;
+}
+
+function syncReservationSlot(
+    form: ReservationFormPriceHelpers,
+    next: { date?: string; startTime?: string; endTime?: string },
+    rooms: RoomRecord[],
+    professors: ProfessorRecord[],
+) {
+    const date = next.date ?? form.getFieldValue('date');
+    const startTime = next.startTime ?? form.getFieldValue('startTime');
+    const endTime = next.endTime ?? form.getFieldValue('endTime');
+    if (next.date !== undefined) form.setFieldValue('date', next.date);
+    if (next.startTime !== undefined) form.setFieldValue('startTime', next.startTime);
+    if (next.endTime !== undefined) form.setFieldValue('endTime', next.endTime);
+    form.setFieldValue('startAt', joinLocal(date, startTime));
+    form.setFieldValue('endAt', joinLocal(date, endTime));
+    applyPriceFromMode(form, rooms, professors);
+}
+
+function getDurationParts(startAt: string, endAt: string): { hours: number; minutes: number } | null {
+    if (!startAt || !endAt) return null;
+    const ms = new Date(endAt).getTime() - new Date(startAt).getTime();
+    if (!(ms > 0)) return null;
+    const totalMinutes = Math.round(ms / 60000);
+    return {
+        hours: Math.floor(totalMinutes / 60),
+        minutes: totalMinutes % 60,
+    };
+}
+
+function FormSection({ title, children }: Readonly<{ title: string; children: ReactNode }>) {
+    return (
+        <Div className="space-y-3">
+            <Label variant={EVariantLabel.h6} color="text-gray-900">
+                {title}
+            </Label>
+            {children}
+        </Div>
+    );
 }
 
 function localInputToIso(value: string): string | null {
@@ -205,7 +258,7 @@ function RoomAlternativesPanel({
 
     return (
         <Div className="space-y-2 rounded-xl border border-warning-200 bg-warning-50 px-3 py-3">
-            <Label variant={EVariantLabel.bodySmall} color="text-warning-800" className="block font-medium">
+            <Label variant={EVariantLabel.h6} color="text-warning-800" className="block">
                 {t('alternatives.busyTitle')}
             </Label>
             <Label variant={EVariantLabel.caption} color="text-warning-700" className="block">
@@ -226,7 +279,7 @@ function RoomAlternativesPanel({
                                 <Label
                                     variant={EVariantLabel.bodySmall}
                                     color="text-gray-900"
-                                    className="block font-medium"
+                                    className="block"
                                 >
                                     {room.name}
                                 </Label>
@@ -290,20 +343,21 @@ export default function ReservationFormModal({
         [rooms],
     );
     const professorOptions = useMemo(
-        () => [
-            { value: '', label: t('noProfessor') },
-            ...professors.map((p) => ({
+        () =>
+            professors.map((p) => ({
                 value: p.id,
                 label: `${p.firstName} ${p.lastName}`,
             })),
-        ],
-        [professors, t],
+        [professors],
     );
 
     const defaultValues: ReservationFormValues = {
         title: reservation?.title ?? '',
         roomId: reservation?.roomId ?? defaultRoomId ?? '',
         professorId: reservation?.professorId ?? '',
+        date: dateFromLocal(reservation ? toLocalInputValue(reservation.startAt) : defaultStartAt),
+        startTime: timeFromLocal(reservation ? toLocalInputValue(reservation.startAt) : defaultStartAt),
+        endTime: timeFromLocal(reservation ? toLocalInputValue(reservation.endAt) : defaultEndAt),
         startAt: reservation ? toLocalInputValue(reservation.startAt) : defaultStartAt ?? '',
         endAt: reservation ? toLocalInputValue(reservation.endAt) : defaultEndAt ?? '',
         notes: reservation?.notes ?? '',
@@ -316,10 +370,16 @@ export default function ReservationFormModal({
         until: '',
     };
 
+    const { openToast } = useToast();
+
     const form = useForm({
         defaultValues,
         onSubmit: async ({ value }) => {
-            await onSubmit(value);
+            await onSubmit({
+                ...value,
+                startAt: joinLocal(value.date, value.startTime),
+                endAt: joinLocal(value.date, value.endTime),
+            });
             closeModal();
         },
     });
@@ -341,6 +401,9 @@ export default function ReservationFormModal({
         form.setFieldValue('title', reservation.title ?? '');
         form.setFieldValue('roomId', reservation.roomId);
         form.setFieldValue('professorId', reservation.professorId ?? '');
+        form.setFieldValue('date', dateFromLocal(startAt));
+        form.setFieldValue('startTime', timeFromLocal(startAt));
+        form.setFieldValue('endTime', timeFromLocal(endAt));
         form.setFieldValue('startAt', startAt);
         form.setFieldValue('endAt', endAt);
         form.setFieldValue('notes', reservation.notes ?? '');
@@ -350,424 +413,586 @@ export default function ReservationFormModal({
         form.setFieldValue('price', priceToInput(reservation.price));
     }, [reservation, form, rooms, professors]);
 
+    const handleFormSubmit = async () => {
+        await form.handleSubmit();
+        if (!form.state.isValid) {
+            openToast(tCommon('error'), t('fillRequiredFields'), { type: EToastType.ERROR });
+        }
+    };
+
     return (
         <Modal
             title={isEdit ? t('edit') : t('create')}
-            subTitle={t('subtitle')}
+            subTitle={isEdit ? t('formSubtitleEdit') : t('formSubtitleCreate')}
             canClose
             canCloseOnClickOutisde
             isDrawer
         >
             <DrawerForm
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    form.handleSubmit();
+                    await handleFormSubmit();
                 }}
             >
-                <DrawerScrollContent className="gap-0 space-y-4 p-6">
-                    <form.Field name="title">
-                        {({ state, handleChange }) => (
-                            <Input
-                                label={t('titleField')}
-                                value={state.value}
-                                id="reservation-title"
-                                onChange={(e) => handleChange(e.target.value)}
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field
-                        name="roomId"
-                        validators={{
-                            onSubmit: ({ value }) => (value ? undefined : t('room')),
-                        }}
-                    >
-                        {({ state, handleChange }) => (
-                            <Dropdown
-                                label={t('room')}
-                                options={roomOptions}
-                                value={state.value}
-                                onChange={(value) => {
-                                    if (typeof value === 'string') handleChange(value);
-                                    applyPriceFromMode(form, rooms, professors);
+                <DrawerScrollContent className="gap-0 space-y-6 p-6">
+                    <FormSection title={t('sectionBooking')}>
+                        <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <form.Field
+                                name="professorId"
+                                validators={{
+                                    onSubmit: ({ value }) =>
+                                        value ? undefined : t('fieldRequired', { field: t('professor') }),
                                 }}
-                                placeholder={t('room')}
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="professorId">
-                        {({ state, handleChange }) => (
-                            <Dropdown
-                                label={t('professor')}
-                                options={professorOptions}
-                                value={state.value}
-                                onChange={(value) => {
-                                    if (typeof value === 'string') {
-                                        handleChange(value);
-                                        const professor = professors.find((item) => item.id === value);
-                                        const currentMode = form.getFieldValue('priceMode');
-                                        const nextMode = normalizePriceMode(currentMode, professor);
-                                        if (nextMode !== currentMode) {
-                                            form.setFieldValue('priceMode', nextMode);
-                                        }
-                                        applyPriceFromMode(form, rooms, professors);
-                                    }
+                            >
+                                {({ state, handleChange }) => {
+                                    const hasError = state.meta.errors?.length > 0;
+                                    return (
+                                        <div data-field-error={hasError || undefined}>
+                                            <Dropdown
+                                                label={t('professor')}
+                                                required
+                                                options={professorOptions}
+                                                value={state.value}
+                                                onChange={(value) => {
+                                                    if (typeof value === 'string') {
+                                                        handleChange(value);
+                                                        const professor = professors.find(
+                                                            (item) => item.id === value,
+                                                        );
+                                                        const currentMode = form.getFieldValue('priceMode');
+                                                        const nextMode = normalizePriceMode(
+                                                            currentMode,
+                                                            professor,
+                                                        );
+                                                        if (nextMode !== currentMode) {
+                                                            form.setFieldValue('priceMode', nextMode);
+                                                        }
+                                                        applyPriceFromMode(form, rooms, professors);
+                                                    }
+                                                }}
+                                                placeholder={t('professor')}
+                                                error={hasError}
+                                                hintText={hasError ? String(state.meta.errors[0]) : undefined}
+                                            />
+                                        </div>
+                                    );
                                 }}
-                                placeholder={t('noProfessor')}
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field
-                        name="startAt"
-                        validators={{
-                            onSubmit: ({ value }) => (value ? undefined : t('startAt')),
-                        }}
-                    >
-                        {({ state, handleChange }) => (
-                            <DateTimeField
-                                id="reservation-start"
-                                label={t('startAt')}
-                                value={state.value}
-                                onChange={(value) => {
-                                    handleChange(value);
-                                    applyPriceFromMode(form, rooms, professors);
+                            </form.Field>
+                            <form.Field
+                                name="roomId"
+                                validators={{
+                                    onSubmit: ({ value }) =>
+                                        value ? undefined : t('fieldRequired', { field: t('room') }),
                                 }}
-                                error={
-                                    typeof state.meta.errors?.[0] === 'string'
-                                        ? state.meta.errors[0]
-                                        : undefined
-                                }
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field
-                        name="endAt"
-                        validators={{
-                            onChangeListenTo: ['startAt'],
-                            onSubmit: ({ value, fieldApi }) => {
-                                if (!value) return t('endAt');
-                                const startAt = fieldApi.form.getFieldValue('startAt');
-                                if (startAt && new Date(value) <= new Date(startAt)) {
-                                    return t('endAfterStart', {
-                                        start: formatTime24h(startAt),
-                                        end: formatTime24h(value),
-                                    });
-                                }
-                                return undefined;
-                            },
-                            onChange: ({ value, fieldApi }) => {
-                                if (!value) return undefined;
-                                const startAt = fieldApi.form.getFieldValue('startAt');
-                                if (startAt && new Date(value) <= new Date(startAt)) {
-                                    return t('endAfterStart', {
-                                        start: formatTime24h(startAt),
-                                        end: formatTime24h(value),
-                                    });
-                                }
-                                return undefined;
-                            },
-                        }}
-                    >
-                        {({ state, handleChange }) => (
-                            <DateTimeField
-                                id="reservation-end"
-                                label={t('endAt')}
-                                value={state.value}
-                                onChange={(value) => {
-                                    handleChange(value);
-                                    applyPriceFromMode(form, rooms, professors);
-                                }}
-                                error={
-                                    typeof state.meta.errors?.[0] === 'string'
-                                        ? state.meta.errors[0]
-                                        : undefined
-                                }
-                            />
-                        )}
-                    </form.Field>
-                    <form.Subscribe
-                        selector={(s) => ({
-                            roomId: s.values.roomId,
-                            startAt: s.values.startAt,
-                            endAt: s.values.endAt,
-                            status: s.values.status,
-                        })}
-                    >
-                        {({ roomId, startAt, endAt, status }) => (
-                            <RoomAlternativesPanel
-                                preferredRoomId={roomId}
-                                startAt={startAt}
-                                endAt={endAt}
-                                status={status}
-                                excludeReservationId={isEdit ? reservation?.id : undefined}
-                                onSelectRoom={(nextRoomId) => {
-                                    form.setFieldValue('roomId', nextRoomId);
-                                    applyPriceFromMode(form, rooms, professors);
-                                }}
-                            />
-                        )}
-                    </form.Subscribe>
-                    <form.Field name="notes">
-                        {({ state, handleChange }) => (
-                            <Input
-                                label={t('notes')}
-                                value={state.value}
-                                id="reservation-notes"
-                                onChange={(e) => handleChange(e.target.value)}
-                            />
-                        )}
-                    </form.Field>
-                    <form.Subscribe selector={(s) => s.values.professorId}>
-                        {(professorId) => {
-                            const professor = professors.find((p) => p.id === professorId);
-                            const canUseProfessorPrice = professor?.specialPrice != null;
-                            const priceModeOptions = [
-                                { value: 'MANUAL', label: t('priceModeManual') },
-                                { value: 'ROOM', label: t('priceModeRoom') },
-                                ...(canUseProfessorPrice
-                                    ? [{ value: 'PROFESSOR', label: t('priceModeProfessor') }]
-                                    : []),
-                            ];
-
-                            return (
-                                <form.Field name="priceMode">
-                                    {({ state, handleChange }) => (
-                                        <Dropdown
-                                            label={t('priceMode')}
-                                            options={priceModeOptions}
-                                            value={state.value}
-                                            onChange={(value) => {
-                                                if (
-                                                    value === 'MANUAL' ||
-                                                    value === 'ROOM' ||
-                                                    value === 'PROFESSOR'
-                                                ) {
-                                                    handleChange(value);
+                            >
+                                {({ state, handleChange }) => {
+                                    const hasError = state.meta.errors?.length > 0;
+                                    return (
+                                        <div data-field-error={hasError || undefined}>
+                                            <Dropdown
+                                                label={t('room')}
+                                                required
+                                                options={roomOptions}
+                                                value={state.value}
+                                                onChange={(value) => {
+                                                    if (typeof value === 'string') handleChange(value);
                                                     applyPriceFromMode(form, rooms, professors);
-                                                }
+                                                }}
+                                                placeholder={t('room')}
+                                                error={hasError}
+                                                hintText={hasError ? String(state.meta.errors[0]) : undefined}
+                                            />
+                                        </div>
+                                    );
+                                }}
+                            </form.Field>
+                        </Div>
+                        <form.Field
+                            name="date"
+                            validators={{
+                                onSubmit: ({ value }) =>
+                                    value ? undefined : t('fieldRequired', { field: t('date') }),
+                            }}
+                        >
+                            {({ state, handleChange }) => {
+                                const hasError = state.meta.errors?.length > 0;
+                                return (
+                                    <div data-field-error={hasError || undefined}>
+                                        <DatePickerField
+                                            id="reservation-date"
+                                            label={t('date')}
+                                            required
+                                            value={state.value}
+                                            error={hasError}
+                                            onChange={(value) => {
+                                                handleChange(value);
+                                                syncReservationSlot(
+                                                    form,
+                                                    { date: value },
+                                                    rooms,
+                                                    professors,
+                                                );
                                             }}
                                         />
-                                    )}
-                                </form.Field>
-                            );
-                        }}
-                    </form.Subscribe>
-                    <form.Subscribe
-                        selector={(s) => ({
-                            priceMode: s.values.priceMode,
-                            roomId: s.values.roomId,
-                            professorId: s.values.professorId,
-                            startAt: s.values.startAt,
-                            endAt: s.values.endAt,
-                        })}
-                    >
-                        {({ priceMode, roomId, professorId, startAt, endAt }) => {
-                            const room = rooms.find((r) => r.id === roomId);
-                            const professor = professors.find((p) => p.id === professorId);
-                            const calculated = resolveReservationPriceFromMode(priceMode, {
-                                manualPrice: form.getFieldValue('price'),
-                                room,
-                                professor,
-                                startAt,
-                                endAt,
-                            });
-                            const roomCalculated = calculateRoomReservationPrice(
-                                room?.pricePerHour ?? undefined,
-                                startAt,
-                                endAt,
-                            );
-
-                            if (priceMode === 'MANUAL') {
+                                        {hasError ? (
+                                            <Label
+                                                variant={EVariantLabel.hint}
+                                                color="text-danger-500"
+                                                className="mt-1.5 block"
+                                            >
+                                                {String(state.meta.errors[0])}
+                                            </Label>
+                                        ) : null}
+                                    </div>
+                                );
+                            }}
+                        </form.Field>
+                        <Div className="grid grid-cols-2 gap-3">
+                            <form.Field
+                                name="startTime"
+                                validators={{
+                                    onSubmit: ({ value }) =>
+                                        value ? undefined : t('fieldRequired', { field: t('startAt') }),
+                                }}
+                            >
+                                {({ state, handleChange }) => {
+                                    const errorMsg =
+                                        typeof state.meta.errors?.[0] === 'string'
+                                            ? state.meta.errors[0]
+                                            : undefined;
+                                    return (
+                                        <div data-field-error={errorMsg ? true : undefined}>
+                                            <Label
+                                                variant={EVariantLabel.bodySmall}
+                                                color="text-gray-700"
+                                                className="mb-1.5 block"
+                                            >
+                                                {t('startAt')}
+                                                <Label
+                                                    color="text-primary-500"
+                                                    className="align-middle"
+                                                    variant={EVariantLabel.bodySmall}
+                                                >
+                                                    *
+                                                </Label>
+                                            </Label>
+                                            <TimePickerField
+                                                id="reservation-start-time"
+                                                value={state.value}
+                                                error={Boolean(errorMsg)}
+                                                onChange={(value) => {
+                                                    handleChange(value);
+                                                    syncReservationSlot(
+                                                        form,
+                                                        { startTime: value },
+                                                        rooms,
+                                                        professors,
+                                                    );
+                                                }}
+                                            />
+                                            {errorMsg ? (
+                                                <Label
+                                                    variant={EVariantLabel.hint}
+                                                    color="text-danger-500"
+                                                    className="mt-1.5 block"
+                                                >
+                                                    {errorMsg}
+                                                </Label>
+                                            ) : null}
+                                        </div>
+                                    );
+                                }}
+                            </form.Field>
+                            <form.Field
+                                name="endTime"
+                                validators={{
+                                    onChangeListenTo: ['startTime'],
+                                    onSubmit: ({ value, fieldApi }) => {
+                                        if (!value) return t('fieldRequired', { field: t('endAt') });
+                                        const startTime = fieldApi.form.getFieldValue('startTime');
+                                        if (startTime && value <= startTime) {
+                                            return t('endAfterStart', {
+                                                start: startTime,
+                                                end: value,
+                                            });
+                                        }
+                                        return undefined;
+                                    },
+                                    onChange: ({ value, fieldApi }) => {
+                                        if (!value) return undefined;
+                                        const startTime = fieldApi.form.getFieldValue('startTime');
+                                        if (startTime && value <= startTime) {
+                                            return t('endAfterStart', {
+                                                start: startTime,
+                                                end: value,
+                                            });
+                                        }
+                                        return undefined;
+                                    },
+                                }}
+                            >
+                                {({ state, handleChange }) => {
+                                    const errorMsg =
+                                        typeof state.meta.errors?.[0] === 'string'
+                                            ? state.meta.errors[0]
+                                            : undefined;
+                                    return (
+                                        <div data-field-error={errorMsg ? true : undefined}>
+                                            <Label
+                                                variant={EVariantLabel.bodySmall}
+                                                color="text-gray-700"
+                                                className="mb-1.5 block"
+                                            >
+                                                {t('endAt')}
+                                                <Label
+                                                    color="text-primary-500"
+                                                    className="align-middle"
+                                                    variant={EVariantLabel.bodySmall}
+                                                >
+                                                    *
+                                                </Label>
+                                            </Label>
+                                            <TimePickerField
+                                                id="reservation-end-time"
+                                                value={state.value}
+                                                error={Boolean(errorMsg)}
+                                                onChange={(value) => {
+                                                    handleChange(value);
+                                                    syncReservationSlot(
+                                                        form,
+                                                        { endTime: value },
+                                                        rooms,
+                                                        professors,
+                                                    );
+                                                }}
+                                            />
+                                            {errorMsg ? (
+                                                <Label
+                                                    variant={EVariantLabel.hint}
+                                                    color="text-danger-500"
+                                                    className="mt-1.5 block"
+                                                >
+                                                    {errorMsg}
+                                                </Label>
+                                            ) : null}
+                                        </div>
+                                    );
+                                }}
+                            </form.Field>
+                        </Div>
+                        <form.Subscribe
+                            selector={(s) => ({
+                                startAt: s.values.startAt,
+                                endAt: s.values.endAt,
+                            })}
+                        >
+                            {({ startAt, endAt }) => {
+                                const duration = getDurationParts(startAt, endAt);
+                                if (!duration) return null;
                                 return (
-                                    <form.Field
-                                        name="price"
-                                        validators={{
-                                            onSubmit: ({ value }) =>
-                                                isValidPrice(value) ? undefined : t('priceInvalid'),
-                                        }}
-                                    >
+                                    <Label variant={EVariantLabel.caption} color="text-gray-500">
+                                        {t('duration', duration)}
+                                    </Label>
+                                );
+                            }}
+                        </form.Subscribe>
+                        <form.Subscribe
+                            selector={(s) => ({
+                                roomId: s.values.roomId,
+                                startAt: s.values.startAt,
+                                endAt: s.values.endAt,
+                                status: s.values.status,
+                            })}
+                        >
+                            {({ roomId, startAt, endAt, status }) => (
+                                <RoomAlternativesPanel
+                                    preferredRoomId={roomId}
+                                    startAt={startAt}
+                                    endAt={endAt}
+                                    status={status}
+                                    excludeReservationId={isEdit ? reservation?.id : undefined}
+                                    onSelectRoom={(nextRoomId) => {
+                                        form.setFieldValue('roomId', nextRoomId);
+                                        applyPriceFromMode(form, rooms, professors);
+                                    }}
+                                />
+                            )}
+                        </form.Subscribe>
+                    </FormSection>
+
+                    <FormSection title={t('sectionPricing')}>
+                        <form.Subscribe selector={(s) => s.values.professorId}>
+                            {(professorId) => {
+                                const professor = professors.find((p) => p.id === professorId);
+                                const canUseProfessorPrice = professor?.specialPrice != null;
+                                const priceModeOptions = [
+                                    { value: 'MANUAL', label: t('priceModeManual') },
+                                    { value: 'ROOM', label: t('priceModeRoom') },
+                                    ...(canUseProfessorPrice
+                                        ? [{ value: 'PROFESSOR', label: t('priceModeProfessor') }]
+                                        : []),
+                                ];
+
+                                return (
+                                    <form.Field name="priceMode">
                                         {({ state, handleChange }) => (
-                                            <div>
+                                            <Dropdown
+                                                label={t('priceMode')}
+                                                options={priceModeOptions}
+                                                value={state.value}
+                                                onChange={(value) => {
+                                                    if (
+                                                        value === 'MANUAL' ||
+                                                        value === 'ROOM' ||
+                                                        value === 'PROFESSOR'
+                                                    ) {
+                                                        handleChange(value);
+                                                        applyPriceFromMode(form, rooms, professors);
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                    </form.Field>
+                                );
+                            }}
+                        </form.Subscribe>
+                        <form.Subscribe
+                            selector={(s) => ({
+                                priceMode: s.values.priceMode,
+                                roomId: s.values.roomId,
+                                professorId: s.values.professorId,
+                                startAt: s.values.startAt,
+                                endAt: s.values.endAt,
+                            })}
+                        >
+                            {({ priceMode, roomId, professorId, startAt, endAt }) => {
+                                const room = rooms.find((r) => r.id === roomId);
+                                const professor = professors.find((p) => p.id === professorId);
+                                const calculated = resolveReservationPriceFromMode(priceMode, {
+                                    manualPrice: form.getFieldValue('price'),
+                                    room,
+                                    professor,
+                                    startAt,
+                                    endAt,
+                                });
+                                const roomCalculated = calculateRoomReservationPrice(
+                                    room?.pricePerHour ?? undefined,
+                                    startAt,
+                                    endAt,
+                                );
+
+                                if (priceMode === 'MANUAL') {
+                                    return (
+                                        <form.Field
+                                            name="price"
+                                            validators={{
+                                                onSubmit: ({ value }) =>
+                                                    isValidPrice(value) ? undefined : t('priceInvalid'),
+                                            }}
+                                        >
+                                            {({ state, handleChange }) => (
                                                 <Input
                                                     label={t('price')}
                                                     value={state.value}
                                                     id="reservation-price"
                                                     type={EInputType.number}
+                                                    required
+                                                    error={!!state.meta.errors?.length}
+                                                    hintText={
+                                                        state.meta.errors?.[0]
+                                                            ? String(state.meta.errors[0])
+                                                            : undefined
+                                                    }
                                                     onChange={(e) => handleChange(e.target.value)}
                                                 />
-                                                {state.meta.errors?.[0] ? (
-                                                    <Label
-                                                        variant={EVariantLabel.bodySmall}
-                                                        color="text-danger-500"
-                                                        className="mt-1 block"
-                                                    >
-                                                        {state.meta.errors[0]}
-                                                    </Label>
-                                                ) : null}
-                                            </div>
-                                        )}
-                                    </form.Field>
-                                );
-                            }
+                                            )}
+                                        </form.Field>
+                                    );
+                                }
 
-                            return (
-                                <Div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
-                                    <Label
-                                        variant={EVariantLabel.bodySmall}
-                                        color="text-gray-600"
-                                        className="block mr-1"
-                                    >
-                                        {t('price')}
-                                    </Label>
-                                    <Label
-                                        variant={EVariantLabel.body}
-                                        color="text-primary-700"
-                                        className="block font-semibold"
-                                    >
-                                        {calculated === null ? '—' : formatMoney(calculated)}
-                                    </Label>
-                                    {priceMode === 'PROFESSOR' && professor?.specialPrice != null ? (
+                                return (
+                                    <Div className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
                                         <Label
                                             variant={EVariantLabel.caption}
                                             color="text-gray-500"
-                                            className="mt-1 block"
+                                            className="block"
                                         >
-                                            {t('priceHintSpecial', {
-                                                price: formatMoney(professor.specialPrice),
-                                            })}
+                                            {t('price')}
                                         </Label>
-                                    ) : room ? (
                                         <Label
-                                            variant={EVariantLabel.caption}
-                                            color="text-gray-500"
-                                            className="mt-1 block"
+                                            variant={EVariantLabel.h5}
+                                            color="text-primary-700"
+                                            className="mt-0.5 block"
                                         >
-                                            {t('priceHint', {
-                                                rate: formatMoney(room.pricePerHour),
-                                            })}
-                                            {roomCalculated !== null
-                                                ? ` (${formatMoney(roomCalculated)})`
-                                                : ''}
+                                            {calculated === null ? '—' : formatMoney(calculated)}
                                         </Label>
-                                    ) : null}
-                                </Div>
-                            );
-                        }}
-                    </form.Subscribe>
-                    <form.Field name="isPaid">
-                        {({ state, handleChange }) => (
-                            <Dropdown
-                                label={t('payment')}
-                                options={[
-                                    { value: 'false', label: t('unpaid') },
-                                    { value: 'true', label: t('paid') },
-                                ]}
-                                value={state.value ? 'true' : 'false'}
-                                onChange={(value) => handleChange(value === 'true')}
-                            />
-                        )}
-                    </form.Field>
-                    <form.Field name="status">
-                        {({ state, handleChange }) => (
-                            <Dropdown
-                                label={t('status')}
-                                options={[
-                                    { value: 'CONFIRMED', label: tStatus('confirmed') },
-                                    { value: 'CANCELLED', label: tStatus('cancelled') },
-                                ]}
-                                value={state.value}
-                                onChange={(value) => {
-                                    if (value === 'CONFIRMED' || value === 'CANCELLED') {
-                                        handleChange(value);
-                                    }
-                                }}
-                            />
-                        )}
-                    </form.Field>
-                    {!isEdit ? (
-                        <>
-                            <form.Field name="recurring">
+                                        {priceMode === 'PROFESSOR' && professor?.specialPrice != null ? (
+                                            <Label
+                                                variant={EVariantLabel.caption}
+                                                color="text-gray-500"
+                                                className="mt-1 block"
+                                            >
+                                                {t('priceHintSpecial', {
+                                                    price: formatMoney(professor.specialPrice),
+                                                })}
+                                            </Label>
+                                        ) : room ? (
+                                            <Label
+                                                variant={EVariantLabel.caption}
+                                                color="text-gray-500"
+                                                className="mt-1 block"
+                                            >
+                                                {t('priceHint', {
+                                                    rate: formatMoney(room.pricePerHour),
+                                                })}
+                                                {roomCalculated !== null
+                                                    ? ` (${formatMoney(roomCalculated)})`
+                                                    : ''}
+                                            </Label>
+                                        ) : null}
+                                    </Div>
+                                );
+                            }}
+                        </form.Subscribe>
+                        <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <form.Field name="isPaid">
                                 {({ state, handleChange }) => (
-                                    <Checkbox
-                                        id="reservation-recurring"
-                                        checked={state.value}
-                                        label={t('recurring')}
-                                        onChange={(e) => handleChange(e.target.checked)}
+                                    <Dropdown
+                                        label={t('payment')}
+                                        options={[
+                                            { value: 'false', label: t('unpaid') },
+                                            { value: 'true', label: t('paid') },
+                                        ]}
+                                        value={state.value ? 'true' : 'false'}
+                                        onChange={(value) => handleChange(value === 'true')}
                                     />
                                 )}
                             </form.Field>
-                            <form.Subscribe selector={(s) => s.values.recurring}>
-                                {(recurring) =>
-                                    recurring ? (
-                                        <Div className="space-y-4">
-                                            <form.Field name="frequency">
-                                                {({ state, handleChange }) => (
-                                                    <Dropdown
-                                                        label={t('frequency')}
-                                                        options={[
-                                                            {
-                                                                value: 'WEEKLY',
-                                                                label: t('frequencyWeekly'),
-                                                            },
-                                                            {
-                                                                value: 'MONTHLY',
-                                                                label: t('frequencyMonthly'),
-                                                            },
-                                                        ]}
-                                                        value={state.value}
-                                                        onChange={(value) => {
-                                                            if (
-                                                                value === 'WEEKLY' ||
-                                                                value === 'MONTHLY'
-                                                            ) {
-                                                                handleChange(value);
-                                                            }
-                                                        }}
-                                                    />
-                                                )}
-                                            </form.Field>
-                                            <form.Field
-                                                name="until"
-                                                validators={{
-                                                    onSubmit: ({ value }) =>
-                                                        value ? undefined : t('untilRequired'),
-                                                }}
-                                            >
-                                                {({ state, handleChange }) => (
-                                                    <div>
-                                                        <Label
-                                                            variant={EVariantLabel.bodySmall}
-                                                            color="text-gray-700"
-                                                            className="mb-1.5 block"
-                                                        >
-                                                            {t('until')}
-                                                        </Label>
-                                                        <DatePickerField
-                                                            id="reservation-until"
+                            <form.Field name="status">
+                                {({ state, handleChange }) => (
+                                    <Dropdown
+                                        label={t('status')}
+                                        options={[
+                                            { value: 'CONFIRMED', label: tStatus('confirmed') },
+                                            { value: 'CANCELLED', label: tStatus('cancelled') },
+                                        ]}
+                                        value={state.value}
+                                        onChange={(value) => {
+                                            if (value === 'CONFIRMED' || value === 'CANCELLED') {
+                                                handleChange(value);
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </form.Field>
+                        </Div>
+                    </FormSection>
+
+                    <FormSection title={t('sectionDetails')}>
+                        <form.Field name="title">
+                            {({ state, handleChange }) => (
+                                <Input
+                                    label={t('titleField')}
+                                    value={state.value}
+                                    id="reservation-title"
+                                    onChange={(e) => handleChange(e.target.value)}
+                                />
+                            )}
+                        </form.Field>
+                        <form.Field name="notes">
+                            {({ state, handleChange }) => (
+                                <Input
+                                    label={t('notes')}
+                                    value={state.value}
+                                    id="reservation-notes"
+                                    isTextArea
+                                    rows={3}
+                                    onChange={(e) => handleChange(e.target.value)}
+                                />
+                            )}
+                        </form.Field>
+                        {!isEdit ? (
+                            <Div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50 px-3 py-3">
+                                <form.Field name="recurring">
+                                    {({ state, handleChange }) => (
+                                        <Checkbox
+                                            id="reservation-recurring"
+                                            checked={state.value}
+                                            label={t('recurring')}
+                                            onChange={(e) => handleChange(e.target.checked)}
+                                        />
+                                    )}
+                                </form.Field>
+                                <form.Subscribe selector={(s) => s.values.recurring}>
+                                    {(recurring) =>
+                                        recurring ? (
+                                            <Div className="space-y-3">
+                                                <form.Field name="frequency">
+                                                    {({ state, handleChange }) => (
+                                                        <Dropdown
+                                                            label={t('frequency')}
+                                                            options={[
+                                                                {
+                                                                    value: 'WEEKLY',
+                                                                    label: t('frequencyWeekly'),
+                                                                },
+                                                                {
+                                                                    value: 'MONTHLY',
+                                                                    label: t('frequencyMonthly'),
+                                                                },
+                                                            ]}
                                                             value={state.value}
-                                                            error={!!state.meta.errors?.length}
-                                                            onChange={handleChange}
+                                                            onChange={(value) => {
+                                                                if (
+                                                                    value === 'WEEKLY' ||
+                                                                    value === 'MONTHLY'
+                                                                ) {
+                                                                    handleChange(value);
+                                                                }
+                                                            }}
                                                         />
-                                                        {state.meta.errors?.[0] ? (
-                                                            <Label
-                                                                variant={EVariantLabel.hint}
-                                                                color="text-danger-500"
-                                                                className="mt-1.5 block"
-                                                            >
-                                                                {state.meta.errors[0]}
-                                                            </Label>
-                                                        ) : null}
-                                                    </div>
-                                                )}
-                                            </form.Field>
-                                        </Div>
-                                    ) : null
-                                }
-                            </form.Subscribe>
-                        </>
-                    ) : null}
+                                                    )}
+                                                </form.Field>
+                                                <form.Field
+                                                    name="until"
+                                                    validators={{
+                                                        onSubmit: ({ value }) =>
+                                                            value ? undefined : t('untilRequired'),
+                                                    }}
+                                                >
+                                                    {({ state, handleChange }) => (
+                                                        <div>
+                                                            <DatePickerField
+                                                                id="reservation-until"
+                                                                label={t('until')}
+                                                                required
+                                                                value={state.value}
+                                                                error={!!state.meta.errors?.length}
+                                                                onChange={handleChange}
+                                                            />
+                                                            {state.meta.errors?.[0] ? (
+                                                                <Label
+                                                                    variant={EVariantLabel.hint}
+                                                                    color="text-danger-500"
+                                                                    className="mt-1.5 block"
+                                                                >
+                                                                    {String(state.meta.errors[0])}
+                                                                </Label>
+                                                            ) : null}
+                                                        </div>
+                                                    )}
+                                                </form.Field>
+                                            </Div>
+                                        ) : null
+                                    }
+                                </form.Subscribe>
+                            </Div>
+                        ) : null}
+                    </FormSection>
+
                     {isEdit && reservation?.seriesId ? (
-                        <Div className="rounded-lg border border-warning-100 bg-warning-25 px-3 py-2">
+                        <Div className="rounded-xl border border-warning-100 bg-warning-25 px-3 py-3">
                             <Label
                                 variant={EVariantLabel.caption}
                                 color="text-warning-700"
@@ -803,7 +1028,7 @@ export default function ReservationFormModal({
                         size={EButtonSize.medium}
                         text={tCommon('save')}
                         isLoading={isLoading}
-                        onClick={() => form.handleSubmit()}
+                        onClick={handleFormSubmit}
                         className="flex-1"
                     />
                 </DrawerActions>

@@ -65,10 +65,15 @@ type ModalState =
 type PaidFilter = 'all' | 'paid' | 'unpaid';
 type StatusFilter = 'all' | ReservationStatus;
 
-function formatDateTime(value: string): string {
-    return new Date(value).toLocaleString('fr-FR', {
-        dateStyle: 'short',
-        timeStyle: 'short',
+function formatDate(value: string): string {
+    return new Date(value).toLocaleDateString('fr-FR', { dateStyle: 'short' });
+}
+
+function formatTime(value: string): string {
+    return new Date(value).toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
     });
 }
 
@@ -411,8 +416,8 @@ export default function ReservationsAdminPage() {
                     label: t('startAt'),
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell
-                            mainText={formatDateTime(row.startAt)}
-                            supportingText={formatDateTime(row.endAt)}
+                            mainText={formatDate(row.startAt)}
+                            supportingText={`${formatTime(row.startAt)} – ${formatTime(row.endAt)}`}
                         />
                     ),
                 },
