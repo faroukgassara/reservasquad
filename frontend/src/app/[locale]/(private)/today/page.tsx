@@ -121,10 +121,7 @@ function RoomStatusCard({
 
             {occupied && room.current ? (
                 <Div className="space-y-1">
-                    <Label variant={EVariantLabel.caption} color="text-gray-700" className="block">
-                        {room.current.title?.trim() || t('untitled')}
-                    </Label>
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
+                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block mr-1">
                         {professorName(room.current.professor)}
                     </Label>
                     <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
@@ -382,9 +379,8 @@ export default function TodayPage() {
                                                         <Label
                                                             variant={EVariantLabel.caption}
                                                             color="text-gray-500"
-                                                            className="block"
+                                                            className="block mr-1"
                                                         >
-                                                            {row.title?.trim() || t('untitled')} ·{' '}
                                                             {professorName(row.professor)}
                                                         </Label>
                                                         <Label
