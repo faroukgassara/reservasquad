@@ -232,35 +232,37 @@ function EventCard({
                 onDragStart?.(event, e);
             }}
         >
-            <Div className="flex items-center justify-between gap-2">
-                <Label
-                    variant={EVariantLabel.caption}
-                    color="text-primary-700"
-                    className="font-semibold tabular-nums"
-                >
-                    {formatTime(event.startAt)} – {formatTime(event.endAt)}
-                </Label>
+            <Div className="flex flex-col gap-1.5">
+                <Div className="flex flex-col tabular-nums">
+                    <Label variant={EVariantLabel.bodySmall} color="text-primary-700">
+                        {formatTime(event.startAt)}
+                    </Label>
+                    <Label variant={EVariantLabel.caption} color="text-gray-500">
+                        {formatTime(event.endAt)}
+                    </Label>
+                </Div>
                 <Badge
                     id={`cal-paid-${event.id}`}
                     text={event.isPaid ? paidLabel : unpaidLabel}
                     type={event.isPaid ? EBadgeType.success : EBadgeType.warning}
                     size={EBadgeSize.tiny}
+                    className="h-auto min-h-6 w-fit max-w-full shrink-0 whitespace-nowrap px-2 py-0.5 leading-none"
                 />
             </Div>
-            <Div className="flex flex-col gap-1">
+            <Div className="mt-1.5 flex flex-col gap-1">
                 <Label
                     variant={EVariantLabel.bodySmall}
                     color="text-gray-900"
-                    className="mt-1 block truncate font-medium"
+                    className="block truncate"
                 >
                     {event.room?.name || event.title || '—'}
                 </Label>
                 {event.professor ? (
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="mt-0.5 block truncate">
+                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block truncate">
                         {event.professor.firstName} {event.professor.lastName}
                     </Label>
                 ) : null}
-                <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-1.5 block font-medium">
+                <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-0.5 block">
                     {formatMoney(event.price)}
                 </Label>
             </Div>
