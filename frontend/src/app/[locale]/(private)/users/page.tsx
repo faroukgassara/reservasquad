@@ -155,6 +155,7 @@ export default function UsersAdminPage() {
                     label: tCommon('name'),
                     sortable: true,
                     width: '220px',
+                    mobile: 'primary',
                     render: (_: unknown, row: UserRecord) => (
                         <OrganismTable.Cell
                             mainText={`${row.firstName} ${row.lastName}`}
@@ -169,6 +170,7 @@ export default function UsersAdminPage() {
                     label: tCommon('phone'),
                     sortable: true,
                     width: '160px',
+                    mobile: 'secondary',
                     render: (_: unknown, row: UserRecord) => (
                         <OrganismTable.Cell mainText={row.phone} />
                     ),
@@ -180,6 +182,7 @@ export default function UsersAdminPage() {
                     label: 'Rôle',
                     sortable: true,
                     width: '150px',
+                    mobile: 'secondary',
                     render: (_: unknown, row: UserRecord) => (
                         <OrganismTable.Cell mainText={roleLabel(row.role)} />
                     ),
@@ -191,6 +194,7 @@ export default function UsersAdminPage() {
                     label: tCommon('status'),
                     sortable: true,
                     width: '120px',
+                    mobile: 'primary',
                     render: (_: unknown, row: UserRecord) => (
                         <Badge
                             id={`user-status-${row.status}`}
@@ -207,6 +211,7 @@ export default function UsersAdminPage() {
                     label: 'Créé le',
                     sortable: true,
                     width: '160px',
+                    mobile: 'secondary',
                     render: (_: unknown, row: UserRecord) => (
                         <OrganismTable.Cell mainText={formatDate(row.createdAt)} />
                     ),

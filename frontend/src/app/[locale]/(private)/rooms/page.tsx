@@ -132,6 +132,7 @@ export default function RoomsAdminPage() {
                 headerElement: {
                     value: 'name',
                     label: t('name'),
+                    mobile: 'primary',
                     render: (_: unknown, row: RoomRecord) => (
                         <OrganismTable.Cell mainText={row.name} />
                     ),
@@ -141,6 +142,7 @@ export default function RoomsAdminPage() {
                 headerElement: {
                     value: 'capacity',
                     label: t('capacity'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: RoomRecord) => (
                         <OrganismTable.Cell mainText={String(row.capacity)} />
                     ),
@@ -150,6 +152,7 @@ export default function RoomsAdminPage() {
                 headerElement: {
                     value: 'pricePerHour',
                     label: t('pricePerHour'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: RoomRecord) => (
                         <OrganismTable.Cell mainText={formatPrice(row.pricePerHour)} />
                     ),

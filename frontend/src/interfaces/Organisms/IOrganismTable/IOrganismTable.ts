@@ -31,6 +31,8 @@ export interface ITableActionMenu<TRow = unknown> {
     trigger?: ReactNode;
 }
 
+export type TMobileColumnLayout = 'primary' | 'secondary' | 'hidden';
+
 export interface IHeaderElement<TRow = unknown> {
     value: string;
     label: string;
@@ -39,6 +41,8 @@ export interface IHeaderElement<TRow = unknown> {
     width?: string;
     cellClassName?: string;
     headerClassName?: string;
+    /** Mobile (< md) card layout: 'primary' shows in the card header, 'secondary' goes inside the collapsible details, 'hidden' is omitted. Default: first column is primary, the rest secondary. */
+    mobile?: TMobileColumnLayout;
 }
 
 export interface ITableColumn<TRow = unknown> {
@@ -53,6 +57,8 @@ export interface ITableColumnFlat<TRow = unknown> {
     width?: string;
     cellClassName?: string;
     headerClassName?: string;
+    /** Mobile (< md) card layout: 'primary' shows in the card header, 'secondary' goes inside the collapsible details, 'hidden' is omitted. Default: first column is primary, the rest secondary. */
+    mobile?: TMobileColumnLayout;
 }
 
 export interface ITableColumnHeader<TRow = unknown> {
@@ -63,6 +69,7 @@ export interface ITableColumnHeader<TRow = unknown> {
     width?: string;
     cellClassName?: string;
     headerClassName?: string;
+    mobile?: TMobileColumnLayout;
     currentSortDirection: TSortDirection;
     onSort: (key: string) => void;
 }
@@ -132,6 +139,10 @@ export interface ITable<TRow = unknown> {
     onFilterRow?: (row: TRow, tags: string[]) => boolean;
     onAddTag?: (tag: string) => void;
     clearSearchOnAddTag?: boolean;
+    /** Allow collapsing secondary columns into a details section on mobile cards (default true). */
+    mobileCollapsible?: boolean;
+    /** Start mobile secondary details expanded (default false). */
+    mobileDefaultExpanded?: boolean;
 }
 
 export type IOrganismTable<TRow = unknown> = ITable<TRow>;

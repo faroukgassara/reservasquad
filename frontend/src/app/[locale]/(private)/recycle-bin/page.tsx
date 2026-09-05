@@ -180,6 +180,7 @@ export default function RecycleBinPage() {
                 headerElement: {
                     value: 'room',
                     label: tPay('room'),
+                    mobile: 'primary',
                     render: (_: unknown, row: DeletedReservation) => (
                         <OrganismTable.Cell mainText={row.room?.name ?? '—'} />
                     ),
@@ -239,6 +240,7 @@ export default function RecycleBinPage() {
                 headerElement: {
                     value: 'name',
                     label: t('columns.name'),
+                    mobile: 'primary',
                     render: (_: unknown, row: DeletedProfessor) => (
                         <OrganismTable.Cell
                             mainText={`${row.firstName} ${row.lastName}`.trim()}

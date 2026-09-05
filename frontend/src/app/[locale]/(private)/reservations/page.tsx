@@ -368,6 +368,7 @@ export default function ReservationsAdminPage() {
                             value: 'select',
                             label: '',
                             width: '48px',
+                            mobile: 'primary',
                             render: (_: unknown, row: ReservationRecord) =>
                                 row.isPaid ? (
                                     <Div className="size-5" />
@@ -387,6 +388,7 @@ export default function ReservationsAdminPage() {
                 headerElement: {
                     value: 'title',
                     label: t('titleField'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell
                             mainText={row.title || row.room?.name || '—'}
@@ -399,6 +401,7 @@ export default function ReservationsAdminPage() {
                 headerElement: {
                     value: 'professor',
                     label: t('professor'),
+                    mobile: 'primary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell
                             mainText={
@@ -414,6 +417,7 @@ export default function ReservationsAdminPage() {
                 headerElement: {
                     value: 'startAt',
                     label: t('startAt'),
+                    mobile: 'primary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell
                             mainText={formatDate(row.startAt)}
@@ -426,6 +430,7 @@ export default function ReservationsAdminPage() {
                 headerElement: {
                     value: 'price',
                     label: t('price'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell mainText={formatMoney(row.price)} />
                     ),
@@ -435,6 +440,7 @@ export default function ReservationsAdminPage() {
                 headerElement: {
                     value: 'isPaid',
                     label: t('payment'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <Badge
                             id={`reservation-paid-${row.id}`}
@@ -449,6 +455,7 @@ export default function ReservationsAdminPage() {
                 headerElement: {
                     value: 'status',
                     label: t('status'),
+                    mobile: 'primary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <Badge
                             id={`reservation-status-${row.id}`}

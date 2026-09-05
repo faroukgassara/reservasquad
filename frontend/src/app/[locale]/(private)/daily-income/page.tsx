@@ -268,6 +268,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'date',
                     label: t('date'),
+                    mobile: 'primary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
                         <OrganismTable.Cell mainText={formatDate(row.date)} />
                     ),
@@ -277,6 +278,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'totalIncome',
                     label: t('totalIncome'),
+                    mobile: 'primary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
                         <OrganismTable.Cell mainText={formatMoney(row.totalIncome)} />
                     ),
@@ -286,6 +288,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'chargesInvestment',
                     label: t('chargesInvestment'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
                         <OrganismTable.Cell
                             mainText={formatMoney(row.chargesInvestment ?? 0)}
@@ -297,6 +300,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'savings',
                     label: t('savings'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
                         <OrganismTable.Cell mainText={formatMoney(row.savings)} />
                     ),
@@ -306,6 +310,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'benefits',
                     label: t('benefits'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
                         <OrganismTable.Cell mainText={formatMoney(row.benefits ?? 0)} />
                     ),
@@ -315,6 +320,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'savingsForCharges',
                     label: t('savingsForCharges'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
                         <OrganismTable.Cell
                             mainText={formatMoney(row.savingsForCharges ?? 0)}
@@ -332,6 +338,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'date',
                     label: t('date'),
+                    mobile: 'primary',
                     render: (_: unknown, row: IncomeLineRecord) => (
                         <OrganismTable.Cell mainText={formatDate(row.date)} />
                     ),
@@ -341,6 +348,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'type',
                     label: t('type'),
+                    mobile: 'primary',
                     render: (_: unknown, row: IncomeLineRecord) => (
                         <Badge
                             id={`line-type-${row.id}`}
@@ -357,6 +365,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'label',
                     label: t('label'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: IncomeLineRecord) => (
                         <OrganismTable.Cell mainText={row.label} />
                     ),
@@ -366,6 +375,7 @@ export default function DailyIncomePage() {
                 headerElement: {
                     value: 'amount',
                     label: t('amount'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: IncomeLineRecord) => (
                         <OrganismTable.Cell mainText={formatMoney(row.amount)} />
                     ),

@@ -135,6 +135,7 @@ export default function ProfessorsAdminPage() {
                 headerElement: {
                     value: 'name',
                     label: tCommon('name'),
+                    mobile: 'primary',
                     render: (_: unknown, row: ProfessorRecord) => (
                         <OrganismTable.Cell
                             mainText={`${row.firstName} ${row.lastName}`}
@@ -147,6 +148,7 @@ export default function ProfessorsAdminPage() {
                 headerElement: {
                     value: 'email',
                     label: t('email'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ProfessorRecord) => (
                         <OrganismTable.Cell mainText={row.email ?? '—'} />
                     ),
@@ -156,6 +158,7 @@ export default function ProfessorsAdminPage() {
                 headerElement: {
                     value: 'phone',
                     label: t('phone'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ProfessorRecord) => (
                         <OrganismTable.Cell mainText={row.phone ?? '—'} />
                     ),
@@ -165,6 +168,7 @@ export default function ProfessorsAdminPage() {
                 headerElement: {
                     value: 'specialPrice',
                     label: t('specialPrice'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ProfessorRecord) => (
                         <OrganismTable.Cell
                             mainText={

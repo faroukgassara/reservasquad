@@ -53,7 +53,9 @@
         "min": "Min",
         "max": "Max",
         "optional": "optional",
-        "selectOption": "Select an option"
+        "selectOption": "Select an option",
+        "showDetails": "Show details",
+        "hideDetails": "Hide details"
     },
     "auth": {
         "login": "Login",

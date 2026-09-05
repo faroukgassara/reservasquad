@@ -4,6 +4,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     EButtonSize,
     EButtonType,
@@ -19,6 +20,7 @@ import {
     ITableCell,
     ITableColumnFlat,
     ITableSortConfig,
+    TMobileColumnLayout,
     TSortDirection,
     TTableSortDirection,
 } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
@@ -97,6 +99,7 @@ interface ITableColumnHeaderProps {
     onSort: (key: string) => void;
     width?: string;
     headerClassName?: string;
+    mobile?: TMobileColumnLayout;
 }
 
 function getSortIconName(direction: TSortDirection): IconComponentsEnum {
@@ -618,54 +621,196 @@ const MobileTableRow = <TRow,>({
     columns,
     actions,
     onClickRow,
+    collapsible = true,
+    defaultExpanded = false,
 }: {
     row: TRow;
     rowIndex: number;
     columns: ITableColumnFlat<TRow>[];
     actions?: ITable<TRow>['actions'];
     onClickRow?: (row: TRow, index: number) => void;
+    /** Collapse secondary columns behind a "Show details" toggle (default true). */
+    collapsible?: boolean;
+    /** Start the details section expanded (default false). */
+    defaultExpanded?: boolean;
 }) => {
-    const body = (
-        <div className="flex flex-col gap-3">
-            {columns.map((col) => {
-                const rawValue = (row as Record<string, unknown>)[col.key];
-                return (
-                    <div key={col.key} className="flex flex-col gap-1">
-                        <Label variant={EVariantLabel.overline} color="text-gray-500" className="uppercase">
-                            {col.label}
-                        </Label>
-                        <div className={col.cellClassName}>
-                            {col.render ? (
-                                col.render(rawValue, row)
-                            ) : (
-                                <TableCell
-                                    mainText={rawValue != null ? String(rawValue) : undefined}
-                                    cellClassName="px-0 py-0"
-                                />
-                            )}
+    const tCommon = useTranslations('common');
+    const [expanded, setExpanded] = useState(defaultExpanded);
+
+    // Primary columns that carry a column header (label). The first one becomes the
+    // card's main title, the remaining ones are rendered as labeled mini-fields so the
+    // attribute headings stay visible next to their values on mobile.
+    const primaryLabeled = useMemo(
+        () => columns.filter((col) => col.mobile === 'primary' && col.label.trim().length > 0),
+        [columns],
+    );
+
+    const titleColumn = useMemo(() => {
+        if (primaryLabeled.length > 0) return primaryLabeled[0];
+        return columns.find((col) => col.mobile === 'primary') ?? columns[0];
+    }, [columns, primaryLabeled]);
+
+    // Unlabeled primary columns (e.g. bulk-selection checkboxes) are rendered as
+    // standalone controls at the trailing edge — they must not occupy the title slot.
+    const primaryAccessories = useMemo(
+        () =>
+            columns.filter(
+                (col) =>
+                    col.mobile === 'primary' &&
+                    col.label.trim().length === 0 &&
+                    col.key !== titleColumn?.key,
+            ),
+        [columns, titleColumn],
+    );
+
+    const miniFields = useMemo(() => primaryLabeled.slice(1), [primaryLabeled]);
+
+    const secondaryColumns = useMemo(() => {
+        const primaryKeys = new Set(
+            columns.filter((col) => col.mobile === 'primary').map((col) => col.key),
+        );
+        if (primaryLabeled.length === 0 && titleColumn) {
+            primaryKeys.add(titleColumn.key);
+        }
+        return columns.filter((col) => !primaryKeys.has(col.key) && col.mobile !== 'hidden');
+    }, [columns, primaryLabeled, titleColumn]);
+
+    const renderValue = (col: ITableColumnFlat<TRow>) => {
+        const rawValue = (row as Record<string, unknown>)[col.key];
+        if (!col.render) {
+            return (
+                <TableCell
+                    mainText={rawValue != null ? String(rawValue) : undefined}
+                    cellClassName="px-0 py-0"
+                />
+            );
+        }
+        const rendered = col.render(rawValue, row);
+        if (isTableCell(rendered)) {
+            return React.cloneElement(rendered as React.ReactElement<ITableCell>, {
+                cellClassName: twMerge(
+                    'px-0 py-0',
+                    (rendered as React.ReactElement<ITableCell>).props.cellClassName,
+                ),
+            });
+        }
+        return rendered;
+    };
+
+    const renderLabel = (label: string) => (
+        <Label variant={EVariantLabel.overline} color="text-gray-500" className="uppercase">
+            {label}
+        </Label>
+    );
+
+    const cardHeader = (
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+            {titleColumn && (
+                <div className="flex min-w-0 flex-col gap-0.5">
+                    {titleColumn.label && renderLabel(titleColumn.label)}
+                    <div className="min-w-0">{renderValue(titleColumn)}</div>
+                </div>
+            )}
+
+            {miniFields.length > 0 && (
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+                    {miniFields.map((col) => (
+                        <div key={col.key} className="flex min-w-0 flex-col gap-0.5">
+                            <dt>{renderLabel(col.label)}</dt>
+                            <dd className="min-w-0">{renderValue(col)}</dd>
                         </div>
-                    </div>
-                );
-            })}
+                    ))}
+                </dl>
+            )}
         </div>
     );
 
+    const details = (
+        <div className="overflow-hidden rounded-xl border border-gray-100 bg-gray-25/70">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 sm:grid-cols-3">
+                {secondaryColumns.map((col) => (
+                    <div key={col.key} className="flex min-w-0 flex-col gap-1">
+                        <dt>{renderLabel(col.label)}</dt>
+                        <dd className="min-w-0">{renderValue(col)}</dd>
+                    </div>
+                ))}
+            </dl>
+        </div>
+    );
+
+    const hasDetails = secondaryColumns.length > 0;
+    const canCollapse = collapsible && secondaryColumns.length > 2;
+
     return (
         <div className="border-b border-gray-100 last:border-b-0">
-            {onClickRow ? (
-                <button
-                    type="button"
-                    className="flex w-full flex-col gap-3 px-4 py-4 text-left transition-colors active:bg-primary-50/40"
-                    onClick={() => onClickRow(row, rowIndex)}
-                >
-                    {body}
-                </button>
-            ) : (
-                <div className="px-4 py-4">{body}</div>
-            )}
-            {actions && (
-                <div className="flex justify-end px-4 pb-3">
-                    <TableActionMenu actions={actions} row={row} rowIndex={rowIndex} />
+            <div className="flex w-full items-start gap-3 px-4 py-4">
+                {onClickRow ? (
+                    <button
+                        type="button"
+                        className="flex min-w-0 flex-1 text-left transition-colors active:bg-primary-50/40"
+                        onClick={() => onClickRow(row, rowIndex)}
+                    >
+                        {cardHeader}
+                    </button>
+                ) : (
+                    cardHeader
+                )}
+
+                {(primaryAccessories.length > 0 || actions) && (
+                    <div className="flex shrink-0 items-start gap-1">
+                        {primaryAccessories.map((col, index) => (
+                            <div key={col.key || `accessory-${index}`} className="flex items-center">
+                                {renderValue(col)}
+                            </div>
+                        ))}
+                        {actions && (
+                            <TableActionMenu actions={actions} row={row} rowIndex={rowIndex} />
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {hasDetails && (
+                <div className="px-4 pb-4">
+                    {canCollapse ? (
+                        <>
+                            <button
+                                type="button"
+                                aria-expanded={expanded}
+                                className="inline-flex cursor-pointer items-center gap-1 rounded-md py-0.5 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+                                onClick={() => setExpanded((prev) => !prev)}
+                            >
+                                <Icon
+                                    name={
+                                        expanded
+                                            ? IconComponentsEnum.chevronUp
+                                            : IconComponentsEnum.chevronDown
+                                    }
+                                    size={ESize.sm}
+                                    color="text-gray-400"
+                                />
+                                <Label variant={EVariantLabel.bodySmall} color="text-gray-600">
+                                    {tCommon(expanded ? 'hideDetails' : 'showDetails')}
+                                </Label>
+                            </button>
+                            <AnimatePresence initial={false}>
+                                {expanded && (
+                                    <motion.div
+                                        key="details"
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="pt-3">{details}</div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </>
+                    ) : (
+                        details
+                    )}
                 </div>
             )}
         </div>
@@ -705,6 +850,8 @@ const OrganismTable = <TRow,>({
     onFilterRow,
     onAddTag,
     clearSearchOnAddTag,
+    mobileCollapsible = true,
+    mobileDefaultExpanded = false,
 }: ITable<TRow>) => {
     const tCommon = useTranslations('common');
     const [internalSearch, setInternalSearch] = useState('');
@@ -730,6 +877,7 @@ const OrganismTable = <TRow,>({
                         render: headerElement.render,
                         cellClassName: headerElement.cellClassName,
                         headerClassName: headerElement.headerClassName,
+                        mobile: headerElement.mobile,
                     };
                 }
                 return col as unknown as ITableColumnFlat<TRow>;
@@ -907,6 +1055,8 @@ const OrganismTable = <TRow,>({
                                     columns={flatColumns}
                                     actions={actions}
                                     onClickRow={onClickRow}
+                                    collapsible={mobileCollapsible}
+                                    defaultExpanded={mobileDefaultExpanded}
                                 />
                             ))
                         ) : (

@@ -111,6 +111,7 @@ export default function ProfessorDetailPage() {
                 headerElement: {
                     value: 'title',
                     label: tRes('titleField'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell
                             mainText={row.title || row.room?.name || '—'}
@@ -123,6 +124,7 @@ export default function ProfessorDetailPage() {
                 headerElement: {
                     value: 'startAt',
                     label: tRes('startAt'),
+                    mobile: 'primary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell
                             mainText={formatDate(row.startAt)}
@@ -135,6 +137,7 @@ export default function ProfessorDetailPage() {
                 headerElement: {
                     value: 'price',
                     label: tRes('price'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <OrganismTable.Cell mainText={formatMoney(row.price)} />
                     ),
@@ -144,6 +147,7 @@ export default function ProfessorDetailPage() {
                 headerElement: {
                     value: 'isPaid',
                     label: tRes('payment'),
+                    mobile: 'secondary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <Badge
                             id={`prof-res-paid-${row.id}`}
@@ -158,6 +162,7 @@ export default function ProfessorDetailPage() {
                 headerElement: {
                     value: 'status',
                     label: tRes('status'),
+                    mobile: 'primary',
                     render: (_: unknown, row: ReservationRecord) => (
                         <Badge
                             id={`prof-res-status-${row.id}`}

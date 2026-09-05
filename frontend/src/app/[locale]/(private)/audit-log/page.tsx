@@ -108,6 +108,7 @@ export default function AuditLogPage() {
                     label: t('columns.date'),
                     sortable: true,
                     width: '170px',
+                    mobile: 'secondary',
                     render: (_: unknown, row: AuditLogRecord) => (
                         <OrganismTable.Cell mainText={formatDate(row.createdAt)} />
                     ),
@@ -118,6 +119,7 @@ export default function AuditLogPage() {
                     value: 'user',
                     label: t('columns.user'),
                     width: '180px',
+                    mobile: 'secondary',
                     render: (_: unknown, row: AuditLogRecord) => (
                         <OrganismTable.Cell mainText={userLabel(row)} />
                     ),
@@ -129,6 +131,7 @@ export default function AuditLogPage() {
                     label: t('columns.action'),
                     sortable: true,
                     width: '140px',
+                    mobile: 'secondary',
                     render: (_: unknown, row: AuditLogRecord) => (
                         <OrganismTable.Cell mainText={actionLabel(t, row.action)} />
                     ),
@@ -140,6 +143,7 @@ export default function AuditLogPage() {
                     label: t('columns.entity'),
                     sortable: true,
                     width: '150px',
+                    mobile: 'secondary',
                     render: (_: unknown, row: AuditLogRecord) => (
                         <OrganismTable.Cell mainText={entityLabel(t, row.entityType)} />
                     ),
@@ -149,6 +153,7 @@ export default function AuditLogPage() {
                 headerElement: {
                     value: 'summary',
                     label: t('columns.summary'),
+                    mobile: 'primary',
                     render: (_: unknown, row: AuditLogRecord) => (
                         <OrganismTable.Cell mainText={row.summary || '—'} />
                     ),

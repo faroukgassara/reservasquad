@@ -53,7 +53,9 @@
         "min": "الحد الأدنى",
         "max": "الحد الأقصى",
         "optional": "اختياري",
-        "selectOption": "اختر خياراً"
+        "selectOption": "اختر خياراً",
+        "showDetails": "عرض التفاصيل",
+        "hideDetails": "إخفاء التفاصيل"
     },
     "auth": {
         "login": "تسجيل الدخول",
