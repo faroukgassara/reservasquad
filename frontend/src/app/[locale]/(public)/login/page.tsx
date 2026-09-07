@@ -15,7 +15,7 @@ import { useToast } from '@/contexts/ToastContext';
 
 export default function LoginPage() {
     const router = useRouter();
-    const failedAttemptsRef = useRef(0);
+    const failedAttemptsRef = useRef(0) as { current: number };
     const t = useTranslations();
     const tAuth = useTranslations('auth');
     const { openToast } = useToast();

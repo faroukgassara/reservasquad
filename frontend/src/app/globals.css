@@ -112,3 +112,64 @@ html {
   -webkit-text-fill-color: #21252e !important;
   transition: background-color 99999s ease-out 0s;
 }
+
+/* Calendar period transitions — slide with nav direction, fade for jumps. Flipped for RTL. */
+@keyframes cal-slide-in-next {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cal-slide-in-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes cal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cal-anim-next {
+  animation: cal-slide-in-next 200ms ease-out;
+}
+
+.cal-anim-prev {
+  animation: cal-slide-in-prev 200ms ease-out;
+}
+
+.cal-anim-fade {
+  animation: cal-fade-in 160ms ease-out;
+}
+
+[dir='rtl'] .cal-anim-next {
+  animation-name: cal-slide-in-prev;
+}
+
+[dir='rtl'] .cal-anim-prev {
+  animation-name: cal-slide-in-next;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-anim-next,
+  .cal-anim-prev,
+  .cal-anim-fade {
+    animation: none;
+  }
+}
+

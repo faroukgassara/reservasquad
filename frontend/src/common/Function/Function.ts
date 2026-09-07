@@ -75,7 +75,7 @@ class CommonFunction {
     }, {} as Record<string, any>);
   };
 
-  public scrollTopAndValidation(ref: React.RefObject<HTMLDivElement>) {
+  public scrollTopAndValidation(ref: React.RefObject<HTMLDivElement | null>) {
     ref?.current?.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   };
 

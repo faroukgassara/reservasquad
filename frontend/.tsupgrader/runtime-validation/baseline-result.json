@@ -1,0 +1,38 @@
+{
+  "planHash": "cf543c95e1ecd700dfea250e1a89544dd0ddb0798472c365790abf1f4a09f933",
+  "phase": "baseline",
+  "recordedAtUtc": "2026-09-05T02:51:30.4520986Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 6169,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "tsc-no-emit",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "",
+        "durationMs": 3432
+      },
+      {
+        "name": "next-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E bibliosquad-frontend@0.1.0 build\r\n\u003E next build\r\n\r\n   \u25B2 Next.js 15.5.9\r\n   - Environments: .env\r\n\r\n   Creating an optimized production build ...\r\n \u2713 Compiled successfully in 49s\r\n   Linting and checking validity of types ...\r\n\r\n./src/app/[locale]/(private)/calendar/page.tsx\r\n347:11  Warning: The \u0027rooms\u0027 logical expression could make the dependencies of useCallback Hook (at line 470) change on every render. To fix this, wrap the initialization of \u0027rooms\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n347:11  Warning: The \u0027rooms\u0027 logical expression could make the dependencies of useMemo Hook (at line 550) change on every render. To fix this, wrap the initialization of \u0027rooms\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n347:11  Warning: The \u0027rooms\u0027 logical expression could make the dependencies of useCallback Hook (at line 691) change on every render. To fix this, wrap the initialization of \u0027rooms\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n348:11  Warning: The \u0027professors\u0027 logical expression could make the dependencies of useCallback Hook (at line 470) change on every render. To fix this, wrap the initialization of \u0027professors\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n\r\n./src/app/[locale]/(private)/daily-income/page.tsx\r\n78:11  Warning: The \u0027now\u0027 object construction makes the dependencies of useMemo Hook (at line 214) change on every render. To fix this, wrap the initialization of \u0027now\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n188:11  Warning: The \u0027days\u0027 logical expression could make the dependencies of useCallback Hook (at line 542) change on every render. To fix this, wrap the initialization of \u0027days\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n189:11  Warning: The \u0027allLines\u0027 logical expression could make the dependencies of useMemo Hook (at line 206) change on every render. To fix this, wrap the initialization of \u0027allLines\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n189:11  Warning: The \u0027allLines\u0027 logical expression could make the dependencies of useCallback Hook (at line 542) change on every render. To fix this, wrap the initialization of \u0027allLines\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n\r\n./src/app/[locale]/(private)/reservations/page.tsx\r\n153:11  Warning: The \u0027rooms\u0027 logical expression could make the dependencies of useMemo Hook (at line 161) change on every render. To fix this, wrap the initialization of \u0027rooms\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n153:11  Warning: The \u0027rooms\u0027 logical expression could make the dependencies of useCallback Hook (at line 359) change on every render. To fix this, wrap the initialization of \u0027rooms\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n154:11  Warning: The \u0027professors\u0027 logical expression could make the dependencies of useMemo Hook (at line 173) change on every render. To fix this, wrap the initialization of \u0027professors\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n154:11  Warning: The \u0027professors\u0027 logical expression could make the dependencies of useCallback Hook (at line 359) change on every render. To fix this, wrap the initialization of \u0027professors\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n295:11  Warning: The \u0027rows\u0027 logical expression could make the dependencies of useMemo Hook (at line 299) change on every render. To fix this, wrap the initialization of \u0027rows\u0027 in its own useMemo() Hook.  react-hooks/exhaustive-deps\r\n\r\ninfo  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules\r\n   Collecting page data ...\r\n   Generating static pages (0/68) ...\r\n   Generating static pages (17/68) \r\n   Generating static pages (34/68) \r\n   Generating static pages (51/68) \r\n \u2713 Generating static pages (68/68)\r\n   Finalizing page optimization ...\r\n   Collecting build traces ...\r\n\r\nRoute (app)                                         Size  First Load JS\r\n\u250C \u0192 /                                              231 B         102 kB\r\n\u251C \u25CB /_not-found               \n\u2026[truncated]",
+        "durationMs": 73650
+      }
+    ]
+  }
+}

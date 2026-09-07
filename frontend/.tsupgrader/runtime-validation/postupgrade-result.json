@@ -1,0 +1,38 @@
+{
+  "planHash": "cf543c95e1ecd700dfea250e1a89544dd0ddb0798472c365790abf1f4a09f933",
+  "phase": "postupgrade",
+  "recordedAtUtc": "2026-09-05T07:18:36.1830492Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 13010,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "tsc-no-emit",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "",
+        "durationMs": 1391
+      },
+      {
+        "name": "next-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E bibliosquad-frontend@0.1.0 build\r\n\u003E next build\r\n\r\n\u25B2 Next.js 16.3.4 (Turbopack)\r\n- Environments: .env\r\n\u2713 Running next.config.ts took 1146ms\r\n\r\n\u26A0 The \u0022middleware\u0022 file convention is deprecated. Please use \u0022proxy\u0022 instead.\r\n\r\n  To migrate automatically, run:\r\n  npx @next/codemod@canary middleware-to-proxy .\r\n\r\n  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\r\n  Creating an optimized production build ...\r\n\u2713 Compiled successfully in 24.2s\r\n  Running TypeScript ...\r\n\r\n  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.\r\n  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project\u0027s needs:\r\n\r\n  \t- include was updated to add \u0027.next/dev/types/**/*.ts\u0027\r\n\r\n  The following mandatory changes were made to your tsconfig.json:\r\n\r\n  \t- jsx was set to react-jsx (next.js uses the React automatic runtime)\r\n\r\n  Finished TypeScript in 1140ms ...\r\n  Collecting page data using 15 workers ...\r\n  Generating static pages using 15 workers (0/67) ...\r\n  Generating static pages using 15 workers (16/67) \r\n  Generating static pages using 15 workers (33/67) \r\n  Generating static pages using 15 workers (50/67) \r\n\u2713 Generating static pages using 15 workers (67/67) in 515ms\r\n  Finalizing page optimization ...\r\n\r\nRoute (app)\r\n\u250C \u0192 /\r\n\u251C \u25CB /_not-found\r\n\u251C \u0192 /[locale]\r\n\u251C \u0192 /[locale]/activate/[token]\r\n\u251C \u0192 /[locale]/audit-log\r\n\u251C \u0192 /[locale]/calendar\r\n\u251C \u0192 /[locale]/daily-income\r\n\u251C \u0192 /[locale]/dashboard\r\n\u251C \u0192 /[locale]/forgot-password\r\n\u251C \u0192 /[locale]/login\r\n\u251C \u0192 /[locale]/professors\r\n\u251C \u0192 /[locale]/professors/[id]\r\n\u251C \u0192 /[locale]/recycle-bin\r\n\u251C \u0192 /[locale]/reservations\r\n\u251C \u0192 /[locale]/reset-password/[token]\r\n\u251C \u0192 /[locale]/rooms\r\n\u251C \u0192 /[locale]/today\r\n\u251C \u0192 /[locale]/users\r\n\u251C \u0192 /api/audit-log\r\n\u251C \u0192 /api/auth/[...nextauth]\r\n\u251C \u0192 /api/auth/activate\r\n\u251C \u0192 /api/auth/request-reset-password\r\n\u251C \u0192 /api/auth/reset-password\r\n\u251C \u0192 /api/auth/validate-reset-password-token\r\n\u251C \u0192 /api/daily-income\r\n\u251C \u0192 /api/daily-income/[id]\r\n\u251C \u0192 /api/daily-income/lines\r\n\u251C \u0192 /api/daily-income/lines/[id]\r\n\u251C \u0192 /api/daily-income/summary\r\n\u251C \u0192 /api/daily-income/trend\r\n\u251C \u0192 /api/professors\r\n\u251C \u0192 /api/professors/[id]\r\n\u251C \u0192 /api/professors/[id]/hard\r\n\u251C \u0192 /api/professors/[id]/restore\r\n\u251C \u0192 /api/professors/deleted\r\n\u251C \u0192 /api/reservations\r\n\u251C \u0192 /api/reservations/[id]\r\n\u251C \u0192 /api/reservations/[id]/cancel\r\n\u251C \u0192 /api/reservations/[id]/delete-series-future\r\n\u251C \u0192 /api/reservations/[id]/hard\r\n\u251C \u0192 /api/reservations/[id]/restore\r\n\u251C \u0192 /api/reservations/availability\r\n\u251C \u0192 /api/reservations/bulk-paid\r\n\u251C \u0192 /api/reservations/calendar\r\n\u251C \u0192 /api/reservations/deleted\r\n\u251C \u0192 /api/reservations/series\r\n\u251C \u0192 /api/reservations/stats\r\n\u251C \u0192 /api/reservations/today\r\n\u251C \u0192 /api/reservations/trend\r\n\u251C \u0192 /api/reservations/unpaid-summary\r\n\u251C \u0192 /api/rooms\r\n\u251C \u0192 /api/rooms/[id]\r\n\u251C \u0192 /api/users\r\n\u251C \u0192 /api/users/[id]\r\n\u2514 \u25CB /icon.png\r\n\r\n\r\n\u0192 Proxy (Middleware)\r\n\r\n\u25CB  (Static)   prerendered as static content\r\n\u0192  (Dynamic)  server-rendered on demand\r\n\r\n",
+        "durationMs": 39030
+      }
+    ]
+  }
+}
