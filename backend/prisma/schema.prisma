@@ -176,6 +176,18 @@ model DailyIncome {
   @@index([deletedAt])
 }
 
+model MonthlyCarryover {
+  id     String  @id @default(uuid())
+  year   Int
+  month  Int
+  amount Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([year, month])
+}
+
 model IncomeLine {
   id     String          @id @default(uuid())
   date   DateTime        @db.Date

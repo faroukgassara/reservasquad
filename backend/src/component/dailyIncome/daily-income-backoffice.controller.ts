@@ -24,6 +24,7 @@ import {
   UpdateIncomeLineDto,
 } from 'src/dto/dailyIncome/createIncomeLine.dto';
 import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
+import { SetPreviousMonthRestDto } from 'src/dto/dailyIncome/setPreviousMonthRest.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { sendCaughtError } from 'src/common/utils/caught-error.util';
@@ -94,6 +95,23 @@ export class DailyIncomeBackofficeController {
       const data = await this.dailyIncomeService.getTrend(
         Number.isFinite(parsed) ? parsed : 6,
       );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('previous-month-rest')
+  @swagger.ApiOperation({ summary: 'Set the rest of the previous month for a month' })
+  async setPreviousMonthRest(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: SetPreviousMonthRestDto,
+  ) {
+    try {
+      const dto = await this.validateDto(SetPreviousMonthRestDto, body, res);
+      if (!dto) return;
+      const data = await this.dailyIncomeService.setPreviousMonthRest(dto, req.user?.id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

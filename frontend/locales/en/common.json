@@ -440,6 +440,8 @@
             "totalBenefits": "Total benefits",
             "totalSavingsForCharges": "Total saving for charges",
             "netBalance": "Net balance",
+            "previousMonthRest": "Rest of the previous month",
+            "previousMonthRestHint": "Amount carried into {period}. Entered manually — not used in any calculation.",
             "exportPdf": "Export PDF",
             "exportTitle": "Daily income — Biblio Squad",
             "exportPeriod": "{month} {year}",

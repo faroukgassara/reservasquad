@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
@@ -10,16 +11,17 @@ export interface IStatCard {
     iconColor: ELabelColor;
     label: string;
     value: string;
+    action?: ReactNode;
 }
 
-const StatCard = ({ icon, iconBg, iconColor, label, value }: IStatCard) => {
+const StatCard = ({ icon, iconBg, iconColor, label, value, action }: IStatCard) => {
     return (
         <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <Div className="flex items-center gap-3">
                 <Div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
                     <Icon name={icon} size={ESize.sm} color={iconColor} />
                 </Div>
-                <Div className="min-w-0 flex flex-col">
+                <Div className="min-w-0 flex flex-1 flex-col">
                     <Label variant={EVariantLabel.caption} color="text-gray-500" className="block truncate">
                         {label}
                     </Label>
@@ -31,6 +33,7 @@ const StatCard = ({ icon, iconBg, iconColor, label, value }: IStatCard) => {
                         {value}
                     </Label>
                 </Div>
+                {action ? <Div className="shrink-0">{action}</Div> : null}
             </Div>
         </Div>
     );

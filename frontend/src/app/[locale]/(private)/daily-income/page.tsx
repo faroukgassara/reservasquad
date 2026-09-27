@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -18,6 +18,8 @@ import DailyIncomeFormModal, {
 import IncomeLineFormModal, {
     type IncomeLineFormValues,
 } from '@/components/Modals/IncomeLineFormModal/IncomeLineFormModal';
+import PreviousMonthRestFormModal from '@/components/Modals/PreviousMonthRestFormModal/PreviousMonthRestFormModal';
+import Icon from '@/components/Primitives/Icon/Icon';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
@@ -31,6 +33,7 @@ import {
     fetchDailyIncomes,
     fetchIncomeLines,
     formatMoney,
+    setPreviousMonthRest,
     updateDailyIncome,
     updateIncomeLine,
     type DailyIncomeRecord,
@@ -57,6 +60,7 @@ type ModalState =
     | { type: 'day-delete'; entry: DailyIncomeRecord }
     | { type: 'line-form'; line: IncomeLineRecord | null }
     | { type: 'line-delete'; line: IncomeLineRecord }
+    | { type: 'previous-month-rest' }
     | null;
 
 type LineFilter = 'all' | IncomeLineType;
@@ -180,6 +184,17 @@ export default function DailyIncomePage() {
             openToast(tCommon('success'), tCommon('delete'), { type: EToastType.SUCCESS });
             setModalState(null);
             closeModal();
+        },
+        onError: (error: Error) =>
+            openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
+    const previousMonthRestMutation = useMutation({
+        mutationFn: setPreviousMonthRest,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['daily-income-summary'] });
+            openToast(tCommon('success'), tCommon('save'), { type: EToastType.SUCCESS });
+            setModalState(null);
         },
         onError: (error: Error) =>
             openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
@@ -436,7 +451,28 @@ export default function DailyIncomePage() {
         iconColor: ELabelColor;
         label: string;
         value: string;
+        action?: ReactNode;
     }[] = [
+        {
+            key: 'previousMonthRest',
+            icon: IconComponentsEnum.calendar,
+            iconBg: 'bg-gray-100',
+            iconColor: 'text-gray-600',
+            label: t('previousMonthRest'),
+            value: formatMoney(summary?.previousMonthRest ?? 0),
+            action: (
+                <Icon
+                    name={IconComponentsEnum.edit}
+                    size={ESize.sm}
+                    color="text-gray-500"
+                    className="cursor-pointer"
+                    handleClick={() => {
+                        setModalState({ type: 'previous-month-rest' });
+                        openModal();
+                    }}
+                />
+            ),
+        },
         {
             key: 'income',
             icon: IconComponentsEnum.layers,
@@ -583,6 +619,21 @@ export default function DailyIncomePage() {
                 />
             );
         }
+        if (modalState?.type === 'previous-month-rest') {
+            return (
+                <PreviousMonthRestFormModal
+                    periodLabel={t('exportPeriod', {
+                        month: t(`months.${month}` as 'months.1'),
+                        year,
+                    })}
+                    amount={summary?.previousMonthRest ?? 0}
+                    onSubmit={async (amount) => {
+                        await previousMonthRestMutation.mutateAsync({ year, month, amount });
+                    }}
+                    isLoading={previousMonthRestMutation.isPending}
+                />
+            );
+        }
         if (modalState?.type === 'line-form') {
             return (
                 <IncomeLineFormModal
@@ -648,6 +699,7 @@ export default function DailyIncomePage() {
                                         iconColor={card.iconColor}
                                         label={summaryLoading ? '—' : card.label}
                                         value={summaryLoading ? '—' : card.value}
+                                        action={summaryLoading ? undefined : card.action}
                                     />
                                 </Div>
                             ))}

@@ -440,6 +440,8 @@
             "totalBenefits": "إجمالي الأرباح",
             "totalSavingsForCharges": "إجمالي الادخار للرسوم",
             "netBalance": "الرصيد الصافي",
+            "previousMonthRest": "المتبقي من الشهر السابق",
+            "previousMonthRestHint": "المبلغ المرحّل إلى {period}. يُدخل يدوياً — لا يُستخدم في أي حساب.",
             "exportPdf": "تصدير PDF",
             "exportTitle": "الدخل اليومي — Biblio Squad",
             "exportPeriod": "{month} {year}",

@@ -13,6 +13,7 @@ import {
   UpdateIncomeLineDto,
 } from 'src/dto/dailyIncome/createIncomeLine.dto';
 import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
+import { SetPreviousMonthRestDto } from 'src/dto/dailyIncome/setPreviousMonthRest.dto';
 import { EIncomeLineType } from 'src/generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
 
@@ -207,7 +208,7 @@ export class DailyIncomeService {
   async getSummary(query: FetchDailyIncomeDto) {
     const { from, to, year, month } = this.resolvePeriod(query);
 
-    const [incomeAgg, chargeAgg, investmentAgg] = await Promise.all([
+    const [incomeAgg, chargeAgg, investmentAgg, carryover] = await Promise.all([
       this.prismaService.dailyIncome.aggregate({
         where: { deletedAt: null, date: { gte: from, lt: to } },
         _sum: { totalIncome: true, savings: true, benefits: true, savingsForCharges: true },
@@ -227,6 +228,9 @@ export class DailyIncomeService {
           type: EIncomeLineType.INVESTMENT,
         },
         _sum: { amount: true },
+      }),
+      this.prismaService.monthlyCarryover.findUnique({
+        where: { year_month: { year, month } },
       }),
     ]);
 
@@ -257,7 +261,27 @@ export class DailyIncomeService {
       totalBenefits: Math.round(totalBenefits * 100) / 100,
       totalSavingsForCharges: Math.round(totalSavingsForCharges * 100) / 100,
       netBalance,
+      previousMonthRest: carryover ? Number(carryover.amount) : 0,
     };
+  }
+
+  async setPreviousMonthRest(dto: SetPreviousMonthRestDto, actorId?: string) {
+    const amount = Number(dto.amount).toFixed(2);
+    const saved = await this.prismaService.monthlyCarryover.upsert({
+      where: { year_month: { year: dto.year, month: dto.month } },
+      create: { year: dto.year, month: dto.month, amount },
+      update: { amount },
+    });
+
+    await this.auditService.log({
+      entityType: 'DAILY_INCOME',
+      entityId: saved.id,
+      action: 'UPDATE',
+      userId: actorId,
+      summary: `Set previous month rest for ${dto.year}-${String(dto.month).padStart(2, '0')}: ${amount}`,
+    });
+
+    return saved;
   }
 
   async getTrend(months: number) {

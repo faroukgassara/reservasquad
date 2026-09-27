@@ -53,6 +53,7 @@ export interface DailyIncomeSummary {
     totalBenefits: number;
     totalSavingsForCharges: number;
     netBalance: number;
+    previousMonthRest: number;
 }
 
 function unwrapData<T>(raw: { data?: T } | T): T {
@@ -114,6 +115,16 @@ export async function fetchIncomeTrend(params: { months?: number }): Promise<Dai
     const res = await api.get(path, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch income trend');
     return unwrapData<DailyIncomeSummary[]>(res.data as { data?: DailyIncomeSummary[] });
+}
+
+export async function setPreviousMonthRest(body: {
+    year: number;
+    month: number;
+    amount: number;
+}): Promise<void> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post('/api/daily-income/previous-month-rest', body, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to save previous month rest');
 }
 
 export async function createDailyIncome(body: {
