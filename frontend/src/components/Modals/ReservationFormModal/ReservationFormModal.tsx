@@ -114,6 +114,39 @@ function normalizePriceMode(
     return mode;
 }
 
+const PROFESSOR_SPECIAL_PRICE_DURATION_MINUTES = 120;
+
+function getTimeRangeMinutes(startTime: string, endTime: string): number | null {
+    const toMinutes = (value: string) => {
+        const match = /^(\d{2}):(\d{2})$/.exec(value);
+        return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+    };
+    const start = toMinutes(startTime);
+    const end = toMinutes(endTime);
+    if (start === null || end === null || end <= start) return null;
+    return end - start;
+}
+
+function autoSelectPriceMode(form: ReservationFormPriceHelpers, professors: ProfessorRecord[]) {
+    const professor = professors.find((item) => item.id === form.getFieldValue('professorId'));
+    const currentMode = form.getFieldValue('priceMode');
+    let nextMode = normalizePriceMode(currentMode, professor);
+
+    if (professor?.specialPrice != null) {
+        const totalMinutes = getTimeRangeMinutes(
+            form.getFieldValue('startTime'),
+            form.getFieldValue('endTime'),
+        );
+        if (totalMinutes !== null) {
+            nextMode = totalMinutes === PROFESSOR_SPECIAL_PRICE_DURATION_MINUTES ? 'PROFESSOR' : 'MANUAL';
+        }
+    }
+
+    if (nextMode !== currentMode) {
+        form.setFieldValue('priceMode', nextMode);
+    }
+}
+
 function toLocalInputValue(iso?: string | null): string {
     if (!iso) return '';
     const date = new Date(iso);
@@ -143,6 +176,7 @@ function syncReservationSlot(
     next: { date?: string; startTime?: string; endTime?: string },
     rooms: RoomRecord[],
     professors: ProfessorRecord[],
+    autoPriceMode: boolean,
 ) {
     const date = next.date ?? form.getFieldValue('date');
     const startTime = next.startTime ?? form.getFieldValue('startTime');
@@ -152,6 +186,7 @@ function syncReservationSlot(
     if (next.endTime !== undefined) form.setFieldValue('endTime', next.endTime);
     form.setFieldValue('startAt', joinLocal(date, startTime));
     form.setFieldValue('endAt', joinLocal(date, endTime));
+    if (autoPriceMode) autoSelectPriceMode(form, professors);
     applyPriceFromMode(form, rooms, professors);
 }
 
@@ -457,16 +492,20 @@ export default function ReservationFormModal({
                                                 onChange={(value) => {
                                                     if (typeof value === 'string') {
                                                         handleChange(value);
-                                                        const professor = professors.find(
-                                                            (item) => item.id === value,
-                                                        );
-                                                        const currentMode = form.getFieldValue('priceMode');
-                                                        const nextMode = normalizePriceMode(
-                                                            currentMode,
-                                                            professor,
-                                                        );
-                                                        if (nextMode !== currentMode) {
-                                                            form.setFieldValue('priceMode', nextMode);
+                                                        if (isEdit) {
+                                                            const professor = professors.find(
+                                                                (item) => item.id === value,
+                                                            );
+                                                            const currentMode = form.getFieldValue('priceMode');
+                                                            const nextMode = normalizePriceMode(
+                                                                currentMode,
+                                                                professor,
+                                                            );
+                                                            if (nextMode !== currentMode) {
+                                                                form.setFieldValue('priceMode', nextMode);
+                                                            }
+                                                        } else {
+                                                            autoSelectPriceMode(form, professors);
                                                         }
                                                         applyPriceFromMode(form, rooms, professors);
                                                     }
@@ -532,6 +571,7 @@ export default function ReservationFormModal({
                                                     { date: value },
                                                     rooms,
                                                     professors,
+                                                    !isEdit,
                                                 );
                                             }}
                                         />
@@ -588,6 +628,7 @@ export default function ReservationFormModal({
                                                         { startTime: value },
                                                         rooms,
                                                         professors,
+                                                        !isEdit,
                                                     );
                                                 }}
                                             />
@@ -664,6 +705,7 @@ export default function ReservationFormModal({
                                                         { endTime: value },
                                                         rooms,
                                                         professors,
+                                                        !isEdit,
                                                     );
                                                 }}
                                             />

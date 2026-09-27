@@ -174,7 +174,7 @@ export default function ProfessorDetailPage() {
                             type={
                                 row.status === 'CONFIRMED'
                                     ? EBadgeType.success
-                                    : EBadgeType.warning
+                                    : EBadgeType.error
                             }
                             size={EBadgeSize.small}
                         />
