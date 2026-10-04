@@ -142,12 +142,15 @@ export default function ReservationsAdminPage() {
         queryFn: () => fetchProfessors({ page: 1, perPage: 100 }),
     });
 
-    const unpaidProfessorId =
-        professorFilter !== 'all' ? professorFilter : undefined;
-
     const { data: unpaidSummary, isLoading: unpaidSummaryLoading } = useQuery({
-        queryKey: ['unpaid-summary', unpaidProfessorId ?? 'all'],
-        queryFn: () => fetchUnpaidSummary(unpaidProfessorId),
+        queryKey: ['unpaid-summary', professorFilter, roomFilter, fromDate, toDate],
+        queryFn: () =>
+            fetchUnpaidSummary({
+                ...(professorFilter !== 'all' ? { professorId: professorFilter } : {}),
+                ...(roomFilter !== 'all' ? { roomId: roomFilter } : {}),
+                ...(fromIso ? { from: fromIso } : {}),
+                ...(toExclusiveIso ? { to: toExclusiveIso } : {}),
+            }),
     });
 
     const rooms = roomsData?.data ?? [];

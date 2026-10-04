@@ -157,6 +157,9 @@ enum EReservationStatus {
 enum EIncomeLineType {
   CHARGE
   INVESTMENT
+  ECOFACTURE
+  FAROUK
+  MAJDI
 }
 
 model DailyIncome {

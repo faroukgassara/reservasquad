@@ -17,6 +17,7 @@ import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, EVariantLabel } from '@/Enum/Enum';
 import {
+    isIncomeLineType,
     toDateInputValue,
     type IncomeLineRecord,
     type IncomeLineType,
@@ -126,10 +127,13 @@ export default function IncomeLineFormModal({
                                 options={[
                                     { value: 'CHARGE', label: t('charge') },
                                     { value: 'INVESTMENT', label: t('investment') },
+                                    { value: 'ECOFACTURE', label: t('ecofacture') },
+                                    { value: 'FAROUK', label: t('farouk') },
+                                    { value: 'MAJDI', label: t('majdi') },
                                 ]}
                                 value={state.value}
                                 onChange={(value) => {
-                                    if (value === 'CHARGE' || value === 'INVESTMENT') {
+                                    if (isIncomeLineType(value)) {
                                         handleChange(value);
                                     }
                                 }}

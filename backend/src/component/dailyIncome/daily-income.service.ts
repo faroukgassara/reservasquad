@@ -174,7 +174,11 @@ export class DailyIncomeService {
     });
 
     const lines = await this.prismaService.incomeLine.findMany({
-      where: { deletedAt: null, date: { gte: from, lt: to } },
+      where: {
+        deletedAt: null,
+        date: { gte: from, lt: to },
+        type: { in: [EIncomeLineType.CHARGE, EIncomeLineType.INVESTMENT] },
+      },
       select: { date: true, amount: true, type: true },
     });
 
@@ -208,25 +212,14 @@ export class DailyIncomeService {
   async getSummary(query: FetchDailyIncomeDto) {
     const { from, to, year, month } = this.resolvePeriod(query);
 
-    const [incomeAgg, chargeAgg, investmentAgg, carryover] = await Promise.all([
+    const [incomeAgg, lineTotals, carryover] = await Promise.all([
       this.prismaService.dailyIncome.aggregate({
         where: { deletedAt: null, date: { gte: from, lt: to } },
         _sum: { totalIncome: true, savings: true, benefits: true, savingsForCharges: true },
       }),
-      this.prismaService.incomeLine.aggregate({
-        where: {
-          deletedAt: null,
-          date: { gte: from, lt: to },
-          type: EIncomeLineType.CHARGE,
-        },
-        _sum: { amount: true },
-      }),
-      this.prismaService.incomeLine.aggregate({
-        where: {
-          deletedAt: null,
-          date: { gte: from, lt: to },
-          type: EIncomeLineType.INVESTMENT,
-        },
+      this.prismaService.incomeLine.groupBy({
+        by: ['type'],
+        where: { deletedAt: null, date: { gte: from, lt: to } },
         _sum: { amount: true },
       }),
       this.prismaService.monthlyCarryover.findUnique({
@@ -234,12 +227,20 @@ export class DailyIncomeService {
       }),
     ]);
 
+    const lineTotal = (type: EIncomeLineType) =>
+      Number(lineTotals.find((row) => row.type === type)?._sum.amount ?? 0);
+
     const totalIncome = Number(incomeAgg._sum.totalIncome ?? 0);
     const totalSavings = Number(incomeAgg._sum.savings ?? 0);
     const totalBenefits = Number(incomeAgg._sum.benefits ?? 0);
     const totalSavingsForCharges = Number(incomeAgg._sum.savingsForCharges ?? 0);
-    const totalCharges = Number(chargeAgg._sum.amount ?? 0);
-    const totalInvestments = Number(investmentAgg._sum.amount ?? 0);
+    const totalCharges = lineTotal(EIncomeLineType.CHARGE);
+    const totalInvestments = lineTotal(EIncomeLineType.INVESTMENT);
+    const totalEcofactureExpenses = lineTotal(EIncomeLineType.ECOFACTURE);
+    const totalBenefitWithdrawals =
+      lineTotal(EIncomeLineType.FAROUK) + lineTotal(EIncomeLineType.MAJDI);
+    // Écofacture lines come out of the 10% reserve and Farouk/Majdi lines out of the benefits,
+    // so they reduce those totals and not the net balance.
     const netBalance =
       Math.round(
         (totalIncome -
@@ -258,8 +259,9 @@ export class DailyIncomeService {
       totalCharges: Math.round(totalCharges * 100) / 100,
       totalInvestments: Math.round(totalInvestments * 100) / 100,
       totalSavings: Math.round(totalSavings * 100) / 100,
-      totalBenefits: Math.round(totalBenefits * 100) / 100,
-      totalSavingsForCharges: Math.round(totalSavingsForCharges * 100) / 100,
+      totalBenefits: Math.round((totalBenefits - totalBenefitWithdrawals) * 100) / 100,
+      totalSavingsForCharges:
+        Math.round((totalSavingsForCharges - totalEcofactureExpenses) * 100) / 100,
       netBalance,
       previousMonthRest: carryover ? Number(carryover.amount) : 0,
     };

@@ -96,10 +96,15 @@ export interface PaymentSummary {
     paidCount: number;
 }
 
-export async function fetchUnpaidSummary(professorId?: string): Promise<PaymentSummary> {
+export async function fetchUnpaidSummary(
+    params: { professorId?: string; roomId?: string; from?: string; to?: string } = {},
+): Promise<PaymentSummary> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const sp = new URLSearchParams();
-    if (professorId) sp.set('professorId', professorId);
+    if (params.professorId) sp.set('professorId', params.professorId);
+    if (params.roomId) sp.set('roomId', params.roomId);
+    if (params.from) sp.set('from', params.from);
+    if (params.to) sp.set('to', params.to);
     const q = sp.toString();
     const res = await api.get(`/api/reservations/unpaid-summary${q ? `?${q}` : ''}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch unpaid summary');
@@ -259,12 +264,14 @@ export async function fetchCalendar(params: {
     from: string;
     to: string;
     roomId?: string;
+    professorId?: string;
 }): Promise<ReservationRecord[]> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const sp = new URLSearchParams();
     sp.set('from', params.from);
     sp.set('to', params.to);
     if (params.roomId) sp.set('roomId', params.roomId);
+    if (params.professorId) sp.set('professorId', params.professorId);
     const res = await api.get(`/api/reservations/calendar?${sp.toString()}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch calendar');
     return unwrapData<ReservationRecord[]>(res.data as { data?: ReservationRecord[] });

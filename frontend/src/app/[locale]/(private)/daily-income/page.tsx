@@ -39,6 +39,7 @@ import {
     type DailyIncomeRecord,
     type IncomeLineRecord,
     type IncomeLineType,
+    isIncomeLineType,
 } from '@/lib/daily-income-api';
 import { exportDailyIncomePdf } from '@/lib/export-daily-income-pdf';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
@@ -214,7 +215,7 @@ export default function DailyIncomePage() {
             const bucket = map[key] ?? { charges: 0, investments: 0 };
             const amount = Number(line.amount);
             if (line.type === 'CHARGE') bucket.charges += amount;
-            else bucket.investments += amount;
+            else if (line.type === 'INVESTMENT') bucket.investments += amount;
             map[key] = bucket;
         }
         return map;
@@ -241,6 +242,9 @@ export default function DailyIncomePage() {
             { value: 'all', label: t('allTypes') },
             { value: 'CHARGE', label: t('charge') },
             { value: 'INVESTMENT', label: t('investment') },
+            { value: 'ECOFACTURE', label: t('ecofacture') },
+            { value: 'FAROUK', label: t('farouk') },
+            { value: 'MAJDI', label: t('majdi') },
         ],
         [t],
     );
@@ -347,8 +351,22 @@ export default function DailyIncomePage() {
         [t],
     );
 
-    const lineColumns = useMemo(
-        (): ITableColumn<IncomeLineRecord>[] => [
+    const lineColumns = useMemo((): ITableColumn<IncomeLineRecord>[] => {
+        const lineTypeLabels: Record<IncomeLineType, string> = {
+            CHARGE: t('charge'),
+            INVESTMENT: t('investment'),
+            ECOFACTURE: t('ecofacture'),
+            FAROUK: t('farouk'),
+            MAJDI: t('majdi'),
+        };
+        const lineTypeBadges: Record<IncomeLineType, EBadgeType> = {
+            CHARGE: EBadgeType.warning,
+            INVESTMENT: EBadgeType.success,
+            ECOFACTURE: EBadgeType.primary,
+            FAROUK: EBadgeType.revprimary,
+            MAJDI: EBadgeType.revsuccess,
+        };
+        return [
             {
                 headerElement: {
                     value: 'date',
@@ -367,10 +385,8 @@ export default function DailyIncomePage() {
                     render: (_: unknown, row: IncomeLineRecord) => (
                         <Badge
                             id={`line-type-${row.id}`}
-                            text={row.type === 'CHARGE' ? t('charge') : t('investment')}
-                            type={
-                                row.type === 'CHARGE' ? EBadgeType.warning : EBadgeType.success
-                            }
+                            text={lineTypeLabels[row.type]}
+                            type={lineTypeBadges[row.type]}
                             size={EBadgeSize.small}
                         />
                     ),
@@ -396,9 +412,8 @@ export default function DailyIncomePage() {
                     ),
                 },
             },
-        ],
-        [t],
-    );
+        ];
+    }, [t]);
 
     const dayActions = useMemo(
         (): ITableAction<DailyIncomeRecord>[] => [
@@ -565,6 +580,9 @@ export default function DailyIncomePage() {
                     amount: t('amount'),
                     charge: t('charge'),
                     investment: t('investment'),
+                    ecofacture: t('ecofacture'),
+                    farouk: t('farouk'),
+                    majdi: t('majdi'),
                     empty: tCommon('empty'),
                 },
             });
@@ -761,11 +779,7 @@ export default function DailyIncomePage() {
                                             options={lineFilterOptions}
                                             value={lineFilter}
                                             onChange={(value) => {
-                                                if (
-                                                    value === 'all' ||
-                                                    value === 'CHARGE' ||
-                                                    value === 'INVESTMENT'
-                                                ) {
+                                                if (value === 'all' || isIncomeLineType(value)) {
                                                     setLineFilter(value);
                                                 }
                                             }}

@@ -4,7 +4,19 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 
 const api = new Api();
 
-export type IncomeLineType = 'CHARGE' | 'INVESTMENT';
+export type IncomeLineType = 'CHARGE' | 'INVESTMENT' | 'ECOFACTURE' | 'FAROUK' | 'MAJDI';
+
+export const INCOME_LINE_TYPES: IncomeLineType[] = [
+    'CHARGE',
+    'INVESTMENT',
+    'ECOFACTURE',
+    'FAROUK',
+    'MAJDI',
+];
+
+export function isIncomeLineType(value: unknown): value is IncomeLineType {
+    return INCOME_LINE_TYPES.includes(value as IncomeLineType);
+}
 
 export interface DailyIncomeRecord {
     id: string;

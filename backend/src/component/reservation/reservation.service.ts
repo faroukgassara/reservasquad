@@ -9,6 +9,7 @@ import { CreateReservationDto } from 'src/dto/reservation/createReservation.dto'
 import { UpdateReservationDto } from 'src/dto/reservation/updateReservation.dto';
 import { FetchReservationsDto } from 'src/dto/reservation/fetchReservations.dto';
 import { CalendarQueryDto } from 'src/dto/reservation/calendarQuery.dto';
+import { UnpaidSummaryQueryDto } from 'src/dto/reservation/unpaidSummaryQuery.dto';
 import { CreateReservationSeriesDto } from 'src/dto/reservation/createReservationSeries.dto';
 import { randomUUID } from 'crypto';
 import {
@@ -561,7 +562,8 @@ export class ReservationService {
     );
   }
 
-  async getUnpaidSummary(professorId?: string) {
+  async getUnpaidSummary(query: UnpaidSummaryQueryDto) {
+    const { professorId } = query;
     const professorFilter: Prisma.ReservationWhereInput | undefined =
       professorId === 'none'
         ? { professorId: null }
@@ -569,10 +571,19 @@ export class ReservationService {
           ? { professorId }
           : undefined;
 
-    const baseWhere = {
+    const baseWhere: Prisma.ReservationWhereInput = {
       deletedAt: null,
       status: EReservationStatus.CONFIRMED,
       ...professorFilter,
+      ...(query.roomId ? { roomId: query.roomId } : {}),
+      ...(query.from || query.to
+        ? {
+            startAt: {
+              ...(query.from ? { gte: new Date(query.from) } : {}),
+              ...(query.to ? { lt: new Date(query.to) } : {}),
+            },
+          }
+        : {}),
     };
 
     const [unpaid, paid] = await Promise.all([
@@ -649,6 +660,7 @@ export class ReservationService {
         startAt: { lt: to },
         endAt: { gt: from },
         ...(query.roomId ? { roomId: query.roomId } : {}),
+        ...(query.professorId ? { professorId: query.professorId } : {}),
       },
       include: reservationInclude,
       orderBy: { startAt: 'asc' },

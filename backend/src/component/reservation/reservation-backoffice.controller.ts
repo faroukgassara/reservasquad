@@ -20,6 +20,7 @@ import { CreateReservationDto } from 'src/dto/reservation/createReservation.dto'
 import { UpdateReservationDto } from 'src/dto/reservation/updateReservation.dto';
 import { FetchReservationsDto } from 'src/dto/reservation/fetchReservations.dto';
 import { CalendarQueryDto } from 'src/dto/reservation/calendarQuery.dto';
+import { UnpaidSummaryQueryDto } from 'src/dto/reservation/unpaidSummaryQuery.dto';
 import { BulkMarkPaidDto } from 'src/dto/reservation/bulkMarkPaid.dto';
 import { CreateReservationSeriesDto } from 'src/dto/reservation/createReservationSeries.dto';
 import { AvailabilityQueryDto } from 'src/dto/reservation/availabilityQuery.dto';
@@ -155,12 +156,21 @@ export class ReservationBackofficeController {
 
   @Get('unpaid-summary')
   @swagger.ApiOperation({ summary: 'Total unpaid amount for confirmed reservations' })
-  async unpaidSummary(
-    @Res() res: Response,
-    @Query('professorId') professorId?: string,
-  ) {
+  async unpaidSummary(@Res() res: Response, @Query() query: UnpaidSummaryQueryDto) {
     try {
-      const data = await this.reservationService.getUnpaidSummary(professorId);
+      const dto = plainToInstance(UnpaidSummaryQueryDto, query);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.getUnpaidSummary(dto);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

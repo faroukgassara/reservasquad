@@ -531,6 +531,7 @@ export default function CalendarPage() {
     const [view, setView] = useState<CalendarView>('week');
     const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
     const [roomId, setRoomId] = useState('');
+    const [professorId, setProfessorId] = useState('');
     const [colorBy, setColorBy] = useState<CalendarColorBy>('payment');
     const [isExporting, setIsExporting] = useState(false);
     const [modalState, setModalState] = useState<CalendarModalState>(null);
@@ -546,16 +547,18 @@ export default function CalendarPage() {
         closeCallBack: () => setModalState(null),
     });
 
-    // Deep-linkable calendar state (?view=&date=&room=&color=) — read once after hydration,
+    // Deep-linkable calendar state (?view=&date=&room=&professor=&color=) — read once after hydration,
     // then kept in sync so refresh/share/back preserves the exact calendar view.
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const dateParam = parseDateParam(params.get('date'));
         const viewParam = parseViewParam(params.get('view'));
         const roomParam = params.get('room');
+        const professorParam = params.get('professor');
         setView(viewParam);
         if (dateParam) setAnchor(dateParam);
         if (roomParam) setRoomId(roomParam);
+        if (professorParam) setProfessorId(professorParam);
         setColorBy(parseColorParam(params.get('color')));
         urlSyncedRef.current = true;
     }, []);
@@ -567,6 +570,8 @@ export default function CalendarPage() {
         params.set('date', toIsoDateKey(anchor));
         if (roomId) params.set('room', roomId);
         else params.delete('room');
+        if (professorId) params.set('professor', professorId);
+        else params.delete('professor');
         if (colorBy !== 'payment') params.set('color', colorBy);
         else params.delete('color');
         const query = params.toString();
@@ -575,7 +580,7 @@ export default function CalendarPage() {
             '',
             `${window.location.pathname}${query ? `?${query}` : ''}`,
         );
-    }, [view, anchor, roomId, colorBy]);
+    }, [view, anchor, roomId, professorId, colorBy]);
 
     // Keep the "today" highlight accurate when the app stays open across midnight.
     useEffect(() => {
@@ -644,12 +649,19 @@ export default function CalendarPage() {
     });
 
     const { data: events = [], isLoading, isFetching } = useQuery({
-        queryKey: ['calendar', range.from.toISOString(), range.to.toISOString(), roomId],
+        queryKey: [
+            'calendar',
+            range.from.toISOString(),
+            range.to.toISOString(),
+            roomId,
+            professorId,
+        ],
         queryFn: () =>
             fetchCalendar({
                 from: range.from.toISOString(),
                 to: range.to.toISOString(),
                 roomId: roomId || undefined,
+                professorId: professorId || undefined,
             }),
         // Keep the previous range's events visible while a new range loads —
         // the grid no longer blanks out between period switches.
@@ -873,6 +885,17 @@ export default function CalendarPage() {
         [rooms, t],
     );
 
+    const professorOptions = useMemo(
+        () => [
+            { value: '', label: t('allProfessors') },
+            ...professors.map((professor) => ({
+                value: professor.id,
+                label: `${professor.firstName} ${professor.lastName}`,
+            })),
+        ],
+        [professors, t],
+    );
+
     const viewOptions = useMemo(
         () => [
             { value: 'day', label: t('day') },
@@ -1039,6 +1062,7 @@ export default function CalendarPage() {
                     from: day.toISOString(),
                     to: endOfDay(day).toISOString(),
                     roomId: roomId || undefined,
+                    professorId: professorId || undefined,
                 });
                 exportDailyCalendarPdf({
                     day,
@@ -1060,6 +1084,7 @@ export default function CalendarPage() {
                     from: exportWeek.from.toISOString(),
                     to: exportWeek.to.toISOString(),
                     roomId: roomId || undefined,
+                    professorId: professorId || undefined,
                 });
                 exportWeeklyCalendarPdf({
                     anchor,
@@ -1089,6 +1114,7 @@ export default function CalendarPage() {
         exportWeek.from,
         exportWeek.to,
         openToast,
+        professorId,
         roomId,
         rooms,
         t,
@@ -1256,6 +1282,16 @@ export default function CalendarPage() {
                                                 value={roomId}
                                                 onChange={(value) => {
                                                     if (typeof value === 'string') setRoomId(value);
+                                                }}
+                                            />
+                                        </Div>
+                                        <Div className="w-full sm:w-52">
+                                            <Dropdown
+                                                leftIcon="filter"
+                                                options={professorOptions}
+                                                value={professorId}
+                                                onChange={(value) => {
+                                                    if (typeof value === 'string') setProfessorId(value);
                                                 }}
                                             />
                                         </Div>

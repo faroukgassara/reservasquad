@@ -28,6 +28,9 @@ export interface DailyIncomePdfLabels {
     amount: string;
     charge: string;
     investment: string;
+    ecofacture: string;
+    farouk: string;
+    majdi: string;
     empty: string;
 }
 
@@ -278,7 +281,13 @@ export function exportDailyIncomePdf(params: {
         lines.length > 0
             ? lines.map((line) => [
                 formatDateDdMmYyyy(line.date),
-                line.type === 'CHARGE' ? labels.charge : labels.investment,
+                {
+                    CHARGE: labels.charge,
+                    INVESTMENT: labels.investment,
+                    ECOFACTURE: labels.ecofacture,
+                    FAROUK: labels.farouk,
+                    MAJDI: labels.majdi,
+                }[line.type],
                 line.label,
                 formatAmount(line.amount),
             ])

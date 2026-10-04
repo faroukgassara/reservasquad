@@ -14,4 +14,9 @@ export class CalendarQueryDto {
   @IsOptional()
   @IsUUID()
   roomId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  professorId?: string;
 }
