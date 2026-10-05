@@ -62,7 +62,7 @@ export default async function LocaleLayout({
   const session = await getServerSession(authOptions);
 
   return (
-    <html lang={locale} className={`${poppins.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${poppins.variable} ${inter.variable}`}>
       <body className={`${inter.className} bg-gray-25 text-gray-900 antialiased`}>
         <RouteProviders session={session} locale={locale} messages={messages}>
           {children}

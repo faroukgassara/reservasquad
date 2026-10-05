@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { Routes } from '@/lib/routes';
 import { ITemplateForgotPassword } from '@/interfaces';
 import { EVariantLabel } from '@/Enum/Enum';
+import colors from '@/theme/colors';
 import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
 
 const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
@@ -113,7 +114,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
             <div
                 className="relative hidden min-h-0 w-1/2 overflow-hidden p-4 lg:flex"
                 style={{
-                    background: 'repeating-linear-gradient(-45deg, var(--ds-primary-200), var(--ds-primary-200) 1px, transparent 1px, transparent 10px)',
+                    background: `repeating-linear-gradient(-45deg, ${colors.primary[200]}, ${colors.primary[200]} 1px, transparent 1px, transparent 10px)`,
                 }}
             >
                 <div className="relative h-full w-full overflow-hidden rounded-xl">

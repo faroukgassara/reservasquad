@@ -10,6 +10,7 @@ import {
 import WithChildren from '@/types/WithChildren'
 import { ESize, EToastType, IconComponentsEnum } from '@/Enum/Enum'
 import type { ELabelColor } from '@/theme/labelColors'
+import colors from '@/theme/colors'
 import { TToastContextProps, TToastOptions } from '@/types'
 import Icon from '@/components/Primitives/Icon/Icon'
 
@@ -24,31 +25,31 @@ const toastConfigs: Record<
     }
 > = {
     [EToastType.ERROR]: {
-        accentColor: 'var(--ds-danger-600)',
+        accentColor: colors.danger[600],
         iconColorClass: 'text-danger-600',
-        iconBackgroundColor: 'var(--ds-danger-25)',
-        iconBorderColor: 'var(--ds-danger-100)',
+        iconBackgroundColor: colors.danger[25],
+        iconBorderColor: colors.danger[100],
         iconName: 'close',
     },
     [EToastType.SUCCESS]: {
-        accentColor: 'var(--ds-success-600)',
+        accentColor: colors.success[600],
         iconColorClass: 'text-success-600',
-        iconBackgroundColor: 'var(--ds-success-25)',
-        iconBorderColor: 'var(--ds-success-100)',
+        iconBackgroundColor: colors.success[25],
+        iconBorderColor: colors.success[100],
         iconName: 'check',
     },
     [EToastType.INFO]: {
-        accentColor: 'var(--ds-primary-600)',
+        accentColor: colors.primary[600],
         iconColorClass: 'text-primary-600',
-        iconBackgroundColor: 'var(--ds-primary-25)',
-        iconBorderColor: 'var(--ds-primary-100)',
+        iconBackgroundColor: colors.primary[25],
+        iconBorderColor: colors.primary[100],
         iconName: 'info',
     },
     [EToastType.WARNING]: {
-        accentColor: 'var(--ds-warning-700)',
+        accentColor: colors.warning[700],
         iconColorClass: 'text-warning-700',
-        iconBackgroundColor: 'var(--ds-warning-25)',
-        iconBorderColor: 'var(--ds-warning-100)',
+        iconBackgroundColor: colors.warning[25],
+        iconBorderColor: colors.warning[100],
         iconName: 'info',
     },
 }
@@ -76,7 +77,6 @@ const CustomToastContent: React.FC<{
     onClickToast,
 }) => (
         <div
-            role='none'
             className={`flex items-start gap-3 w-full px-2 py-1 ${onClickToast ? 'cursor-pointer' : ''}`}
             onClick={onClickToast}
         >
@@ -135,7 +135,7 @@ const ToastProvider = ({ children }: WithChildren) => {
                 className:
                     'rounded-xxl border border-gray-200 p-0 shadow-lg min-h-fit w-full max-w-[32rem] relative overflow-hidden',
                 style: {
-                    backgroundColor: 'var(--ds-white)',
+                    backgroundColor: colors.white,
                 },
                 toastId: toastId || undefined,
             }

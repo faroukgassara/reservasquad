@@ -27,7 +27,6 @@ import { Routes } from '@/lib/routes';
 import colors from '@/theme/colors';
 import type { ELabelColor } from '@/theme/labelColors';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import { useTheme } from 'next-themes';
 
 function formatMonthLabel(year: number, month: number): string {
     return new Date(year, month - 1, 1).toLocaleDateString('fr-FR', {
@@ -35,26 +34,6 @@ function formatMonthLabel(year: number, month: number): string {
         year: 'numeric',
     });
 }
-
-// recharts consumes colors as SVG attributes, which cannot resolve var(--ds-*),
-// so chart colors are picked per theme as literals.
-const LIGHT_CHART_COLORS = {
-    grid: colors.gray[100],
-    tick: colors.gray[500],
-    cursor: colors.primary[25],
-    barPrimary: colors.primary[300],
-    barPrimaryStrong: colors.primary[400],
-    lineAccent: colors.accent[500],
-};
-
-const DARK_CHART_COLORS = {
-    grid: 'oklch(0.3389 0.0301 270.4)',
-    tick: 'oklch(0.6486 0.0275 268.6)',
-    cursor: 'oklch(0.2855 0.0492 271.5)',
-    barPrimary: 'oklch(0.5222 0.0821 273.5)',
-    barPrimaryStrong: 'oklch(0.6011 0.0691 274)',
-    lineAccent: 'oklch(0.6156 0.2193 27.4)',
-};
 
 function ChartTooltip({ active, payload, label, formatter }: Readonly<TooltipContentProps>) {
     if (!active || !payload?.length) return null;
@@ -254,8 +233,6 @@ export default function DashboardPage() {
     const t = useTranslations('dashboard');
     const tIncome = useTranslations('admin.dailyIncome');
     const tCommon = useTranslations('common');
-    const { resolvedTheme } = useTheme();
-    const chartColors = resolvedTheme === 'dark' ? DARK_CHART_COLORS : LIGHT_CHART_COLORS;
     const router = useRouter();
     const { isAllowed } = useAuthorization();
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
@@ -485,28 +462,28 @@ export default function DashboardPage() {
                                         data={reservationTrendData}
                                         margin={{ top: 4, right: 8, left: -12, bottom: 0 }}
                                     >
-                                        <CartesianGrid vertical={false} stroke={chartColors.grid} />
+                                        <CartesianGrid vertical={false} stroke={colors.gray[100]} />
                                         <XAxis
                                             dataKey="label"
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
                                             axisLine={false}
                                             tickLine={false}
                                         />
                                         <YAxis
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
                                             axisLine={false}
                                             tickLine={false}
                                             width={40}
                                         />
                                         <Tooltip
                                             content={ChartTooltip}
-                                            cursor={{ fill: chartColors.cursor }}
+                                            cursor={{ fill: colors.primary[25] }}
                                             formatter={(value) => formatMoney(value as number)}
                                         />
                                         <Bar
                                             dataKey="revenue"
                                             name={t('chartRevenue')}
-                                            fill={chartColors.barPrimary}
+                                            fill={colors.primary[300]}
                                             radius={[4, 4, 0, 0]}
                                             maxBarSize={32}
                                         />
@@ -514,9 +491,9 @@ export default function DashboardPage() {
                                             type="monotone"
                                             dataKey="paidRevenue"
                                             name={t('chartPaidRevenue')}
-                                            stroke={chartColors.lineAccent}
+                                            stroke={colors.accent[500]}
                                             strokeWidth={2}
-                                            dot={{ r: 3, fill: chartColors.lineAccent, strokeWidth: 0 }}
+                                            dot={{ r: 3, fill: colors.accent[500], strokeWidth: 0 }}
                                         />
                                     </ComposedChart>
                                 </ResponsiveContainer>
@@ -532,25 +509,25 @@ export default function DashboardPage() {
                                         data={reservationTrendData}
                                         margin={{ top: 4, right: 8, left: -12, bottom: 0 }}
                                     >
-                                        <CartesianGrid vertical={false} stroke={chartColors.grid} />
+                                        <CartesianGrid vertical={false} stroke={colors.gray[100]} />
                                         <XAxis
                                             dataKey="label"
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
                                             axisLine={false}
                                             tickLine={false}
                                         />
                                         <YAxis
                                             allowDecimals={false}
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
                                             axisLine={false}
                                             tickLine={false}
                                             width={30}
                                         />
-                                        <Tooltip content={ChartTooltip} cursor={{ fill: chartColors.cursor }} />
+                                        <Tooltip content={ChartTooltip} cursor={{ fill: colors.primary[25] }} />
                                         <Bar
                                             dataKey="count"
                                             name={t('chartReservations')}
-                                            fill={chartColors.barPrimaryStrong}
+                                            fill={colors.primary[400]}
                                             radius={[4, 4, 0, 0]}
                                             maxBarSize={28}
                                         />
@@ -597,28 +574,28 @@ export default function DashboardPage() {
                         <ChartPanel title={t('incomeTrendTitle')}>
                                 <ResponsiveContainer width="100%" height={260}>
                                     <ComposedChart data={incomeTrendData} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-                                        <CartesianGrid vertical={false} stroke={chartColors.grid} />
+                                        <CartesianGrid vertical={false} stroke={colors.gray[100]} />
                                         <XAxis
                                             dataKey="label"
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
                                             axisLine={false}
                                             tickLine={false}
                                         />
                                         <YAxis
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                                            tick={{ fontSize: 12, fill: colors.gray[500] }}
                                             axisLine={false}
                                             tickLine={false}
                                             width={40}
                                         />
                                         <Tooltip
                                             content={ChartTooltip}
-                                            cursor={{ fill: chartColors.cursor }}
+                                            cursor={{ fill: colors.primary[25] }}
                                             formatter={(value) => formatMoney(value as number)}
                                         />
                                         <Bar
                                             dataKey="income"
                                             name={t('chartIncome')}
-                                            fill={chartColors.barPrimary}
+                                            fill={colors.primary[300]}
                                             radius={[4, 4, 0, 0]}
                                             maxBarSize={32}
                                         />
@@ -626,9 +603,9 @@ export default function DashboardPage() {
                                             type="monotone"
                                             dataKey="netBalance"
                                             name={t('chartNetBalance')}
-                                            stroke={chartColors.lineAccent}
+                                            stroke={colors.accent[500]}
                                             strokeWidth={2}
-                                            dot={{ r: 3, fill: chartColors.lineAccent, strokeWidth: 0 }}
+                                            dot={{ r: 3, fill: colors.accent[500], strokeWidth: 0 }}
                                         />
                                     </ComposedChart>
                                 </ResponsiveContainer>

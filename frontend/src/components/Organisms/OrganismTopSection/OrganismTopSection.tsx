@@ -7,7 +7,6 @@ import { EButtonSize, EButtonType, ESize, EVariantLabel, IconComponentsEnum } fr
 import { IOrganismTopSection } from '@/interfaces';
 import { useMobileSidebar } from '@/contexts/MobileSidebarContext';
 import { useTranslations } from 'next-intl';
-import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 
 const OrganismTopSection = (props: IOrganismTopSection) => {
     const mobileSidebar = useMobileSidebar();
@@ -49,14 +48,11 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
                 </Div>
             </Div>
 
-            <Div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-4">
-                {props?.rightActions && (
-                    <Div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-4 [&_button]:w-full sm:[&_button]:w-auto">
-                        {props.rightActions}
-                    </Div>
-                )}
-                <ThemeToggle />
-            </Div>
+            {props?.rightActions && (
+                <Div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-4 [&_button]:w-full sm:[&_button]:w-auto">
+                    {props.rightActions}
+                </Div>
+            )}
         </header>
     );
 };

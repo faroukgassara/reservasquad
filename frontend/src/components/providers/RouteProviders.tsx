@@ -6,7 +6,6 @@ import { routing } from '@/i18n/routing';
 import { NextIntlClientProvider } from 'next-intl';
 import QueryProvider from './QueryProvider';
 import { ToastContainer } from 'react-toastify';
-import { ThemeProvider } from 'next-themes';
 import ToastProvider from '@/contexts/ToastContext';
 import AuthSessionListener from '@/components/providers/AuthSessionListener';
 import WithChildren from '@/types/WithChildren';
@@ -21,19 +20,17 @@ interface RouteProvidersProps extends WithChildren {
 export default function RouteProviders({ children, session, locale, messages }: Readonly<RouteProvidersProps>) {
     return (
         <NextIntlClientProvider locale={locale} messages={messages} timeZone='Europe/Paris'>
-            <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
-                <QueryProvider>
-                    <SessionProvider session={session}>
-                        <AuthSessionListener />
-                        <ToastProvider>
-                            <ToastContainer />
-                            <ModalsProvider>
-                                {children}
-                            </ModalsProvider>
-                        </ToastProvider>
-                    </SessionProvider>
-                </QueryProvider>
-            </ThemeProvider>
+            <QueryProvider>
+                <SessionProvider session={session}>
+                    <AuthSessionListener />
+                    <ToastProvider>
+                        <ToastContainer />
+                        <ModalsProvider>
+                            {children}
+                        </ModalsProvider>
+                    </ToastProvider>
+                </SessionProvider>
+            </QueryProvider>
         </NextIntlClientProvider>
     );
 }
