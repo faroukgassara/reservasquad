@@ -7,7 +7,10 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDailyIncomeDto } from 'src/dto/dailyIncome/createDailyIncome.dto';
 import { UpdateDailyIncomeDto } from 'src/dto/dailyIncome/updateDailyIncome.dto';
-import { FetchDailyIncomeDto } from 'src/dto/dailyIncome/fetchDailyIncome.dto';
+import {
+  FetchDailyIncomeDto,
+  type DailyIncomeScope,
+} from 'src/dto/dailyIncome/fetchDailyIncome.dto';
 import {
   CreateIncomeLineDto,
   UpdateIncomeLineDto,
@@ -54,11 +57,18 @@ export class DailyIncomeService {
     return { from, to };
   }
 
-  private resolvePeriod(query: { year?: number; month?: number }) {
+  private resolvePeriod(query: { year?: number; month?: number; scope?: DailyIncomeScope }) {
     const now = new Date();
     const year = query.year ?? now.getUTCFullYear();
     const month = query.month ?? now.getUTCMonth() + 1;
-    return { year, month, ...this.monthRange(year, month) };
+    const isGlobal = query.scope === 'all';
+    const { from, to } = this.monthRange(year, month);
+    return {
+      year,
+      month,
+      isGlobal,
+      dateFilter: isGlobal ? undefined : { gte: from, lt: to },
+    };
   }
 
   async createDailyIncome(dto: CreateDailyIncomeDto, actorId?: string) {
@@ -166,17 +176,17 @@ export class DailyIncomeService {
   }
 
   async listDailyIncomes(query: FetchDailyIncomeDto) {
-    const { from, to, year, month } = this.resolvePeriod(query);
+    const { dateFilter, year, month } = this.resolvePeriod(query);
 
     const days = await this.prismaService.dailyIncome.findMany({
-      where: { deletedAt: null, date: { gte: from, lt: to } },
+      where: { deletedAt: null, date: dateFilter },
       orderBy: { date: 'asc' },
     });
 
     const lines = await this.prismaService.incomeLine.findMany({
       where: {
         deletedAt: null,
-        date: { gte: from, lt: to },
+        date: dateFilter,
         type: { in: [EIncomeLineType.CHARGE, EIncomeLineType.INVESTMENT] },
       },
       select: { date: true, amount: true, type: true },
@@ -210,21 +220,23 @@ export class DailyIncomeService {
   }
 
   async getSummary(query: FetchDailyIncomeDto) {
-    const { from, to, year, month } = this.resolvePeriod(query);
+    const { dateFilter, year, month, isGlobal } = this.resolvePeriod(query);
 
     const [incomeAgg, lineTotals, carryover] = await Promise.all([
       this.prismaService.dailyIncome.aggregate({
-        where: { deletedAt: null, date: { gte: from, lt: to } },
+        where: { deletedAt: null, date: dateFilter },
         _sum: { totalIncome: true, savings: true, benefits: true, savingsForCharges: true },
       }),
       this.prismaService.incomeLine.groupBy({
         by: ['type'],
-        where: { deletedAt: null, date: { gte: from, lt: to } },
+        where: { deletedAt: null, date: dateFilter },
         _sum: { amount: true },
       }),
-      this.prismaService.monthlyCarryover.findUnique({
-        where: { year_month: { year, month } },
-      }),
+      isGlobal
+        ? null
+        : this.prismaService.monthlyCarryover.findUnique({
+            where: { year_month: { year, month } },
+          }),
     ]);
 
     const lineTotal = (type: EIncomeLineType) =>
@@ -237,8 +249,9 @@ export class DailyIncomeService {
     const totalCharges = lineTotal(EIncomeLineType.CHARGE);
     const totalInvestments = lineTotal(EIncomeLineType.INVESTMENT);
     const totalEcofactureExpenses = lineTotal(EIncomeLineType.ECOFACTURE);
-    const totalBenefitWithdrawals =
-      lineTotal(EIncomeLineType.FAROUK) + lineTotal(EIncomeLineType.MAJDI);
+    const totalFarouk = lineTotal(EIncomeLineType.FAROUK);
+    const totalMajdi = lineTotal(EIncomeLineType.MAJDI);
+    const totalBenefitWithdrawals = totalFarouk + totalMajdi;
     // Écofacture lines come out of the 10% reserve and Farouk/Majdi lines out of the benefits,
     // so they reduce those totals and not the net balance.
     const netBalance =
@@ -260,6 +273,8 @@ export class DailyIncomeService {
       totalInvestments: Math.round(totalInvestments * 100) / 100,
       totalSavings: Math.round(totalSavings * 100) / 100,
       totalBenefits: Math.round((totalBenefits - totalBenefitWithdrawals) * 100) / 100,
+      totalFarouk: Math.round(totalFarouk * 100) / 100,
+      totalMajdi: Math.round(totalMajdi * 100) / 100,
       totalSavingsForCharges:
         Math.round((totalSavingsForCharges - totalEcofactureExpenses) * 100) / 100,
       netBalance,
@@ -372,11 +387,11 @@ export class DailyIncomeService {
   }
 
   async listIncomeLines(query: FetchIncomeLinesDto) {
-    const { from, to, year, month } = this.resolvePeriod(query);
+    const { dateFilter, year, month } = this.resolvePeriod(query);
     const data = await this.prismaService.incomeLine.findMany({
       where: {
         deletedAt: null,
-        date: { gte: from, lt: to },
+        date: dateFilter,
         ...(query.type ? { type: query.type } : {}),
       },
       orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],

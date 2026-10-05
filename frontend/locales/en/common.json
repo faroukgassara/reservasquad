@@ -410,6 +410,8 @@
             "dayFormHint": "Only total income is required. Savings (20%), benefits (20%), saving for charges (10%) and charges/investments are automatic.",
             "autoCalculated": "Calculated automatically",
             "daysTitle": "Daily income",
+            "scopeMonth": "Monthly",
+            "scopeAll": "Global (all time)",
             "year": "Year",
             "month": "Month",
             "date": "Date",

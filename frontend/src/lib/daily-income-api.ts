@@ -63,6 +63,8 @@ export interface DailyIncomeSummary {
     totalInvestments: number;
     totalSavings: number;
     totalBenefits: number;
+    totalFarouk: number;
+    totalMajdi: number;
     totalSavingsForCharges: number;
     netBalance: number;
     previousMonthRest: number;
@@ -90,29 +92,35 @@ export function toDateInputValue(isoOrDate: string): string {
     return isoOrDate.slice(0, 10);
 }
 
-export async function fetchDailyIncomes(params: {
+export type DailyIncomeScope = 'month' | 'all';
+
+export interface DailyIncomePeriod {
     year: number;
     month: number;
-}): Promise<DailyIncomeMonthList> {
-    const headers = await CommonFunction.createHeaders({ withToken: true });
-    const sp = new URLSearchParams({
+    scope?: DailyIncomeScope;
+}
+
+function periodSearchParams(params: DailyIncomePeriod): URLSearchParams {
+    if (params.scope === 'all') return new URLSearchParams({ scope: 'all' });
+    return new URLSearchParams({
         year: String(params.year),
         month: String(params.month),
     });
+}
+
+export async function fetchDailyIncomes(params: DailyIncomePeriod): Promise<DailyIncomeMonthList> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = periodSearchParams(params);
     const res = await api.get(`/api/daily-income?${sp.toString()}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch daily income');
     return unwrapData<DailyIncomeMonthList>(res.data as { data?: DailyIncomeMonthList });
 }
 
-export async function fetchDailyIncomeSummary(params: {
-    year: number;
-    month: number;
-}): Promise<DailyIncomeSummary> {
+export async function fetchDailyIncomeSummary(
+    params: DailyIncomePeriod,
+): Promise<DailyIncomeSummary> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
-    const sp = new URLSearchParams({
-        year: String(params.year),
-        month: String(params.month),
-    });
+    const sp = periodSearchParams(params);
     const res = await api.get(`/api/daily-income/summary?${sp.toString()}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch summary');
     return unwrapData<DailyIncomeSummary>(res.data as { data?: DailyIncomeSummary });
@@ -168,16 +176,11 @@ export async function deleteDailyIncome(id: string): Promise<void> {
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to delete daily income');
 }
 
-export async function fetchIncomeLines(params: {
-    year: number;
-    month: number;
-    type?: IncomeLineType;
-}): Promise<IncomeLinesMonthList> {
+export async function fetchIncomeLines(
+    params: DailyIncomePeriod & { type?: IncomeLineType },
+): Promise<IncomeLinesMonthList> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
-    const sp = new URLSearchParams({
-        year: String(params.year),
-        month: String(params.month),
-    });
+    const sp = periodSearchParams(params);
     if (params.type) sp.set('type', params.type);
     const res = await api.get(`/api/daily-income/lines?${sp.toString()}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch income lines');

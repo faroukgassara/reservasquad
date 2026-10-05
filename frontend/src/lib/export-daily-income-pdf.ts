@@ -69,11 +69,6 @@ function formatAmount(value: number | string): string {
     }).format(amount);
 }
 
-function fileStamp(year: number, month: number): string {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${year}-${pad(month)}`;
-}
-
 function lastTableY(doc: DocWithAutoTable, fallback: number): number {
     return doc.lastAutoTable?.finalY ?? fallback;
 }
@@ -206,17 +201,16 @@ const TABLE_BODY_STYLES = {
 };
 
 /**
- * Portrait A4 monthly daily-income report with branded header, KPI cards, and styled tables.
+ * Portrait A4 daily-income report (one month or all time) with branded header, KPI cards, and styled tables.
  */
 export function exportDailyIncomePdf(params: {
-    year: number;
-    month: number;
+    fileStamp: string;
     days: DailyIncomeRecord[];
     lines: IncomeLineRecord[];
     summary: DailyIncomeSummary | null | undefined;
     labels: DailyIncomePdfLabels;
 }): void {
-    const { year, month, days, lines, summary, labels } = params;
+    const { fileStamp, days, lines, summary, labels } = params;
     const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -323,5 +317,5 @@ export function exportDailyIncomePdf(params: {
         drawPageFooter(doc, page, totalPages);
     }
 
-    doc.save(`daily-income-${fileStamp(year, month)}.pdf`);
+    doc.save(`daily-income-${fileStamp}.pdf`);
 }

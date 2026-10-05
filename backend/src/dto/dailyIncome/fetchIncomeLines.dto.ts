@@ -1,9 +1,15 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsEnum, IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { EIncomeLineType } from 'src/generated/prisma/client';
+import { DAILY_INCOME_SCOPES, type DailyIncomeScope } from './fetchDailyIncome.dto';
 
 export class FetchIncomeLinesDto {
+  @ApiPropertyOptional({ enum: DAILY_INCOME_SCOPES, default: 'month' })
+  @IsOptional()
+  @IsIn(DAILY_INCOME_SCOPES)
+  scope?: DailyIncomeScope;
+
   @ApiPropertyOptional({ example: 2026 })
   @IsOptional()
   @Type(() => Number)

@@ -39,8 +39,10 @@ import {
     type DailyIncomeRecord,
     type IncomeLineRecord,
     type IncomeLineType,
+    type DailyIncomeScope,
     isIncomeLineType,
 } from '@/lib/daily-income-api';
+import Tabs from '@/components/Primitives/Tabs/Tabs';
 import { exportDailyIncomePdf } from '@/lib/export-daily-income-pdf';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
 import {
@@ -83,6 +85,8 @@ export default function DailyIncomePage() {
     const now = new Date();
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth() + 1);
+    const [scope, setScope] = useState<DailyIncomeScope>('month');
+    const isGlobal = scope === 'all';
     const [lineFilter, setLineFilter] = useState<LineFilter>('all');
     const [modalState, setModalState] = useState<ModalState>(null);
     const [isExporting, setIsExporting] = useState(false);
@@ -103,20 +107,20 @@ export default function DailyIncomePage() {
     }, [queryClient]);
 
     const { data: listData, isLoading: daysLoading } = useQuery({
-        queryKey: ['daily-income', year, month],
-        queryFn: () => fetchDailyIncomes({ year, month }),
+        queryKey: ['daily-income', scope, year, month],
+        queryFn: () => fetchDailyIncomes({ year, month, scope }),
         enabled: isAdmin,
     });
 
     const { data: summary, isLoading: summaryLoading } = useQuery({
-        queryKey: ['daily-income-summary', year, month],
-        queryFn: () => fetchDailyIncomeSummary({ year, month }),
+        queryKey: ['daily-income-summary', scope, year, month],
+        queryFn: () => fetchDailyIncomeSummary({ year, month, scope }),
         enabled: isAdmin,
     });
 
     const { data: linesData, isLoading: linesLoading } = useQuery({
-        queryKey: ['income-lines', year, month],
-        queryFn: () => fetchIncomeLines({ year, month }),
+        queryKey: ['income-lines', scope, year, month],
+        queryFn: () => fetchIncomeLines({ year, month, scope }),
         enabled: isAdmin,
     });
 
@@ -236,6 +240,14 @@ export default function DailyIncomePage() {
             label: t(`months.${m}` as 'months.1'),
         }));
     }, [t]);
+
+    const scopeOptions = useMemo(
+        () => [
+            { value: 'month', label: t('scopeMonth') },
+            { value: 'all', label: t('scopeAll') },
+        ],
+        [t],
+    );
 
     const lineFilterOptions = useMemo(
         () => [
@@ -459,7 +471,7 @@ export default function DailyIncomePage() {
         [openModal, tCommon],
     );
 
-    const summaryCards: {
+    const allSummaryCards: {
         key: string;
         icon: IconComponentsEnum;
         iconBg: string;
@@ -529,6 +541,22 @@ export default function DailyIncomePage() {
             value: formatMoney(summary?.totalBenefits ?? 0),
         },
         {
+            key: 'farouk',
+            icon: IconComponentsEnum.user,
+            iconBg: 'bg-primary-50',
+            iconColor: 'text-primary-600',
+            label: t('farouk'),
+            value: formatMoney(summary?.totalFarouk ?? 0),
+        },
+        {
+            key: 'majdi',
+            icon: IconComponentsEnum.user,
+            iconBg: 'bg-success-50',
+            iconColor: 'text-success-600',
+            label: t('majdi'),
+            value: formatMoney(summary?.totalMajdi ?? 0),
+        },
+        {
             key: 'savingsForCharges',
             icon: IconComponentsEnum.archive,
             iconBg: 'bg-gray-100',
@@ -545,22 +573,26 @@ export default function DailyIncomePage() {
             value: formatMoney(summary?.netBalance ?? 0),
         },
     ];
+    const summaryCards = isGlobal
+        ? allSummaryCards.filter((card) => card.key !== 'previousMonthRest')
+        : allSummaryCards;
 
     const handleExportPdf = useCallback(() => {
         setIsExporting(true);
         try {
             exportDailyIncomePdf({
-                year,
-                month,
+                fileStamp: isGlobal ? 'all' : `${year}-${String(month).padStart(2, '0')}`,
                 days,
                 lines: allLines,
                 summary,
                 labels: {
                     title: t('exportTitle'),
-                    period: t('exportPeriod', {
-                        month: t(`months.${month}` as 'months.1'),
-                        year,
-                    }),
+                    period: isGlobal
+                        ? t('scopeAll')
+                        : t('exportPeriod', {
+                              month: t(`months.${month}` as 'months.1'),
+                              year,
+                          }),
                     totalIncome: t('totalIncome'),
                     totalCharges: t('totalCharges'),
                     totalInvestments: t('totalInvestments'),
@@ -593,7 +625,7 @@ export default function DailyIncomePage() {
         } finally {
             setIsExporting(false);
         }
-    }, [allLines, days, month, openToast, summary, t, tCommon, year]);
+    }, [allLines, days, isGlobal, month, openToast, summary, t, tCommon, year]);
 
     const renderModalContent = () => {
         if (modalState?.type === 'day-delete') {
@@ -676,27 +708,40 @@ export default function DailyIncomePage() {
                 mainSection={
                     <Div className="min-h-full space-y-6">
                         <Div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                            <Div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                                <Div className="w-full sm:w-36">
-                                    <Dropdown
-                                        label={t('year')}
-                                        options={yearOptions}
-                                        value={String(year)}
-                                        onChange={(value) => {
-                                            if (typeof value === 'string') setYear(Number(value));
-                                        }}
-                                    />
-                                </Div>
-                                <Div className="w-full sm:w-44">
-                                    <Dropdown
-                                        label={t('month')}
-                                        options={monthOptions}
-                                        value={String(month)}
-                                        onChange={(value) => {
-                                            if (typeof value === 'string') setMonth(Number(value));
-                                        }}
-                                    />
-                                </Div>
+                            <Div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
+                                <Tabs
+                                    variant="pills"
+                                    options={scopeOptions}
+                                    value={scope}
+                                    onChange={(value) => {
+                                        if (value === 'month' || value === 'all') setScope(value);
+                                    }}
+                                    className="w-fit"
+                                />
+                                {isGlobal ? null : (
+                                    <>
+                                        <Div className="w-full sm:w-36">
+                                            <Dropdown
+                                                label={t('year')}
+                                                options={yearOptions}
+                                                value={String(year)}
+                                                onChange={(value) => {
+                                                    if (typeof value === 'string') setYear(Number(value));
+                                                }}
+                                            />
+                                        </Div>
+                                        <Div className="w-full sm:w-44">
+                                            <Dropdown
+                                                label={t('month')}
+                                                options={monthOptions}
+                                                value={String(month)}
+                                                onChange={(value) => {
+                                                    if (typeof value === 'string') setMonth(Number(value));
+                                                }}
+                                            />
+                                        </Div>
+                                    </>
+                                )}
                             </Div>
                             <Button
                                 id="daily-income-export-pdf"
