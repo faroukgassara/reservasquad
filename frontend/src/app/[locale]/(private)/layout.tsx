@@ -92,6 +92,13 @@ export default function PrivateLayout({
             hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
         },
         {
+            id: 'credits',
+            iconName: IconComponentsEnum.filetext,
+            label: t('credits'),
+            href: Routes.Credits.index,
+            hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
+        },
+        {
             id: 'daily-income',
             iconName: IconComponentsEnum.squaresFour,
             label: t('dailyIncome'),

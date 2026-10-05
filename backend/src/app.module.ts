@@ -14,6 +14,7 @@ import { ProfessorModule } from './component/professor/professor.module';
 import { ReservationModule } from './component/reservation/reservation.module';
 import { DailyIncomeModule } from './component/dailyIncome/daily-income.module';
 import { AuditModule } from './component/audit/audit.module';
+import { CreditModule } from './component/credit/credit.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AuditModule } from './component/audit/audit.module';
     ReservationModule,
     DailyIncomeModule,
     AuditModule,
+    CreditModule,
   ],
   controllers: [AppController],
   providers: [

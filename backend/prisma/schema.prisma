@@ -222,3 +222,53 @@ model AuditLog {
   @@index([createdAt])
   @@index([userId])
 }
+
+model CreditClient {
+  id        String  @id @default(uuid())
+  firstName String
+  lastName  String
+  phone     String?
+
+  credits Credit[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([lastName])
+  @@index([deletedAt])
+}
+
+model Credit {
+  id          String       @id @default(uuid())
+  clientId    String
+  client      CreditClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  date        DateTime     @db.Date
+  amount      Decimal      @db.Decimal(10, 2)
+  description String?
+
+  payments CreditPayment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([clientId])
+  @@index([deletedAt])
+}
+
+model CreditPayment {
+  id       String   @id @default(uuid())
+  creditId String
+  credit   Credit   @relation(fields: [creditId], references: [id], onDelete: Cascade)
+  date     DateTime @db.Date
+  amount   Decimal  @db.Decimal(10, 2)
+  note     String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([creditId])
+  @@index([deletedAt])
+}

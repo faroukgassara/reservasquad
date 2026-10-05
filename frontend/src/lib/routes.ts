@@ -22,6 +22,10 @@ export const Routes = {
     DailyIncome: {
         index: '/daily-income',
     },
+    Credits: {
+        index: '/credits',
+        show: (id: string) => `/credits/${id}`,
+    },
     Users: {
         index: '/users',
     },
