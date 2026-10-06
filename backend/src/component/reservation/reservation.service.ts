@@ -266,6 +266,7 @@ export class ReservationService {
         endAt,
         price: this.resolvePrice(room, startAt, endAt, dto.price, professor),
         isPaid: dto.isPaid ?? false,
+        paidAt: dto.isPaid ? new Date() : null,
         status,
         notes: dto.notes?.trim() || null,
         createdById: createdById || null,
@@ -371,6 +372,7 @@ export class ReservationService {
               professor,
             ),
             isPaid: dto.isPaid ?? false,
+            paidAt: dto.isPaid ? new Date() : null,
             status,
             notes: dto.notes?.trim() || null,
             seriesId,
@@ -491,6 +493,8 @@ export class ReservationService {
           price: this.calculatePrice(room, startAt, endAt, professor),
         }),
         ...(dto.isPaid !== undefined && { isPaid: dto.isPaid }),
+        ...(dto.isPaid === true && !existing.isPaid && { paidAt: new Date() }),
+        ...(dto.isPaid === false && { paidAt: null }),
         ...(dto.status !== undefined && { status: dto.status }),
         ...(dto.notes !== undefined && { notes: dto.notes?.trim() || null }),
       },
@@ -784,7 +788,7 @@ export class ReservationService {
         deletedAt: null,
         isPaid: false,
       },
-      data: { isPaid: true },
+      data: { isPaid: true, paidAt: new Date() },
     });
 
     await this.auditService.log({

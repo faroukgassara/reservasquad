@@ -142,6 +142,43 @@ export async function restoreProfessor(id: string): Promise<ProfessorRecord> {
     return unwrapData<ProfessorRecord>(res.data as { data?: ProfessorRecord });
 }
 
+export interface ProfessorRankingRow {
+    professorId: string;
+    firstName: string;
+    lastName: string;
+    specialty: string | null;
+    revenue: number;
+    paid: number;
+    unpaid: number;
+    hours: number;
+    sessions: number;
+    cancelled: number;
+    avgPaymentDelayDays: number | null;
+}
+
+export interface ProfessorRanking {
+    rows: ProfessorRankingRow[];
+    totals: {
+        revenue: number;
+        paid: number;
+        unpaid: number;
+        hours: number;
+        sessions: number;
+        cancelled: number;
+    };
+}
+
+export async function fetchProfessorRanking(params: { from?: string; to?: string }): Promise<ProfessorRanking> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params.from) sp.set('from', params.from);
+    if (params.to) sp.set('to', params.to);
+    const q = sp.toString();
+    const res = await api.get(`/api/professors/ranking${q ? `?${q}` : ''}`, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch professor ranking');
+    return unwrapData<ProfessorRanking>(res.data as { data?: ProfessorRanking });
+}
+
 export async function hardDeleteProfessor(id: string): Promise<void> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.delete(`/api/professors/${id}/hard`, {}, headers);

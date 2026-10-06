@@ -118,6 +118,7 @@ model Reservation {
   endAt       DateTime
   price       Decimal            @default(0) @db.Decimal(10, 2)
   isPaid      Boolean            @default(false)
+  paidAt      DateTime?
   status      EReservationStatus @default(CONFIRMED)
   notes       String?            @db.Text
   seriesId    String?
@@ -134,6 +135,7 @@ model Reservation {
   @@index([endAt])
   @@index([status])
   @@index([isPaid])
+  @@index([paidAt])
   @@index([seriesId])
   @@index([createdById])
   @@index([deletedAt])

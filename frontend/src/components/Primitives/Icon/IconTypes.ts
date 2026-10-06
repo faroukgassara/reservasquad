@@ -67,6 +67,8 @@ import XTwitter from "@/assets/icons/x-twitter.svg";
 import FlagEn from "@/assets/icons/flag-en.svg";
 import FlagFr from "@/assets/icons/flag-fr.svg";
 import FlagAr from "@/assets/icons/flag-ar.svg";
+import Sun from "@/assets/icons/sun.svg";
+import Moon from "@/assets/icons/moon.svg";
 
 export const iconComponents: Record<string, any> = {
     settings: Settings,
@@ -138,4 +140,6 @@ export const iconComponents: Record<string, any> = {
     flagEn: FlagEn,
     flagFr: FlagFr,
     flagAr: FlagAr,
+    sun: Sun,
+    moon: Moon,
 };

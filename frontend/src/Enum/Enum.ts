@@ -135,6 +135,8 @@ enum IconComponentsEnum {
     instagram = "instagram",
     facebook = "facebook",
     xTwitter = "xTwitter",
+    sun = "sun",
+    moon = "moon",
 }
 
 enum EButtonType {

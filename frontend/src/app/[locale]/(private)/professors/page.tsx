@@ -7,6 +7,8 @@ import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import Button from '@/components/Primitives/Button/Button';
+import Tabs from '@/components/Primitives/Tabs/Tabs';
+import OrganismProfessorRanking from '@/components/Organisms/OrganismProfessorRanking/OrganismProfessorRanking';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
 import ProfessorFormModal, {
     type ProfessorFormValues,
@@ -37,6 +39,8 @@ type ModalState =
     | { type: 'delete'; professor: ProfessorRecord }
     | null;
 
+type ProfessorsTab = 'list' | 'ranking';
+
 export default function ProfessorsAdminPage() {
     const t = useTranslations('admin.professors');
     const tCommon = useTranslations('common');
@@ -47,6 +51,7 @@ export default function ProfessorsAdminPage() {
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
     const [modalState, setModalState] = useState<ModalState>(null);
+    const [tab, setTab] = useState<ProfessorsTab>('list');
     const queryClient = useQueryClient();
     const { openToast } = useToast();
     const { openModal, closeModal, modalPortal } = useModal({
@@ -57,10 +62,31 @@ export default function ProfessorsAdminPage() {
         if (!canManage) router.replace(Routes.Today);
     }, [canManage, router]);
 
+    useEffect(() => {
+        if (new URLSearchParams(window.location.search).get('tab') === 'ranking') setTab('ranking');
+    }, []);
+
+    const changeTab = (next: ProfessorsTab) => {
+        setTab(next);
+        const params = new URLSearchParams(window.location.search);
+        if (next === 'ranking') params.set('tab', 'ranking');
+        else params.delete('tab');
+        const query = params.toString();
+        window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    };
+
+    const tabOptions = useMemo(
+        () => [
+            { value: 'list', label: t('tabList') },
+            { value: 'ranking', label: t('tabRanking') },
+        ],
+        [t],
+    );
+
     const { data, isLoading } = useQuery({
         queryKey: ['professors', page, searchValue],
         queryFn: () => fetchProfessors({ page, perPage: 10, search: searchValue || undefined }),
-        enabled: canManage,
+        enabled: canManage && tab === 'list',
     });
 
     const invalidateProfessors = () => {
@@ -251,7 +277,19 @@ export default function ProfessorsAdminPage() {
                 title={t('title')}
                 subTitle={t('subtitle')}
                 mainSection={
-                    <div className="min-h-full">
+                    <div className="flex min-h-full flex-col gap-4">
+                        <Tabs
+                            variant="pills"
+                            options={tabOptions}
+                            value={tab}
+                            onChange={(value) => {
+                                if (value === 'list' || value === 'ranking') changeTab(value);
+                            }}
+                            className="w-fit"
+                        />
+                        {tab === 'ranking' ? (
+                            <OrganismProfessorRanking />
+                        ) : (
                         <OrganismTable<ProfessorRecord>
                             columns={columns}
                             rows={rows}
@@ -288,6 +326,7 @@ export default function ProfessorsAdminPage() {
                                 />
                             }
                         />
+                        )}
                     </div>
                 }
             />

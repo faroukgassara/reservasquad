@@ -1,6 +1,216 @@
 @config "../tailwind.config.ts";
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+ * Design tokens — single source of truth for theming.
+ * Light values mirror src/theme/colors.ts exactly; tailwind.config.ts maps
+ * every shade to var(--ds-*), so flipping .dark on <html> re-skins the app.
+ * ------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --ds-white: oklch(1 0 0);
+  --ds-black: oklch(0.2644 0.0178 266.29);
+
+  --ds-gray-25: oklch(0.9789 0.0029 264.54);
+  --ds-gray-50: oklch(0.9371 0.0042 271.37);
+  --ds-gray-100: oklch(0.8880 0.0059 264.53);
+  --ds-gray-200: oklch(0.8236 0.0086 271.31);
+  --ds-gray-300: oklch(0.7442 0.0106 267.33);
+  --ds-gray-400: oklch(0.6504 0.0138 271.20);
+  --ds-gray-500: oklch(0.4280 0.0225 268.77);
+  --ds-gray-600: oklch(0.3830 0.0215 267.47);
+  --ds-gray-700: oklch(0.3443 0.0205 265.97);
+  --ds-gray-800: oklch(0.3055 0.0189 268.06);
+  --ds-gray-900: oklch(0.2644 0.0178 266.29);
+
+  --ds-primary-10: oklch(0.9850 0.0040 270.87);
+  --ds-primary-25: oklch(0.9262 0.0095 279.68);
+  --ds-primary-50: oklch(0.8647 0.0155 273.82);
+  --ds-primary-100: oklch(0.7819 0.0259 275.81);
+  --ds-primary-200: oklch(0.6836 0.0388 275.08);
+  --ds-primary-300: oklch(0.5822 0.0531 274.33);
+  --ds-primary-400: oklch(0.4635 0.0712 273.33);
+  --ds-primary-500: oklch(0.3328 0.0923 270.87);
+  --ds-primary-600: oklch(0.3124 0.0779 271.40);
+  --ds-primary-700: oklch(0.2912 0.0633 270.86);
+  --ds-primary-800: oklch(0.2663 0.0439 272.00);
+  --ds-primary-900: oklch(0.2409 0.0238 270.23);
+
+  --ds-accent-25: oklch(0.9588 0.0174 17.46);
+  --ds-accent-50: oklch(0.9222 0.0333 17.77);
+  --ds-accent-100: oklch(0.8551 0.0646 17.31);
+  --ds-accent-200: oklch(0.7855 0.1030 18.15);
+  --ds-accent-300: oklch(0.7134 0.1442 20.31);
+  --ds-accent-400: oklch(0.6382 0.1944 23.52);
+  --ds-accent-500: oklch(0.5847 0.2290 27.71);
+  --ds-accent-600: oklch(0.5307 0.2067 27.50);
+  --ds-accent-700: oklch(0.4636 0.1786 27.30);
+  --ds-accent-800: oklch(0.3895 0.1477 26.74);
+  --ds-accent-900: oklch(0.2994 0.1084 25.22);
+
+  --ds-danger-25: oklch(0.9588 0.0174 17.46);
+  --ds-danger-50: oklch(0.9222 0.0333 17.77);
+  --ds-danger-100: oklch(0.8551 0.0646 17.31);
+  --ds-danger-200: oklch(0.7855 0.1030 18.15);
+  --ds-danger-300: oklch(0.7134 0.1442 20.31);
+  --ds-danger-400: oklch(0.6382 0.1944 23.52);
+  --ds-danger-500: oklch(0.5847 0.2290 27.71);
+  --ds-danger-600: oklch(0.5307 0.2067 27.50);
+  --ds-danger-700: oklch(0.4636 0.1786 27.30);
+  --ds-danger-800: oklch(0.3895 0.1477 26.74);
+  --ds-danger-900: oklch(0.2994 0.1084 25.22);
+
+  --ds-success-25: oklch(0.9897 0.0111 159.97);
+  --ds-success-50: oklch(0.9796 0.0222 159.7);
+  --ds-success-100: oklch(0.9495 0.0564 156.67);
+  --ds-success-200: oklch(0.9022 0.1024 157.27);
+  --ds-success-300: oklch(0.8459 0.147 157.69);
+  --ds-success-400: oklch(0.7746 0.174 155.78);
+  --ds-success-500: oklch(0.6804 0.1652 154.88);
+  --ds-success-600: oklch(0.5911 0.1469 154.48);
+  --ds-success-700: oklch(0.504 0.12 156.66);
+  --ds-success-800: oklch(0.4343 0.1001 157.71);
+  --ds-success-900: oklch(0.3708 0.082 159.46);
+
+  --ds-warning-25: oklch(0.9919 0.0103 90.2);
+  --ds-warning-50: oklch(0.984 0.0205 90.27);
+  --ds-warning-100: oklch(0.956 0.0546 90.42);
+  --ds-warning-200: oklch(0.9126 0.11 90.14);
+  --ds-warning-300: oklch(0.8618 0.1489 85.04);
+  --ds-warning-400: oklch(0.8102 0.1636 75.71);
+  --ds-warning-500: oklch(0.7464 0.1707 61.8);
+  --ds-warning-600: oklch(0.6493 0.1698 50.37);
+  --ds-warning-700: oklch(0.5399 0.1562 43.11);
+  --ds-warning-800: oklch(0.4585 0.1324 41.15);
+  --ds-warning-900: oklch(0.4001 0.1122 40.81);
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Neutrals invert: surfaces go dark, text shades go light. */
+  --ds-white: oklch(0.2683 0.0263 270.55); /* card / panel surface */
+  --ds-black: oklch(0.2644 0.0178 266.29); /* overlays stay dark */
+
+  --ds-gray-25: oklch(0.2168 0.0205 270.5); /* app background */
+  --ds-gray-50: oklch(0.3021 0.0281 270.5);
+  --ds-gray-100: oklch(0.3389 0.0301 270.4);
+  --ds-gray-200: oklch(0.3937 0.0323 270.3);
+  --ds-gray-300: oklch(0.4635 0.0341 270.2);
+  --ds-gray-400: oklch(0.5542 0.0308 269.4);
+  --ds-gray-500: oklch(0.6486 0.0275 268.6);
+  --ds-gray-600: oklch(0.7168 0.0231 267.7);
+  --ds-gray-700: oklch(0.7821 0.0187 266.8);
+  --ds-gray-800: oklch(0.8465 0.0143 265.9);
+  --ds-gray-900: oklch(0.9108 0.0102 264.9);
+
+  /* Primary: tints (10–100) become dark navy washes; rail shades (700–900)
+     stay literal; solid fills (500/600) keep navy depth. Text shades are
+     re-lightened via the .text-primary-* overrides below. */
+  --ds-primary-10: oklch(0.2524 0.0415 271);
+  --ds-primary-25: oklch(0.2855 0.0492 271.5);
+  --ds-primary-50: oklch(0.3183 0.0558 271.5);
+  --ds-primary-100: oklch(0.3677 0.0642 272);
+  --ds-primary-200: oklch(0.4439 0.0739 273);
+  --ds-primary-300: oklch(0.5222 0.0821 273.5);
+  --ds-primary-400: oklch(0.6011 0.0691 274);
+  --ds-primary-500: oklch(0.4014 0.0961 271.2);
+  --ds-primary-600: oklch(0.3637 0.0862 271.6);
+  --ds-primary-700: oklch(0.3212 0.0697 271);
+  --ds-primary-800: oklch(0.2663 0.0439 272.00);
+  --ds-primary-900: oklch(0.2409 0.0238 270.23);
+
+  /* Accent / danger: tints become dark washes, text shades brighten. */
+  --ds-accent-25: oklch(0.2682 0.0458 25.5);
+  --ds-accent-50: oklch(0.3072 0.0594 25.8);
+  --ds-accent-100: oklch(0.3662 0.0834 26.2);
+  --ds-accent-200: oklch(0.4373 0.1108 26.5);
+  --ds-accent-300: oklch(0.5176 0.1435 27);
+  --ds-accent-400: oklch(0.5889 0.1852 27.2);
+  --ds-accent-500: oklch(0.6156 0.2193 27.4);
+  --ds-accent-600: oklch(0.6779 0.2073 27.2);
+  --ds-accent-700: oklch(0.7241 0.1806 27);
+  --ds-accent-800: oklch(0.7783 0.1505 26.5);
+  --ds-accent-900: oklch(0.8412 0.1183 25.5);
+
+  --ds-danger-25: oklch(0.2682 0.0458 25.5);
+  --ds-danger-50: oklch(0.3072 0.0594 25.8);
+  --ds-danger-100: oklch(0.3662 0.0834 26.2);
+  --ds-danger-200: oklch(0.4373 0.1108 26.5);
+  --ds-danger-300: oklch(0.5176 0.1435 27);
+  --ds-danger-400: oklch(0.5889 0.1852 27.2);
+  --ds-danger-500: oklch(0.6156 0.2193 27.4);
+  --ds-danger-600: oklch(0.6779 0.2073 27.2);
+  --ds-danger-700: oklch(0.7241 0.1806 27);
+  --ds-danger-800: oklch(0.7783 0.1505 26.5);
+  --ds-danger-900: oklch(0.8412 0.1183 25.5);
+
+  --ds-success-25: oklch(0.2437 0.0304 158);
+  --ds-success-50: oklch(0.2771 0.0427 157.8);
+  --ds-success-100: oklch(0.3252 0.0632 157.5);
+  --ds-success-200: oklch(0.3891 0.0891 157.2);
+  --ds-success-300: oklch(0.4601 0.1189 156.8);
+  --ds-success-400: oklch(0.5351 0.1482 156.2);
+  --ds-success-500: oklch(0.6804 0.1652 154.88);
+  --ds-success-600: oklch(0.7521 0.1505 155);
+  --ds-success-700: oklch(0.8001 0.1262 155.3);
+  --ds-success-800: oklch(0.8454 0.1006 156.4);
+  --ds-success-900: oklch(0.8868 0.0796 157.5);
+
+  --ds-warning-25: oklch(0.2538 0.0321 85);
+  --ds-warning-50: oklch(0.2923 0.0532 85);
+  --ds-warning-100: oklch(0.3444 0.0834 84);
+  --ds-warning-200: oklch(0.4087 0.1179 82);
+  --ds-warning-300: oklch(0.4779 0.1514 78);
+  --ds-warning-400: oklch(0.5495 0.1751 73);
+  --ds-warning-500: oklch(0.7464 0.1707 61.8);
+  --ds-warning-600: oklch(0.7993 0.1683 62);
+  --ds-warning-700: oklch(0.8254 0.1522 55);
+  --ds-warning-800: oklch(0.8581 0.1324 47);
+  --ds-warning-900: oklch(0.8887 0.1126 43.5);
+}
+
+/* ---------------------------------------------------------------------------
+ * Dark-mode text overrides.
+ * These utilities mean "light text on a saturated brand fill" (or on the navy
+ * rail) and must stay light even though their shade variable darkens for
+ * background use. Unlayered rules beat Tailwind's layered utilities.
+ * ------------------------------------------------------------------------- */
+.dark .text-white {
+  color: oklch(1 0 0);
+}
+
+.dark .text-gray-25 {
+  color: oklch(0.9789 0.0029 264.54);
+}
+
+.dark .text-primary-100 {
+  color: oklch(0.7819 0.0259 275.81);
+}
+
+.dark .text-primary-500 {
+  color: oklch(0.6675 0.0742 274.5);
+}
+
+.dark .text-primary-600 {
+  color: oklch(0.7094 0.0661 274.5);
+}
+
+.dark .text-primary-700 {
+  color: oklch(0.7562 0.0575 274.5);
+}
+
+.dark .hover\:text-primary-600:hover {
+  color: oklch(0.7094 0.0661 274.5);
+}
+
+.dark .hover\:text-primary-700:hover {
+  color: oklch(0.7562 0.0575 274.5);
+}
+
 html {
   overflow-x: clip;
 }
@@ -113,6 +323,16 @@ html {
   transition: background-color 99999s ease-out 0s;
 }
 
+.dark .ds-input-field:-webkit-autofill,
+.dark .ds-input-field:-webkit-autofill:hover,
+.dark .ds-input-field:-webkit-autofill:focus,
+.dark .ds-input-field:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px oklch(0.2683 0.0263 270.55) inset !important;
+  box-shadow: 0 0 0 1000px oklch(0.2683 0.0263 270.55) inset !important;
+  -webkit-text-fill-color: oklch(0.9108 0.0102 264.9) !important;
+  transition: background-color 99999s ease-out 0s;
+}
+
 /* Calendar period transitions — slide with nav direction, fade for jumps. Flipped for RTL. */
 @keyframes cal-slide-in-next {
   from {
@@ -172,4 +392,3 @@ html {
     animation: none;
   }
 }
-

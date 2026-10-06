@@ -18,6 +18,7 @@ import * as swagger from '@nestjs/swagger';
 import { CreateProfessorDto } from 'src/dto/professor/createProfessor.dto';
 import { UpdateProfessorDto } from 'src/dto/professor/updateProfessor.dto';
 import { FetchProfessorsDto } from 'src/dto/professor/fetchProfessors.dto';
+import { ProfessorRankingQueryDto } from 'src/dto/professor/professorRankingQuery.dto';
 import {
   ApiPaginationQuery,
   PaginationQuery,
@@ -126,6 +127,30 @@ export class ProfessorBackofficeController {
         orderBy,
         search as never,
       );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('ranking')
+  @Roles({ roles: ['ADMIN', 'USER'] })
+  @swagger.ApiOperation({ summary: 'Rank professors by revenue, hours and payment delay' })
+  async ranking(@Res() res: Response, @Query() query: ProfessorRankingQueryDto) {
+    try {
+      const dto = plainToInstance(ProfessorRankingQueryDto, query);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.professorService.getRanking(dto);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
