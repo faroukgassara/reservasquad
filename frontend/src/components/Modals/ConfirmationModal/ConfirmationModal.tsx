@@ -25,7 +25,7 @@ const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
     const iconColor = props.iconColor ?? 'text-warning-500';
 
     const modalContent = (
-        <Div className="w-full flex flex-col gap-5 px-2 pb-2">
+        <Div className="w-full flex flex-col gap-5">
             <Div className={`flex items-center justify-center w-12 h-12 rounded-full shrink-0 ${iconBgColor}`}>
                 <Icon
                     name={iconName}
@@ -83,7 +83,7 @@ const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
             title=""
             canClose={false}
             canCloseOnClickOutisde={false}
-            className={props.containerClassName ?? 'p-6 w-[min(92vw,400px)] bg-white rounded-xxl shadow-lg'}
+            className={props.containerClassName ?? 'w-[min(92vw,400px)] bg-white rounded-xxl shadow-lg'}
             isDrawer={false}
         >
             {modalContent}

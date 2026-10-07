@@ -24,6 +24,14 @@ model User {
   emailActivationTokens EmailActivationToken[]
   reservationsCreated   Reservation[]
   auditLogs             AuditLog[]
+  posSessionsOpened     PosSession[]           @relation("PosSessionOpenedBy")
+  posSessionsClosed     PosSession[]           @relation("PosSessionClosedBy")
+  posCashMoves          PosCashMove[]
+  posOrders             PosOrder[]
+  posStockEntries       PosStockEntry[]
+  saleOrders            SaleOrder[]
+  invoicePayments       InvoicePayment[]
+  subscriptions         Subscription[]
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -172,6 +180,8 @@ model DailyIncome {
   benefits          Decimal  @default(0) @db.Decimal(10, 2)
   savingsForCharges Decimal  @default(0) @db.Decimal(10, 2)
   notes             String?
+  posSessionId      String?     @unique
+  posSession        PosSession? @relation(fields: [posSessionId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -230,8 +240,16 @@ model CreditClient {
   firstName String
   lastName  String
   phone     String?
+  email     String?
+  address   String?
+  taxId     String?
+  cin       String?
 
-  credits Credit[]
+  credits       Credit[]
+  posOrders     PosOrder[]
+  saleOrders    SaleOrder[]
+  invoices      Invoice[]
+  subscriptions Subscription[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -248,8 +266,13 @@ model Credit {
   date        DateTime     @db.Date
   amount      Decimal      @db.Decimal(10, 2)
   description String?
+  productId   String?
+  product     PosProduct?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  quantity    Decimal?     @db.Decimal(12, 3)
 
-  payments CreditPayment[]
+  payments      CreditPayment[]
+  posPayments   PosPayment[]
+  posOrderLines PosOrderLine[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -260,17 +283,451 @@ model Credit {
 }
 
 model CreditPayment {
-  id       String   @id @default(uuid())
-  creditId String
-  credit   Credit   @relation(fields: [creditId], references: [id], onDelete: Cascade)
-  date     DateTime @db.Date
-  amount   Decimal  @db.Decimal(10, 2)
-  note     String?
+  id             String        @id @default(uuid())
+  creditId       String
+  credit         Credit        @relation(fields: [creditId], references: [id], onDelete: Cascade)
+  date           DateTime      @db.Date
+  amount         Decimal       @db.Decimal(10, 2)
+  note           String?
+  posOrderLineId String?
+  posOrderLine   PosOrderLine? @relation(fields: [posOrderLineId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@index([creditId])
+  @@index([posOrderLineId])
+  @@index([deletedAt])
+}
+
+enum EPosProductType {
+  STOCKABLE
+  CONSUMABLE
+}
+
+enum EPosSessionStatus {
+  OPEN
+  CLOSED
+}
+
+enum EPosCashMoveType {
+  IN
+  OUT
+}
+
+enum EPosOrderStatus {
+  PAID
+  REFUND
+}
+
+enum EPosPaymentMethod {
+  CASH
+  BANK
+  CLIENT_ACCOUNT
+}
+
+model PosCategory {
+  id        String  @id @default(uuid())
+  name      String
+  imageUrl  String?
+  sortOrder Int     @default(0)
+
+  products PosProduct[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([sortOrder])
+  @@index([deletedAt])
+}
+
+model PosProduct {
+  id             String          @id @default(uuid())
+  name           String
+  categoryId     String?
+  category       PosCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  imageUrl       String?
+  price          Decimal         @db.Decimal(12, 3)
+  cost           Decimal         @default(0) @db.Decimal(12, 3)
+  type           EPosProductType @default(CONSUMABLE)
+  availableInPos Boolean         @default(true)
+  stockQty       Decimal         @default(0) @db.Decimal(12, 3)
+  barcode        String?
+  reference      String?
+  taxRate        Decimal         @default(0) @db.Decimal(5, 2)
+
+  subscriptionDuration Int?
+  subscriptionUnit     ESubscriptionUnit?
+
+  stockEntries   PosStockEntry[]
+  orderLines     PosOrderLine[]
+  saleOrderLines SaleOrderLine[]
+  invoiceLines   InvoiceLine[]
+  subscriptions  Subscription[]
+  credits        Credit[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([barcode])
+  @@index([deletedAt])
+}
+
+model PosStockEntry {
+  id          String     @id @default(uuid())
+  productId   String
+  product     PosProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity    Decimal    @db.Decimal(12, 3)
+  unitCost    Decimal    @default(0) @db.Decimal(12, 3)
+  supplier    String?
+  note        String?
+  createdById String?
+  createdBy   User?      @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model PosSession {
+  id           String            @id @default(uuid())
+  number       Int               @unique @default(autoincrement())
+  status       EPosSessionStatus @default(OPEN)
+  openedById   String?
+  openedBy     User?             @relation("PosSessionOpenedBy", fields: [openedById], references: [id], onDelete: SetNull)
+  openedAt     DateTime          @default(now())
+  openingCash  Decimal           @db.Decimal(12, 3)
+  closedById   String?
+  closedBy     User?             @relation("PosSessionClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
+  closedAt     DateTime?
+  countedCash  Decimal?          @db.Decimal(12, 3)
+  expectedCash Decimal?          @db.Decimal(12, 3)
+  difference   Decimal?          @db.Decimal(12, 3)
+  closingNote  String?
+
+  orders      PosOrder[]
+  cashMoves   PosCashMove[]
+  dailyIncome DailyIncome?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([openedAt])
+}
+
+model PosCashMove {
+  id        String           @id @default(uuid())
+  sessionId String
+  session   PosSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type      EPosCashMoveType
+  amount    Decimal          @db.Decimal(12, 3)
+  reason    String
+  userId    String?
+  user      User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+model PosOrder {
+  id             String          @id @default(uuid())
+  number         Int             @unique @default(autoincrement())
+  sessionId      String
+  session        PosSession      @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  cashierId      String?
+  cashier        User?           @relation(fields: [cashierId], references: [id], onDelete: SetNull)
+  creditClientId String?
+  creditClient   CreditClient?   @relation(fields: [creditClientId], references: [id], onDelete: SetNull)
+  status         EPosOrderStatus @default(PAID)
+  refundOfId     String?
+  refundOf       PosOrder?       @relation("PosOrderRefunds", fields: [refundOfId], references: [id], onDelete: SetNull)
+  refunds        PosOrder[]      @relation("PosOrderRefunds")
+  note           String?
+  total          Decimal         @db.Decimal(12, 3)
+  amountPaid     Decimal         @db.Decimal(12, 3)
+  change         Decimal         @default(0) @db.Decimal(12, 3)
+
+  lines    PosOrderLine[]
+  payments PosPayment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([cashierId])
+  @@index([creditClientId])
+  @@index([status])
+  @@index([refundOfId])
+  @@index([createdAt])
+}
+
+model PosOrderLine {
+  id              String           @id @default(uuid())
+  orderId         String
+  order           PosOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         PosProduct?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName     String
+  quantity        Decimal          @db.Decimal(12, 3)
+  unitPrice       Decimal          @db.Decimal(12, 3)
+  discountPct     Decimal          @default(0) @db.Decimal(5, 2)
+  total           Decimal          @db.Decimal(12, 3)
+  refundOfLineId  String?
+  refundOfLine    PosOrderLine?    @relation("PosOrderLineRefunds", fields: [refundOfLineId], references: [id], onDelete: SetNull)
+  refundLines     PosOrderLine[]   @relation("PosOrderLineRefunds")
+  saleOrderId     String?
+  saleOrder       SaleOrder?       @relation(fields: [saleOrderId], references: [id], onDelete: SetNull)
+  subscriptionId  String?
+  subscription    Subscription?    @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  creditId        String?
+  credit          Credit?          @relation(fields: [creditId], references: [id], onDelete: SetNull)
+  creditPayments  CreditPayment[]
+  invoiceId       String?
+  invoice         Invoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  invoicePayments InvoicePayment[]
+
+  @@index([orderId])
+  @@index([invoiceId])
+  @@index([productId])
+  @@index([refundOfLineId])
+  @@index([saleOrderId])
+  @@index([subscriptionId])
+  @@index([creditId])
+}
+
+model PosPayment {
+  id       String            @id @default(uuid())
+  orderId  String
+  order    PosOrder          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method   EPosPaymentMethod
+  amount   Decimal           @db.Decimal(12, 3)
+  creditId String?
+  credit   Credit?           @relation(fields: [creditId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([method])
+  @@index([creditId])
+}
+
+enum ESaleOrderStatus {
+  DRAFT
+  SENT
+  CONFIRMED
+  CANCELLED
+}
+
+enum EInvoiceType {
+  INVOICE
+  CREDIT_NOTE
+}
+
+enum EInvoiceStatus {
+  DRAFT
+  POSTED
+  CANCELLED
+}
+
+enum EInvoicePaymentMethod {
+  CASH
+  BANK
+  CLIENT_ACCOUNT
+}
+
+model SaleOrder {
+  id            String           @id @default(uuid())
+  number        Int              @unique @default(autoincrement())
+  status        ESaleOrderStatus @default(DRAFT)
+  clientId      String
+  client        CreditClient     @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  salespersonId String?
+  salesperson   User?            @relation(fields: [salespersonId], references: [id], onDelete: SetNull)
+  orderDate     DateTime         @default(now())
+  validUntil    DateTime?        @db.Date
+  confirmedAt   DateTime?
+  note          String?
+  untaxed       Decimal          @default(0) @db.Decimal(12, 3)
+  taxTotal      Decimal          @default(0) @db.Decimal(12, 3)
+  total         Decimal          @default(0) @db.Decimal(12, 3)
+  amountPaid    Decimal          @default(0) @db.Decimal(12, 3)
+
+  lines    SaleOrderLine[]
+  invoices Invoice[]
+  posLines PosOrderLine[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([clientId])
+  @@index([status])
+  @@index([orderDate])
+  @@index([deletedAt])
+}
+
+model SaleOrderLine {
+  id          String      @id @default(uuid())
+  saleOrderId String
+  saleOrder   SaleOrder   @relation(fields: [saleOrderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     PosProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+  description String?
+  quantity    Decimal     @db.Decimal(12, 3)
+  unitPrice   Decimal     @db.Decimal(12, 3)
+  discountPct Decimal     @default(0) @db.Decimal(5, 2)
+  taxRate     Decimal     @default(0) @db.Decimal(5, 2)
+  subtotal    Decimal     @db.Decimal(12, 3)
+  taxAmount   Decimal     @db.Decimal(12, 3)
+  total       Decimal     @db.Decimal(12, 3)
+  sortOrder   Int         @default(0)
+
+  @@index([saleOrderId])
+  @@index([productId])
+}
+
+model Invoice {
+  id                String         @id @default(uuid())
+  type              EInvoiceType   @default(INVOICE)
+  status            EInvoiceStatus @default(DRAFT)
+  year              Int?
+  sequence          Int?
+  clientId          String
+  client            CreditClient   @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  saleOrderId       String?
+  saleOrder         SaleOrder?     @relation(fields: [saleOrderId], references: [id], onDelete: SetNull)
+  subscriptionId    String?
+  subscription      Subscription?  @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  reversedInvoiceId String?
+  reversedInvoice   Invoice?       @relation("InvoiceCreditNotes", fields: [reversedInvoiceId], references: [id], onDelete: SetNull)
+  creditNotes       Invoice[]      @relation("InvoiceCreditNotes")
+  invoiceDate       DateTime       @db.Date
+  dueDate           DateTime?      @db.Date
+  note              String?
+  untaxed           Decimal        @default(0) @db.Decimal(12, 3)
+  taxTotal          Decimal        @default(0) @db.Decimal(12, 3)
+  stampDuty         Decimal        @default(0) @db.Decimal(12, 3)
+  total             Decimal        @default(0) @db.Decimal(12, 3)
+  amountPaid        Decimal        @default(0) @db.Decimal(12, 3)
+  postedAt          DateTime?
+
+  lines         InvoiceLine[]
+  payments      InvoicePayment[]
+  posOrderLines PosOrderLine[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([type, year, sequence])
+  @@index([clientId])
+  @@index([saleOrderId])
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([invoiceDate])
+  @@index([deletedAt])
+}
+
+model InvoiceLine {
+  id          String      @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     PosProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+  description String?
+  quantity    Decimal     @db.Decimal(12, 3)
+  unitPrice   Decimal     @db.Decimal(12, 3)
+  discountPct Decimal     @default(0) @db.Decimal(5, 2)
+  taxRate     Decimal     @default(0) @db.Decimal(5, 2)
+  subtotal    Decimal     @db.Decimal(12, 3)
+  taxAmount   Decimal     @db.Decimal(12, 3)
+  total       Decimal     @db.Decimal(12, 3)
+  sortOrder   Int         @default(0)
+
+  @@index([invoiceId])
+  @@index([productId])
+}
+
+model InvoicePayment {
+  id             String                @id @default(uuid())
+  invoiceId      String
+  invoice        Invoice               @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  date           DateTime              @db.Date
+  method         EInvoicePaymentMethod
+  amount         Decimal               @db.Decimal(12, 3)
+  note           String?
+  createdById    String?
+  createdBy      User?                 @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  posOrderLineId String?
+  posOrderLine   PosOrderLine?         @relation(fields: [posOrderLineId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([posOrderLineId])
+}
+
+enum ESubscriptionUnit {
+  DAY
+  WEEK
+  MONTH
+  YEAR
+}
+
+enum ESubscriptionStatus {
+  DRAFT
+  ACTIVE
+  CANCELLED
+}
+
+model Subscription {
+  id            String              @id @default(uuid())
+  number        Int                 @unique @default(autoincrement())
+  status        ESubscriptionStatus @default(DRAFT)
+  clientId      String
+  client        CreditClient        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  productId     String?
+  product       PosProduct?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName   String
+  duration      Int
+  unit          ESubscriptionUnit
+  startDate     DateTime            @db.Date
+  endDate       DateTime            @db.Date
+  unitPrice     Decimal             @db.Decimal(12, 3)
+  discountPct   Decimal             @default(0) @db.Decimal(5, 2)
+  taxRate       Decimal             @default(0) @db.Decimal(5, 2)
+  subtotal      Decimal             @db.Decimal(12, 3)
+  taxAmount     Decimal             @db.Decimal(12, 3)
+  total         Decimal             @db.Decimal(12, 3)
+  amountPaid    Decimal             @default(0) @db.Decimal(12, 3)
+  note          String?
+  renewedFromId String?             @unique
+  renewedFrom   Subscription?       @relation("SubscriptionRenewals", fields: [renewedFromId], references: [id], onDelete: SetNull)
+  renewal       Subscription?       @relation("SubscriptionRenewals")
+  createdById   String?
+  createdBy     User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  activatedAt   DateTime?
+
+  invoices      Invoice[]
+  posOrderLines PosOrderLine[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([clientId])
+  @@index([productId])
+  @@index([status])
+  @@index([endDate])
   @@index([deletedAt])
 }

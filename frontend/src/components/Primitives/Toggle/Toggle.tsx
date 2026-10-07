@@ -45,7 +45,7 @@ const Toggle = ({
   return (
     <label
       className={`
-        relative inline-block cursor-pointer
+        relative inline-block shrink-0 cursor-pointer
         ${sizeConfig.switch}
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         ${className}

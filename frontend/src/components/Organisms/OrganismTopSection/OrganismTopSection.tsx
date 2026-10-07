@@ -8,10 +8,15 @@ import { IOrganismTopSection } from '@/interfaces';
 import { useMobileSidebar } from '@/contexts/MobileSidebarContext';
 import { useTranslations } from 'next-intl';
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
+import { createContext, useContext } from 'react';
+
+/** Layouts that already show a theme toggle in their own bar (e.g. the Caisse) set this to false. */
+export const TopSectionThemeToggleContext = createContext(true);
 
 const OrganismTopSection = (props: IOrganismTopSection) => {
     const mobileSidebar = useMobileSidebar();
     const t = useTranslations('sidebar');
+    const showThemeToggle = useContext(TopSectionThemeToggleContext);
 
     return (
         <header className="sticky top-0 z-30 flex flex-col gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-6 lg:px-8 lg:py-5">
@@ -47,7 +52,7 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
                         </Label>
                     )}
                 </Div>
-                <ThemeToggle />
+                {showThemeToggle ? <ThemeToggle /> : null}
             </Div>
 
             {props?.rightActions && (

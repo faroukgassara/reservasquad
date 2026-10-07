@@ -65,6 +65,14 @@ const Badge = memo(function Badge({
         );
     }
 
+    if (!onClick) {
+        return (
+            <span className={buttonClassName} id={id}>
+                {content}
+            </span>
+        );
+    }
+
     return (
         <button
             type="button"

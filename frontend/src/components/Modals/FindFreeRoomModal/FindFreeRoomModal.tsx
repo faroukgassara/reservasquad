@@ -196,7 +196,7 @@ export default function FindFreeRoomModal({
                     searchMutation.mutate();
                 }}
             >
-                <DrawerScrollContent className="gap-0 space-y-4 p-6">
+                <DrawerScrollContent>
                     <DateTimeField
                         id="find-room-start"
                         label={t('startAt')}

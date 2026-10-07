@@ -92,10 +92,10 @@ export default function PrivateLayout({
             hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
         },
         {
-            id: 'credits',
-            iconName: IconComponentsEnum.filetext,
-            label: t('credits'),
-            href: Routes.Credits.index,
+            id: 'pos',
+            iconName: IconComponentsEnum.shoppingCart,
+            label: t('pos'),
+            href: Routes.Pos.index,
             hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
         },
         {

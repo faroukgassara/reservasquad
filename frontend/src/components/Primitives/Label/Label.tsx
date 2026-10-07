@@ -3,6 +3,7 @@ import typography from '@/theme/typography'
 import type { ELabelColor } from '@/theme/labelColors'
 import WithChildren from '@/types/WithChildren'
 import React from 'react'
+import { twMerge } from 'tailwind-merge'
 
 type LabelProps = WithChildren<{
     className?: string
@@ -53,7 +54,8 @@ const Label: React.FC<LabelProps> = ({
         }
         : { fontFamily }
 
-    const sharedClassName = [color, 'inline-block', className].filter(Boolean).join(' ')
+    // Color stays outside twMerge: custom font-size classes would otherwise be read as a conflicting text color.
+    const sharedClassName = [color, twMerge('inline-block', className)].filter(Boolean).join(' ')
 
     if (htmlFor) {
         return (

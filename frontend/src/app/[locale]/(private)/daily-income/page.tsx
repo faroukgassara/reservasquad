@@ -301,7 +301,12 @@ export default function DailyIncomePage() {
                     label: t('date'),
                     mobile: 'primary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
-                        <OrganismTable.Cell mainText={formatDate(row.date)} />
+                        <OrganismTable.Cell
+                            mainText={formatDate(row.date)}
+                            supportingText={
+                                row.posSession ? t('posSession', { number: row.posSession.number }) : undefined
+                            }
+                        />
                     ),
                 },
             },

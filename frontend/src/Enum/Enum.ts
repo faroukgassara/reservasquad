@@ -30,6 +30,7 @@ enum EInputType {
     email = 'email',
     radio = 'radio',
     date = 'date',
+    datetimeLocal = 'datetime-local',
 }
 
 enum EInputSize {

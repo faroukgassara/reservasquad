@@ -73,7 +73,7 @@ export default function RoomFormModal({
                     form.handleSubmit();
                 }}
             >
-                <DrawerScrollContent className="gap-0 space-y-4 p-6">
+                <DrawerScrollContent>
                     <form.Field
                         name="name"
                         validators={{

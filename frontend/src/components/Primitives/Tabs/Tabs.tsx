@@ -66,7 +66,7 @@ const TabButton = memo(function TabButton({
                 'disabled:cursor-not-allowed disabled:opacity-50',
                 variant === 'underline'
                     ? 'rounded-t-lg px-4 py-2.5 hover:bg-gray-50'
-                    : 'z-10 rounded-lg px-4 py-2',
+                    : 'z-10 flex-1 whitespace-nowrap rounded-lg px-4 py-2',
                 !isDisabled && !isActive && 'hover:text-gray-700',
             )}
         >
@@ -136,7 +136,7 @@ const Tabs = memo(function Tabs({
             className={twMerge(
                 variant === 'underline'
                     ? 'flex gap-0.5 border-b border-gray-200'
-                    : 'inline-flex gap-0.5 rounded-xl bg-gray-100 p-1',
+                    : 'inline-flex max-w-full gap-0.5 overflow-x-auto rounded-xl bg-gray-100 p-1',
                 className,
             )}
         >

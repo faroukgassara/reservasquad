@@ -26,6 +26,7 @@ export interface DailyIncomeRecord {
     benefits: number | string;
     savingsForCharges: number | string;
     notes: string | null;
+    posSession: { number: number } | null;
     createdAt: string;
     updatedAt: string;
     charges?: number;

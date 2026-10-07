@@ -70,7 +70,12 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
           data-modal="true"
         >
           {canClose && (
-            <div className="flex shrink-0 items-center justify-between rounded-t-lg bg-color-primary py-1 px-6 text-color-background z-modal">
+            <div
+              className={twMerge(
+                'z-modal flex shrink-0 items-center gap-3 rounded-t-lg px-6',
+                isDrawer ? 'border-b border-gray-100 py-4' : 'pt-6',
+              )}
+            >
               {isDrawer ? (
                 <Button
                   id="button-close"
@@ -83,14 +88,13 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
                   }}
                   iconPosition="only"
                   onClick={closeModal}
-                  className="mr-3"
                 />
-              ) : (
-                <div className="w-8 mr-3" />
-              )}
-              <div className="flex flex-col flex-1">
+              ) : null}
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <Label color="text-gray-900" variant={EVariantLabel.h5}>{title}</Label>
-                <Label color="text-gray-900" variant={EVariantLabel.bodySmall}>{subTitle}</Label>
+                {subTitle ? (
+                  <Label color="text-gray-500" variant={EVariantLabel.bodySmall}>{subTitle}</Label>
+                ) : null}
               </div>
             </div>
           )}
@@ -98,7 +102,7 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
             className={twMerge(
               isDrawer
                 ? 'flex min-h-0 flex-1 flex-col overflow-hidden'
-                : 'flex-1 overflow-auto',
+                : twMerge('flex-1 overflow-auto px-6 pb-6', canClose ? 'pt-5' : 'pt-6'),
               bodyClassName,
             )}
           >
