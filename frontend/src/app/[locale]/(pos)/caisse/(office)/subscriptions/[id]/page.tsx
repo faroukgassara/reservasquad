@@ -19,6 +19,7 @@ import Input from '@/components/Primitives/Input/Input';
 import Label from '@/components/Primitives/Label/Label';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import PosRenewSubscriptionModal from '@/components/Modals/PosRenewSubscriptionModal/PosRenewSubscriptionModal';
+import PosSubscriptionCardModal from '@/components/Modals/PosSubscriptionCardModal/PosSubscriptionCardModal';
 import PosFormFooter from '@/components/Organisms/Pos/PosFormFooter';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -74,7 +75,7 @@ interface SubscriptionForm {
     note: string;
 }
 
-type ModalState = 'client' | 'renew' | 'cancel' | 'delete' | null;
+type ModalState = 'client' | 'renew' | 'cancel' | 'delete' | 'card' | null;
 
 function parseNumber(value: string): number {
     return Number(value.replace(',', '.'));
@@ -368,6 +369,9 @@ export default function PosSubscriptionPage() {
                 />
             );
         }
+        if (modalState === 'card' && subscription) {
+            return <PosSubscriptionCardModal subscription={subscription} />;
+        }
         if (modalState === 'cancel') {
             return (
                 <ConfirmationModal
@@ -444,6 +448,17 @@ export default function PosSubscriptionPage() {
                     text={t('print')}
                     disabled={dirty}
                     onClick={handlePrint}
+                />
+            ) : null}
+            {subscription && status === 'ACTIVE' ? (
+                <Button
+                    id="subscription-card"
+                    type={EButtonType.secondary}
+                    size={EButtonSize.small}
+                    iconPosition="left"
+                    icon={{ name: IconComponentsEnum.userCheck, size: ESize.sm, color: 'text-primary-500' }}
+                    text={t('card')}
+                    onClick={() => open('card')}
                 />
             ) : null}
             {status === 'ACTIVE' && !subscription?.renewal ? (

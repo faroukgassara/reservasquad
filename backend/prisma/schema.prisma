@@ -676,6 +676,8 @@ enum ESubscriptionStatus {
 model Subscription {
   id             String              @id @default(uuid())
   number         Int                 @unique @default(autoincrement())
+  /// Secret, unguessable id used in the member card QR code (public link).
+  cardToken      String              @unique @default(uuid())
   status         ESubscriptionStatus @default(DRAFT)
   clientId       String
   client         CreditClient        @relation(fields: [clientId], references: [id], onDelete: Restrict)

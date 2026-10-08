@@ -16,6 +16,7 @@ import { PosInvoiceService } from './pos-invoice.service';
 import { PosReportController } from './pos-report.controller';
 import { PosReportService } from './pos-report.service';
 import { PosSubscriptionController } from './pos-subscription.controller';
+import { PosSubscriptionCardController } from './pos-subscription-card.controller';
 import { PosSubscriptionService } from './pos-subscription.service';
 
 @Module({
@@ -28,6 +29,7 @@ import { PosSubscriptionService } from './pos-subscription.service';
     PosInvoiceController,
     PosReportController,
     PosSubscriptionController,
+    PosSubscriptionCardController,
   ],
   providers: [
     PosCatalogService,

@@ -1104,7 +1104,9 @@
             "name": "Nom",
             "taxAmount": "Montant de la taxe",
             "baseAmount": "Montant de base",
-            "noTax": "Pas de taxe"
+            "noTax": "Pas de taxe",
+            "memberCard": "Carte d'abonnement",
+            "memberCardHint": "Scannez ce code pour recevoir votre carte sur votre téléphone et présentez-la à l'accueil."
         },
         "billing": {
             "quotations": "Devis",
@@ -1169,7 +1171,16 @@
             "discountTypePERCENT": "%",
             "discountTypeAMOUNT": "DT",
             "invalidDiscount": "La remise ne peut pas dépasser le prix (ou 100 %).",
-            "discountHint": "Soit {value}"
+            "discountHint": "Soit {value}",
+            "card": "Carte",
+            "cardTitle": "Carte d'abonnement",
+            "cardSubtitle": "Le client scanne ce QR code : sa carte s'affiche directement sur son téléphone et il peut l'enregistrer.",
+            "cardQrAlt": "QR code de la carte {number}",
+            "cardOpen": "Afficher la carte",
+            "cardCopyLink": "Copier le lien",
+            "cardLinkCopied": "Lien de la carte copié.",
+            "cardDownload": "Télécharger",
+            "cardFileName": "carte"
         },
         "subscriptionPicker": {
             "title": "Abonnement",
@@ -1192,5 +1203,22 @@
             "pickCredit": "Crédits en cours",
             "creditCaption": "{date} · total {total}"
         }
+    },
+    "subscriptionCard": {
+        "title": "Carte d'abonnement",
+        "validFrom": "Valable du",
+        "validUntil": "Jusqu'au",
+        "stateVALID": "Abonnement valide",
+        "stateUPCOMING": "Pas encore commencé",
+        "stateEXPIRED": "Abonnement expiré",
+        "stateCANCELLED": "Abonnement annulé",
+        "stateDRAFT": "Abonnement pas encore activé",
+        "startsOn": "Commence le {date}",
+        "expiredOn": "Expiré le {date}",
+        "generatedAt": "Généré le {date}",
+        "showAtReception": "Présentez cette carte à l'accueil",
+        "notFoundTitle": "Carte introuvable",
+        "notFoundDescription": "Ce lien n'est pas valide. Demandez une nouvelle carte à l'accueil.",
+        "fileName": "carte"
     }
 }

@@ -1104,7 +1104,9 @@
             "name": "الاسم",
             "taxAmount": "مبلغ الأداء",
             "baseAmount": "المبلغ الأساسي",
-            "noTax": "بدون أداء"
+            "noTax": "بدون أداء",
+            "memberCard": "بطاقة الاشتراك",
+            "memberCardHint": "امسح هذا الرمز لتحصل على بطاقتك في هاتفك وقدّمها في الاستقبال."
         },
         "billing": {
             "quotations": "العروض",
@@ -1169,7 +1171,16 @@
             "discountTypePERCENT": "%",
             "discountTypeAMOUNT": "د.ت",
             "invalidDiscount": "لا يمكن أن يتجاوز التخفيض السعر (أو 100 %).",
-            "discountHint": "أي {value}"
+            "discountHint": "أي {value}",
+            "card": "البطاقة",
+            "cardTitle": "بطاقة الاشتراك",
+            "cardSubtitle": "يمسح الحريف رمز QR فتظهر بطاقته مباشرة على هاتفه ويمكنه حفظها.",
+            "cardQrAlt": "رمز QR للبطاقة {number}",
+            "cardOpen": "عرض البطاقة",
+            "cardCopyLink": "نسخ الرابط",
+            "cardLinkCopied": "تم نسخ رابط البطاقة.",
+            "cardDownload": "تحميل",
+            "cardFileName": "card"
         },
         "subscriptionPicker": {
             "title": "اشتراك",
@@ -1192,5 +1203,22 @@
             "pickCredit": "الديون الجارية",
             "creditCaption": "{date} · المجموع {total}"
         }
+    },
+    "subscriptionCard": {
+        "title": "بطاقة الاشتراك",
+        "validFrom": "صالحة من",
+        "validUntil": "إلى غاية",
+        "stateVALID": "اشتراك صالح",
+        "stateUPCOMING": "لم يبدأ بعد",
+        "stateEXPIRED": "اشتراك منتهي",
+        "stateCANCELLED": "اشتراك ملغى",
+        "stateDRAFT": "اشتراك غير مفعّل بعد",
+        "startsOn": "يبدأ في {date}",
+        "expiredOn": "انتهى في {date}",
+        "generatedAt": "تم الإنشاء في {date}",
+        "showAtReception": "اعرض هذه البطاقة في الاستقبال",
+        "notFoundTitle": "البطاقة غير موجودة",
+        "notFoundDescription": "هذا الرابط غير صالح. اطلب بطاقة جديدة من الاستقبال.",
+        "fileName": "card"
     }
 }

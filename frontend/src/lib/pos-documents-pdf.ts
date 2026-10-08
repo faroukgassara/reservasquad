@@ -8,6 +8,7 @@ import {
     formatSaleNumber,
     formatSubscriptionNumber,
     personName,
+    subscriptionCardUrl,
     toAmount,
     type DocumentClient,
     type DocumentLine,
@@ -73,6 +74,8 @@ export interface PosPdfLabels {
     periodTo: string;
     followUs: string;
     scanQr: string;
+    memberCard: string;
+    memberCardHint: string;
     methods: Record<PosPaymentMethod, string>;
 }
 
@@ -817,6 +820,33 @@ function drawSubscriptionFooters(doc: jsPDF, socialQrCodes: SocialQr[], labels: 
     }
 }
 
+const MEMBER_CARD_QR_SIZE = 26;
+const MEMBER_CARD_WIDTH = 88;
+
+/** Boxed QR code linking to the member card; returns the bottom of the box. */
+async function drawMemberCardQr(
+    doc: jsPDF,
+    subscription: SubscriptionDetail,
+    labels: PosPdfLabels,
+    top: number,
+): Promise<number> {
+    const qrCode = await QRCode.toDataURL(subscriptionCardUrl(subscription.cardToken), { margin: 1, width: 320 });
+    const padding = 2.5;
+    const height = MEMBER_CARD_QR_SIZE + padding * 2;
+    doc.setFillColor(...SUB_FOOTER_FILL);
+    doc.setDrawColor(...SUB_BORDER);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(SUB_LEFT, top, MEMBER_CARD_WIDTH, height, 2, 2, 'FD');
+    doc.addImage(qrCode, 'PNG', SUB_LEFT + padding, top + padding, MEMBER_CARD_QR_SIZE, MEMBER_CARD_QR_SIZE);
+    const textLeft = SUB_LEFT + padding * 2 + MEMBER_CARD_QR_SIZE;
+    const textWidth = MEMBER_CARD_WIDTH - (textLeft - SUB_LEFT) - padding;
+    subText(doc, PRIMARY, 10);
+    doc.text(labels.memberCard, textLeft, top + 8);
+    subText(doc, SUB_MUTED, 8, 'normal');
+    doc.text(doc.splitTextToSize(labels.memberCardHint, textWidth) as string[], textLeft, top + 13.5);
+    return top + height;
+}
+
 export async function printSubscriptionPdf(subscription: SubscriptionDetail, labels: PosPdfLabels): Promise<void> {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
     const logo = await loadImage(COMPANY.logoUrl);
@@ -930,6 +960,7 @@ export async function printSubscriptionPdf(subscription: SubscriptionDetail, lab
     );
 
     y += 5.6;
+    const cardBottom = subscription.status === 'ACTIVE' ? await drawMemberCardQr(doc, subscription, labels, y) : y;
     const totalsLeft = 105.2;
     const totals = [{ label: labels.total, value: toAmount(subscription.total) }];
     doc.setDrawColor(...SUB_TOTAL_LINE);
@@ -941,6 +972,7 @@ export async function printSubscriptionPdf(subscription: SubscriptionDetail, lab
         doc.text(row.label, totalsLeft + 1.3, y);
         doc.text(`${decimal(row.value, 3)} DT`, columns.amount, y, { align: 'right' });
     });
+    y = Math.max(y, cardBottom);
 
     if (subscription.note) {
         y += 10;

@@ -1104,7 +1104,9 @@
             "name": "Name",
             "taxAmount": "Tax amount",
             "baseAmount": "Base amount",
-            "noTax": "No tax"
+            "noTax": "No tax",
+            "memberCard": "Membership card",
+            "memberCardHint": "Scan this code to get your card on your phone and show it at the reception."
         },
         "billing": {
             "quotations": "Quotations",
@@ -1169,7 +1171,16 @@
             "discountTypePERCENT": "%",
             "discountTypeAMOUNT": "DT",
             "invalidDiscount": "The discount cannot exceed the price (or 100 %).",
-            "discountHint": "That is {value}"
+            "discountHint": "That is {value}",
+            "card": "Card",
+            "cardTitle": "Membership card",
+            "cardSubtitle": "The client scans this QR code: the card opens directly on their phone and can be saved.",
+            "cardQrAlt": "Card QR code {number}",
+            "cardOpen": "Show card",
+            "cardCopyLink": "Copy link",
+            "cardLinkCopied": "Card link copied.",
+            "cardDownload": "Download",
+            "cardFileName": "card"
         },
         "subscriptionPicker": {
             "title": "Subscription",
@@ -1192,5 +1203,22 @@
             "pickCredit": "Open credits",
             "creditCaption": "{date} · total {total}"
         }
+    },
+    "subscriptionCard": {
+        "title": "Membership card",
+        "validFrom": "Valid from",
+        "validUntil": "Until",
+        "stateVALID": "Valid subscription",
+        "stateUPCOMING": "Not started yet",
+        "stateEXPIRED": "Subscription expired",
+        "stateCANCELLED": "Subscription cancelled",
+        "stateDRAFT": "Subscription not activated yet",
+        "startsOn": "Starts on {date}",
+        "expiredOn": "Expired on {date}",
+        "generatedAt": "Generated on {date}",
+        "showAtReception": "Show this card at the reception",
+        "notFoundTitle": "Card not found",
+        "notFoundDescription": "This link is not valid. Ask the reception for a new card.",
+        "fileName": "card"
     }
 }

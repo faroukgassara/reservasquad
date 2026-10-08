@@ -21,6 +21,9 @@ import {
 } from './pos.utils';
 
 const EXPIRING_DAYS = 7;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export type SubscriptionCardState = 'DRAFT' | 'CANCELLED' | 'UPCOMING' | 'VALID' | 'EXPIRED';
 
 const userSelect = { id: true, firstName: true, lastName: true } satisfies Prisma.UserSelect;
 const clientSelect = {
@@ -151,6 +154,32 @@ export class PosSubscriptionService {
 
   async getById(id: string) {
     return this.findOrThrow(id);
+  }
+
+  /** Public member card: only what the reception needs to check, no contact or billing data. */
+  async getCard(token: string) {
+    const subscription = UUID_PATTERN.test(token)
+      ? await this.prismaService.subscription.findFirst({
+          where: { cardToken: token, deletedAt: null },
+          select: {
+            number: true,
+            status: true,
+            productName: true,
+            duration: true,
+            unit: true,
+            startDate: true,
+            endDate: true,
+            client: { select: { firstName: true, lastName: true } },
+          },
+        })
+      : null;
+    if (!subscription) throw new NotFoundException('Card not found');
+    const today = todayDateOnly();
+    let state: SubscriptionCardState = 'VALID';
+    if (subscription.status !== 'ACTIVE') state = subscription.status;
+    else if (subscription.startDate > today) state = 'UPCOMING';
+    else if (subscription.endDate < today) state = 'EXPIRED';
+    return { ...subscription, state };
   }
 
   async create(dto: SaveSubscriptionDto, actorId?: string) {

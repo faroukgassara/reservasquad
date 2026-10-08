@@ -1,7 +1,6 @@
 import { Api } from '@/common/StandardApi/api';
 import { CommonFunction } from '@/common/Function/Function';
 import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
-
 const api = new Api();
 
 type Money = number | string;
@@ -606,6 +605,7 @@ export const SUBSCRIPTION_EXPIRING_DAYS = 7;
 export interface Subscription {
     id: string;
     number: number;
+    cardToken: string;
     status: SubscriptionStatus;
     productId: string | null;
     productName: string;
@@ -720,6 +720,25 @@ export const renewSubscription = (id: string, startDate: string) =>
 
 export const deleteSubscription = (id: string) =>
     posDelete(`subscriptions/${id}`, 'Failed to delete subscription');
+
+export type SubscriptionCardState = 'DRAFT' | 'CANCELLED' | 'UPCOMING' | 'VALID' | 'EXPIRED';
+
+export interface SubscriptionCard {
+    number: number;
+    status: SubscriptionStatus;
+    state: SubscriptionCardState;
+    productName: string;
+    duration: number;
+    unit: SubscriptionUnit;
+    startDate: string;
+    endDate: string;
+    client: { firstName: string; lastName: string };
+}
+
+/** Absolute link encoded in the member card QR code: it returns the card as a PNG image. */
+export function subscriptionCardUrl(cardToken: string): string {
+    return `${window.location.origin}/api/public/subscription-cards/${cardToken}`;
+}
 
 // Company info printed on documents
 

@@ -56,6 +56,8 @@ const LABEL_KEYS = [
     'periodTo',
     'followUs',
     'scanQr',
+    'memberCard',
+    'memberCardHint',
 ] as const;
 
 export function usePosPdfLabels(): PosPdfLabels {
