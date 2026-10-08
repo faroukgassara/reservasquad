@@ -89,7 +89,7 @@ export class PosSessionService {
 
   async getSummary(id: string) {
     const session = await this.getById(id);
-    const [orders, payments, cashMoves] = await Promise.all([
+    const [orders, payments] = await Promise.all([
       this.prismaService.posOrder.findMany({
         where: { sessionId: id },
         select: { total: true, change: true, status: true },
@@ -99,20 +99,14 @@ export class PosSessionService {
         where: { order: { sessionId: id } },
         _sum: { amount: true },
       }),
-      this.prismaService.posCashMove.findMany({
-        where: { sessionId: id },
-        select: { type: true, amount: true },
-      }),
     ]);
 
     const byMethod = (method: EPosPaymentMethod) =>
       round3(Number(payments.find((p) => p.method === method)?._sum.amount ?? 0));
     const totalChange = sumBy(orders, (o) => o.change);
     const cashPayments = round3(byMethod('CASH') - totalChange);
-    const cashIn = sumBy(cashMoves.filter((m) => m.type === 'IN'), (m) => m.amount);
-    const cashOut = sumBy(cashMoves.filter((m) => m.type === 'OUT'), (m) => m.amount);
     const openingCash = round3(Number(session.openingCash));
-    const expectedCash = round3(openingCash + cashPayments + cashIn - cashOut);
+    const expectedCash = round3(openingCash + cashPayments);
     const bankPayments = byMethod('BANK');
 
     return {
@@ -124,8 +118,6 @@ export class PosSessionService {
       cashPayments,
       bankPayments,
       clientAccountPayments: byMethod('CLIENT_ACCOUNT'),
-      cashIn,
-      cashOut,
       expectedCash,
       revenue: round3(cashPayments + bankPayments),
     };

@@ -13,6 +13,7 @@ import PosInfoRow from '@/components/Organisms/Pos/PosInfoRow';
 import PosStatButton from '@/components/Organisms/Pos/PosStatButton';
 import PosStatusPipeline from '@/components/Organisms/Pos/PosStatusPipeline';
 import Badge from '@/components/Primitives/Badge/Badge';
+import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Input from '@/components/Primitives/Input/Input';
@@ -55,7 +56,6 @@ import {
     EBadgeSize,
     EButtonSize,
     EButtonType,
-    EInputType,
     ESize,
     EToastType,
     EVariantLabel,
@@ -443,12 +443,11 @@ export default function PosSaleOrderPage() {
                                     </Div>
                                     <Div className="space-y-3">
                                         {editable ? (
-                                            <Input
+                                            <DatePickerField
                                                 id="sale-valid-until"
                                                 label={t('validUntil')}
-                                                type={EInputType.date}
                                                 value={form.validUntil}
-                                                onChange={(e) => patchForm({ validUntil: e.target.value })}
+                                                onChange={(validUntil) => patchForm({ validUntil })}
                                             />
                                         ) : (
                                             <PosInfoRow

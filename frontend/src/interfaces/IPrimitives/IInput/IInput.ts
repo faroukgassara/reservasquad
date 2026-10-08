@@ -12,6 +12,7 @@ export type IInput = {
     onRightIconClick?: () => void;
     leftIcon?: keyof typeof IconComponentsEnum
     rightIcon?: keyof typeof IconComponentsEnum
+    suffix?: React.ReactNode
     error?: boolean
     status?: EInputStatus
     size?: EInputSize

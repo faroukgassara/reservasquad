@@ -11,6 +11,7 @@ import PosInfoRow from '@/components/Organisms/Pos/PosInfoRow';
 import PosStatButton from '@/components/Organisms/Pos/PosStatButton';
 import PosStatusPipeline from '@/components/Organisms/Pos/PosStatusPipeline';
 import Badge from '@/components/Primitives/Badge/Badge';
+import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
@@ -22,12 +23,12 @@ import PosFormFooter from '@/components/Organisms/Pos/PosFormFooter';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
+import { usePosPdfLabels } from '@/hooks/usePosPdfLabels';
 import { fetchCreditClient } from '@/lib/credit-api';
 import { formatMoney } from '@/lib/daily-income-api';
 import {
     activateSubscription,
     cancelSubscription,
-    createInvoiceFromSubscription,
     createSubscription,
     deleteSubscription,
     fetchPosProducts,
@@ -43,12 +44,14 @@ import {
     toDateInput,
     todayInput,
     updateSubscription,
+    type DiscountType,
     type PosClientRef,
     type PosProduct,
     type SubscriptionDetail,
     type SubscriptionInput,
 } from '@/lib/pos-api';
 import { SUBSCRIPTION_STATUS_BADGE } from '@/lib/pos-documents';
+import { printSubscriptionPdf } from '@/lib/pos-documents-pdf';
 import { Routes } from '@/lib/routes';
 import {
     EBadgeSize,
@@ -66,7 +69,8 @@ interface SubscriptionForm {
     productId: string;
     startDate: string;
     unitPrice: string;
-    discountPct: string;
+    discountType: DiscountType;
+    discount: string;
     note: string;
 }
 
@@ -76,13 +80,32 @@ function parseNumber(value: string): number {
     return Number(value.replace(',', '.'));
 }
 
+const DISCOUNT_TYPES: DiscountType[] = ['PERCENT', 'AMOUNT'];
+
+function formatPercent(value: number): string {
+    return `${value.toLocaleString('fr-TN', { maximumFractionDigits: 2 })} %`;
+}
+
+function isDiscountValid(form: SubscriptionForm): boolean {
+    const discount = parseNumber(form.discount || '0');
+    const max = form.discountType === 'AMOUNT' ? parseNumber(form.unitPrice) || 0 : 100;
+    return Number.isFinite(discount) && discount >= 0 && discount <= max;
+}
+
+function discountedPrice(unitPrice: number, discountType: DiscountType, discount: number): number {
+    return discountType === 'AMOUNT' ? round3(unitPrice - discount) : round3(unitPrice * (1 - discount / 100));
+}
+
 function formFromSubscription(subscription: SubscriptionDetail): SubscriptionForm {
     return {
         client: subscription.client,
         productId: subscription.productId ?? '',
         startDate: toDateInput(subscription.startDate),
         unitPrice: String(toAmount(subscription.unitPrice)),
-        discountPct: String(toAmount(subscription.discountPct)),
+        discountType: subscription.discountType,
+        discount: String(
+            toAmount(subscription.discountType === 'AMOUNT' ? subscription.discountAmount : subscription.discountPct),
+        ),
         note: subscription.note ?? '',
     };
 }
@@ -100,11 +123,20 @@ export default function PosSubscriptionPage() {
     const { openToast } = useToast();
     const { isAllowed } = useAuthorization();
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
+    const pdfLabels = usePosPdfLabels();
     const [modalState, setModalState] = useState<ModalState>(null);
     const { openModal, closeModal, modalPortal } = useModal({ closeCallBack: () => setModalState(null) });
     const [form, setForm] = useState<SubscriptionForm | null>(() =>
         isNew
-            ? { client: null, productId: '', startDate: todayInput(), unitPrice: '', discountPct: '0', note: '' }
+            ? {
+                  client: null,
+                  productId: '',
+                  startDate: todayInput(),
+                  unitPrice: '',
+                  discountType: 'PERCENT',
+                  discount: '0',
+                  note: '',
+              }
             : null,
     );
     const [dirty, setDirty] = useState(false);
@@ -144,9 +176,6 @@ export default function PosSubscriptionPage() {
     const status = subscription?.status ?? 'DRAFT';
     const displayStatus = subscription ? subscriptionDisplayStatus(subscription) : 'DRAFT';
     const editable = isNew || status === 'DRAFT';
-    const activeInvoice = subscription?.invoices.find(
-        (invoice) => invoice.type === 'INVOICE' && invoice.status !== 'CANCELLED',
-    );
     const hasPostedInvoice = !!subscription?.invoices.some(
         (invoice) => invoice.type === 'INVOICE' && invoice.status === 'POSTED',
     );
@@ -156,20 +185,44 @@ export default function PosSubscriptionPage() {
     const preview = useMemo(() => {
         if (!form) return null;
         const unitPrice = parseNumber(form.unitPrice) || 0;
-        const discountPct = parseNumber(form.discountPct) || 0;
-        const taxRate = selectedProduct ? toAmount(selectedProduct.taxRate) : toAmount(subscription?.taxRate);
-        const subtotal = round3(unitPrice * (1 - discountPct / 100));
-        const taxAmount = round3((subtotal * taxRate) / 100);
+        const discounted = discountedPrice(unitPrice, form.discountType, parseNumber(form.discount) || 0);
+        const total = editable || !subscription ? discounted : toAmount(subscription.total);
         const endDate =
             selectedProduct?.subscriptionDuration && selectedProduct.subscriptionUnit && form.startDate
                 ? subscriptionEndDate(form.startDate, selectedProduct.subscriptionDuration, selectedProduct.subscriptionUnit)
                 : toDateInput(subscription?.endDate);
-        return { subtotal, taxAmount, total: round3(subtotal + taxAmount), taxRate, endDate };
-    }, [form, selectedProduct, subscription]);
+        return { unitPrice, discount: round3(unitPrice - discounted), total, endDate };
+    }, [editable, form, selectedProduct, subscription]);
+
+    const discountValid = !form || isDiscountValid(form);
+    let discountHint: string | undefined;
+    if (!discountValid) discountHint = t('invalidDiscount');
+    else if (form && preview && preview.discount > 0 && preview.unitPrice > 0) {
+        discountHint = t('discountHint', {
+            value:
+                form.discountType === 'AMOUNT'
+                    ? formatPercent((preview.discount / preview.unitPrice) * 100)
+                    : `- ${formatMoney(preview.discount)}`,
+        });
+    }
 
     const patchForm = (patch: Partial<SubscriptionForm>) => {
         setForm((current) => (current ? { ...current, ...patch } : current));
         setDirty(true);
+    };
+
+    const handleDiscountTypeChange = (discountType: DiscountType) => {
+        if (!form || discountType === form.discountType) return;
+        const unitPrice = parseNumber(form.unitPrice) || 0;
+        const value = parseNumber(form.discount) || 0;
+        let discount = 0;
+        if (unitPrice > 0 && value > 0) {
+            discount =
+                discountType === 'AMOUNT'
+                    ? round3((unitPrice * Math.min(value, 100)) / 100)
+                    : Math.round((Math.min(value, unitPrice) / unitPrice) * 10000) / 100;
+        }
+        patchForm({ discountType, discount: String(discount) });
     };
 
     const open = useCallback(
@@ -190,14 +243,14 @@ export default function PosSubscriptionPage() {
     const buildPayload = (): SubscriptionInput | null => {
         if (!form) return null;
         const unitPrice = parseNumber(form.unitPrice);
-        const discountPct = parseNumber(form.discountPct || '0');
-        const pricesValid =
-            Number.isFinite(unitPrice) && unitPrice >= 0 && Number.isFinite(discountPct) && discountPct >= 0 && discountPct <= 100;
-        if (!form.client || !form.productId || !form.startDate || !pricesValid) {
+        const discount = parseNumber(form.discount || '0');
+        const isAmount = form.discountType === 'AMOUNT';
+        const pricesValid = Number.isFinite(unitPrice) && unitPrice >= 0;
+        if (!form.client || !form.productId || !form.startDate || !pricesValid || !discountValid) {
             setShowErrors(true);
-            openToast(tCommon('error'), form.client ? t('invalidForm') : t('clientRequired'), {
-                type: EToastType.ERROR,
-            });
+            let message = t('clientRequired');
+            if (form.client) message = pricesValid && !discountValid ? t('invalidDiscount') : t('invalidForm');
+            openToast(tCommon('error'), message, { type: EToastType.ERROR });
             return null;
         }
         return {
@@ -205,7 +258,9 @@ export default function PosSubscriptionPage() {
             productId: form.productId,
             startDate: form.startDate,
             unitPrice,
-            discountPct,
+            discountType: form.discountType,
+            discountPct: isAmount ? 0 : discount,
+            discountAmount: isAmount ? discount : 0,
             note: form.note.trim() || null,
         };
     };
@@ -259,16 +314,6 @@ export default function PosSubscriptionPage() {
         onError,
     });
 
-    const invoiceMutation = useMutation({
-        mutationFn: () => createInvoiceFromSubscription(subscriptionId),
-        onSuccess: (invoice) => {
-            refresh();
-            void queryClient.invalidateQueries({ queryKey: ['invoices'] });
-            router.push(Routes.Pos.invoice(invoice.id));
-        },
-        onError,
-    });
-
     const deleteMutation = useMutation({
         mutationFn: () => deleteSubscription(subscriptionId),
         onSuccess: () => {
@@ -291,6 +336,11 @@ export default function PosSubscriptionPage() {
             if (!payload) return;
         }
         activateMutation.mutate(payload);
+    };
+
+    const handlePrint = () => {
+        if (!subscription) return;
+        void printSubscriptionPdf(subscription, pdfLabels).catch(onError);
     };
 
     const handleProductChange = (productId: string) => {
@@ -368,7 +418,6 @@ export default function PosSubscriptionPage() {
         saveMutation.isPending ||
         activateMutation.isPending ||
         renewMutation.isPending ||
-        invoiceMutation.isPending ||
         cancelMutation.isPending;
     const title = subscription ? formatSubscriptionNumber(subscription.number) : t('newTitle');
 
@@ -385,15 +434,16 @@ export default function PosSubscriptionPage() {
                     onClick={handleActivate}
                 />
             ) : null}
-            {status === 'ACTIVE' && !activeInvoice ? (
+            {subscription ? (
                 <Button
-                    id="subscription-invoice"
-                    type={EButtonType.primary}
+                    id="subscription-print"
+                    type={EButtonType.secondary}
                     size={EButtonSize.small}
-                    text={t('createInvoice')}
-                    isLoading={invoiceMutation.isPending}
-                    disabled={busy}
-                    onClick={() => invoiceMutation.mutate()}
+                    iconPosition="left"
+                    icon={{ name: IconComponentsEnum.printer, size: ESize.sm, color: 'text-primary-500' }}
+                    text={t('print')}
+                    disabled={dirty}
+                    onClick={handlePrint}
                 />
             ) : null}
             {status === 'ACTIVE' && !subscription?.renewal ? (
@@ -490,7 +540,7 @@ export default function PosSubscriptionPage() {
                                 )}
                             </Div>
 
-                            {subscription ? (
+                            {subscription?.renewedFrom || subscription?.renewal ? (
                                 <Div className="flex flex-col justify-end border-b border-gray-100 sm:flex-row">
                                     {subscription.renewedFrom ? (
                                         <PosStatButton
@@ -508,19 +558,6 @@ export default function PosSubscriptionPage() {
                                             onClick={() => router.push(Routes.Pos.subscription(subscription.renewal!.id))}
                                         />
                                     ) : null}
-                                    <PosStatButton
-                                        icon={IconComponentsEnum.filetext}
-                                        value={String(subscription.invoices.length)}
-                                        label={t('invoicesStat')}
-                                        onClick={
-                                            subscription.invoices.length > 0
-                                                ? () =>
-                                                      router.push(
-                                                          Routes.Pos.invoice((activeInvoice ?? subscription.invoices[0]).id),
-                                                      )
-                                                : undefined
-                                        }
-                                    />
                                 </Div>
                             ) : null}
 
@@ -574,21 +611,18 @@ export default function PosSubscriptionPage() {
                                             error={showErrors && !form.productId}
                                             hintText={productHint}
                                         />
-                                        <Input
+                                        <DatePickerField
                                             id="subscription-start"
                                             label={t('startDate')}
-                                            type={EInputType.date}
                                             value={form.startDate}
-                                            onChange={(e) => patchForm({ startDate: e.target.value })}
+                                            onChange={(startDate) => patchForm({ startDate })}
                                             required
                                             error={showErrors && !form.startDate}
                                         />
-                                        <Input
+                                        <DatePickerField
                                             id="subscription-end"
                                             label={t('endDate')}
-                                            type={EInputType.date}
                                             value={preview.endDate}
-                                            readOnly
                                             disabled
                                             hintText={t('endDateHint')}
                                         />
@@ -602,10 +636,42 @@ export default function PosSubscriptionPage() {
                                         />
                                         <Input
                                             id="subscription-discount"
-                                            label={t('discountPct')}
+                                            label={t('discount')}
                                             type={EInputType.number}
-                                            value={form.discountPct}
-                                            onChange={(e) => patchForm({ discountPct: e.target.value })}
+                                            placeholder="0"
+                                            value={form.discount}
+                                            onChange={(e) => patchForm({ discount: e.target.value })}
+                                            error={showErrors && !discountValid}
+                                            hintText={discountHint}
+                                            suffix={
+                                                <Div role="radiogroup" className="flex gap-0.5 rounded-lg bg-gray-100 p-0.5">
+                                                    {DISCOUNT_TYPES.map((discountType) => {
+                                                        const active = form.discountType === discountType;
+                                                        return (
+                                                            <button
+                                                                key={discountType}
+                                                                type="button"
+                                                                role="radio"
+                                                                aria-checked={active}
+                                                                onClick={() => handleDiscountTypeChange(discountType)}
+                                                                className={
+                                                                    active
+                                                                        ? 'h-7 min-w-9 cursor-pointer rounded-md bg-white px-2 shadow-sm'
+                                                                        : 'h-7 min-w-9 cursor-pointer rounded-md px-2 hover:bg-gray-200'
+                                                                }
+                                                            >
+                                                                <Label
+                                                                    variant={EVariantLabel.bodySmall}
+                                                                    color={active ? 'text-primary-600' : 'text-gray-500'}
+                                                                    className="font-semibold"
+                                                                >
+                                                                    {t(`discountType${discountType}`)}
+                                                                </Label>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </Div>
+                                            }
                                         />
                                     </Div>
                                 ) : (
@@ -625,10 +691,14 @@ export default function PosSubscriptionPage() {
                                                 label={t('unitPrice')}
                                                 value={formatMoney(toAmount(subscription?.unitPrice))}
                                             />
-                                            {toAmount(subscription?.discountPct) > 0 ? (
+                                            {preview.discount > 0 ? (
                                                 <PosInfoRow
-                                                    label={t('discountPct')}
-                                                    value={`${toAmount(subscription?.discountPct)} %`}
+                                                    label={t('discount')}
+                                                    value={
+                                                        form.discountType === 'AMOUNT'
+                                                            ? formatMoney(preview.discount)
+                                                            : formatPercent(parseNumber(form.discount))
+                                                    }
                                                 />
                                             ) : null}
                                         </Div>
@@ -637,12 +707,19 @@ export default function PosSubscriptionPage() {
 
                                 <Div className="flex justify-end">
                                     <Div className="w-full max-w-xs space-y-1 border-t border-gray-100 pt-3">
-                                        <PosInfoRow label={t('untaxed')} value={formatMoney(preview.subtotal)} />
-                                        <PosInfoRow
-                                            label={t('taxValue', { rate: preview.taxRate })}
-                                            value={formatMoney(preview.taxAmount)}
-                                        />
-                                        <Div className="flex items-center justify-between border-t border-gray-100 pt-2">
+                                        {preview.discount > 0 ? (
+                                            <>
+                                                <PosInfoRow label={t('unitPrice')} value={formatMoney(preview.unitPrice)} />
+                                                <PosInfoRow label={t('discount')} value={`- ${formatMoney(preview.discount)}`} />
+                                            </>
+                                        ) : null}
+                                        <Div
+                                            className={
+                                                preview.discount > 0
+                                                    ? 'flex items-center justify-between border-t border-gray-100 pt-2'
+                                                    : 'flex items-center justify-between'
+                                            }
+                                        >
                                             <Label variant={EVariantLabel.subtitle} color="text-gray-900">
                                                 {t('total')}
                                             </Label>

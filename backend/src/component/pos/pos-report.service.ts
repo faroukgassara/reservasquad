@@ -48,6 +48,7 @@ export class PosReportService {
             productName: true,
             quantity: true,
             unitPrice: true,
+            discountPct: true,
             total: true,
             product: { select: { taxRate: true } },
           },
@@ -56,15 +57,19 @@ export class PosReportService {
       },
     });
 
-    const products = new Map<string, { name: string; quantity: number; unitPrice: number; total: number }>();
+    const products = new Map<
+      string,
+      { name: string; quantity: number; unitPrice: number; discountPct: number; total: number }
+    >();
     const payments = new Map<string, number>();
     const taxes = new Map<number, { rate: number; base: number; tax: number }>();
 
     for (const order of orders) {
       for (const line of order.lines) {
         const unitPrice = Number(line.unitPrice);
-        const key = `${line.productId ?? line.productName}|${unitPrice}`;
-        const product = products.get(key) ?? { name: line.productName, quantity: 0, unitPrice, total: 0 };
+        const discountPct = Number(line.discountPct);
+        const key = `${line.productId ?? line.productName}|${unitPrice}|${discountPct}`;
+        const product = products.get(key) ?? { name: line.productName, quantity: 0, unitPrice, discountPct, total: 0 };
         product.quantity = round3(product.quantity + Number(line.quantity));
         product.total = round3(product.total + Number(line.total));
         products.set(key, product);
@@ -94,7 +99,9 @@ export class PosReportService {
       to,
       session,
       ordersCount: orders.length,
-      products: [...products.values()].sort((a, b) => a.name.localeCompare(b.name)),
+      products: [...products.values()].sort(
+        (a, b) => a.name.localeCompare(b.name) || a.unitPrice - b.unitPrice || a.discountPct - b.discountPct,
+      ),
       payments: [...payments.entries()].map(([method, total]) => ({ method, total })),
       taxes: [...taxes.values()].sort((a, b) => a.rate - b.rate),
       total: round3(orders.reduce((sum, order) => sum + Number(order.total), 0)),

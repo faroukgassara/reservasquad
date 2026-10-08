@@ -117,12 +117,6 @@ export default function PosCloseSessionModal({
                                     value={`+ ${formatMoney(summary.cashPayments)}`}
                                     muted
                                 />
-                                {summary.cashIn > 0 ? (
-                                    <SummaryRow label={t('cashIn')} value={`+ ${formatMoney(summary.cashIn)}`} muted />
-                                ) : null}
-                                {summary.cashOut > 0 ? (
-                                    <SummaryRow label={t('cashOut')} value={`- ${formatMoney(summary.cashOut)}`} muted />
-                                ) : null}
                             </Div>
                             <Div className="grid grid-cols-2 items-end gap-3 pt-2">
                                 <Input

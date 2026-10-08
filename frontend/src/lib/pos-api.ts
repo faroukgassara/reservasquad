@@ -100,8 +100,6 @@ export interface PosSessionSummary {
     cashPayments: number;
     bankPayments: number;
     clientAccountPayments: number;
-    cashIn: number;
-    cashOut: number;
     expectedCash: number;
     revenue: number;
 }
@@ -601,6 +599,8 @@ export type SubscriptionState = 'running' | 'expiring' | 'expired';
 /** Status shown to users: active subscriptions are split by their period. */
 export type SubscriptionDisplayStatus = 'DRAFT' | 'ACTIVE' | 'EXPIRING' | 'EXPIRED' | 'CANCELLED';
 
+export type DiscountType = 'PERCENT' | 'AMOUNT';
+
 export const SUBSCRIPTION_EXPIRING_DAYS = 7;
 
 export interface Subscription {
@@ -614,10 +614,10 @@ export interface Subscription {
     startDate: string;
     endDate: string;
     unitPrice: Money;
+    discountType: DiscountType;
     discountPct: Money;
-    taxRate: Money;
+    discountAmount: Money;
     subtotal: Money;
-    taxAmount: Money;
     total: Money;
     amountPaid: Money;
     note: string | null;
@@ -645,7 +645,9 @@ export interface SubscriptionInput {
     productId: string;
     startDate: string;
     unitPrice: number;
+    discountType: DiscountType;
     discountPct: number;
+    discountAmount: number;
     note: string | null;
 }
 
@@ -716,9 +718,6 @@ export const cancelSubscription = (id: string) =>
 export const renewSubscription = (id: string, startDate: string) =>
     posPost<SubscriptionDetail>(`subscriptions/${id}/renew`, { startDate }, 'Failed to renew subscription');
 
-export const createInvoiceFromSubscription = (id: string) =>
-    posPost<{ id: string }>(`subscriptions/${id}/invoice`, {}, 'Failed to create invoice');
-
 export const deleteSubscription = (id: string) =>
     posDelete(`subscriptions/${id}`, 'Failed to delete subscription');
 
@@ -734,8 +733,8 @@ export const COMPANY = {
     website: 'https://bibliosquad.com',
     taxId: null as string | null,
     logoUrl: '/company-logo.png',
-    instagramUrl: null as string | null,
-    facebookUrl: null as string | null,
+    instagramUrl: 'https://www.instagram.com/squadbiblio/?hl=en' as string | null,
+    facebookUrl: 'https://www.facebook.com/profile.php?id=61561194826952' as string | null,
     footerNote: null as string | null,
 };
 
@@ -749,7 +748,7 @@ export interface SalesDetailsReport {
     to: string;
     session: { id: string; number: number } | null;
     ordersCount: number;
-    products: { name: string; quantity: number; unitPrice: number; total: number }[];
+    products: { name: string; quantity: number; unitPrice: number; discountPct: number; total: number }[];
     payments: { method: PosPaymentMethod; total: number }[];
     taxes: { rate: number; base: number; tax: number }[];
     total: number;

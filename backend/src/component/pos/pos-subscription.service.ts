@@ -13,11 +13,9 @@ import { AuditService } from '../audit/audit.service';
 import {
   addDays,
   formatSubscriptionNumber,
-  lineAmounts,
   periodEnd,
   POS_AUDIT,
   round3,
-  STAMP_DUTY,
   todayDateOnly,
   toDateOnly,
 } from './pos.utils';
@@ -51,10 +49,6 @@ const detailInclude = {
     select: { id: true, type: true, status: true, year: true, sequence: true, total: true, amountPaid: true },
   },
 } satisfies Prisma.SubscriptionInclude;
-
-function formatDay(date: Date): string {
-  return date.toLocaleDateString('fr-FR', { timeZone: 'UTC' });
-}
 
 function stateWhere(state: SubscriptionState): Prisma.SubscriptionWhereInput {
   const today = todayDateOnly();
@@ -101,8 +95,12 @@ export class PosSubscriptionService {
     }
     const startDate = toDateOnly(dto.startDate);
     const unitPrice = dto.unitPrice ?? Number(product.price);
-    const discountPct = dto.discountPct ?? 0;
-    const taxRate = Number(product.taxRate);
+    const discountType = dto.discountType ?? 'PERCENT';
+    const discountPct = discountType === 'PERCENT' ? (dto.discountPct ?? 0) : 0;
+    const discountAmount = discountType === 'AMOUNT' ? (dto.discountAmount ?? 0) : 0;
+    if (discountAmount > unitPrice) throw new BadRequestException('The discount exceeds the price');
+    const subtotal =
+      discountType === 'AMOUNT' ? round3(unitPrice - discountAmount) : round3(unitPrice * (1 - discountPct / 100));
     return {
       clientId: client.id,
       productId: product.id,
@@ -112,9 +110,13 @@ export class PosSubscriptionService {
       startDate,
       endDate: periodEnd(startDate, product.subscriptionDuration, product.subscriptionUnit),
       unitPrice,
+      discountType,
       discountPct,
-      taxRate,
-      ...lineAmounts(1, unitPrice, discountPct, taxRate),
+      discountAmount,
+      taxRate: 0,
+      subtotal,
+      taxAmount: 0,
+      total: subtotal,
       note: dto.note?.trim() || null,
     };
   }
@@ -216,7 +218,9 @@ export class PosSubscriptionService {
       productId: subscription.productId,
       startDate: dto.startDate,
       unitPrice: Number(subscription.unitPrice),
+      discountType: subscription.discountType,
       discountPct: Number(subscription.discountPct),
+      discountAmount: Number(subscription.discountAmount),
       note: subscription.note,
     });
     const renewal = await this.prismaService.subscription.create({
@@ -229,52 +233,6 @@ export class PosSubscriptionService {
       actorId,
     );
     return this.findOrThrow(renewal.id);
-  }
-
-  async createInvoice(id: string, actorId?: string) {
-    const subscription = await this.findOrThrow(id);
-    if (subscription.status !== 'ACTIVE') throw new BadRequestException('Activate the subscription first');
-    if (subscription.invoices.some((inv) => inv.type === 'INVOICE' && inv.status !== 'CANCELLED')) {
-      throw new BadRequestException('This subscription is already invoiced');
-    }
-    const today = todayDateOnly();
-    const stampDuty = STAMP_DUTY;
-    const invoice = await this.prismaService.invoice.create({
-      data: {
-        clientId: subscription.clientId,
-        subscriptionId: subscription.id,
-        invoiceDate: today,
-        dueDate: subscription.startDate > today ? subscription.startDate : today,
-        note: subscription.note,
-        untaxed: subscription.subtotal,
-        taxTotal: subscription.taxAmount,
-        stampDuty,
-        total: round3(Number(subscription.total) + stampDuty),
-        lines: {
-          create: {
-            productId: subscription.productId,
-            productName: subscription.productName,
-            description: `${formatDay(subscription.startDate)} - ${formatDay(subscription.endDate)}`,
-            quantity: 1,
-            unitPrice: subscription.unitPrice,
-            discountPct: subscription.discountPct,
-            taxRate: subscription.taxRate,
-            subtotal: subscription.subtotal,
-            taxAmount: subscription.taxAmount,
-            total: subscription.total,
-            sortOrder: 0,
-          },
-        },
-      },
-    });
-    await this.auditService.log({
-      entityType: POS_AUDIT.invoice,
-      entityId: invoice.id,
-      action: 'CREATE',
-      userId: actorId,
-      summary: `Draft invoice created from ${formatSubscriptionNumber(subscription.number)}`,
-    });
-    return invoice;
   }
 
   async remove(id: string, actorId?: string) {

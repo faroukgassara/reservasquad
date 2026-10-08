@@ -132,17 +132,6 @@ export class PosSubscriptionController {
     }
   }
 
-  @Post(':id/invoice')
-  @swagger.ApiOperation({ summary: 'Create a draft invoice from a subscription' })
-  async createInvoice(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
-    try {
-      const data = await this.subscriptionService.createInvoice(id, req.user?.id);
-      return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data });
-    } catch (error: unknown) {
-      return sendCaughtError(res, error);
-    }
-  }
-
   @Delete(':id')
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Delete a draft or cancelled subscription' })

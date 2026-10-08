@@ -102,6 +102,7 @@ const Input = forwardRef<HTMLInputElement, IInput>(
             value,
             onKeyDown,
             onRightIconClick,
+            suffix,
         },
         ref,
     ) => {
@@ -275,6 +276,7 @@ const Input = forwardRef<HTMLInputElement, IInput>(
                         />
                     )}
                     {renderRightIcon()}
+                    {suffix ? <div className="flex shrink-0 items-center pe-1">{suffix}</div> : null}
                 </div>
                 {renderHintText()}
             </div>

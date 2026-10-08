@@ -12,7 +12,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { ESubscriptionStatus } from 'src/generated/prisma/client';
+import { EDiscountType, ESubscriptionStatus } from 'src/generated/prisma/client';
 
 export const SUBSCRIPTION_STATES = ['running', 'expiring', 'expired'] as const;
 export type SubscriptionState = (typeof SUBSCRIPTION_STATES)[number];
@@ -44,6 +44,18 @@ export class SaveSubscriptionDto {
   @Min(0)
   @Max(100)
   discountPct?: number;
+
+  @ApiPropertyOptional({ enum: EDiscountType, default: EDiscountType.PERCENT })
+  @IsOptional()
+  @IsEnum(EDiscountType)
+  discountType?: EDiscountType;
+
+  @ApiPropertyOptional({ example: 0, description: 'Fixed discount, used when discountType is AMOUNT' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  discountAmount?: number;
 
   @ApiPropertyOptional()
   @IsOptional()

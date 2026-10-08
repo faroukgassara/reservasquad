@@ -3,7 +3,7 @@
 import { useForm } from '@tanstack/react-form';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
-import Input from '@/components/Primitives/Input/Input';
+import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import PosInfoRow from '@/components/Organisms/Pos/PosInfoRow';
@@ -15,7 +15,7 @@ import {
     toDateInput,
     type Subscription,
 } from '@/lib/pos-api';
-import { EButtonSize, EButtonType, EInputType } from '@/Enum/Enum';
+import { EButtonSize, EButtonType } from '@/Enum/Enum';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -56,12 +56,11 @@ export default function PosRenewSubscriptionModal({
                 >
                     {({ state, handleChange }) => (
                         <>
-                            <Input
+                            <DatePickerField
                                 id="subscription-renew-start"
                                 label={t('startDate')}
-                                type={EInputType.date}
                                 value={state.value}
-                                onChange={(e) => handleChange(e.target.value)}
+                                onChange={handleChange}
                                 required
                                 hintText={state.meta.errors?.[0] ? String(state.meta.errors[0]) : undefined}
                                 error={!!state.meta.errors?.length}

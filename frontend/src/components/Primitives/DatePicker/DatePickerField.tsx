@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
-import { EInputSize, EInputStatus, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
-import { INPUT_SIZES, INPUT_STATUS_FIELD, INPUT_STATUS_ICON_COLOR } from '@/common/Data/Data';
+import { EInputSize, EInputStatus, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
+import { INPUT_SIZES, INPUT_STATUS_FIELD, INPUT_STATUS_HINT_COLOR, INPUT_STATUS_ICON_COLOR } from '@/common/Data/Data';
 import { formatDateDisplay, hasDateValue, resolveInputStatus } from './datePicker.utils';
 import Label from '../Label/Label';
 import Icon from '../Icon/Icon';
@@ -26,6 +26,7 @@ export interface IDatePickerFieldProps {
     className?: string;
     containerClassName?: string;
     placeholder?: string;
+    hintText?: string;
     onChange?: (value: string) => void;
 }
 
@@ -73,6 +74,7 @@ const DatePickerField = ({
     className,
     containerClassName,
     placeholder = 'jj/mm/aaaa',
+    hintText,
     onChange,
 }: IDatePickerFieldProps) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -195,6 +197,15 @@ const DatePickerField = ({
                     />
                 </button>
             </div>
+
+            {hintText ? (
+                <div className="mt-1.5 flex items-center gap-1.5">
+                    <Icon color={INPUT_STATUS_HINT_COLOR[resolvedStatus]} name={IconComponentsEnum.info} size={ESize.xs} />
+                    <Label variant={EVariantLabel.hint} color={INPUT_STATUS_HINT_COLOR[resolvedStatus]}>
+                        {hintText}
+                    </Label>
+                </div>
+            ) : null}
 
             {calendarPopover}
         </div>

@@ -316,6 +316,7 @@ export default function OrganismPosProductForm({
       await onSubmit({
         ...value,
         categoryId: value.categoryId === NO_CATEGORY ? '' : value.categoryId,
+        taxRate: value.isSubscription ? '0' : value.taxRate,
       })
     },
   })
@@ -499,46 +500,48 @@ export default function OrganismPosProductForm({
           <form.Subscribe selector={(state) => state.values.isSubscription}>
             {(isSubscription) =>
               isSubscription ? null : (
-                <form.Field name="availableInPos">
-                  {({ state, handleChange }) => (
-                    <Div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4">
-                      <Div className="flex flex-col">
-                        <Label
-                          variant={EVariantLabel.bodySmall}
-                          color="text-gray-900"
-                          className="font-medium"
-                        >
-                          {t('availableInPos')}
-                        </Label>
-                        <Label variant={EVariantLabel.caption} color="text-gray-500">
-                          {t('availableInPosHint')}
-                        </Label>
+                <>
+                  <form.Field name="availableInPos">
+                    {({ state, handleChange }) => (
+                      <Div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4">
+                        <Div className="flex flex-col">
+                          <Label
+                            variant={EVariantLabel.bodySmall}
+                            color="text-gray-900"
+                            className="font-medium"
+                          >
+                            {t('availableInPos')}
+                          </Label>
+                          <Label variant={EVariantLabel.caption} color="text-gray-500">
+                            {t('availableInPosHint')}
+                          </Label>
+                        </Div>
+                        <Toggle
+                          id="pos-product-available"
+                          checked={state.value}
+                          onChange={handleChange}
+                        />
                       </Div>
-                      <Toggle
-                        id="pos-product-available"
-                        checked={state.value}
-                        onChange={handleChange}
+                    )}
+                  </form.Field>
+                  <form.Field name="taxRate">
+                    {({ state, handleChange }) => (
+                      <Dropdown
+                        label={t('taxRate')}
+                        options={POS_TAX_RATES.map((rate) => ({
+                          value: String(rate),
+                          label: t('taxRateValue', { rate }),
+                        }))}
+                        value={state.value}
+                        onChange={(value) => handleChange(String(value))}
+                        hintText={t('taxRateHint')}
                       />
-                    </Div>
-                  )}
-                </form.Field>
+                    )}
+                  </form.Field>
+                </>
               )
             }
           </form.Subscribe>
-          <form.Field name="taxRate">
-            {({ state, handleChange }) => (
-              <Dropdown
-                label={t('taxRate')}
-                options={POS_TAX_RATES.map((rate) => ({
-                  value: String(rate),
-                  label: t('taxRateValue', { rate }),
-                }))}
-                value={state.value}
-                onChange={(value) => handleChange(String(value))}
-                hintText={t('taxRateHint')}
-              />
-            )}
-          </form.Field>
           <Div className="space-y-4 rounded-xl border border-gray-100 p-4">
             <form.Field name="isSubscription">
               {({ state, handleChange }) => (

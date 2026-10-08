@@ -13,6 +13,7 @@ import PosInfoRow from '@/components/Organisms/Pos/PosInfoRow';
 import PosStatButton from '@/components/Organisms/Pos/PosStatButton';
 import PosStatusPipeline from '@/components/Organisms/Pos/PosStatusPipeline';
 import Badge from '@/components/Primitives/Badge/Badge';
+import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
@@ -65,7 +66,6 @@ import {
     EBadgeSize,
     EButtonSize,
     EButtonType,
-    EInputType,
     ESize,
     EToastType,
     EVariantLabel,
@@ -557,21 +557,20 @@ export default function PosInvoicePage() {
                                     <Div className="space-y-3">
                                         {editable ? (
                                             <Div className="grid gap-3 sm:grid-cols-2">
-                                                <Input
+                                                <DatePickerField
                                                     id="invoice-date"
                                                     label={t('date')}
-                                                    type={EInputType.date}
                                                     value={form.invoiceDate}
-                                                    onChange={(e) => patchForm({ invoiceDate: e.target.value })}
+                                                    onChange={(invoiceDate) => patchForm({ invoiceDate })}
                                                     error={showErrors && !form.invoiceDate}
                                                     required
                                                 />
-                                                <Input
+                                                <DatePickerField
                                                     id="invoice-due-date"
                                                     label={t('dueDate')}
-                                                    type={EInputType.date}
                                                     value={form.dueDate}
-                                                    onChange={(e) => patchForm({ dueDate: e.target.value })}
+                                                    min={form.invoiceDate || undefined}
+                                                    onChange={(dueDate) => patchForm({ dueDate })}
                                                 />
                                             </Div>
                                         ) : (
