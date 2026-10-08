@@ -750,7 +750,14 @@
             "unitWEEK": "أسبوع",
             "unitMONTH": "شهر",
             "unitYEAR": "سنة",
-            "durationValue": "{count} {unit}"
+            "durationValue": "{count} {unit}",
+            "sectionPricing": "التسعير",
+            "sectionDetails": "معلومات المنتج",
+            "sectionPos": "نقطة البيع",
+            "sectionSubscription": "الاشتراك",
+            "margin": "الهامش",
+            "subscriptionBadge": "اشتراك · {count} يوم",
+            "unitCostValue": "{value} / للوحدة"
         },
         "register": {
             "home": "الرئيسية",

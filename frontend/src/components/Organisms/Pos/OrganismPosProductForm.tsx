@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
@@ -8,9 +8,11 @@ import Badge from '@/components/Primitives/Badge/Badge'
 import Button from '@/components/Primitives/Button/Button'
 import Div from '@/components/Primitives/Div/Div'
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown'
+import Icon from '@/components/Primitives/Icon/Icon'
 import ImageUpload from '@/components/Primitives/ImageUpload/ImageUpload'
 import Input from '@/components/Primitives/Input/Input'
 import Label from '@/components/Primitives/Label/Label'
+import StatCard from '@/components/Primitives/StatCard/StatCard'
 import Tabs from '@/components/Primitives/Tabs/Tabs'
 import Toggle from '@/components/Primitives/Toggle/Toggle'
 import { useToast } from '@/contexts/ToastContext'
@@ -33,8 +35,10 @@ import {
   EButtonSize,
   EButtonType,
   EInputType,
+  ESize,
   EToastType,
   EVariantLabel,
+  IconComponentsEnum,
 } from '@/Enum/Enum'
 
 const NO_CATEGORY = '__none__'
@@ -80,13 +84,56 @@ function isValidAmount(value: string): boolean {
   return value.trim() !== '' && Number.isFinite(amount) && amount >= 0
 }
 
+function FormSection({
+  title,
+  children,
+  className = '',
+}: Readonly<{ title: string; children: ReactNode; className?: string }>) {
+  return (
+    <Div className={`space-y-4 rounded-xl border border-gray-100 p-4 sm:p-5 ${className}`}>
+      <Label variant={EVariantLabel.subtitle} color="text-gray-900">
+        {title}
+      </Label>
+      {children}
+    </Div>
+  )
+}
+
+function ToggleRow({
+  id,
+  title,
+  hint,
+  checked,
+  onChange,
+}: Readonly<{
+  id: string
+  title: string
+  hint: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}>) {
+  return (
+    <Div className="flex items-center justify-between gap-4">
+      <Div className="flex flex-col">
+        <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium">
+          {title}
+        </Label>
+        <Label variant={EVariantLabel.caption} color="text-gray-500">
+          {hint}
+        </Label>
+      </Div>
+      <Toggle id={id} checked={checked} onChange={onChange} />
+    </Div>
+  )
+}
+
 function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
   const t = useTranslations('pos.products')
   const tCommon = useTranslations('common')
   const queryClient = useQueryClient()
   const { openToast } = useToast()
 
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['pos-product-stats', product.id],
     queryFn: () => fetchPosProductStats(product.id),
   })
@@ -135,152 +182,151 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
       key: 'bought',
       label: t('bought'),
       value: stats?.bought,
-      type: EBadgeType.primary,
+      icon: IconComponentsEnum.truck,
+      iconBg: 'bg-primary-50',
+      iconColor: 'text-primary-500',
     },
     {
       key: 'sold',
       label: t('sold'),
       value: stats?.sold,
-      type: EBadgeType.success,
+      icon: IconComponentsEnum.shoppingCart,
+      iconBg: 'bg-success-50',
+      iconColor: 'text-success-700',
     },
     {
       key: 'remaining',
       label: t('remaining'),
       value: stats?.remaining,
-      type: EBadgeType.warning,
+      icon: IconComponentsEnum.archive,
+      iconBg: 'bg-warning-50',
+      iconColor: 'text-warning-700',
     },
-  ]
+  ] as const
 
   return (
-    <Div className="space-y-5">
-      <Div className="grid grid-cols-3 gap-2">
+    <Div className="space-y-4">
+      <Div className="grid gap-3 sm:grid-cols-3">
         {statItems.map((item) => (
-          <Div
+          <StatCard
             key={item.key}
-            className="flex flex-col items-center gap-1 rounded-xl border border-gray-100 bg-gray-50 p-3"
-          >
-            <Label variant={EVariantLabel.caption} color="text-gray-500">
-              {item.label}
-            </Label>
-            <Badge
-              id={`pos-product-stat-${item.key}`}
-              text={
-                item.value === undefined
-                  ? '—'
-                  : t('units', { count: item.value })
-              }
-              type={item.type}
-              size={EBadgeSize.small}
-            />
-          </Div>
+            icon={item.icon}
+            iconBg={item.iconBg}
+            iconColor={item.iconColor}
+            label={item.label}
+            value={t('units', { count: item.value ?? 0 })}
+            isLoading={statsLoading}
+          />
         ))}
       </Div>
 
-      <Div className="space-y-3 rounded-xl border border-gray-100 p-4">
-        <Label variant={EVariantLabel.subtitle} color="text-gray-900">
-          {t('addPurchase')}
-        </Label>
-        <Div className="grid grid-cols-2 gap-3">
-          <form.Field
-            name="quantity"
-            validators={{
-              onSubmit: ({ value }) =>
-                isValidAmount(value) && parseAmount(value) > 0
-                  ? undefined
-                  : t('invalidQuantity'),
-            }}
-          >
+      <Div className="grid items-start gap-4 lg:grid-cols-5">
+        <FormSection title={t('addPurchase')} className="lg:col-span-2">
+          <Div className="grid grid-cols-2 gap-3">
+            <form.Field
+              name="quantity"
+              validators={{
+                onSubmit: ({ value }) =>
+                  isValidAmount(value) && parseAmount(value) > 0
+                    ? undefined
+                    : t('invalidQuantity'),
+              }}
+            >
+              {({ state, handleChange }) => (
+                <Input
+                  id="pos-purchase-quantity"
+                  label={t('quantity')}
+                  value={state.value}
+                  type={EInputType.number}
+                  onChange={(e) => handleChange(e.target.value)}
+                  required
+                  hintText={
+                    state.meta.errors?.[0]
+                      ? String(state.meta.errors[0])
+                      : undefined
+                  }
+                  error={!!state.meta.errors?.length}
+                />
+              )}
+            </form.Field>
+            <form.Field name="unitCost">
+              {({ state, handleChange }) => (
+                <Input
+                  id="pos-purchase-unit-cost"
+                  label={t('unitCost')}
+                  value={state.value}
+                  type={EInputType.number}
+                  onChange={(e) => handleChange(e.target.value)}
+                />
+              )}
+            </form.Field>
+          </Div>
+          <form.Field name="supplier">
             {({ state, handleChange }) => (
               <Input
-                id="pos-purchase-quantity"
-                label={t('quantity')}
+                id="pos-purchase-supplier"
+                label={t('supplier')}
                 value={state.value}
-                type={EInputType.number}
                 onChange={(e) => handleChange(e.target.value)}
-                required
-                hintText={
-                  state.meta.errors?.[0]
-                    ? String(state.meta.errors[0])
-                    : undefined
-                }
-                error={!!state.meta.errors?.length}
               />
             )}
           </form.Field>
-          <form.Field name="unitCost">
-            {({ state, handleChange }) => (
-              <Input
-                id="pos-purchase-unit-cost"
-                label={t('unitCost')}
-                value={state.value}
-                type={EInputType.number}
-                onChange={(e) => handleChange(e.target.value)}
-              />
-            )}
-          </form.Field>
-        </Div>
-        <form.Field name="supplier">
-          {({ state, handleChange }) => (
-            <Input
-              id="pos-purchase-supplier"
-              label={t('supplier')}
-              value={state.value}
-              onChange={(e) => handleChange(e.target.value)}
-            />
+          <Button
+            id="pos-purchase-submit"
+            type={EButtonType.secondary}
+            size={EButtonSize.medium}
+            text={t('addPurchase')}
+            isLoading={addMutation.isPending}
+            spinnerColor="text-primary-500"
+            onClick={() => form.handleSubmit()}
+            className="w-full"
+          />
+        </FormSection>
+
+        <FormSection title={t('purchaseHistory')} className="lg:col-span-3">
+          {!isLoading && entries.length === 0 ? (
+            <Div className="flex flex-col items-center gap-2 rounded-lg bg-gray-50 py-8">
+              <Icon name={IconComponentsEnum.archive} size={ESize.md} color="text-gray-400" />
+              <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                {t('noPurchases')}
+              </Label>
+            </Div>
+          ) : (
+            <Div className="max-h-96 divide-y divide-gray-100 overflow-y-auto rounded-lg border border-gray-100">
+              {entries.map((entry) => (
+                <Div
+                  key={entry.id}
+                  className="flex items-center justify-between gap-3 px-4 py-3"
+                >
+                  <Div className="flex min-w-0 flex-col">
+                    <Label
+                      variant={EVariantLabel.bodySmall}
+                      color="text-gray-900"
+                      className="truncate font-medium"
+                    >
+                      {entry.supplier || t('noSupplier')}
+                    </Label>
+                    <Label variant={EVariantLabel.caption} color="text-gray-500">
+                      {formatPosDateTime(entry.createdAt)}
+                    </Label>
+                  </Div>
+                  <Div className="flex shrink-0 flex-col items-end">
+                    <Label
+                      variant={EVariantLabel.bodySmall}
+                      color="text-gray-900"
+                      className="font-semibold tabular-nums"
+                    >
+                      {t('units', { count: toAmount(entry.quantity) })}
+                    </Label>
+                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="tabular-nums">
+                      {t('unitCostValue', { value: formatMoney(toAmount(entry.unitCost)) })}
+                    </Label>
+                  </Div>
+                </Div>
+              ))}
+            </Div>
           )}
-        </form.Field>
-        <Button
-          id="pos-purchase-submit"
-          type={EButtonType.secondary}
-          size={EButtonSize.medium}
-          text={t('addPurchase')}
-          isLoading={addMutation.isPending}
-          spinnerColor="text-primary-500"
-          onClick={() => form.handleSubmit()}
-          className="w-full"
-        />
-      </Div>
-
-      <Div className="space-y-2">
-        <Label variant={EVariantLabel.subtitle} color="text-gray-900">
-          {t('purchaseHistory')}
-        </Label>
-        {!isLoading && entries.length === 0 ? (
-          <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-            {t('noPurchases')}
-          </Label>
-        ) : null}
-        {entries.map((entry) => (
-          <Div
-            key={entry.id}
-            className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2"
-          >
-            <Div className="flex min-w-0 flex-col">
-              <Label
-                variant={EVariantLabel.bodySmall}
-                color="text-gray-900"
-                className="truncate"
-              >
-                {entry.supplier || t('noSupplier')}
-              </Label>
-              <Label variant={EVariantLabel.caption} color="text-gray-500">
-                {formatPosDateTime(entry.createdAt)}
-              </Label>
-            </Div>
-            <Div className="flex shrink-0 flex-col items-end">
-              <Label
-                variant={EVariantLabel.bodySmall}
-                color="text-gray-900"
-                className="font-semibold"
-              >
-                {t('units', { count: toAmount(entry.quantity) })}
-              </Label>
-              <Label variant={EVariantLabel.caption} color="text-gray-500">
-                {formatMoney(toAmount(entry.unitCost))}
-              </Label>
-            </Div>
-          </Div>
-        ))}
+        </FormSection>
       </Div>
     </Div>
   )
@@ -342,7 +388,7 @@ export default function OrganismPosProductForm({
       }}
     >
       <Div className="flex flex-col-reverse gap-5 border-b border-gray-100 p-5 sm:flex-row sm:items-start">
-        <Div className="min-w-0 flex-1">
+        <Div className="min-w-0 flex-1 space-y-3">
           <form.Field
             name="name"
             validators={{
@@ -366,13 +412,50 @@ export default function OrganismPosProductForm({
               />
             )}
           </form.Field>
+          <form.Subscribe
+            selector={(state) =>
+              [
+                state.values.type,
+                state.values.availableInPos,
+                state.values.isSubscription,
+                state.values.subscriptionDuration,
+              ] as const
+            }
+          >
+            {([type, availableInPos, isSubscription, duration]) => (
+              <Div className="flex flex-wrap gap-2">
+                <Badge
+                  id="pos-product-type-badge"
+                  text={type === 'STOCKABLE' ? t('typeStockable') : t('typeConsumable')}
+                  type={EBadgeType.revprimary}
+                  size={EBadgeSize.tiny}
+                />
+                {isSubscription ? (
+                  <Badge
+                    id="pos-product-subscription-badge"
+                    text={t('subscriptionBadge', { count: Number(duration) || 0 })}
+                    type={EBadgeType.revwarning}
+                    size={EBadgeSize.tiny}
+                  />
+                ) : (
+                  <Badge
+                    id="pos-product-pos-badge"
+                    text={availableInPos ? t('onlyAvailable') : t('onlyHidden')}
+                    type={availableInPos ? EBadgeType.revsuccess : EBadgeType.reverror}
+                    size={EBadgeSize.tiny}
+                  />
+                )}
+              </Div>
+            )}
+          </form.Subscribe>
         </Div>
-        <Div className="w-full sm:w-56">
+        <Div className="w-full sm:w-40">
           <form.Field name="imageUrl">
             {({ state, handleChange }) => (
               <ImageUpload
                 id="pos-product-image"
                 label={t('image')}
+                previewClassName="h-24"
                 value={state.value}
                 onChange={handleChange}
                 onClear={() => handleChange('')}
@@ -394,134 +477,152 @@ export default function OrganismPosProductForm({
         <Div
           className={tab === 'general' ? 'grid gap-4 lg:grid-cols-2' : 'hidden'}
         >
-          <form.Field name="type">
-            {({ state, handleChange }) => (
-              <Dropdown
-                label={t('type')}
-                options={[
-                  { value: 'CONSUMABLE', label: t('typeConsumable') },
-                  { value: 'STOCKABLE', label: t('typeStockable') },
-                ]}
-                value={state.value}
-                onChange={(value) => {
-                  if (value === 'CONSUMABLE' || value === 'STOCKABLE')
-                    handleChange(value)
+          <FormSection title={t('sectionPricing')}>
+            <Div className="grid grid-cols-2 gap-3">
+              <form.Field
+                name="price"
+                validators={{
+                  onSubmit: ({ value }) =>
+                    isValidAmount(value) ? undefined : t('invalidPrice'),
                 }}
-                hintText={t('typeHint')}
-              />
-            )}
-          </form.Field>
-          <Div className="grid grid-cols-2 gap-3">
-            <form.Field
-              name="price"
-              validators={{
-                onSubmit: ({ value }) =>
-                  isValidAmount(value) ? undefined : t('invalidPrice'),
-              }}
-            >
-              {({ state, handleChange }) => (
-                <Input
-                  id="pos-product-price"
-                  label={t('price')}
-                  value={state.value}
-                  type={EInputType.number}
-                  onChange={(e) => handleChange(e.target.value)}
-                  required
-                  hintText={
-                    state.meta.errors?.[0]
-                      ? String(state.meta.errors[0])
-                      : undefined
-                  }
-                  error={!!state.meta.errors?.length}
-                />
-              )}
-            </form.Field>
-            <form.Field
-              name="cost"
-              validators={{
-                onSubmit: ({ value }) =>
-                  isValidAmount(value) ? undefined : t('invalidPrice'),
-              }}
-            >
-              {({ state, handleChange }) => (
-                <Input
-                  id="pos-product-cost"
-                  label={t('cost')}
-                  value={state.value}
-                  type={EInputType.number}
-                  onChange={(e) => handleChange(e.target.value)}
-                  hintText={
-                    state.meta.errors?.[0]
-                      ? String(state.meta.errors[0])
-                      : undefined
-                  }
-                  error={!!state.meta.errors?.length}
-                />
-              )}
-            </form.Field>
-          </Div>
-          <form.Field name="categoryId">
-            {({ state, handleChange }) => (
-              <Dropdown
-                label={t('category')}
-                options={categoryOptions}
-                value={state.value}
-                onChange={(value) => {
-                  if (typeof value === 'string') handleChange(value)
+              >
+                {({ state, handleChange }) => (
+                  <Input
+                    id="pos-product-price"
+                    label={t('price')}
+                    value={state.value}
+                    type={EInputType.number}
+                    onChange={(e) => handleChange(e.target.value)}
+                    required
+                    hintText={
+                      state.meta.errors?.[0]
+                        ? String(state.meta.errors[0])
+                        : undefined
+                    }
+                    error={!!state.meta.errors?.length}
+                  />
+                )}
+              </form.Field>
+              <form.Field
+                name="cost"
+                validators={{
+                  onSubmit: ({ value }) =>
+                    isValidAmount(value) ? undefined : t('invalidPrice'),
                 }}
-              />
-            )}
-          </form.Field>
-          <Div className="grid grid-cols-2 gap-3">
-            <form.Field name="reference">
-              {({ state, handleChange }) => (
-                <Input
-                  id="pos-product-reference"
-                  label={t('reference')}
-                  value={state.value}
-                  onChange={(e) => handleChange(e.target.value)}
-                />
-              )}
-            </form.Field>
-            <form.Field name="barcode">
-              {({ state, handleChange }) => (
-                <Input
-                  id="pos-product-barcode"
-                  label={t('barcode')}
-                  value={state.value}
-                  onChange={(e) => handleChange(e.target.value)}
-                />
-              )}
-            </form.Field>
-          </Div>
+              >
+                {({ state, handleChange }) => (
+                  <Input
+                    id="pos-product-cost"
+                    label={t('cost')}
+                    value={state.value}
+                    type={EInputType.number}
+                    onChange={(e) => handleChange(e.target.value)}
+                    hintText={
+                      state.meta.errors?.[0]
+                        ? String(state.meta.errors[0])
+                        : undefined
+                    }
+                    error={!!state.meta.errors?.length}
+                  />
+                )}
+              </form.Field>
+            </Div>
+            <form.Subscribe selector={(state) => [state.values.price, state.values.cost] as const}>
+              {([price, cost]) => {
+                const margin = isValidAmount(price) && isValidAmount(cost)
+                  ? parseAmount(price) - parseAmount(cost)
+                  : null
+                const marginRate = margin !== null && parseAmount(price) > 0
+                  ? Math.round((margin / parseAmount(price)) * 100)
+                  : null
+                return (
+                  <Div className="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-4 py-3">
+                    <Label variant={EVariantLabel.bodySmall} color="text-gray-600">
+                      {t('margin')}
+                    </Label>
+                    <Label
+                      variant={EVariantLabel.bodySmall}
+                      color={margin !== null && margin < 0 ? 'text-danger-600' : 'text-success-700'}
+                      className="font-semibold tabular-nums"
+                    >
+                      {margin === null
+                        ? '—'
+                        : `${formatMoney(margin)}${marginRate === null ? '' : ` · ${marginRate}%`}`}
+                    </Label>
+                  </Div>
+                )
+              }}
+            </form.Subscribe>
+          </FormSection>
+          <FormSection title={t('sectionDetails')}>
+            <Div className="grid items-start gap-3 sm:grid-cols-2">
+              <form.Field name="type">
+                {({ state, handleChange }) => (
+                  <Dropdown
+                    label={t('type')}
+                    options={[
+                      { value: 'CONSUMABLE', label: t('typeConsumable') },
+                      { value: 'STOCKABLE', label: t('typeStockable') },
+                    ]}
+                    value={state.value}
+                    onChange={(value) => {
+                      if (value === 'CONSUMABLE' || value === 'STOCKABLE')
+                        handleChange(value)
+                    }}
+                    hintText={t('typeHint')}
+                  />
+                )}
+              </form.Field>
+              <form.Field name="categoryId">
+                {({ state, handleChange }) => (
+                  <Dropdown
+                    label={t('category')}
+                    options={categoryOptions}
+                    value={state.value}
+                    onChange={(value) => {
+                      if (typeof value === 'string') handleChange(value)
+                    }}
+                  />
+                )}
+              </form.Field>
+              <form.Field name="reference">
+                {({ state, handleChange }) => (
+                  <Input
+                    id="pos-product-reference"
+                    label={t('reference')}
+                    value={state.value}
+                    onChange={(e) => handleChange(e.target.value)}
+                  />
+                )}
+              </form.Field>
+              <form.Field name="barcode">
+                {({ state, handleChange }) => (
+                  <Input
+                    id="pos-product-barcode"
+                    label={t('barcode')}
+                    value={state.value}
+                    onChange={(e) => handleChange(e.target.value)}
+                  />
+                )}
+              </form.Field>
+            </Div>
+          </FormSection>
         </Div>
 
-        <Div className={tab === 'sale' ? 'max-w-xl space-y-4' : 'hidden'}>
+        <Div className={tab === 'sale' ? 'grid items-start gap-4 lg:grid-cols-2' : 'hidden'}>
           <form.Subscribe selector={(state) => state.values.isSubscription}>
             {(isSubscription) =>
               isSubscription ? null : (
-                <>
+                <FormSection title={t('sectionPos')}>
                   <form.Field name="availableInPos">
                     {({ state, handleChange }) => (
-                      <Div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 p-4">
-                        <Div className="flex flex-col">
-                          <Label
-                            variant={EVariantLabel.bodySmall}
-                            color="text-gray-900"
-                            className="font-medium"
-                          >
-                            {t('availableInPos')}
-                          </Label>
-                          <Label variant={EVariantLabel.caption} color="text-gray-500">
-                            {t('availableInPosHint')}
-                          </Label>
-                        </Div>
-                        <Toggle
-                          id="pos-product-available"
-                          checked={state.value}
-                          onChange={handleChange}
-                        />
-                      </Div>
+                      <ToggleRow
+                        id="pos-product-available"
+                        title={t('availableInPos')}
+                        hint={t('availableInPosHint')}
+                        checked={state.value}
+                        onChange={handleChange}
+                      />
                     )}
                   </form.Field>
                   <form.Field name="taxRate">
@@ -538,77 +639,66 @@ export default function OrganismPosProductForm({
                       />
                     )}
                   </form.Field>
-                </>
+                </FormSection>
               )
             }
           </form.Subscribe>
-          <Div className="space-y-4 rounded-xl border border-gray-100 p-4">
-            <form.Field name="isSubscription">
-              {({ state, handleChange }) => (
-                <Div className="flex items-center justify-between gap-4">
-                  <Div className="flex flex-col">
-                    <Label
-                      variant={EVariantLabel.bodySmall}
-                      color="text-gray-900"
-                      className="font-medium"
-                    >
-                      {t('isSubscription')}
-                    </Label>
-                    <Label variant={EVariantLabel.caption} color="text-gray-500">
-                      {t('isSubscriptionHint')}
-                    </Label>
-                  </Div>
-                  <Toggle
-                    id="pos-product-subscription"
-                    checked={state.value}
-                    onChange={handleChange}
-                  />
-                </Div>
-              )}
-            </form.Field>
-            <form.Subscribe selector={(state) => state.values.isSubscription}>
-              {(isSubscription) =>
-                isSubscription ? (
-                  <form.Field
-                    name="subscriptionDuration"
-                    validators={{
-                      onSubmit: ({ value, fieldApi }) => {
-                        if (!fieldApi.form.getFieldValue('isSubscription')) return undefined
-                        const duration = Number(value)
-                        return Number.isInteger(duration) && duration >= 1 && duration <= 3650
-                          ? undefined
-                          : t('invalidDuration')
-                      },
-                    }}
-                  >
+          <form.Subscribe selector={(state) => state.values.isSubscription}>
+            {(isSubscription) => (
+              <FormSection
+                title={t('sectionSubscription')}
+                className={isSubscription ? 'lg:col-span-2' : ''}
+              >
+                <Div className={isSubscription ? 'grid items-start gap-4 md:grid-cols-2' : ''}>
+                  <form.Field name="isSubscription">
                     {({ state, handleChange }) => (
-                      <Input
-                        id="pos-product-subscription-duration"
-                        label={t('subscriptionDuration')}
-                        value={state.value}
-                        type={EInputType.intNumber}
-                        onChange={(e) => handleChange(e.target.value)}
-                        required
-                        hintText={
-                          state.meta.errors?.[0]
-                            ? String(state.meta.errors[0])
-                            : undefined
-                        }
-                        error={!!state.meta.errors?.length}
+                      <ToggleRow
+                        id="pos-product-subscription"
+                        title={t('isSubscription')}
+                        hint={t('isSubscriptionHint')}
+                        checked={state.value}
+                        onChange={handleChange}
                       />
                     )}
                   </form.Field>
-                ) : null
-              }
-            </form.Subscribe>
-          </Div>
+                  {isSubscription ? (
+                    <form.Field
+                      name="subscriptionDuration"
+                      validators={{
+                        onSubmit: ({ value, fieldApi }) => {
+                          if (!fieldApi.form.getFieldValue('isSubscription')) return undefined
+                          const duration = Number(value)
+                          return Number.isInteger(duration) && duration >= 1 && duration <= 3650
+                            ? undefined
+                            : t('invalidDuration')
+                        },
+                      }}
+                    >
+                      {({ state, handleChange }) => (
+                        <Input
+                          id="pos-product-subscription-duration"
+                          label={t('subscriptionDuration')}
+                          value={state.value}
+                          type={EInputType.intNumber}
+                          onChange={(e) => handleChange(e.target.value)}
+                          required
+                          hintText={
+                            state.meta.errors?.[0]
+                              ? String(state.meta.errors[0])
+                              : undefined
+                          }
+                          error={!!state.meta.errors?.length}
+                        />
+                      )}
+                    </form.Field>
+                  ) : null}
+                </Div>
+              </FormSection>
+            )}
+          </form.Subscribe>
         </Div>
 
-        {product && tab === 'purchase' ? (
-          <Div className="max-w-2xl">
-            <PosProductPurchases product={product} />
-          </Div>
-        ) : null}
+        {product && tab === 'purchase' ? <PosProductPurchases product={product} /> : null}
       </Div>
 
       <Div className="flex justify-end gap-3 border-t border-gray-100 p-5">

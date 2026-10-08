@@ -750,7 +750,14 @@
             "unitWEEK": "Week(s)",
             "unitMONTH": "Month(s)",
             "unitYEAR": "Year(s)",
-            "durationValue": "{count} {unit}"
+            "durationValue": "{count} {unit}",
+            "sectionPricing": "Pricing",
+            "sectionDetails": "Product details",
+            "sectionPos": "Point of sale",
+            "sectionSubscription": "Subscription",
+            "margin": "Margin",
+            "subscriptionBadge": "Subscription · {count, plural, one {# day} other {# days}}",
+            "unitCostValue": "{value} / unit"
         },
         "register": {
             "home": "Home",
