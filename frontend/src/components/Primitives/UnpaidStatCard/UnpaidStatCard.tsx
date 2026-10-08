@@ -31,7 +31,7 @@ const UnpaidStatCard = ({
                     <Icon
                         name={isPaid ? IconComponentsEnum.checkCircle : IconComponentsEnum.alert}
                         size={ESize.sm}
-                        color={isPaid ? 'text-success-600' : 'text-warning-600'}
+                        color={isPaid ? 'text-success-700' : 'text-warning-700'}
                     />
                 </Div>
                 <Div className="min-w-0 flex flex-col">

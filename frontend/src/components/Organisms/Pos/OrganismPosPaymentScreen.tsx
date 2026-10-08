@@ -223,7 +223,7 @@ export default function OrganismPosPaymentScreen({
                                 </Label>
                                 <Label
                                     variant={EVariantLabel.h6}
-                                    color={change > 0 ? 'text-success-600' : 'text-gray-900'}
+                                    color={change > 0 ? 'text-success-700' : 'text-gray-900'}
                                     className="tabular-nums"
                                 >
                                     {formatMoney(change)}
@@ -251,7 +251,7 @@ export default function OrganismPosPaymentScreen({
                                     type="button"
                                     onClick={() => selectLine(line)}
                                     className={twMerge(
-                                        'flex min-w-0 flex-1 items-center justify-between gap-3 text-left',
+                                        'flex min-w-0 flex-1 items-center justify-between gap-3 text-start',
                                         line.isRest && 'cursor-default',
                                     )}
                                 >

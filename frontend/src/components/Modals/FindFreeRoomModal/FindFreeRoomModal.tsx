@@ -94,7 +94,7 @@ function ResultsList({
                         <Label
                             variant={EVariantLabel.bodySmall}
                             color="text-gray-900"
-                            className="font-medium mr-1"
+                            className="font-medium me-1"
                         >
                             {room.name}
                         </Label>

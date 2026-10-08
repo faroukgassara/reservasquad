@@ -47,7 +47,7 @@ function getDateFieldWrapperClassName({
     const sizeConfig = INPUT_SIZES[size];
 
     return twMerge(
-        'relative flex w-full min-w-0 items-center rounded-lg border bg-white text-left transition-colors duration-200',
+        'relative flex w-full min-w-0 items-center rounded-xl border bg-white text-start transition-colors duration-200',
         sizeConfig.field,
         INPUT_STATUS_FIELD[status],
         status === EInputStatus.default && hasValue && !disabled && 'border-gray-300 bg-gray-50',
@@ -169,7 +169,7 @@ const DatePickerField = ({
                             color={filled ? 'text-gray-900' : 'text-gray-500'}
                             className={twMerge(
                                 'pointer-events-none shrink-0 whitespace-nowrap',
-                                size === EInputSize.large ? 'pl-4' : 'pl-3',
+                                size === EInputSize.large ? 'ps-4' : 'ps-3',
                             )}
                         >
                             {prefix} :
@@ -179,9 +179,9 @@ const DatePickerField = ({
                         variant={EVariantLabel.bodySmall}
                         color={filled ? 'text-gray-900' : 'text-gray-400'}
                         className={twMerge(
-                            'min-w-0 flex-1 truncate text-left leading-none',
-                            !prefix && (size === EInputSize.large ? 'pl-4' : 'pl-3'),
-                            size === EInputSize.large ? 'pr-11' : 'pr-10',
+                            'min-w-0 flex-1 truncate text-start leading-none',
+                            !prefix && (size === EInputSize.large ? 'ps-4' : 'ps-3'),
+                            size === EInputSize.large ? 'pe-11' : 'pe-10',
                             sizeConfig.text,
                         )}
                     >

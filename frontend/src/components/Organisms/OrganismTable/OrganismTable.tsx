@@ -141,7 +141,7 @@ const TableColumnHeader = ({
             style={width ? { width } : undefined}
             aria-sort={sortable ? getAriaSort(currentSortDirection) : undefined}
             className={twMerge(
-                'sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left',
+                'sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-start',
                 headerClassName,
             )}
         >
@@ -214,7 +214,7 @@ const TableRow = <TRow,>({
         })}
 
         {actionSlot !== undefined && (
-            <td className="w-14 align-middle px-3 py-2 text-right">{actionSlot}</td>
+            <td className="w-14 align-middle px-3 py-2 text-end">{actionSlot}</td>
         )}
     </tr>
 );
@@ -359,7 +359,7 @@ const TableActionMenu = <TRow,>({ actions = [], row, rowIndex }: ITableActionMen
                                 key={`${action.label}-${index}`}
                                 type="button"
                                 role="menuitem"
-                                className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-gray-50"
+                                className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-start transition-colors hover:bg-gray-50"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setOpen(false);
@@ -747,7 +747,7 @@ const MobileTableRow = <TRow,>({
                 {onClickRow ? (
                     <button
                         type="button"
-                        className="flex min-w-0 flex-1 text-left transition-colors active:bg-primary-50/40"
+                        className="flex min-w-0 flex-1 text-start transition-colors active:bg-primary-50/40"
                         onClick={() => onClickRow(row, rowIndex)}
                     >
                         {cardHeader}
@@ -1006,7 +1006,7 @@ const OrganismTable = <TRow,>({
                                     {actions && (
                                         <th
                                             scope="col"
-                                            className="sticky top-0 z-10 w-14 border-b border-gray-200 bg-gray-50 px-3 py-2.5 text-right"
+                                            className="sticky top-0 z-10 w-14 border-b border-gray-200 bg-gray-50 px-3 py-2.5 text-end"
                                         >
                                             <span className="sr-only">{tCommon('actions')}</span>
                                         </th>

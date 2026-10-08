@@ -49,7 +49,7 @@ function getTimeFieldWrapperClassName({
     const sizeConfig = INPUT_SIZES[size];
 
     return twMerge(
-        'relative flex w-full min-w-0 items-center rounded-lg border bg-white text-left transition-colors duration-200',
+        'relative flex w-full min-w-0 items-center rounded-xl border bg-white text-start transition-colors duration-200',
         sizeConfig.field,
         INPUT_STATUS_FIELD[status],
         status === EInputStatus.default && hasValue && !disabled && 'border-gray-300 bg-gray-50',
@@ -151,8 +151,8 @@ const TimePickerField = ({
                     variant={EVariantLabel.bodySmall}
                     color={hasValue ? 'text-gray-900' : 'text-gray-400'}
                     className={twMerge(
-                        'min-w-0 flex-1 truncate text-left tabular-nums leading-none',
-                        size === EInputSize.large ? 'pl-4 pr-11' : 'pl-3 pr-10',
+                        'min-w-0 flex-1 truncate text-start tabular-nums leading-none',
+                        size === EInputSize.large ? 'ps-4 pe-11' : 'ps-3 pe-10',
                         sizeConfig.text,
                     )}
                 >

@@ -152,7 +152,7 @@ export default function OrganismPosOrderPanel({
                                         data-selected={selected}
                                         onClick={() => cart.selectLine(line.id)}
                                         className={twMerge(
-                                            'flex w-full items-start justify-between gap-3 border-b border-gray-100 px-4 py-2.5 text-left transition-colors hover:bg-gray-50',
+                                            'flex w-full items-start justify-between gap-3 border-b border-gray-100 px-4 py-2.5 text-start transition-colors hover:bg-gray-50',
                                             selected && 'bg-primary-50 hover:bg-primary-50',
                                         )}
                                     >
@@ -167,7 +167,7 @@ export default function OrganismPosOrderPanel({
                                                 })}
                                             </Label>
                                             {line.discountPct > 0 ? (
-                                                <Label variant={EVariantLabel.caption} color="text-success-600">
+                                                <Label variant={EVariantLabel.caption} color="text-success-700">
                                                     {t('lineDiscount', { value: line.discountPct })}
                                                 </Label>
                                             ) : null}

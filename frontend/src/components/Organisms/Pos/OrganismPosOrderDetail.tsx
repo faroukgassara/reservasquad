@@ -132,7 +132,7 @@ export default function OrganismPosOrderDetail({ orderId, canRefund, onOpenOrder
                 <button
                     type="button"
                     onClick={() => onOpenOrder?.(order.refundOf!.id)}
-                    className="text-left"
+                    className="text-start"
                 >
                     <Label variant={EVariantLabel.caption} color="text-primary-600" className="underline">
                         {t('refundOf', { number: formatOrderNumber(order.refundOf.number) })}
@@ -217,7 +217,7 @@ export default function OrganismPosOrderDetail({ orderId, canRefund, onOpenOrder
                             key={refund.id}
                             type="button"
                             onClick={() => onOpenOrder?.(refund.id)}
-                            className="flex w-full justify-between gap-3 rounded-lg px-2 py-1 text-left hover:bg-gray-50"
+                            className="flex w-full justify-between gap-3 rounded-lg px-2 py-1 text-start hover:bg-gray-50"
                         >
                             <Label variant={EVariantLabel.caption} color="text-primary-600">
                                 {t('orderNumber', { number: formatOrderNumber(refund.number) })}
@@ -303,7 +303,7 @@ export default function OrganismPosOrderDetail({ orderId, canRefund, onOpenOrder
                             type={EButtonType.secondary}
                             size={EButtonSize.medium}
                             iconPosition="left"
-                            icon={{ name: IconComponentsEnum.rotate, size: ESize.sm, color: 'text-warning-600' }}
+                            icon={{ name: IconComponentsEnum.rotate, size: ESize.sm, color: 'text-warning-700' }}
                             text={t('refund')}
                             onClick={() => {
                                 setRefunding(true);

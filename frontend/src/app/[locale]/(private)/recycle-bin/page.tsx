@@ -338,7 +338,7 @@ export default function RecycleBinPage() {
                         isLoading={isConfirmLoading}
                         icon={isRestore ? IconComponentsEnum.check : IconComponentsEnum.trash}
                         iconBgColor={isRestore ? 'bg-success-100' : 'bg-danger-100'}
-                        iconColor={isRestore ? 'text-success-600' : 'text-danger-600'}
+                        iconColor={isRestore ? 'text-success-700' : 'text-danger-600'}
                         onSubmit={() => {
                             if (confirmState.type === 'restore-reservation') {
                                 restoreReservationMutation.mutate(confirmState.id);

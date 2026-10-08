@@ -18,9 +18,9 @@ function getTriggerHorizontalPadding(
     hasLeftIcon: boolean,
 ): string {
     if (hasLeftIcon) {
-        return size === EInputSize.large ? 'pl-11 pr-11' : 'pl-10 pr-10';
+        return size === EInputSize.large ? 'ps-11 pe-11' : 'ps-10 pe-10';
     }
-    return size === EInputSize.large ? 'pl-4 pr-11' : 'pl-3 pr-10';
+    return size === EInputSize.large ? 'ps-4 pe-11' : 'ps-3 pe-10';
 }
 
 function getMultiTriggerHeightClass(size: EInputSize): string {
@@ -51,7 +51,7 @@ function getTriggerWrapperClassName({
     const sizeConfig = INPUT_SIZES[size];
 
     return twMerge(
-        'relative flex w-full items-center rounded-lg border bg-white text-left transition-colors duration-200',
+        'relative flex w-full items-center rounded-xl border bg-white text-start transition-colors duration-200',
         isMultiple && hasSelectedBadges ? getMultiTriggerHeightClass(size) : sizeConfig.field,
         INPUT_STATUS_FIELD[status],
         status === EInputStatus.default && hasValue && !disabled && 'border-gray-300 bg-gray-50',
@@ -146,7 +146,7 @@ export const DropdownTrigger = ({ children, className, disabled }: { children: R
             disabled={disabled}
             aria-expanded={isOpen}
             onClick={() => setIsOpen(!isOpen)}
-            className={twMerge('inline-flex w-full border-0 bg-transparent p-0 text-left', className)}
+            className={twMerge('inline-flex w-full border-0 bg-transparent p-0 text-start', className)}
         >
             {children}
         </button>
@@ -170,7 +170,7 @@ export const DropdownContent = ({
         <div
             ref={contentRef}
             className={twMerge(
-                'absolute left-0 top-full z-dropdown mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg',
+                'absolute start-0 top-full z-dropdown mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg',
                 matchTriggerWidth ? 'w-full' : 'min-w-40',
                 className,
             )}
@@ -415,7 +415,7 @@ const DropdownOptionItem = ({
         type="button"
         onClick={onSelect}
         className={twMerge(
-            'flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm text-gray-900',
+            'flex w-full items-center justify-between gap-2 px-3 py-2 text-start text-sm text-gray-900',
             'cursor-pointer transition-colors hover:bg-primary-50',
             isSelected && 'bg-gray-50',
         )}

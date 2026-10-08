@@ -22,7 +22,7 @@ const ConfirmationModal = ({ overlay, ...props }: IConfirmationModalProps) => {
 
     const iconName = props.icon ?? IconComponentsEnum.alert;
     const iconBgColor = props.iconBgColor ?? 'bg-warning-100';
-    const iconColor = props.iconColor ?? 'text-warning-500';
+    const iconColor = props.iconColor ?? 'text-warning-700';
 
     const modalContent = (
         <Div className="w-full flex flex-col gap-5">

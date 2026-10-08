@@ -121,14 +121,14 @@ function RoomStatusCard({
 
             {occupied && room.current ? (
                 <Div className="space-y-1">
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block mr-1">
+                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block me-1">
                         {professorName(room.current.professor)}
                     </Label>
                     <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
                         {formatRange(room.current.startAt, room.current.endAt)}
                     </Label>
                     {room.nextFreeAt ? (
-                        <Label variant={EVariantLabel.caption} color="text-primary-600" className="block ml-1">
+                        <Label variant={EVariantLabel.caption} color="text-primary-600" className="block ms-1">
                             {t('freesAt', { time: formatTime(room.nextFreeAt) })}
                         </Label>
                     ) : null}
@@ -136,7 +136,7 @@ function RoomStatusCard({
             ) : (
                 <Div className="flex justify-between space-y-1">
                     {room.freeUntil ? (
-                        <Label variant={EVariantLabel.caption} color="text-success-600" className="block">
+                        <Label variant={EVariantLabel.caption} color="text-success-700" className="block">
                             {t('freeUntil', { time: formatTime(room.freeUntil) })}
                         </Label>
                     ) : null}
@@ -245,14 +245,14 @@ export default function TodayPage() {
                                 <StatCard
                                     icon={IconComponentsEnum.home}
                                     iconBg="bg-warning-50"
-                                    iconColor="text-warning-600"
+                                    iconColor="text-warning-700"
                                     label={t('kpiOccupied')}
                                     value={String(data.counts.roomsOccupied)}
                                 />
                                 <StatCard
                                     icon={IconComponentsEnum.check}
                                     iconBg="bg-success-50"
-                                    iconColor="text-success-600"
+                                    iconColor="text-success-700"
                                     label={t('kpiFree')}
                                     value={String(data.counts.roomsFree)}
                                 />
@@ -312,7 +312,7 @@ export default function TodayPage() {
                                                         <Label
                                                             variant={EVariantLabel.caption}
                                                             color="text-gray-500"
-                                                            className="block ml-1"
+                                                            className="block ms-1"
                                                         >
                                                             {new Date(slot.availableAt).getTime() <= Date.now() + 1000
                                                                 ? t('availableNow')
@@ -379,7 +379,7 @@ export default function TodayPage() {
                                                         <Label
                                                             variant={EVariantLabel.caption}
                                                             color="text-gray-500"
-                                                            className="block mr-1"
+                                                            className="block me-1"
                                                         >
                                                             {professorName(row.professor)}
                                                         </Label>

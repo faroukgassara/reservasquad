@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
@@ -23,6 +24,7 @@ export default function PosOpenSessionModal({
     const t = useTranslations('pos.session');
     const tCommon = useTranslations('common');
     const { closeModal } = useCurrentModal();
+    const [edited, setEdited] = useState(false);
 
     const form = useForm({
         defaultValues: { openingCash: String(defaultOpeningCash) },
@@ -49,7 +51,10 @@ export default function PosOpenSessionModal({
                             label={t('openingCash')}
                             value={state.value}
                             type={EInputType.number}
-                            onChange={(e) => handleChange(e.target.value)}
+                            onChange={(e) => {
+                                handleChange(e.target.value);
+                                setEdited(true);
+                            }}
                             required
                             hintText={state.meta.errors?.[0] ? String(state.meta.errors[0]) : undefined}
                             error={!!state.meta.errors?.length}
@@ -71,6 +76,7 @@ export default function PosOpenSessionModal({
                         size={EButtonSize.medium}
                         text={t('open')}
                         isLoading={isLoading}
+                        disabled={!edited}
                         onClick={() => form.handleSubmit()}
                         className="flex-1"
                     />

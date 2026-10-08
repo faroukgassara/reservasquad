@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { ITemplateLogin } from '@/interfaces';
 import { EInputType, EVariantLabel } from '@/Enum/Enum';
-import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 
 const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
     const t = useTranslations();
@@ -20,8 +20,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                 <div className="flex w-full max-w-lg flex-col items-center justify-center">
                     <div className="mb-8 flex w-full flex-col items-center text-center">
                         <div className="relative mb-8">
-                            <Image
-                                src={BiblioSquadLogo}
+                            <BrandLogo
                                 alt="Biblio Squad Logo"
                                 width={200}
                                 height={50}

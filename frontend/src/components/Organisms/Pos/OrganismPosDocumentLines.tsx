@@ -277,18 +277,18 @@ export default function OrganismPosDocumentLines({
             inputMode="decimal"
             autoComplete="off"
             onChange={(e) => update(line.key, { [field]: e.target.value.replace(/[^\d.,]/g, '') })}
-            className={twMerge(CELL_INPUT, 'text-right tabular-nums', invalid && 'border-danger-500 hover:border-danger-500')}
+            className={twMerge(CELL_INPUT, 'text-end tabular-nums', invalid && 'border-danger-500 hover:border-danger-500')}
         />
     );
 
     const columns = [
         { key: 'product', label: t('product'), className: 'w-[32%] text-start' },
         { key: 'description', label: t('description'), className: 'text-start' },
-        { key: 'quantity', label: t('quantity'), className: 'w-24 text-right' },
-        { key: 'unitPrice', label: t('unitPrice'), className: 'w-32 text-right' },
-        { key: 'discount', label: t('discount'), className: 'w-20 text-right' },
+        { key: 'quantity', label: t('quantity'), className: 'w-24 text-end' },
+        { key: 'unitPrice', label: t('unitPrice'), className: 'w-32 text-end' },
+        { key: 'discount', label: t('discount'), className: 'w-20 text-end' },
         { key: 'tax', label: t('tax'), className: 'w-24 text-start' },
-        { key: 'subtotal', label: t('subtotal'), className: 'w-32 text-right' },
+        { key: 'subtotal', label: t('subtotal'), className: 'w-32 text-end' },
     ];
 
     return (
@@ -323,17 +323,17 @@ export default function OrganismPosDocumentLines({
                                                 {line.description}
                                             </Label>
                                         </td>
-                                        <td className="px-3 py-2.5 text-right">
+                                        <td className="px-3 py-2.5 text-end">
                                             <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="tabular-nums">
                                                 {line.quantity}
                                             </Label>
                                         </td>
-                                        <td className="px-3 py-2.5 text-right">
+                                        <td className="px-3 py-2.5 text-end">
                                             <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="tabular-nums">
                                                 {formatMoney(Number(line.unitPrice) || 0)}
                                             </Label>
                                         </td>
-                                        <td className="px-3 py-2.5 text-right">
+                                        <td className="px-3 py-2.5 text-end">
                                             <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="tabular-nums">
                                                 {Number(line.discountPct) ? `${line.discountPct}%` : ''}
                                             </Label>
@@ -349,7 +349,7 @@ export default function OrganismPosDocumentLines({
                                                 </Label>
                                             ) : null}
                                         </td>
-                                        <td className="px-3 py-2.5 text-right">
+                                        <td className="px-3 py-2.5 text-end">
                                             <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium tabular-nums">
                                                 {formatMoney(amounts.subtotal)}
                                             </Label>
@@ -401,7 +401,7 @@ export default function OrganismPosDocumentLines({
                                             ))}
                                         </select>
                                     </td>
-                                    <td className="px-3 py-1 text-right">
+                                    <td className="px-3 py-1 text-end">
                                         <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium tabular-nums">
                                             {formatMoney(amounts.subtotal)}
                                         </Label>

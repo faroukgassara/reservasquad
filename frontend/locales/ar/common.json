@@ -40,7 +40,7 @@
         "inactive": "غير نشط",
         "selectLanguage": "اختر اللغة",
         "toggleTheme": "تبديل المظهر",
-        "brandLogoAlt": "شعار نيكسيرا",
+        "brandLogoAlt": "شعار Biblio Squad",
         "userFallback": "مستخدم",
         "imagePreview": "معاينة",
         "imageUploadHint": "اسحب وأفلت صورة، أو انقر للاستعراض",
@@ -196,7 +196,11 @@
         "chartIncome": "الدخل",
         "chartCharges": "المصاريف",
         "chartInvestments": "الاستثمارات",
-        "chartNetBalance": "الصافي"
+        "chartNetBalance": "الصافي",
+        "chartPeriod": "الشهر",
+        "quickNewReservation": "حجز جديد",
+        "quickOpenRegister": "فتح الصندوق",
+        "quickCalendar": "التقويم"
     },
     "admin": {
         "users": {

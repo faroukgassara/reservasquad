@@ -6,7 +6,7 @@ import { EVariantLabel } from '@/Enum/Enum';
 interface PosInfoRowProps {
     label: string;
     value: ReactNode;
-    valueColor?: 'text-gray-900' | 'text-danger-600' | 'text-success-600';
+    valueColor?: 'text-gray-900' | 'text-danger-600' | 'text-success-700';
 }
 
 export default function PosInfoRow({ label, value, valueColor = 'text-gray-900' }: Readonly<PosInfoRowProps>) {

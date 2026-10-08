@@ -81,7 +81,7 @@ export default function PosSessionOrdersModal({ sessionId }: Readonly<PosSession
                                     key={order.id}
                                     type="button"
                                     onClick={() => setSelectedId(order.id)}
-                                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-left transition-colors hover:bg-gray-50"
+                                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-start transition-colors hover:bg-gray-50"
                                 >
                                     <Div className="flex min-w-0 flex-col">
                                         <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium">

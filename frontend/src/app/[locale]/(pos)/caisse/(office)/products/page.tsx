@@ -209,7 +209,7 @@ export default function PosProductsPage() {
               }}
               containerClassName="w-full lg:w-56"
             />
-            <Div className="flex items-center justify-end gap-2 lg:ml-auto">
+            <Div className="flex items-center justify-end gap-2 lg:ms-auto">
               <Label
                 variant={EVariantLabel.caption}
                 color="text-gray-600"

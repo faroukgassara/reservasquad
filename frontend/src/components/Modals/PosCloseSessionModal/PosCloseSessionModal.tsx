@@ -43,7 +43,7 @@ function SummaryRow({
 }
 
 function differenceColor(value: number): ELabelColor {
-    if (value === 0) return 'text-success-600';
+    if (value === 0) return 'text-success-700';
     return value > 0 ? 'text-primary-600' : 'text-danger-600';
 }
 
@@ -110,7 +110,7 @@ export default function PosCloseSessionModal({
                                     {formatMoney(summary.expectedCash)}
                                 </Label>
                             </Div>
-                            <Div className="border-l-2 border-gray-100 pl-3">
+                            <Div className="border-s-2 border-gray-100 ps-3">
                                 <SummaryRow label={t('opening')} value={formatMoney(summary.openingCash)} muted />
                                 <SummaryRow
                                     label={t('cashPayments')}
@@ -135,7 +135,7 @@ export default function PosCloseSessionModal({
                                     error={!!error}
                                     hintText={error ?? undefined}
                                 />
-                                <Div className="flex flex-col pb-2">
+                                <Div className="flex flex-col items-end pb-2 text-end">
                                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                                         {t('difference')}
                                     </Label>

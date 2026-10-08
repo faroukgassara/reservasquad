@@ -142,7 +142,7 @@ export default function PosClientPickerModal({ selectedId, onSelect }: Readonly<
                                         })
                                     }
                                     className={twMerge(
-                                        'flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-left transition-colors hover:bg-gray-50',
+                                        'flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-start transition-colors hover:bg-gray-50',
                                         client.id === selectedId && 'border-primary-300 bg-primary-50 hover:bg-primary-50',
                                     )}
                                 >
@@ -159,7 +159,7 @@ export default function PosClientPickerModal({ selectedId, onSelect }: Readonly<
                                         ) : null}
                                     </Div>
                                     {client.remaining > 0 ? (
-                                        <Label variant={EVariantLabel.caption} color="text-warning-600" className="shrink-0 tabular-nums">
+                                        <Label variant={EVariantLabel.caption} color="text-warning-700" className="shrink-0 tabular-nums">
                                             {t('balance', { value: formatMoney(client.remaining) })}
                                         </Label>
                                     ) : null}

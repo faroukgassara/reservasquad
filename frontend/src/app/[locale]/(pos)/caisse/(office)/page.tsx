@@ -180,14 +180,14 @@ export default function PosDashboardPage() {
                                 <StatCard
                                     icon={IconComponentsEnum.layers}
                                     iconBg="bg-success-50"
-                                    iconColor="text-success-600"
+                                    iconColor="text-success-700"
                                     label={t('dashboard.sessionSales')}
                                     value={summary ? formatMoney(summary.ordersTotal) : '—'}
                                 />
                                 <StatCard
                                     icon={IconComponentsEnum.checkCircle}
                                     iconBg="bg-warning-50"
-                                    iconColor="text-warning-600"
+                                    iconColor="text-warning-700"
                                     label={t('dashboard.expectedCash')}
                                     value={summary ? formatMoney(summary.expectedCash) : '—'}
                                 />
@@ -205,7 +205,7 @@ export default function PosDashboardPage() {
                             <Div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
                                 <Div className="flex items-center gap-3">
                                     <Div className="flex size-10 items-center justify-center rounded-full bg-warning-50">
-                                        <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-warning-600" />
+                                        <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-warning-700" />
                                     </Div>
                                     <Div className="flex flex-col">
                                         <Label variant={EVariantLabel.h5} color="text-gray-900">

@@ -16,7 +16,7 @@ export default function PosStatButton({ icon, value, label, onClick }: Readonly<
             type="button"
             onClick={onClick}
             disabled={!onClick}
-            className="flex min-w-36 items-center gap-2 border-gray-100 px-4 py-3 text-left transition-colors enabled:hover:bg-gray-50 sm:border-l"
+            className="flex min-w-36 items-center gap-2 border-gray-100 px-4 py-3 text-start transition-colors enabled:hover:bg-gray-50 sm:border-s"
         >
             <Icon name={icon} size={ESize.md} color="text-gray-600" />
             <Div className="flex flex-col">

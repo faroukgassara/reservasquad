@@ -109,7 +109,7 @@ export default function OrganismPosProductGrid({
                                 key={category.id}
                                 type="button"
                                 onClick={() => setCategoryId(category.id)}
-                                className="flex items-center gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 text-left transition-colors hover:border-primary-300 hover:bg-primary-50"
+                                className="flex items-center gap-3 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 text-start transition-colors hover:border-primary-300 hover:bg-primary-50"
                             >
                                 <Div className="size-12 shrink-0 overflow-hidden rounded-lg">
                                     <TileImage imageUrl={category.imageUrl} alt={category.name} />
@@ -145,13 +145,13 @@ export default function OrganismPosProductGrid({
                                 type="button"
                                 onClick={() => onAdd(product)}
                                 className={twMerge(
-                                    'group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white text-left transition-shadow hover:border-primary-300 hover:shadow-md',
+                                    'group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white text-start transition-shadow hover:border-primary-300 hover:shadow-md',
                                     outOfStock && 'opacity-70',
                                 )}
                             >
                                 <Div className="relative aspect-4/3 w-full overflow-hidden">
                                     <TileImage imageUrl={product.imageUrl} alt={product.name} />
-                                    <span className="absolute right-1.5 top-1.5 rounded-md bg-white/90 px-1.5 py-0.5 shadow-sm">
+                                    <span className="absolute end-1.5 top-1.5 rounded-md bg-white/90 px-1.5 py-0.5 shadow-sm">
                                         <Label variant={EVariantLabel.caption} color="text-primary-600" className="font-semibold tabular-nums">
                                             {formatMoney(toAmount(product.price))}
                                         </Label>

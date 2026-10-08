@@ -224,7 +224,7 @@ export default function PosDocumentPickerModal({ source, onSelect }: Readonly<Po
                                         setAmount('');
                                         setAmountError(null);
                                     }}
-                                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-left transition-colors hover:bg-gray-50"
+                                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-start transition-colors hover:bg-gray-50"
                                 >
                                     <Div className="flex min-w-0 flex-col">
                                         <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-medium">
@@ -239,7 +239,7 @@ export default function PosDocumentPickerModal({ source, onSelect }: Readonly<Po
                                             {formatMoney(document.total)}
                                         </Label>
                                         {document.amountPaid > 0 ? (
-                                            <Label variant={EVariantLabel.caption} color="text-warning-600" className="tabular-nums">
+                                            <Label variant={EVariantLabel.caption} color="text-warning-700" className="tabular-nums">
                                                 {t('remaining', { value: formatMoney(remainingOf(document)) })}
                                             </Label>
                                         ) : null}

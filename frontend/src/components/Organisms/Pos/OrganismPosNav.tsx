@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
@@ -11,7 +10,7 @@ import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
-import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { homePathForRole, Routes } from '@/lib/routes';
 
@@ -38,8 +37,7 @@ export default function OrganismPosNav() {
         <header className="flex shrink-0 flex-col gap-2 border-b border-gray-200 bg-white px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:gap-6">
             <Div className="flex items-center justify-between gap-4">
                 <Link href={Routes.Pos.index} className="flex shrink-0 items-center">
-                    <Image
-                        src={BiblioSquadLogo}
+                    <BrandLogo
                         alt={tCommon('brandLogoAlt')}
                         height={28}
                         className="w-auto object-contain"

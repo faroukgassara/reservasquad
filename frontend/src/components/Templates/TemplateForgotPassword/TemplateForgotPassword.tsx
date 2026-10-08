@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Routes } from '@/lib/routes';
 import { ITemplateForgotPassword } from '@/interfaces';
 import { EVariantLabel } from '@/Enum/Enum';
-import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 
 const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
     form,
@@ -25,8 +25,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
                 <div className="flex w-full max-w-lg flex-col items-center justify-center">
                     <div className="mb-8 flex w-full flex-col items-center text-center">
                         <div className="relative mb-8">
-                            <Image
-                                src={BiblioSquadLogo}
+                            <BrandLogo
                                 alt="Biblio Squad Logo"
                                 width={200}
                                 height={50}

@@ -196,7 +196,11 @@
         "chartIncome": "Revenus",
         "chartCharges": "Charges",
         "chartInvestments": "Investissements",
-        "chartNetBalance": "Solde net"
+        "chartNetBalance": "Solde net",
+        "chartPeriod": "Mois",
+        "quickNewReservation": "Nouvelle réservation",
+        "quickOpenRegister": "Ouvrir la caisse",
+        "quickCalendar": "Calendrier"
     },
     "admin": {
         "users": {

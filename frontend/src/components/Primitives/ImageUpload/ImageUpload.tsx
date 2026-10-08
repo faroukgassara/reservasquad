@@ -65,7 +65,7 @@ export default function ImageUpload({
                 <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="mb-1">
                     {label}
                     {required && (
-                        <Label color="text-primary-500" className="align-middle ml-1" variant={EVariantLabel.bodySmall}>
+                        <Label color="text-primary-500" className="align-middle ms-1" variant={EVariantLabel.bodySmall}>
                             *
                         </Label>
                     )}
@@ -79,7 +79,7 @@ export default function ImageUpload({
                         alt="Aperçu"
                         className="w-full h-40 object-cover"
                     />
-                    <Div className="absolute top-2 right-2 flex gap-2">
+                    <Div className="absolute top-2 end-2 flex gap-2">
                         <Button
                             id={`${id}-change-btn`}
                             type={EButtonType.secondary}

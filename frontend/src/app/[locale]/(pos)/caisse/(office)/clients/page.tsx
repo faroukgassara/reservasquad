@@ -47,7 +47,7 @@ function ClientCard({ client }: Readonly<{ client: CreditClientListItem }>) {
             <Div className="flex w-20 shrink-0 items-center justify-center bg-gray-100">
                 <Icon name={IconComponentsEnum.user} size={ESize.xl} color="text-gray-400" />
             </Div>
-            <Div className="flex min-w-0 flex-1 flex-col gap-1 py-3 pr-3">
+            <Div className="flex min-w-0 flex-1 flex-col gap-1 py-3 pe-3">
                 <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-semibold">
                     {`${client.firstName} ${client.lastName}`}
                 </Label>
@@ -147,7 +147,7 @@ export default function PosClientsPage() {
                             <StatCard
                                 icon={IconComponentsEnum.alert}
                                 iconBg="bg-warning-50"
-                                iconColor="text-warning-600"
+                                iconColor="text-warning-700"
                                 label={tCredits('totalRemaining')}
                                 value={summary ? formatMoney(summary.remaining) : '—'}
                             />
@@ -161,7 +161,7 @@ export default function PosClientsPage() {
                             <StatCard
                                 icon={IconComponentsEnum.checkCircle}
                                 iconBg="bg-success-50"
-                                iconColor="text-success-600"
+                                iconColor="text-success-700"
                                 label={tCredits('totalPaid')}
                                 value={summary ? formatMoney(summary.totalPaid) : '—'}
                             />
@@ -183,7 +183,7 @@ export default function PosClientsPage() {
                                 onChange={(e) => setSearch(e.target.value)}
                                 containerClassName="w-full sm:max-w-sm"
                             />
-                            <Div className="flex items-center justify-end gap-2 sm:ml-auto">
+                            <Div className="flex items-center justify-end gap-2 sm:ms-auto">
                                 <Label variant={EVariantLabel.caption} color="text-gray-600" className="tabular-nums">
                                     {tCommon('showingRange', { from, to, total })}
                                 </Label>

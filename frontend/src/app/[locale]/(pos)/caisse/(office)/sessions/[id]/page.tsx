@@ -268,7 +268,7 @@ export default function PosSessionDetailPage() {
                                                         ? 'text-gray-900'
                                                         : difference < 0
                                                           ? 'text-danger-600'
-                                                          : 'text-success-600'
+                                                          : 'text-success-700'
                                                 }
                                             />
                                         </Div>

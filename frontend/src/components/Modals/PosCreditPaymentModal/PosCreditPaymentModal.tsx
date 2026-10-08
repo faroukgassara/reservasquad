@@ -117,7 +117,7 @@ export default function PosCreditPaymentModal({ onSelect }: Readonly<PosCreditPa
                         type="button"
                         onClick={() => pickCredit(item)}
                         className={twMerge(
-                            'flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-left transition-colors hover:bg-gray-50',
+                            'flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-start transition-colors hover:bg-gray-50',
                             credit?.id === item.id && 'border-primary-500 bg-primary-50 hover:bg-primary-50',
                         )}
                     >
@@ -129,7 +129,7 @@ export default function PosCreditPaymentModal({ onSelect }: Readonly<PosCreditPa
                                 {t('creditCaption', { date: formatPosDate(item.date), total: formatMoney(item.totalCredit) })}
                             </Label>
                         </Div>
-                        <Label variant={EVariantLabel.bodySmall} color="text-warning-600" className="shrink-0 font-semibold tabular-nums">
+                        <Label variant={EVariantLabel.bodySmall} color="text-warning-700" className="shrink-0 font-semibold tabular-nums">
                             {formatMoney(item.remaining)}
                         </Label>
                     </button>
@@ -196,7 +196,7 @@ export default function PosCreditPaymentModal({ onSelect }: Readonly<PosCreditPa
                         key={item.id}
                         type="button"
                         onClick={() => setClient(item)}
-                        className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-left transition-colors hover:bg-gray-50"
+                        className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2.5 text-start transition-colors hover:bg-gray-50"
                     >
                         <Div className="flex min-w-0 flex-col">
                             <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-medium">
@@ -208,7 +208,7 @@ export default function PosCreditPaymentModal({ onSelect }: Readonly<PosCreditPa
                                 </Label>
                             ) : null}
                         </Div>
-                        <Label variant={EVariantLabel.bodySmall} color="text-warning-600" className="shrink-0 font-semibold tabular-nums">
+                        <Label variant={EVariantLabel.bodySmall} color="text-warning-700" className="shrink-0 font-semibold tabular-nums">
                             {formatMoney(item.remaining)}
                         </Label>
                     </button>

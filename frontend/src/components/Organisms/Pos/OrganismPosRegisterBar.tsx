@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
@@ -10,7 +9,7 @@ import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
-import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { Routes } from '@/lib/routes';
 
@@ -59,8 +58,7 @@ export default function OrganismPosRegisterBar({
     return (
         <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-3 py-2 sm:px-4">
             <Link href={Routes.Pos.index} className="flex shrink-0 items-center">
-                <Image
-                    src={BiblioSquadLogo}
+                <BrandLogo
                     alt={tCommon('brandLogoAlt')}
                     height={26}
                     className="w-auto object-contain"

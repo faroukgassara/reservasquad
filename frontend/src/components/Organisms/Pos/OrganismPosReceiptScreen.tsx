@@ -27,7 +27,7 @@ export default function OrganismPosReceiptScreen({ order, onNewOrder }: Readonly
             <Div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 lg:flex-row lg:items-start lg:p-8">
                 <Div className="flex flex-1 flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
                     <Div className="flex size-14 items-center justify-center rounded-full bg-success-50">
-                        <Icon name={IconComponentsEnum.checkCircle} size={ESize.lg} color="text-success-600" />
+                        <Icon name={IconComponentsEnum.checkCircle} size={ESize.lg} color="text-success-700" />
                     </Div>
                     <Label variant={EVariantLabel.h4} color="text-gray-900">
                         {t('paymentSuccessful')}
@@ -37,7 +37,7 @@ export default function OrganismPosReceiptScreen({ order, onNewOrder }: Readonly
                             <Label variant={EVariantLabel.caption} color="text-gray-500">
                                 {t('changeToGive')}
                             </Label>
-                            <Label variant={EVariantLabel.h3} color="text-success-600" className="tabular-nums">
+                            <Label variant={EVariantLabel.h3} color="text-success-700" className="tabular-nums">
                                 {formatMoney(change)}
                             </Label>
                         </Div>

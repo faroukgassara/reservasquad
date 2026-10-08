@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { Routes } from '@/lib/routes';
 import { ITemplateResetPassword } from '@/interfaces';
 import { EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
-import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 
 const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
     variant,
@@ -50,8 +50,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                     <div className="flex w-full max-w-lg flex-col items-center justify-center">
                         <div className="flex flex-col items-center text-center w-full mb-8">
                             <div className="relative mb-8">
-                                <Image
-                                    src={BiblioSquadLogo}
+                                <BrandLogo
                                     alt="Biblio Squad Logo"
                                     width={200}
                                     height={50}
@@ -86,8 +85,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                 <div className="flex w-full max-w-lg flex-col items-center justify-center">
                     <div className="mb-8 flex w-full flex-col items-center text-center">
                         <div className="relative mb-8">
-                            <Image
-                                src={BiblioSquadLogo}
+                            <BrandLogo
                                 alt="Biblio Squad Logo"
                                 width={200}
                                 height={50}

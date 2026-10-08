@@ -67,7 +67,7 @@ const Label: React.FC<LabelProps> = ({
                 {...rest}
             >
                 {children}
-                {required && <span className="ml-1 text-primary-500">*</span>}
+                {required && <span className="ms-1 text-primary-500">*</span>}
             </label>
         )
     }
@@ -78,7 +78,7 @@ const Label: React.FC<LabelProps> = ({
         return (
             <Tag className={sharedClassName} style={style} onClick={onClick} {...rest}>
                 {children}
-                {required && <span className="ml-1 text-primary-500">*</span>}
+                {required && <span className="ms-1 text-primary-500">*</span>}
             </Tag>
         )
     }
@@ -86,7 +86,7 @@ const Label: React.FC<LabelProps> = ({
     return (
         <span className={sharedClassName} style={style} onClick={onClick} {...rest}>
             {children}
-            {required && <span className="ml-1 text-primary-500">*</span>}
+            {required && <span className="ms-1 text-primary-500">*</span>}
         </span>
     )
 }

@@ -15,7 +15,7 @@ export default function PosStatusPipeline({ steps, active }: Readonly<PosStatusP
                 return (
                     <Div
                         key={step.key}
-                        className={`px-4 py-1.5 ${index > 0 ? 'border-l border-gray-200' : ''} ${
+                        className={`px-4 py-1.5 ${index > 0 ? 'border-s border-gray-200' : ''} ${
                             isActive ? 'bg-primary-50' : 'bg-white'
                         }`}
                     >

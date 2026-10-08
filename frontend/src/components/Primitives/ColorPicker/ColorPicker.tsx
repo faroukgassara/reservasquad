@@ -133,16 +133,16 @@ const ColorPicker = ({
                             setIsOpen(prev => !prev)
                         }
                     }}
-                    className={twMerge('cursor-pointer pr-10 pl-12', disabled && 'cursor-not-allowed')}
+                    className={twMerge('cursor-pointer pe-10 ps-12', disabled && 'cursor-not-allowed')}
                 />
                 <span
-                    className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border border-white shadow-sm"
+                    className="pointer-events-none absolute start-3 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border border-white shadow-sm"
                     style={{ backgroundColor: pickerColor }}
                 />
             </div>
 
             {isOpen && !disabled && (
-                <div className="absolute left-0 right-0 z-dropdown mt-2 rounded-xxl border border-gray-200 bg-white p-4 shadow-xxl shadow-gray-900/10">
+                <div className="absolute start-0 end-0 z-dropdown mt-2 rounded-xxl border border-gray-200 bg-white p-4 shadow-xxl shadow-gray-900/10">
                     <div className="mb-3 flex items-center gap-2">
                         <Dropdown
                             size={EInputSize.medium}

@@ -32,7 +32,7 @@ const toastConfigs: Record<
     },
     [EToastType.SUCCESS]: {
         accentColor: 'var(--ds-success-600)',
-        iconColorClass: 'text-success-600',
+        iconColorClass: 'text-success-700',
         iconBackgroundColor: 'var(--ds-success-25)',
         iconBorderColor: 'var(--ds-success-100)',
         iconName: 'check',
@@ -90,7 +90,7 @@ const CustomToastContent: React.FC<{
             >
                 {icon}
             </div>
-            <div className="flex-1 pr-7">
+            <div className="flex-1 pe-7">
                 <div
                     className="text-base font-semibold text-gray-900 leading-5"
                 >
@@ -116,8 +116,8 @@ const ToastProvider = ({ children }: WithChildren) => {
 
             const toastOptions: ReactToastifyOptions = {
                 position: options.position || 'top-right',
-                autoClose: options.duration ?? 5000,
-                hideProgressBar: true,
+                autoClose: options.duration ?? (type === EToastType.ERROR ? 8000 : 5000),
+                hideProgressBar: false,
                 closeButton: options.withoutCloseButton
                     ? false
                     : ({ closeToast }) => (
@@ -134,9 +134,13 @@ const ToastProvider = ({ children }: WithChildren) => {
                     ),
                 className:
                     'rounded-xxl border border-gray-200 p-0 shadow-lg min-h-fit w-full max-w-[32rem] relative overflow-hidden',
+                // react-toastify v11 reads progress colors from CSS variables; setting them
+                // inline lets the bar inherit the per-type accent color through the cascade.
                 style: {
                     backgroundColor: 'var(--ds-white)',
-                },
+                    '--toastify-color-progress-light': config.accentColor,
+                    '--toastify-color-progress-dark': config.accentColor,
+                } as React.CSSProperties,
                 toastId: toastId || undefined,
             }
 
