@@ -23,7 +23,7 @@ const MENU_MAX_HEIGHT = 288;
 const MENU_MIN_WIDTH = 320;
 
 const CELL_INPUT =
-    'w-full min-w-0 border-0 border-b border-transparent bg-transparent px-1 py-1.5 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 hover:border-gray-300 focus:border-primary-500';
+    'w-full min-w-0 border-0 border-b border-transparent bg-transparent px-1 py-1.5 text-base text-gray-900 sm:text-sm outline-none transition-colors placeholder:text-gray-400 hover:border-gray-300 focus:border-primary-500';
 
 interface OrganismPosDocumentLinesProps {
     lines: DocumentLineDraft[];
@@ -78,8 +78,9 @@ function ProductPicker({
         const input = inputRef.current;
         if (!input) return;
         const rect = input.getBoundingClientRect();
-        const width = Math.max(rect.width, MENU_MIN_WIDTH);
-        const left = Math.min(rect.left, window.innerWidth - width - 8);
+        const width = Math.min(Math.max(rect.width, MENU_MIN_WIDTH), window.innerWidth - 16);
+        const preferredLeft = document.documentElement.dir === 'rtl' ? rect.right - width : rect.left;
+        const left = Math.max(8, Math.min(preferredLeft, window.innerWidth - width - 8));
         const spaceBelow = window.innerHeight - rect.bottom;
         setPosition(
             spaceBelow < MENU_MAX_HEIGHT && rect.top > spaceBelow
@@ -224,7 +225,7 @@ function TotalRow({
     strong = false,
 }: Readonly<{ label: string; value: string; strong?: boolean }>) {
     return (
-        <Div className="flex items-center justify-between gap-8 py-1">
+        <Div className="flex items-center justify-between gap-4 py-1 sm:gap-8">
             <Label
                 variant={EVariantLabel.bodySmall}
                 color={strong ? 'text-gray-900' : 'text-gray-600'}
@@ -293,8 +294,8 @@ export default function OrganismPosDocumentLines({
 
     return (
         <Div className="space-y-6">
-            <Div className="overflow-x-auto">
-                <table className="w-full min-w-[48rem] table-fixed border-collapse">
+            <Div className="overflow-x-auto overscroll-x-contain">
+                <table className="w-full min-w-[64rem] table-fixed border-collapse">
                     <thead>
                         <tr className="border-y border-gray-200 bg-gray-50">
                             {columns.map((column) => (
@@ -411,7 +412,7 @@ export default function OrganismPosDocumentLines({
                                             name={IconComponentsEnum.trash}
                                             size={ESize.sm}
                                             color="text-gray-400"
-                                            className="cursor-pointer opacity-0 transition-opacity hover:text-danger-600 group-hover:opacity-100"
+                                            className="-m-2 box-content cursor-pointer p-2 transition-opacity hover:text-danger-600 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
                                             handleClick={() => onChange?.(lines.filter((l) => l.key !== line.key))}
                                         />
                                     </td>
@@ -430,7 +431,7 @@ export default function OrganismPosDocumentLines({
                         {readOnly ? null : (
                             <tr className="border-b border-gray-100">
                                 <td colSpan={columns.length + 1} className="px-3 py-2.5">
-                                    <button type="button" id="doc-add-line" onClick={addLine} className="hover:underline">
+                                    <button type="button" id="doc-add-line" onClick={addLine} className="min-h-11 hover:underline sm:min-h-0">
                                         <Label variant={EVariantLabel.bodySmall} color="text-primary-600" className="font-medium">
                                             {t('addLine')}
                                         </Label>

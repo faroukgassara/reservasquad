@@ -52,16 +52,16 @@ function SectionHeader({
     viewAllLabel,
 }: Readonly<{ icon: IconComponentsEnum; title: string; href: string; viewAllLabel: string }>) {
     return (
-        <Div className="flex items-center justify-between">
-            <Div className="flex items-center gap-2.5">
-                <Div className="flex size-8 items-center justify-center rounded-lg bg-primary-50">
+        <Div className="flex items-center justify-between gap-3">
+            <Div className="flex min-w-0 items-center gap-2.5">
+                <Div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-50">
                     <Icon name={icon} size={ESize.sm} color="text-primary-600" />
                 </Div>
-                <Label variant={EVariantLabel.h5} color="text-gray-900" className="font-semibold">
+                <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate font-semibold">
                     {title}
                 </Label>
             </Div>
-            <Link href={href} className="shrink-0">
+            <Link href={href} className="flex min-h-11 shrink-0 items-center sm:min-h-0">
                 <Label
                     variant={EVariantLabel.caption}
                     color="text-primary-600"

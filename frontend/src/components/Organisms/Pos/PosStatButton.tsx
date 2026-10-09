@@ -16,10 +16,10 @@ export default function PosStatButton({ icon, value, label, onClick }: Readonly<
             type="button"
             onClick={onClick}
             disabled={!onClick}
-            className="flex min-w-36 items-center gap-2 border-gray-100 px-4 py-3 text-start transition-colors enabled:hover:bg-gray-50 sm:border-s"
+            className="flex min-h-11 min-w-0 items-center gap-2 border-gray-100 px-4 py-3 text-start transition-colors enabled:hover:bg-gray-50 sm:min-w-36 sm:border-s"
         >
-            <Icon name={icon} size={ESize.md} color="text-gray-600" />
-            <Div className="flex flex-col">
+            <Icon name={icon} size={ESize.md} color="text-gray-600" className="shrink-0" />
+            <Div className="flex min-w-0 flex-col">
                 <Label variant={EVariantLabel.bodySmall} color="text-primary-600" className="font-semibold tabular-nums">
                     {value}
                 </Label>

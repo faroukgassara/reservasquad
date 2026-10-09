@@ -228,7 +228,7 @@ interface ITableActionMenuProps<TRow> {
 }
 
 const actionIconButtonClass = twMerge(
-    'inline-flex size-8 cursor-pointer items-center justify-center rounded-lg',
+    'inline-flex size-11 cursor-pointer items-center justify-center rounded-lg sm:size-8',
     'text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40',
 );
@@ -352,14 +352,14 @@ const TableActionMenu = <TRow,>({ actions = [], row, rowIndex }: ITableActionMen
                         ref={menuRef}
                         role="menu"
                         style={menuStyle}
-                        className="min-w-44 rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                        className="min-w-44 max-w-[calc(100vw-1rem)] rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
                     >
                         {visibleActions.map((action, index) => (
                             <button
                                 key={`${action.label}-${index}`}
                                 type="button"
                                 role="menuitem"
-                                className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-start transition-colors hover:bg-gray-50"
+                                className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-start transition-colors hover:bg-gray-50 sm:min-h-0"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setOpen(false);
@@ -496,7 +496,7 @@ function getPageItems(page: number, totalPages: number): PageItem[] {
 }
 
 const navButtonClass =
-    'inline-flex h-8 cursor-pointer items-center justify-center gap-1 rounded-lg px-2 text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent';
+    'inline-flex h-11 min-w-11 cursor-pointer items-center justify-center gap-1 rounded-lg px-2 text-gray-600 sm:h-8 sm:min-w-0 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent';
 
 const pageButtonClass = (isActive: boolean) =>
     twMerge(
@@ -558,13 +558,13 @@ const TablePagination = ({
                     onClick={() => onChange(page - 1)}
                     aria-label={prevLabel}
                 >
-                    <Icon name={IconComponentsEnum.chevronLeft} size={ESize.sm} color="text-gray-500" />
+                    <Icon name={IconComponentsEnum.chevronLeft} size={ESize.sm} color="text-gray-500" className="rtl:-scale-x-100" />
                     <Label variant={EVariantLabel.bodySmall} color="text-gray-600" className="hidden sm:inline">
                         {prevLabel}
                     </Label>
                 </button>
 
-                <div className="flex items-center gap-0.5 px-1">
+                <div className="hidden items-center gap-0.5 px-1 sm:flex">
                     {pageItems.map((item, index) =>
                         item === 'ellipsis' ? (
                             <span
@@ -606,7 +606,7 @@ const TablePagination = ({
                     <Label variant={EVariantLabel.bodySmall} color="text-gray-600" className="hidden sm:inline">
                         {nextLabel}
                     </Label>
-                    <Icon name={IconComponentsEnum.chevronRight} size={ESize.sm} color="text-gray-500" />
+                    <Icon name={IconComponentsEnum.chevronRight} size={ESize.sm} color="text-gray-500" className="rtl:-scale-x-100" />
                 </button>
             </nav>
         </div>
@@ -713,7 +713,7 @@ const MobileTableRow = <TRow,>({
             )}
 
             {miniFields.length > 0 && (
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-3 min-[360px]:grid-cols-2 sm:grid-cols-3">
                     {miniFields.map((col) => (
                         <div key={col.key} className="flex min-w-0 flex-col gap-0.5">
                             <dt>{renderLabel(col.label)}</dt>
@@ -727,7 +727,7 @@ const MobileTableRow = <TRow,>({
 
     const details = (
         <div className="overflow-hidden rounded-xl border border-gray-100 bg-gray-25/70">
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 sm:grid-cols-3">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-3 p-4 min-[360px]:grid-cols-2 sm:grid-cols-3">
                 {secondaryColumns.map((col) => (
                     <div key={col.key} className="flex min-w-0 flex-col gap-1">
                         <dt>{renderLabel(col.label)}</dt>
@@ -777,7 +777,7 @@ const MobileTableRow = <TRow,>({
                             <button
                                 type="button"
                                 aria-expanded={expanded}
-                                className="inline-flex cursor-pointer items-center gap-1 rounded-md py-0.5 transition-colors hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+                                className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-md py-0.5 transition-colors sm:min-h-0 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
                                 onClick={() => setExpanded((prev) => !prev)}
                             >
                                 <Icon
@@ -986,7 +986,7 @@ const OrganismTable = <TRow,>({
                 </div>
             ) : (
                 <>
-                    <div className="hidden overflow-x-auto md:block">
+                    <div className="hidden overflow-x-auto laptop:block">
                         <table className={twMerge('min-w-full table-auto border-collapse', tableClassName)}>
                             <thead>
                                 <tr>
@@ -1045,7 +1045,7 @@ const OrganismTable = <TRow,>({
                         </table>
                     </div>
 
-                    <div className="md:hidden">
+                    <div className="laptop:hidden">
                         {paginatedRows.length > 0 ? (
                             paginatedRows.map((row, index) => (
                                 <MobileTableRow

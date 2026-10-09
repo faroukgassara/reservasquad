@@ -19,7 +19,7 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
     const showThemeToggle = useContext(TopSectionThemeToggleContext);
 
     return (
-        <header className="sticky top-0 z-30 flex flex-col gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-6 lg:px-8 lg:py-5">
+        <header className="sticky top-0 z-30 flex flex-col gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between tablet:gap-6 lg:px-8 lg:py-5">
             <Div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
                 {mobileSidebar?.isMobile && (
                     <Button
@@ -56,7 +56,7 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
             </Div>
 
             {props?.rightActions && (
-                <Div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:gap-4 [&_button]:w-full sm:[&_button]:w-auto">
+                <Div className="flex w-full min-w-0 flex-wrap items-center gap-2 *:flex-1 tablet:w-auto tablet:justify-end tablet:gap-4 tablet:*:flex-none">
                     {props.rightActions}
                 </Div>
             )}

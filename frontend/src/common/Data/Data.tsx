@@ -7,21 +7,23 @@ export const TYPE_VARIANT_CLASSES: Record<EButtonType, string> = {
     [EButtonType.tertiary]: 'text-primary-500 cursor-pointer hover:bg-primary-50 focus:bg-white focus:border-3 focus:border-primary-200 active:bg-primary-100 disabled:bg-white  disabled:text-gray-400 disabled:cursor-not-allowed',
 };
 
+// Below `sm` (phones) small/medium controls get a 44px minimum touch target; desktop sizes are unchanged.
 export const BUTTON_SIZES: Record<EButtonSize, string> = {
-    [EButtonSize.small]: 'h-8 px-3 text-sm',
-    [EButtonSize.medium]: 'h-10 px-4 text-md',
+    [EButtonSize.small]: 'h-8 min-h-11 px-3 text-sm sm:min-h-0',
+    [EButtonSize.medium]: 'h-10 min-h-11 px-4 text-md sm:min-h-0',
     [EButtonSize.large]: 'h-12 px-6 text-lg',
 };
 
 export const ICON_ONLY_SIZES: Record<EButtonSize, string> = {
-    [EButtonSize.small]: 'h-8 w-8',
-    [EButtonSize.medium]: 'h-10 w-10',
+    [EButtonSize.small]: 'h-8 w-8 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
+    [EButtonSize.medium]: 'h-10 w-10 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
     [EButtonSize.large]: 'h-12 w-12',
 };
 
+// 16px text on phones keeps iOS Safari from zooming into focused fields.
 export const INPUT_SIZES: Record<EInputSize, { field: string; text: string; iconLeft: string; iconRight: string; iconSize: ESize }> = {
-    [EInputSize.small]: { field: 'h-8', text: 'text-sm', iconLeft: 'start-2.5', iconRight: 'end-2.5', iconSize: ESize.xs },
-    [EInputSize.medium]: { field: 'h-10', text: 'text-sm', iconLeft: 'start-3', iconRight: 'end-3', iconSize: ESize.sm },
+    [EInputSize.small]: { field: 'h-8', text: 'text-base sm:text-sm', iconLeft: 'start-2.5', iconRight: 'end-2.5', iconSize: ESize.xs },
+    [EInputSize.medium]: { field: 'h-10 min-h-11 sm:min-h-0', text: 'text-base sm:text-sm', iconLeft: 'start-3', iconRight: 'end-3', iconSize: ESize.sm },
     [EInputSize.large]: { field: 'h-12', text: 'text-base', iconLeft: 'start-4', iconRight: 'end-4', iconSize: ESize.md },
 };
 

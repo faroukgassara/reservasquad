@@ -69,19 +69,24 @@ export default function OrganismPosProductGrid({
 
     return (
         <Div className="flex min-h-0 flex-1 flex-col">
-            <Div className="flex flex-col gap-3 border-b border-gray-200 bg-white p-3 sm:flex-row sm:items-center">
-                <Div className="flex min-w-0 flex-1 items-center gap-1">
+            <Div className="flex items-center gap-2 border-b border-gray-200 bg-white p-3 sm:gap-3">
+                <Div className="flex min-w-0 max-w-[45%] items-center gap-1 sm:max-w-none sm:flex-1">
                     <button
                         type="button"
                         onClick={() => setCategoryId(null)}
-                        className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 hover:bg-gray-100"
+                        className="flex size-11 shrink-0 items-center justify-center gap-1 rounded-lg hover:bg-gray-100 sm:size-auto sm:px-2 sm:py-1.5"
                         aria-label={t('home')}
                     >
                         <Icon name={IconComponentsEnum.home} size={ESize.md} color="text-primary-500" />
                     </button>
                     {activeCategory ? (
                         <>
-                            <Icon name={IconComponentsEnum.chevronRight} size={ESize.sm} color="text-gray-400" />
+                            <Icon
+                                name={IconComponentsEnum.chevronRight}
+                                size={ESize.sm}
+                                color="text-gray-400"
+                                className="shrink-0 rtl:-scale-x-100"
+                            />
                             <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-medium">
                                 {activeCategory.name}
                             </Label>
@@ -97,13 +102,14 @@ export default function OrganismPosProductGrid({
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') handleSearchEnter();
                     }}
-                    containerClassName="sm:w-72"
+                    containerClassName="min-w-0 flex-1 sm:w-72 sm:flex-none"
                 />
             </Div>
 
-            <Div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
+            {/* Columns follow the grid's own width, which shrinks when the order panel sits beside it. */}
+            <Div className="@container min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
                 {!categoryId && !query && categories.length > 0 ? (
-                    <Div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <Div className="grid grid-cols-2 gap-2 @md:grid-cols-3 @2xl:grid-cols-4 @4xl:grid-cols-5 @6xl:grid-cols-6">
                         {categories.map((category) => (
                             <button
                                 key={category.id}
@@ -136,7 +142,7 @@ export default function OrganismPosProductGrid({
                     </Div>
                 ) : null}
 
-                <Div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <Div className="grid grid-cols-2 gap-2 @md:grid-cols-3 @2xl:grid-cols-4 @4xl:grid-cols-5 @6xl:grid-cols-6">
                     {visibleProducts.map((product) => {
                         const outOfStock = product.type === 'STOCKABLE' && toAmount(product.stockQty) <= 0;
                         return (

@@ -197,7 +197,7 @@ export default function PosSessionDetailPage() {
                     ) : (
                         <Div className="space-y-6">
                             <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-                                <Div className="flex flex-col gap-3 border-b border-gray-100 px-6 py-3 sm:flex-row sm:items-center sm:justify-end">
+                                <Div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:px-6">
                                     <PosStatusPipeline steps={pipelineSteps} active={session.status} />
                                 </Div>
 
@@ -221,7 +221,7 @@ export default function PosSessionDetailPage() {
                                     />
                                 </Div>
 
-                                <Div className="space-y-5 px-6 py-5">
+                                <Div className="space-y-5 px-4 py-4 sm:px-6 sm:py-5">
                                     <Label variant={EVariantLabel.h3} color="text-gray-900">
                                         {t('sessions.detailTitle', { number: session.number })}
                                     </Label>

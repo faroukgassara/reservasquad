@@ -433,7 +433,7 @@ export default function PosInvoicePage() {
                         </Div>
                     ) : (
                         <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <Div className="flex flex-col gap-3 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
+                            <Div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                                 {actionButtons}
                                 {status === 'CANCELLED' ? (
                                     <Badge
@@ -488,9 +488,9 @@ export default function PosInvoicePage() {
                                 </Div>
                             ) : null}
 
-                            <Div className="space-y-6 px-6 py-5">
+                            <Div className="space-y-5 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
                                 <Div className="flex flex-wrap items-center gap-3">
-                                    <Label variant={EVariantLabel.h3} color="text-gray-900">
+                                    <Label variant={EVariantLabel.h3} color="text-gray-900" className="break-all">
                                         {title}
                                     </Label>
                                     {invoice?.status === 'POSTED' ? (
@@ -638,7 +638,7 @@ export default function PosInvoicePage() {
                                                         </Label>
                                                     ) : null}
                                                 </Div>
-                                                <Div className="flex items-center gap-3">
+                                                <Div className="flex shrink-0 items-center gap-3">
                                                     <Label
                                                         variant={EVariantLabel.bodySmall}
                                                         color="text-gray-900"
@@ -651,7 +651,7 @@ export default function PosInvoicePage() {
                                                             name={IconComponentsEnum.trash}
                                                             size={ESize.sm}
                                                             color="text-gray-500"
-                                                            className="cursor-pointer hover:opacity-70"
+                                                            className="-m-3 box-content cursor-pointer p-3 hover:opacity-70"
                                                             handleClick={() => open({ type: 'payment-delete', payment })}
                                                         />
                                                     ) : null}

@@ -118,7 +118,7 @@ export default function PosCloseSessionModal({
                                     muted
                                 />
                             </Div>
-                            <Div className="grid grid-cols-2 items-end gap-3 pt-2">
+                            <Div className="grid grid-cols-1 items-end gap-3 pt-2 min-[400px]:grid-cols-2">
                                 <Input
                                     id="pos-close-counted"
                                     label={t('counted')}
@@ -129,7 +129,7 @@ export default function PosCloseSessionModal({
                                     error={!!error}
                                     hintText={error ?? undefined}
                                 />
-                                <Div className="flex flex-col items-end pb-2 text-end">
+                                <Div className="flex flex-col items-start pb-2 text-start min-[400px]:items-end min-[400px]:text-end">
                                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                                         {t('difference')}
                                     </Label>

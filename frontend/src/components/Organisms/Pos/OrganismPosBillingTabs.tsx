@@ -21,7 +21,7 @@ export default function OrganismPosBillingTabs({ active }: Readonly<IOrganismPos
     ] as const;
 
     return (
-        <nav className="inline-flex items-center gap-1 rounded-xl bg-gray-100 p-1">
+        <nav className="flex w-full items-center gap-1 rounded-xl bg-gray-100 p-1 sm:inline-flex sm:w-auto">
             {tabs.map((tab) => {
                 const selected = tab.key === active;
                 return (
@@ -30,7 +30,7 @@ export default function OrganismPosBillingTabs({ active }: Readonly<IOrganismPos
                         href={tab.href}
                         aria-current={selected ? 'page' : undefined}
                         className={twMerge(
-                            'flex items-center gap-2 rounded-lg px-4 py-1.5 transition-colors hover:bg-white/70',
+                            'flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-1.5 transition-colors hover:bg-white/70 sm:min-h-0 sm:flex-none',
                             selected && 'bg-white shadow-sm hover:bg-white',
                         )}
                     >

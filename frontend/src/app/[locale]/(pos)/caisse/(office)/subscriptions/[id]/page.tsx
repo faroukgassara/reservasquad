@@ -538,7 +538,7 @@ export default function PosSubscriptionPage() {
                         </Div>
                     ) : (
                         <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <Div className="flex flex-col gap-3 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
+                            <Div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                                 {actionButtons}
                                 {status === 'CANCELLED' ? (
                                     <Badge
@@ -576,9 +576,9 @@ export default function PosSubscriptionPage() {
                                 </Div>
                             ) : null}
 
-                            <Div className="space-y-6 px-6 py-5">
+                            <Div className="space-y-5 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
                                 <Div className="flex flex-wrap items-center gap-3">
-                                    <Label variant={EVariantLabel.h3} color="text-gray-900">
+                                    <Label variant={EVariantLabel.h3} color="text-gray-900" className="break-all">
                                         {title}
                                     </Label>
                                     {subscription && (displayStatus === 'EXPIRING' || displayStatus === 'EXPIRED') ? (
@@ -671,8 +671,8 @@ export default function PosSubscriptionPage() {
                                                                 onClick={() => handleDiscountTypeChange(discountType)}
                                                                 className={
                                                                     active
-                                                                        ? 'h-7 min-w-9 cursor-pointer rounded-md bg-white px-2 shadow-sm'
-                                                                        : 'h-7 min-w-9 cursor-pointer rounded-md px-2 hover:bg-gray-200'
+                                                                        ? 'h-9 min-w-10 cursor-pointer rounded-md bg-white px-2 shadow-sm sm:h-7 sm:min-w-9'
+                                                                        : 'h-9 min-w-10 cursor-pointer rounded-md px-2 hover:bg-gray-200 sm:h-7 sm:min-w-9'
                                                                 }
                                                             >
                                                                 <Label

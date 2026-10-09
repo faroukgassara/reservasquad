@@ -8,10 +8,7 @@ import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
 import CreditClientFormModal from '@/components/Modals/CreditClientFormModal/CreditClientFormModal';
-import {
-    toClientInput,
-    type CreditClientFormValues,
-} from '@/components/Organisms/OrganismClientFormFields/OrganismClientFormFields';
+import { toClientInput, type CreditClientFormValues } from '@/components/Organisms/OrganismClientFormFields/OrganismClientFormFields';
 import CreditFormModal, { type CreditFormValues } from '@/components/Modals/CreditFormModal/CreditFormModal';
 import PosOrderDetailModal from '@/components/Modals/PosOrderDetailModal/PosOrderDetailModal';
 import PosStatButton from '@/components/Organisms/Pos/PosStatButton';
@@ -551,15 +548,15 @@ export default function PosClientPage() {
                                 />
                             </Div>
 
-                            <Div className="flex items-center gap-5 px-6">
-                                <Div className="flex size-20 shrink-0 items-center justify-center rounded-xl bg-gray-100">
+                            <Div className="flex flex-wrap items-center gap-3 px-4 sm:flex-nowrap sm:gap-5 sm:px-6">
+                                <Div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gray-100 sm:size-20">
                                     <Icon name={IconComponentsEnum.user} size={ESize.xl} color="text-gray-400" />
                                 </Div>
                                 <Div className="flex min-w-0 flex-1 flex-col gap-1">
                                     <Label variant={EVariantLabel.h4} color="text-gray-900" className="truncate">
                                         {clientName}
                                     </Label>
-                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500" className="break-all">
                                         {[client.phone || t('noPhone'), client.email].filter(Boolean).join(' · ')}
                                     </Label>
                                     {client.address || client.taxId || client.cin ? (
@@ -574,7 +571,7 @@ export default function PosClientPage() {
                                         </Label>
                                     ) : null}
                                 </Div>
-                                <Div className="flex flex-col items-end gap-1">
+                                <Div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-col sm:items-end sm:gap-1">
                                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                                         {t('remaining')}
                                     </Label>
@@ -587,7 +584,7 @@ export default function PosClientPage() {
                                 </Div>
                             </Div>
 
-                            <Div className="space-y-4 px-6 pb-6">
+                            <Div className="space-y-4 px-4 pb-4 sm:px-6 sm:pb-6">
                                 <Div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <Tabs
                                         variant="pills"

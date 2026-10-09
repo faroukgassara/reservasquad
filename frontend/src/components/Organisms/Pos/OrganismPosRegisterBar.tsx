@@ -20,7 +20,7 @@ interface IOrganismPosRegisterBar {
     onCloseSession: () => void;
 }
 
-const TAB_BASE = 'flex items-center gap-2 rounded-lg px-3 py-1.5 transition-colors';
+const TAB_BASE = 'flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 transition-colors sm:min-h-0';
 
 export default function OrganismPosRegisterBar({
     sessionNumber,
@@ -57,7 +57,7 @@ export default function OrganismPosRegisterBar({
 
     return (
         <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-3 py-2 sm:px-4">
-            <Link href={Routes.Pos.index} className="flex shrink-0 items-center">
+            <Link href={Routes.Pos.index} className="hidden shrink-0 items-center min-[400px]:flex">
                 <BrandLogo
                     alt={tCommon('brandLogoAlt')}
                     height={26}
@@ -71,7 +71,7 @@ export default function OrganismPosRegisterBar({
             <nav className="flex min-w-0 items-center gap-1 rounded-xl bg-gray-100 p-1">
                 <Div className={`${TAB_BASE} bg-white shadow-sm`}>
                     <Icon name={IconComponentsEnum.shoppingCart} size={ESize.sm} color="text-primary-500" />
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-semibold">
+                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="hidden font-semibold sm:inline">
                         {t('registerTab')}
                     </Label>
                 </Div>
@@ -79,10 +79,11 @@ export default function OrganismPosRegisterBar({
                     id="pos-register-orders"
                     type="button"
                     onClick={onOrders}
+                    aria-label={t('orders')}
                     className={`${TAB_BASE} hover:bg-white/70`}
                 >
                     <Icon name={IconComponentsEnum.filetext} size={ESize.sm} color="text-gray-500" />
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="font-medium">
+                    <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="hidden font-medium sm:inline">
                         {t('orders')}
                     </Label>
                     {ordersCount > 0 ? (
@@ -105,8 +106,10 @@ export default function OrganismPosRegisterBar({
                     </Label>
                 </Div>
 
-                <LanguageSwitcher menuPlacement="top" className="w-auto" />
-                <ThemeToggle />
+                <Div className="hidden items-center gap-2 sm:flex">
+                    <LanguageSwitcher menuPlacement="top" className="w-auto" />
+                    <ThemeToggle />
+                </Div>
 
                 <div ref={menuRef} className="relative">
                     <button
@@ -115,7 +118,7 @@ export default function OrganismPosRegisterBar({
                         aria-haspopup="menu"
                         aria-expanded={menuOpen}
                         onClick={() => setMenuOpen((open) => !open)}
-                        className="flex shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pe-3 transition-colors hover:bg-gray-50"
+                        className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pe-3 transition-colors hover:bg-gray-50 sm:min-h-0"
                     >
                         <Div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-500">
                             {initials ? (
@@ -137,7 +140,7 @@ export default function OrganismPosRegisterBar({
                     {menuOpen ? (
                         <Div
                             role="menu"
-                            className="absolute end-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                            className="absolute end-0 top-full z-50 mt-2 w-56 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
                         >
                             <Div className="border-b border-gray-100 px-4 py-2 md:hidden">
                                 <Label variant={EVariantLabel.caption} color="text-gray-500">

@@ -59,7 +59,7 @@ export default function PosSubscriptionCardModal({ subscription }: Readonly<PosS
     return (
         <Modal title={t('cardTitle')} subTitle={t('cardSubtitle')} canClose canCloseOnClickOutisde>
             <Div className="flex flex-col items-center gap-4">
-                <Div className="flex size-64 items-center justify-center rounded-2xl border border-gray-100 bg-white p-2">
+                <Div className="flex aspect-square w-full max-w-64 items-center justify-center rounded-2xl border border-gray-100 bg-white p-2">
                     {qrCode ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={qrCode} alt={t('cardQrAlt', { number })} className="size-full" />
@@ -71,7 +71,7 @@ export default function PosSubscriptionCardModal({ subscription }: Readonly<PosS
                     <Label variant={EVariantLabel.subtitle} color="text-gray-900">
                         {personName(subscription.client)}
                     </Label>
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-600">
+                    <Label variant={EVariantLabel.bodySmall} color="text-gray-600" className="break-words">
                         {number} · {subscription.productName}
                     </Label>
                 </Div>

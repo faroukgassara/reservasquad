@@ -47,6 +47,19 @@ export default function OrganismPosNav() {
                 <Div className="flex items-center gap-2 lg:hidden">
                     <LanguageSwitcher menuPlacement="top" className="w-auto" />
                     <ThemeToggle />
+                    <Link
+                        href={homePathForRole(session?.user?.role)}
+                        aria-label={t('backToApp')}
+                        title={t('backToApp')}
+                        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 sm:size-10"
+                    >
+                        <Icon
+                            name={IconComponentsEnum.arrowLeft}
+                            size={ESize.sm}
+                            color="text-gray-600"
+                            className="rtl:-scale-x-100"
+                        />
+                    </Link>
                 </Div>
             </Div>
 
@@ -58,7 +71,7 @@ export default function OrganismPosNav() {
                             key={link.href}
                             href={link.href}
                             className={twMerge(
-                                'shrink-0 rounded-lg px-3 py-2 transition-colors hover:bg-gray-100',
+                                'flex min-h-11 shrink-0 items-center rounded-lg px-3 py-2 transition-colors hover:bg-gray-100 sm:min-h-0',
                                 active && 'bg-primary-50 hover:bg-primary-50',
                             )}
                         >
@@ -81,21 +94,12 @@ export default function OrganismPosNav() {
                     href={homePathForRole(session?.user?.role)}
                     className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50"
                 >
-                    <Icon name={IconComponentsEnum.arrowLeft} size={ESize.sm} color="text-gray-600" />
+                    <Icon name={IconComponentsEnum.arrowLeft} size={ESize.sm} color="text-gray-600" className="rtl:-scale-x-100" />
                     <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="font-medium">
                         {t('backToApp')}
                     </Label>
                 </Link>
             </Div>
-            <Link
-                href={homePathForRole(session?.user?.role)}
-                className="flex items-center gap-2 self-start lg:hidden"
-            >
-                <Icon name={IconComponentsEnum.arrowLeft} size={ESize.sm} color="text-gray-600" />
-                <Label variant={EVariantLabel.caption} color="text-gray-600">
-                    {t('backToApp')}
-                </Label>
-            </Link>
         </header>
     );
 }

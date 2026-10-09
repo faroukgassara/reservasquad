@@ -9,13 +9,13 @@ interface PosStatusPipelineProps {
 
 export default function PosStatusPipeline({ steps, active }: Readonly<PosStatusPipelineProps>) {
     return (
-        <Div className="inline-flex overflow-hidden rounded-lg border border-gray-200">
+        <Div className="inline-flex max-w-full overflow-x-auto rounded-lg border border-gray-200">
             {steps.map((step, index) => {
                 const isActive = step.key === active;
                 return (
                     <Div
                         key={step.key}
-                        className={`px-4 py-1.5 ${index > 0 ? 'border-s border-gray-200' : ''} ${
+                        className={`shrink-0 whitespace-nowrap px-2.5 py-1.5 sm:px-4 ${index > 0 ? 'border-s border-gray-200' : ''} ${
                             isActive ? 'bg-primary-50' : 'bg-white'
                         }`}
                     >

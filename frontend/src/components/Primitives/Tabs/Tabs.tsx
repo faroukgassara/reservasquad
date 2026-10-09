@@ -65,8 +65,8 @@ const TabButton = memo(function TabButton({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
                 'disabled:cursor-not-allowed disabled:opacity-50',
                 variant === 'underline'
-                    ? 'rounded-t-lg px-4 py-2.5 hover:bg-gray-50'
-                    : 'z-10 flex-1 whitespace-nowrap rounded-lg px-4 py-2',
+                    ? 'shrink-0 whitespace-nowrap rounded-t-lg px-4 py-2.5 hover:bg-gray-50'
+                    : 'z-10 min-h-11 flex-1 whitespace-nowrap rounded-lg px-4 py-2 sm:min-h-0',
                 !isDisabled && !isActive && 'hover:text-gray-700',
             )}
         >
@@ -135,7 +135,7 @@ const Tabs = memo(function Tabs({
             aria-orientation="horizontal"
             className={twMerge(
                 variant === 'underline'
-                    ? 'flex gap-0.5 border-b border-gray-200'
+                    ? 'flex max-w-full gap-0.5 overflow-x-auto border-b border-gray-200'
                     : 'inline-flex max-w-full gap-0.5 overflow-x-auto rounded-xl bg-gray-100 p-1',
                 className,
             )}

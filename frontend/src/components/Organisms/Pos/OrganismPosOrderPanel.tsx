@@ -133,142 +133,155 @@ export default function OrganismPosOrderPanel({
 
     return (
         <Div className="flex h-full min-h-0 flex-col bg-white">
-            <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto">
-                {cart.lines.length === 0 ? (
-                    <Div className="flex h-full flex-col items-center justify-center gap-2 p-6">
-                        <Icon name={IconComponentsEnum.shoppingCart} size={ESize.xl} color="text-gray-300" />
-                        <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                            {t('emptyOrder')}
+            {/* Phones scroll the lines and the controls together so the pinned pay bar never squeezes the cart. */}
+            <Div className="flex min-h-0 flex-1 flex-col overflow-y-auto tablet:overflow-hidden">
+                <div ref={listRef} className="tablet:min-h-0 tablet:flex-1 tablet:overflow-y-auto">
+                    {cart.lines.length === 0 ? (
+                        <Div className="flex flex-col items-center justify-center gap-2 px-6 py-10 tablet:h-full tablet:py-6">
+                            <Icon name={IconComponentsEnum.shoppingCart} size={ESize.xl} color="text-gray-300" />
+                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                {t('emptyOrder')}
+                            </Label>
+                        </Div>
+                    ) : (
+                        <ul>
+                            {cart.lines.map((line) => {
+                                const selected = line.id === cart.selectedLineId;
+                                return (
+                                    <li key={line.id}>
+                                        <button
+                                            type="button"
+                                            data-selected={selected}
+                                            onClick={() => cart.selectLine(line.id)}
+                                            className={twMerge(
+                                                'flex w-full items-start justify-between gap-3 border-b border-gray-100 px-4 py-2.5 text-start transition-colors hover:bg-gray-50',
+                                                selected && 'bg-primary-50 hover:bg-primary-50',
+                                            )}
+                                        >
+                                            <Div className="flex min-w-0 flex-col">
+                                                <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-semibold">
+                                                    {line.name}
+                                                </Label>
+                                                <Label variant={EVariantLabel.caption} color="text-gray-500" className="tabular-nums">
+                                                    {t('lineDetail', {
+                                                        quantity: line.quantity,
+                                                        price: formatMoney(line.unitPrice),
+                                                    })}
+                                                </Label>
+                                                {line.discountPct > 0 ? (
+                                                    <Label variant={EVariantLabel.caption} color="text-success-700">
+                                                        {t('lineDiscount', { value: line.discountPct })}
+                                                    </Label>
+                                                ) : null}
+                                            </Div>
+                                            <Label
+                                                variant={EVariantLabel.bodySmall}
+                                                color="text-gray-900"
+                                                className="shrink-0 font-semibold tabular-nums"
+                                            >
+                                                {formatMoney(cartLineTotal(line))}
+                                            </Label>
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </div>
+
+                <Div className="shrink-0 space-y-3 border-t border-gray-200 bg-white p-3">
+                    <Div className="hidden items-baseline justify-between gap-3 tablet:flex">
+                        <Label variant={EVariantLabel.subtitle} color="text-gray-700">
+                            {t('total')}
+                        </Label>
+                        <Label variant={EVariantLabel.h4} color="text-gray-900" className="tabular-nums">
+                            {formatMoney(cart.total)}
                         </Label>
                     </Div>
-                ) : (
-                    <ul>
-                        {cart.lines.map((line) => {
-                            const selected = line.id === cart.selectedLineId;
-                            return (
-                                <li key={line.id}>
-                                    <button
-                                        type="button"
-                                        data-selected={selected}
-                                        onClick={() => cart.selectLine(line.id)}
-                                        className={twMerge(
-                                            'flex w-full items-start justify-between gap-3 border-b border-gray-100 px-4 py-2.5 text-start transition-colors hover:bg-gray-50',
-                                            selected && 'bg-primary-50 hover:bg-primary-50',
-                                        )}
-                                    >
-                                        <Div className="flex min-w-0 flex-col">
-                                            <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-semibold">
-                                                {line.name}
-                                            </Label>
-                                            <Label variant={EVariantLabel.caption} color="text-gray-500" className="tabular-nums">
-                                                {t('lineDetail', {
-                                                    quantity: line.quantity,
-                                                    price: formatMoney(line.unitPrice),
-                                                })}
-                                            </Label>
-                                            {line.discountPct > 0 ? (
-                                                <Label variant={EVariantLabel.caption} color="text-success-700">
-                                                    {t('lineDiscount', { value: line.discountPct })}
-                                                </Label>
-                                            ) : null}
-                                        </Div>
-                                        <Label
-                                            variant={EVariantLabel.bodySmall}
-                                            color="text-gray-900"
-                                            className="shrink-0 font-semibold tabular-nums"
-                                        >
-                                            {formatMoney(cartLineTotal(line))}
-                                        </Label>
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                )}
-            </div>
 
-            <Div className="shrink-0 space-y-3 border-t border-gray-200 p-3">
-                <Div className="flex items-baseline justify-between gap-3">
-                    <Label variant={EVariantLabel.subtitle} color="text-gray-700">
+                    <Div className="flex gap-2">
+                        <Button
+                            id="pos-order-client"
+                            type={EButtonType.secondary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.user, size: ESize.sm, color: 'text-primary-500' }}
+                            text={cart.client ? `${cart.client.firstName} ${cart.client.lastName}` : t('client')}
+                            onClick={onPickClient}
+                            className="min-w-0 flex-1 truncate rounded-lg"
+                        />
+                        <Button
+                            id="pos-order-credit-payment"
+                            type={EButtonType.secondary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.userCheck, size: ESize.sm, color: 'text-primary-500' }}
+                            text={t('creditPaymentButton')}
+                            onClick={onPickCreditPayment}
+                            className="shrink-0 rounded-lg"
+                        />
+                        {cart.lines.length > 0 ? (
+                            <Button
+                                id="pos-order-clear"
+                                type={EButtonType.secondary}
+                                size={EButtonSize.medium}
+                                iconPosition="only"
+                                icon={{ name: IconComponentsEnum.trash, size: ESize.sm, color: 'text-danger-600' }}
+                                aria-label={t('clearOrder')}
+                                onClick={cart.clear}
+                            />
+                        ) : null}
+                    </Div>
+
+                    <Div className="grid grid-cols-2 gap-2">
+                        <Button
+                            id="pos-order-invoice"
+                            type={EButtonType.secondary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.filetext, size: ESize.sm, color: 'text-primary-500' }}
+                            text={t('invoiceButton')}
+                            onClick={onPickInvoice}
+                            className="min-w-0 truncate rounded-lg"
+                        />
+                        <Button
+                            id="pos-order-subscription"
+                            type={EButtonType.secondary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-500' }}
+                            text={t('subscriptionButton')}
+                            onClick={onPickSubscription}
+                            className="min-w-0 truncate rounded-lg"
+                        />
+                    </Div>
+
+                    <Input
+                        id="pos-order-note"
+                        placeholder={t('notePlaceholder')}
+                        value={cart.note}
+                        onChange={(e) => cart.setNote(e.target.value)}
+                        leftIcon="message"
+                    />
+
+                    <PosNumpad
+                        id="pos-order-numpad"
+                        rows={numpadRows}
+                        activeValue={`${MODE_KEY_PREFIX}${mode}`}
+                        onKey={handleKey}
+                    />
+                </Div>
+            </Div>
+
+            <Div className="flex shrink-0 items-center gap-3 border-t border-gray-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] tablet:border-t-0 tablet:pt-0 tablet:shadow-none">
+                <Div className="flex min-w-0 flex-col tablet:hidden">
+                    <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('total')}
                     </Label>
-                    <Label variant={EVariantLabel.h4} color="text-gray-900" className="tabular-nums">
+                    <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate tabular-nums">
                         {formatMoney(cart.total)}
                     </Label>
                 </Div>
-
-                <Div className="flex gap-2">
-                    <Button
-                        id="pos-order-client"
-                        type={EButtonType.secondary}
-                        size={EButtonSize.medium}
-                        iconPosition="left"
-                        icon={{ name: IconComponentsEnum.user, size: ESize.sm, color: 'text-primary-500' }}
-                        text={cart.client ? `${cart.client.firstName} ${cart.client.lastName}` : t('client')}
-                        onClick={onPickClient}
-                        className="min-w-0 flex-1 truncate rounded-lg"
-                    />
-                    <Button
-                        id="pos-order-credit-payment"
-                        type={EButtonType.secondary}
-                        size={EButtonSize.medium}
-                        iconPosition="left"
-                        icon={{ name: IconComponentsEnum.userCheck, size: ESize.sm, color: 'text-primary-500' }}
-                        text={t('creditPaymentButton')}
-                        onClick={onPickCreditPayment}
-                        className="shrink-0 rounded-lg"
-                    />
-                    {cart.lines.length > 0 ? (
-                        <Button
-                            id="pos-order-clear"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.medium}
-                            iconPosition="only"
-                            icon={{ name: IconComponentsEnum.trash, size: ESize.sm, color: 'text-danger-600' }}
-                            aria-label={t('clearOrder')}
-                            onClick={cart.clear}
-                        />
-                    ) : null}
-                </Div>
-
-                <Div className="grid grid-cols-2 gap-2">
-                    <Button
-                        id="pos-order-invoice"
-                        type={EButtonType.secondary}
-                        size={EButtonSize.medium}
-                        iconPosition="left"
-                        icon={{ name: IconComponentsEnum.filetext, size: ESize.sm, color: 'text-primary-500' }}
-                        text={t('invoiceButton')}
-                        onClick={onPickInvoice}
-                        className="min-w-0 truncate rounded-lg"
-                    />
-                    <Button
-                        id="pos-order-subscription"
-                        type={EButtonType.secondary}
-                        size={EButtonSize.medium}
-                        iconPosition="left"
-                        icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-500' }}
-                        text={t('subscriptionButton')}
-                        onClick={onPickSubscription}
-                        className="min-w-0 truncate rounded-lg"
-                    />
-                </Div>
-
-                <Input
-                    id="pos-order-note"
-                    placeholder={t('notePlaceholder')}
-                    value={cart.note}
-                    onChange={(e) => cart.setNote(e.target.value)}
-                    leftIcon="message"
-                />
-
-                <PosNumpad
-                    id="pos-order-numpad"
-                    rows={numpadRows}
-                    activeValue={`${MODE_KEY_PREFIX}${mode}`}
-                    onKey={handleKey}
-                />
-
                 <Button
                     id="pos-order-pay"
                     type={EButtonType.primary}
@@ -278,7 +291,7 @@ export default function OrganismPosOrderPanel({
                     text={t('payment')}
                     disabled={!canPay}
                     onClick={onPay}
-                    className="h-14 w-full rounded-lg"
+                    className="h-14 min-w-0 flex-1 rounded-lg rtl:[&_svg]:-scale-x-100"
                 />
             </Div>
         </Div>

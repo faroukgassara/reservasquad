@@ -142,6 +142,13 @@ export default function OrganismPosPaymentScreen({
         ],
     ];
 
+    const validate = () =>
+        onValidate(
+            payments
+                .filter((l) => l.amount > 0)
+                .map((l) => ({ method: l.method, amount: round3(l.amount) })),
+        );
+
     return (
         <Div className="flex min-h-0 flex-1 flex-col bg-gray-25">
             <Div className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3">
@@ -153,8 +160,9 @@ export default function OrganismPosPaymentScreen({
                     icon={{ name: IconComponentsEnum.arrowLeft, size: ESize.sm, color: 'text-primary-500' }}
                     text={t('back')}
                     onClick={onBack}
+                    className="rtl:[&_svg]:-scale-x-100"
                 />
-                <Label variant={EVariantLabel.h5} color="text-gray-900">
+                <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate">
                     {t('title')}
                 </Label>
                 <Button
@@ -166,19 +174,14 @@ export default function OrganismPosPaymentScreen({
                     text={t('validate')}
                     disabled={!canValidate}
                     isLoading={isSubmitting}
-                    onClick={() =>
-                        onValidate(
-                            payments
-                                .filter((l) => l.amount > 0)
-                                .map((l) => ({ method: l.method, amount: round3(l.amount) })),
-                        )
-                    }
+                    onClick={validate}
+                    className="hidden sm:flex"
                 />
             </Div>
 
-            <Div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-4 lg:grid-cols-[280px_minmax(0,1fr)_340px]">
-                <Div className="space-y-2">
-                    <Label variant={EVariantLabel.overline} color="text-gray-500">
+            <Div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-3 sm:p-4 tablet:grid-cols-[minmax(0,1fr)_320px] lg:grid-cols-[280px_minmax(0,1fr)_340px]">
+                <Div className="grid grid-cols-2 gap-2 tablet:col-start-1 tablet:row-start-1 lg:grid-cols-1 lg:content-start">
+                    <Label variant={EVariantLabel.overline} color="text-gray-500" className="col-span-full">
                         {t('methods')}
                     </Label>
                     {options.map((option) => (
@@ -191,17 +194,20 @@ export default function OrganismPosPaymentScreen({
                             icon={{ name: OPTION_ICON[option], size: ESize.sm, color: 'text-primary-500' }}
                             text={t(`options.${option}`)}
                             onClick={() => addOption(option)}
-                            className="h-14 w-full justify-start rounded-lg"
+                            className="h-14 w-full min-w-0 justify-start rounded-lg px-3 sm:px-4"
                         />
                     ))}
                 </Div>
 
-                <Div className="flex flex-col gap-4">
-                    <Div className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
+                <Div className="flex min-w-0 flex-col gap-4 tablet:col-start-1 tablet:row-start-2 lg:col-start-2 lg:row-start-1">
+                    <Div className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm sm:p-6">
                         <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
                             {t('totalDue')}
                         </Label>
-                        <Label variant={EVariantLabel.h1} color="text-primary-600" className="block tabular-nums">
+                        <Label variant={EVariantLabel.h3} color="text-primary-600" className="block tabular-nums tablet:hidden">
+                            {formatMoney(total)}
+                        </Label>
+                        <Label variant={EVariantLabel.h1} color="text-primary-600" className="hidden tabular-nums tablet:block">
                             {formatMoney(total)}
                         </Label>
                         <Div className="mt-3 flex justify-center gap-6">
@@ -266,7 +272,7 @@ export default function OrganismPosPaymentScreen({
                                     name={IconComponentsEnum.close}
                                     size={ESize.sm}
                                     color="text-gray-500"
-                                    className="cursor-pointer"
+                                    className="-m-3 box-content shrink-0 cursor-pointer p-3"
                                     handleClick={() => removeLine(line.id)}
                                 />
                             </Div>
@@ -284,7 +290,7 @@ export default function OrganismPosPaymentScreen({
                     </Div>
                 </Div>
 
-                <Div className="space-y-3">
+                <Div className="space-y-3 tablet:col-start-2 tablet:row-span-2 tablet:row-start-1 lg:col-start-3 lg:row-span-1">
                     <Button
                         id="pos-payment-client"
                         type={EButtonType.secondary}
@@ -297,6 +303,33 @@ export default function OrganismPosPaymentScreen({
                     />
                     <PosNumpad id="pos-payment-numpad" rows={numpadRows} onKey={handleKey} disabled={!selectedId} />
                 </Div>
+            </Div>
+
+            <Div className="flex shrink-0 items-center gap-3 border-t border-gray-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:hidden">
+                <Div className="flex min-w-0 flex-col">
+                    <Label variant={EVariantLabel.caption} color="text-gray-500">
+                        {t('remaining')}
+                    </Label>
+                    <Label
+                        variant={EVariantLabel.h6}
+                        color={remaining > 0 ? 'text-danger-600' : 'text-gray-900'}
+                        className="truncate tabular-nums"
+                    >
+                        {formatMoney(remaining)}
+                    </Label>
+                </Div>
+                <Button
+                    id="pos-payment-validate-mobile"
+                    type={EButtonType.primary}
+                    size={EButtonSize.large}
+                    iconPosition="right"
+                    icon={{ name: IconComponentsEnum.check, size: ESize.sm, color: 'text-white' }}
+                    text={t('validate')}
+                    disabled={!canValidate}
+                    isLoading={isSubmitting}
+                    onClick={validate}
+                    className="h-14 min-w-0 flex-1 rounded-lg"
+                />
             </Div>
         </Div>
     );

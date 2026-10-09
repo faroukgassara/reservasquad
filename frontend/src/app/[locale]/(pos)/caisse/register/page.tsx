@@ -18,13 +18,15 @@ import PosDocumentPickerModal, {
     type PayableDocument,
 } from '@/components/Modals/PosDocumentPickerModal/PosDocumentPickerModal';
 import PosSessionOrdersModal from '@/components/Modals/PosSessionOrdersModal/PosSessionOrdersModal';
+import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
+import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import { PosCartProvider, usePosCart } from '@/contexts/PosCartContext';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
-import { ESize, EToastType, EVariantLabel } from '@/Enum/Enum';
+import { EButtonSize, EButtonType, ESize, EToastType, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { formatMoney } from '@/lib/daily-income-api';
 import {
     closePosSession,
@@ -182,11 +184,12 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
                 />
             );
         }
+        const canPay = cart.lines.length > 0 && cart.lines.every((l) => l.quantity !== 0) && cart.total >= 0;
         return (
-            <Div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+            <Div className="flex min-h-0 flex-1 flex-col tablet:flex-row">
                 <Div
                     className={twMerge(
-                        'min-h-0 flex-1 flex-col lg:flex',
+                        'min-h-0 flex-1 flex-col tablet:flex',
                         mobileView === 'products' ? 'flex' : 'hidden',
                     )}
                 >
@@ -199,46 +202,62 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
                 </Div>
                 <Div
                     className={twMerge(
-                        'min-h-0 flex-1 flex-col border-gray-200 lg:order-first lg:flex lg:w-[400px] lg:flex-none lg:border-e xl:w-[440px]',
+                        'min-h-0 flex-1 flex-col border-gray-200 tablet:order-first tablet:flex tablet:w-80 tablet:flex-none tablet:border-e laptop:w-[400px] xl:w-[440px]',
                         mobileView === 'order' ? 'flex' : 'hidden',
                     )}
                 >
-                    <OrganismPosOrderPanel
-                        onPay={() => setScreen('payment')}
-                        onPickClient={() => clientModal.openModal()}
-                        onPickInvoice={() => invoiceModal.openModal()}
-                        onPickSubscription={() => subscriptionModal.openModal()}
-                        onPickCreditPayment={() => creditPaymentModal.openModal()}
-                    />
-                </Div>
-                <Div className="grid shrink-0 grid-cols-2 border-t border-gray-200 bg-white lg:hidden">
                     <button
                         type="button"
                         onClick={() => setMobileView('products')}
-                        className={twMerge('py-3', mobileView === 'products' && 'bg-primary-50')}
+                        className="flex min-h-12 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-4 text-start tablet:hidden"
                     >
-                        <Label
-                            variant={EVariantLabel.bodySmall}
-                            color={mobileView === 'products' ? 'text-primary-600' : 'text-gray-600'}
-                            className="font-medium"
-                        >
+                        <Icon
+                            name={IconComponentsEnum.arrowLeft}
+                            size={ESize.sm}
+                            color="text-primary-600"
+                            className="rtl:-scale-x-100"
+                        />
+                        <Label variant={EVariantLabel.bodySmall} color="text-primary-600" className="font-medium">
                             {t('mobileProducts')}
                         </Label>
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setMobileView('order')}
-                        className={twMerge('py-3', mobileView === 'order' && 'bg-primary-50')}
-                    >
-                        <Label
-                            variant={EVariantLabel.bodySmall}
-                            color={mobileView === 'order' ? 'text-primary-600' : 'text-gray-600'}
-                            className="font-medium tabular-nums"
-                        >
-                            {t('mobileOrder', { count: cart.itemsCount, total: formatMoney(cart.total) })}
-                        </Label>
-                    </button>
+                    <Div className="min-h-0 flex-1">
+                        <OrganismPosOrderPanel
+                            onPay={() => setScreen('payment')}
+                            onPickClient={() => clientModal.openModal()}
+                            onPickInvoice={() => invoiceModal.openModal()}
+                            onPickSubscription={() => subscriptionModal.openModal()}
+                            onPickCreditPayment={() => creditPaymentModal.openModal()}
+                        />
+                    </Div>
                 </Div>
+                {mobileView === 'products' ? (
+                    <Div className="flex shrink-0 items-center gap-2 border-t border-gray-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] tablet:hidden">
+                        <button
+                            type="button"
+                            onClick={() => setMobileView('order')}
+                            className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-lg bg-gray-100 px-3 text-start"
+                        >
+                            <Icon name={IconComponentsEnum.shoppingCart} size={ESize.sm} color="text-primary-600" />
+                            <Label
+                                variant={EVariantLabel.bodySmall}
+                                color="text-gray-900"
+                                className="truncate font-medium tabular-nums"
+                            >
+                                {t('mobileOrder', { count: cart.itemsCount, total: formatMoney(cart.total) })}
+                            </Label>
+                        </button>
+                        <Button
+                            id="pos-mobile-pay"
+                            type={EButtonType.primary}
+                            size={EButtonSize.large}
+                            text={t('payment')}
+                            disabled={!canPay}
+                            onClick={() => setScreen('payment')}
+                            className="h-12 shrink-0 rounded-lg px-5"
+                        />
+                    </Div>
+                ) : null}
             </Div>
         );
     };

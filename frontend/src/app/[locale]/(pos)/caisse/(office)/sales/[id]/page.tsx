@@ -370,7 +370,7 @@ export default function PosSaleOrderPage() {
                         </Div>
                     ) : (
                         <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <Div className="flex flex-col gap-3 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
+                            <Div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                                 {actionButtons}
                                 {status === 'CANCELLED' ? (
                                     <Badge
@@ -407,8 +407,8 @@ export default function PosSaleOrderPage() {
                                 </Div>
                             ) : null}
 
-                            <Div className="space-y-6 px-6 py-5">
-                                <Label variant={EVariantLabel.h3} color="text-gray-900">
+                            <Div className="space-y-5 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
+                                <Label variant={EVariantLabel.h3} color="text-gray-900" className="break-all">
                                     {title}
                                 </Label>
 

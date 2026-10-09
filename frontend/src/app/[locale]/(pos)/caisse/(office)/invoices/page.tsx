@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { twMerge } from 'tailwind-merge';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismPosBillingTabs from '@/components/Organisms/Pos/OrganismPosBillingTabs';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
@@ -35,12 +36,15 @@ const PAYMENT_STATES: InvoicePaymentState[] = ['NOT_PAID', 'PARTIAL', 'PAID'];
 
 export default function PosInvoicesPage() {
     const t = useTranslations('pos.invoices');
+    const tCommon = useTranslations('common');
     const router = useRouter();
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [type, setType] = useState<'all' | InvoiceType>('all');
     const [status, setStatus] = useState<'all' | InvoiceStatus>('all');
     const [paymentState, setPaymentState] = useState<'all' | InvoicePaymentState>('all');
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const hasActiveFilters = type !== 'all' || status !== 'all' || paymentState !== 'all';
 
     const { data, isLoading } = useQuery({
         queryKey: ['invoices', page, search, type, status, paymentState],
@@ -188,8 +192,32 @@ export default function PosInvoicesPage() {
             mainSection={
                 <Div className="space-y-3">
                     <Div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-                        <OrganismPosBillingTabs active="invoices" />
-                        <Div className="flex flex-1 flex-col gap-2 sm:flex-row sm:justify-end">
+                        <Div className="flex items-center gap-2">
+                            <OrganismPosBillingTabs active="invoices" />
+                            <Button
+                                id="invoice-filters-toggle"
+                                type={hasActiveFilters ? EButtonType.primary : EButtonType.secondary}
+                                size={EButtonSize.medium}
+                                iconPosition="only"
+                                icon={{
+                                    name: IconComponentsEnum.filter,
+                                    size: ESize.sm,
+                                    color: hasActiveFilters ? 'text-white' : 'text-primary-500',
+                                }}
+                                onClick={() => setFiltersOpen((open) => !open)}
+                                aria-label={tCommon('filter')}
+                                aria-expanded={filtersOpen}
+                                aria-controls="invoice-filters"
+                                className="shrink-0 sm:hidden"
+                            />
+                        </Div>
+                        <Div
+                            id="invoice-filters"
+                            className={twMerge(
+                                'flex-1 flex-col gap-2 sm:flex sm:flex-row sm:justify-end',
+                                filtersOpen ? 'flex' : 'hidden',
+                            )}
+                        >
                         <Dropdown
                             options={[
                                 { value: 'all', label: t('allTypes') },
