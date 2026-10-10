@@ -1,5 +1,6 @@
 import { forwardRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { useCurrentModal } from '@/contexts/ModalContext'
 import WithChildren from '@/types/WithChildren'
 import { twMerge } from 'tailwind-merge'
@@ -23,6 +24,9 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
     ref
   ) => {
     const { closeModal, setCanClose, setCanCloseOnClickOutside, setIsDrawer } = useCurrentModal()
+    const tCommon = useTranslations('common')
+    // Drawers sit on the inline-end edge, so they slide in from the left in RTL.
+    const drawerOffset = typeof document !== 'undefined' && document.documentElement.dir === 'rtl' ? -1000 : 1000
 
     useEffect(() => {
       setCanClose?.(!!canClose)
@@ -57,20 +61,25 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
           className={twMerge(
             'flex flex-col bg-white shadow-md',
             isDrawer
-              ? 'h-dvh max-h-dvh w-full rounded-none sm:w-full md:w-105'
+              ? 'h-dvh max-h-dvh w-full rounded-none sm:w-105'
               : 'h-auto max-h-[min(90dvh,720px)] w-[min(92vw,520px)] rounded-lg',
             className,
           )}
           ref={ref}
-          initial={isDrawer ? { x: 1000 } : { opacity: 0, y: -20 }}
+          initial={isDrawer ? { x: drawerOffset } : { opacity: 0, y: -20 }}
           animate={{ opacity: 1, x: 0, y: 0 }}
-          exit={isDrawer ? { x: 1000 } : { opacity: 0, y: -20 }}
+          exit={isDrawer ? { x: drawerOffset } : { opacity: 0, y: -20 }}
           transition={{ ease: "easeInOut", duration: 0.2 }}
           onClick={(e) => e.stopPropagation()}
           data-modal="true"
         >
           {canClose && (
-            <div className="flex shrink-0 items-center justify-between rounded-t-lg bg-color-primary py-1 px-6 text-color-background z-modal">
+            <div
+              className={twMerge(
+                'z-modal flex shrink-0 items-center gap-3 rounded-t-lg px-4 sm:px-6',
+                isDrawer ? 'border-b border-gray-100 py-4' : 'items-start pt-4 sm:pt-6',
+              )}
+            >
               {isDrawer ? (
                 <Button
                   id="button-close"
@@ -83,22 +92,39 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
                   }}
                   iconPosition="only"
                   onClick={closeModal}
-                  className="mr-3"
+                  aria-label={tCommon('close')}
+                  className="rtl:-scale-x-100"
                 />
-              ) : (
-                <div className="w-8 mr-3" />
-              )}
-              <div className="flex flex-col flex-1">
+              ) : null}
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <Label color="text-gray-900" variant={EVariantLabel.h5}>{title}</Label>
-                <Label color="text-gray-900" variant={EVariantLabel.bodySmall}>{subTitle}</Label>
+                {subTitle ? (
+                  <Label color="text-gray-500" variant={EVariantLabel.bodySmall}>{subTitle}</Label>
+                ) : null}
               </div>
+              {isDrawer ? null : (
+                <Button
+                  id="button-close"
+                  type={EButtonType.tertiary}
+                  size={EButtonSize.small}
+                  icon={{
+                    name: IconComponentsEnum.close,
+                    size: ESize.md,
+                    color: 'text-gray-500',
+                  }}
+                  iconPosition="only"
+                  onClick={closeModal}
+                  aria-label={tCommon('close')}
+                  className="-me-2 shrink-0"
+                />
+              )}
             </div>
           )}
           <div
             className={twMerge(
               isDrawer
                 ? 'flex min-h-0 flex-1 flex-col overflow-hidden'
-                : 'flex-1 overflow-auto',
+                : twMerge('flex-1 overflow-auto px-4 pb-4 sm:px-6 sm:pb-6', canClose ? 'pt-4 sm:pt-5' : 'pt-4 sm:pt-6'),
               bodyClassName,
             )}
           >

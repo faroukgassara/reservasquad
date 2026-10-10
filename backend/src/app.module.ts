@@ -15,6 +15,7 @@ import { ReservationModule } from './component/reservation/reservation.module';
 import { DailyIncomeModule } from './component/dailyIncome/daily-income.module';
 import { AuditModule } from './component/audit/audit.module';
 import { CreditModule } from './component/credit/credit.module';
+import { PosModule } from './component/pos/pos.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CreditModule } from './component/credit/credit.module';
     DailyIncomeModule,
     AuditModule,
     CreditModule,
+    PosModule,
   ],
   controllers: [AppController],
   providers: [

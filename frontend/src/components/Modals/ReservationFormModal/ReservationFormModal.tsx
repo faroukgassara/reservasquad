@@ -470,7 +470,7 @@ export default function ReservationFormModal({
                     await handleFormSubmit();
                 }}
             >
-                <DrawerScrollContent className="gap-0 space-y-6 p-6">
+                <DrawerScrollContent className="gap-6">
                     <FormSection title={t('sectionBooking')}>
                         <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <form.Field

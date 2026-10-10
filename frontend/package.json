@@ -24,6 +24,7 @@
     "next-auth": "^4.24.15",
     "next-intl": "^4.14.2",
     "next-themes": "^0.4.6",
+    "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-colorful": "^5.8.1",
     "react-dom": "19.2.8",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^26.4.1",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-portal": "^4.0.7",

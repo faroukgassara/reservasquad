@@ -1,17 +1,16 @@
 'use client';
 
 import React from 'react';
-import ResetPasswordImage from '@/assets/images/reset-password.jpg';
-import Label from '@/components/Primitives/Label/Label';
-import Button from '@/components/Primitives/Button/Button';
-import Input from '@/components/Primitives/Input/Input';
-import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Routes } from '@/lib/routes';
+import { useTranslations } from 'next-intl';
+import Input from '@/components/Primitives/Input/Input';
+import Button from '@/components/Primitives/Button/Button';
+import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
+import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
+import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
 import { ITemplateForgotPassword } from '@/interfaces';
-import { EVariantLabel } from '@/Enum/Enum';
-import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import { EButtonSize, EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum';
+import { Routes } from '@/lib/routes';
 
 const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
     form,
@@ -20,112 +19,107 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
     const t = useTranslations();
 
     return (
-        <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden lg:flex-row">
-            <div className="flex min-h-0 w-full flex-col items-center overflow-y-auto px-4 py-8 sm:py-12 lg:w-1/2 lg:justify-center lg:overflow-hidden lg:py-12">
-                <div className="flex w-full max-w-lg flex-col items-center justify-center">
-                    <div className="mb-8 flex w-full flex-col items-center text-center">
-                        <div className="relative mb-8">
-                            <Image
-                                src={BiblioSquadLogo}
-                                alt="Biblio Squad Logo"
-                                width={200}
-                                height={50}
-                                className="object-contain"
-                                priority
-                            />
-                        </div>
-                        <Label
-                            color="text-primary-500"
-                            className="mb-2 text-primary-500"
-                            variant={EVariantLabel.h3}
-                        >
-                            {t('auth.forgotPasswordTitle')}
-                        </Label>
-                        {showMaxAttemptsHint && (
-                            <Label
-                                color="text-danger-600"
-                                className="mt-2 text-danger-600"
-                                variant={EVariantLabel.hint}
-                            >
-                                {t('auth.loginAttemptsExceeded')}
-                            </Label>
-                        )}
-                    </div>
-
-                    <form
-                        className="w-full"
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            form.handleSubmit();
-                        }}
-                    >
-                        <form.Field name="email">
-                            {({ state, handleChange }: any) => (
-                                <Input
-                                    containerClassName="mb-4"
-                                    label={t('auth.email')}
-                                    placeholder={t('auth.enterYourEmail')}
-                                    value={state.value}
-                                    id="forgot-password-email"
-                                    onChange={(e) => handleChange(e.target.value)}
-                                    hintText={state.meta.errors[0]?.message}
-                                    error={state.meta.errors[0]}
-                                    required
-                                />
-                            )}
-                        </form.Field>
-
-                        <div className="mt-4 flex items-center justify-end mb-4">
-                            <Link
-                                href={Routes.Login}
-                                className="block text-primary-500 text-sm font-semibold hover:underline"
-                            >
-                                {t('auth.backToLogin')}
-                            </Link>
-                        </div>
-
-                        <form.Subscribe
-                            selector={(state: any) => [
-                                state.canSubmit,
-                                state.isSubmitting,
-                            ]}
-                        >
-                            {([canSubmit, isSubmitting]: [boolean, boolean]) => (
-                                <Button
-                                    id="forgot-password-submit-btn"
-                                    className="group rounded-lg relative w-full flex justify-center"
-                                    disabled={!canSubmit}
-                                    isLoading={isSubmitting}
-                                    text={
-                                        isSubmitting
-                                            ? t('common.loading')
-                                            : t('auth.send')
-                                    }
-                                    onClick={() => form.handleSubmit()}
-                                />
-                            )}
-                        </form.Subscribe>
-                    </form>
-                </div>
+        <div className="relative flex min-h-dvh flex-col items-center justify-center bg-gray-50/60 p-4 transition-colors duration-200 dark:bg-[#0b121e] sm:p-6">
+            {/* Top Controls: LanguageSwitcher & ThemeToggle above Card, aligned to right edge */}
+            <div className="mb-3.5 flex w-full max-w-[420px] items-center justify-end gap-2">
+                <LanguageSwitcher menuPlacement="top" className="w-auto" />
+                <ThemeToggle />
             </div>
 
-            <div
-                className="relative hidden min-h-0 w-1/2 overflow-hidden p-4 lg:flex"
-                style={{
-                    background: 'repeating-linear-gradient(-45deg, var(--ds-primary-200), var(--ds-primary-200) 1px, transparent 1px, transparent 10px)',
-                }}
-            >
-                <div className="relative h-full w-full overflow-hidden rounded-xl">
-                    <Image
-                        src={ResetPasswordImage}
-                        alt="Reset password"
-                        fill
-                        className="object-cover"
-                        sizes="50vw"
-                        priority
-                    />
+            {/* Main Auth Card */}
+            <div className="w-full max-w-[420px] rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-colors duration-200 dark:border-gray-800/80 dark:bg-[#131b2e] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:p-8">
+                {/* Logo & Title */}
+                <div className="mb-6 flex flex-col items-center text-center">
+                    <div className="mb-2.5 flex justify-center">
+                        <BrandLogo
+                            alt="Biblio Squad"
+                            width={180}
+                            height={42}
+                            className="h-10 w-auto object-contain"
+                            priority
+                        />
+                    </div>
+                    <h1 className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                        {t('auth.forgotPasswordTitle')}
+                    </h1>
+                    {showMaxAttemptsHint && (
+                        <p className="mt-1.5 text-xs text-danger-600 dark:text-danger-400">
+                            {t('auth.loginAttemptsExceeded')}
+                        </p>
+                    )}
                 </div>
+
+                {/* Form */}
+                <form
+                    className="w-full"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        form.handleSubmit();
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            form.handleSubmit();
+                        }
+                    }}
+                >
+                    <form.Field name="email">
+                        {({ state, handleChange }: any) => (
+                            <Input
+                                containerClassName="mb-3"
+                                label={t('auth.email')}
+                                placeholder={t('auth.enterYourEmail')}
+                                value={state.value}
+                                id="forgot-password-email"
+                                onChange={(e) => handleChange(e.target.value)}
+                                hintText={state.meta.errors[0]?.message}
+                                error={state.meta.errors[0]}
+                                required
+                            />
+                        )}
+                    </form.Field>
+
+                    <div className="mb-6 flex justify-end">
+                        <Link
+                            href={Routes.Login}
+                            className="text-xs font-medium text-gray-500 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
+                        >
+                            {t('auth.backToLogin')}
+                        </Link>
+                    </div>
+
+                    <form.Subscribe
+                        selector={(state: any) => [
+                            state.canSubmit,
+                            state.isSubmitting,
+                        ]}
+                    >
+                        {([canSubmit, isSubmitting]: [boolean, boolean]) => (
+                            <Button
+                                id="forgot-password-submit-btn"
+                                htmlType="submit"
+                                type={EButtonType.primary}
+                                size={EButtonSize.medium}
+                                icon={{
+                                    name: IconComponentsEnum.arrowRight,
+                                    size: ESize.xs,
+                                    color: 'text-white',
+                                }}
+                                iconPosition="right"
+                                className="h-11 w-full justify-center rounded-xl font-medium rtl:[&_svg]:-scale-x-100"
+                                disabled={!canSubmit}
+                                isLoading={isSubmitting}
+                                text={
+                                    isSubmitting
+                                        ? t('common.loading')
+                                        : t('auth.send')
+                                }
+                                onClick={() => form.handleSubmit()}
+                            />
+                        )}
+                    </form.Subscribe>
+                </form>
             </div>
         </div>
     );

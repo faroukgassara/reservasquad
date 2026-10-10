@@ -8,14 +8,11 @@ import {
   CreateCreditClientDto,
   UpdateCreditClientDto,
 } from 'src/dto/credit/creditClient.dto';
-import {
-  CreateCreditDto,
-  CreateCreditPaymentDto,
-  UpdateCreditDto,
-} from 'src/dto/credit/credit.dto';
+import { CreateCreditDto, CreateCreditPaymentDto } from 'src/dto/credit/credit.dto';
 import { AuditService } from '../audit/audit.service';
 
 const ENTITY_TYPE = 'CREDIT';
+const CREDIT_ERROR_REGISTER_PAYMENT = 'Register payments must be refunded from the register';
 
 const activePayments = {
   where: { deletedAt: null },
@@ -98,6 +95,10 @@ export class CreditService {
         firstName: dto.firstName.trim(),
         lastName: dto.lastName.trim(),
         phone: dto.phone?.replaceAll(/\s+/g, '') || null,
+        email: dto.email?.trim() || null,
+        address: dto.address?.trim() || null,
+        taxId: dto.taxId?.trim() || null,
+        cin: dto.cin?.trim() || null,
       },
     });
     await this.log(
@@ -119,6 +120,10 @@ export class CreditService {
         ...(dto.phone !== undefined && {
           phone: dto.phone?.replaceAll(/\s+/g, '') || null,
         }),
+        ...(dto.email !== undefined && { email: dto.email?.trim() || null }),
+        ...(dto.address !== undefined && { address: dto.address?.trim() || null }),
+        ...(dto.taxId !== undefined && { taxId: dto.taxId?.trim() || null }),
+        ...(dto.cin !== undefined && { cin: dto.cin?.trim() || null }),
       },
     });
     await this.log(
@@ -242,13 +247,36 @@ export class CreditService {
 
   async createCredit(dto: CreateCreditDto, actorId?: string) {
     const client = await this.getClientById(dto.clientId);
-    const credit = await this.prismaService.credit.create({
-      data: {
-        clientId: client.id,
-        date: this.toDateOnly(dto.date),
-        amount: Number(dto.amount).toFixed(2),
-        description: dto.description?.trim() || null,
-      },
+    const credit = await this.prismaService.$transaction(async (tx) => {
+      const product = dto.productId
+        ? await tx.posProduct.findFirst({
+            where: { id: dto.productId, deletedAt: null },
+            select: { id: true, name: true, price: true },
+          })
+        : null;
+      if (dto.productId && !product) throw new BadRequestException('Product not found');
+
+      const quantity = product ? Number(dto.quantity) : null;
+      const amount = product ? round2(Number(product.price) * quantity!) : Number(dto.amount);
+      if (amount <= 0) throw new BadRequestException('Credit amount must be positive');
+      const productLabel = product && (quantity === 1 ? product.name : `${quantity} x ${product.name}`);
+
+      if (product) {
+        await tx.posProduct.update({
+          where: { id: product.id },
+          data: { stockQty: { decrement: quantity! } },
+        });
+      }
+      return tx.credit.create({
+        data: {
+          clientId: client.id,
+          date: this.toDateOnly(dto.date),
+          amount: amount.toFixed(2),
+          description: dto.description?.trim() || productLabel || null,
+          productId: product?.id ?? null,
+          quantity,
+        },
+      });
     });
     await this.log(
       credit.id,
@@ -259,35 +287,20 @@ export class CreditService {
     return credit;
   }
 
-  async updateCredit(id: string, dto: UpdateCreditDto, actorId?: string) {
-    const existing = await this.getCreditWithPayments(id);
-    if (dto.amount !== undefined) {
-      const { totalPaid } = this.creditTotals(existing);
-      if (round2(dto.amount) < totalPaid) {
-        throw new BadRequestException(
-          'Credit amount cannot be lower than the amount already paid',
-        );
-      }
-    }
-    const credit = await this.prismaService.credit.update({
-      where: { id },
-      data: {
-        ...(dto.date !== undefined && { date: this.toDateOnly(dto.date) }),
-        ...(dto.amount !== undefined && { amount: Number(dto.amount).toFixed(2) }),
-        ...(dto.description !== undefined && {
-          description: dto.description?.trim() || null,
-        }),
-      },
-    });
-    await this.log(credit.id, 'UPDATE', `Updated credit ${credit.id}`, actorId);
-    return credit;
-  }
-
   async deleteCredit(id: string, actorId?: string) {
     await this.getCreditWithPayments(id);
-    const credit = await this.prismaService.credit.update({
-      where: { id },
-      data: { deletedAt: new Date() },
+    const credit = await this.prismaService.$transaction(async (tx) => {
+      const deleted = await tx.credit.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+      if (deleted.productId && deleted.quantity) {
+        await tx.posProduct.update({
+          where: { id: deleted.productId },
+          data: { stockQty: { increment: deleted.quantity } },
+        });
+      }
+      return deleted;
     });
     await this.log(
       credit.id,
@@ -326,6 +339,9 @@ export class CreditService {
       where: { id, deletedAt: null },
     });
     if (!payment) throw new NotFoundException('Payment not found');
+    if (payment.posOrderLineId) {
+      throw new BadRequestException(CREDIT_ERROR_REGISTER_PAYMENT);
+    }
     const deleted = await this.prismaService.creditPayment.update({
       where: { id },
       data: { deletedAt: new Date() },

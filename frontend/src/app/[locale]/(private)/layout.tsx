@@ -5,7 +5,6 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger }
 import { EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum';
 import { Routes } from '@/lib/routes';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import { signOut, useSession } from 'next-auth/react';
 import { twMerge } from 'tailwind-merge';
 import Button from '@/components/Primitives/Button/Button';
@@ -15,8 +14,9 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Avatar from '@/components/Primitives/Avatar/Avatar';
-import BiblioSquadLogo from '@/assets/images/bibliosquad-logo.png';
+import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
+import ui from '@/theme/ui';
 
 export default function PrivateLayout({
     children,
@@ -25,7 +25,7 @@ export default function PrivateLayout({
 }>) {
     const t = useTranslations('sidebar');
     const tCommon = useTranslations('common');
-    const isDesktop = useMediaQuery('(min-width: 1024px)');
+    const isDesktop = useMediaQuery(`(min-width: ${ui.breakPoints.md})`);
     const isMobile = !isDesktop;
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const { data: session } = useSession();
@@ -92,10 +92,10 @@ export default function PrivateLayout({
             hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
         },
         {
-            id: 'credits',
-            iconName: IconComponentsEnum.filetext,
-            label: t('credits'),
-            href: Routes.Credits.index,
+            id: 'pos',
+            iconName: IconComponentsEnum.shoppingCart,
+            label: t('pos'),
+            href: Routes.Pos.index,
             hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
         },
         {
@@ -129,7 +129,7 @@ export default function PrivateLayout({
     ];
 
     let sidebarLayoutClass =
-        'fixed inset-y-0 left-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl transition-transform duration-200 lg:static lg:z-auto lg:w-70 lg:translate-x-0 lg:shadow-none';
+        'fixed inset-y-0 start-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl transition-transform duration-200 lg:static lg:z-auto lg:w-70 lg:translate-x-0 lg:shadow-none';
     if (!isMobile) {
         sidebarLayoutClass = sidebarOpen ? 'w-70' : 'w-20 bg-primary-900';
     }
@@ -152,16 +152,15 @@ export default function PrivateLayout({
                         setOpen={setSidebarOpen}
                         isMobile={isMobile}
                         className={twMerge(
-                            'border-r border-gray-200 bg-white',
+                            'border-e border-gray-200 bg-white',
                             sidebarLayoutClass,
-                            isMobile && !sidebarOpen && '-translate-x-full',
+                            isMobile && !sidebarOpen && 'ltr:-translate-x-full rtl:translate-x-full',
                         )}
                     >
                         <SidebarHeader className="p-4">
                             {(sidebarOpen || isMobile) && (
                                 <Link href={homeHref} className="flex shrink-0 items-center gap-2">
-                                    <Image
-                                        src={BiblioSquadLogo}
+                                    <BrandLogo
                                         alt={tCommon('brandLogoAlt')}
                                         height={30}
                                         className="w-auto object-contain"

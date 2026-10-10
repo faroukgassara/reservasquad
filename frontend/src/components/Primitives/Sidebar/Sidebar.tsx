@@ -120,7 +120,7 @@ const SidebarContent = ({
         twMerge(
             "flex items-center transition-all duration-200",
             isExpanded
-                ? "rounded-lg py-2.5 pl-5"
+                ? "rounded-lg py-2.5 ps-5"
                 : "mx-auto size-12 shrink-0 justify-center rounded-full",
             getLinkStateClass(isActive),
         );
@@ -177,7 +177,7 @@ const SidebarContent = ({
                                     <Label
                                         variant={EVariantLabel.bodySmall}
                                         color={pathMatches(pathname, item.href) ? "text-white" : "text-gray-800"}
-                                        className="ml-3 cursor-pointer truncate"
+                                        className="ms-3 cursor-pointer truncate"
                                     >
                                         {item.label}
                                     </Label>
@@ -191,7 +191,7 @@ const SidebarContent = ({
                             <div
                                 className={twMerge(
                                     linkClassName(isGroupActive),
-                                    isExpanded && "justify-between pr-3",
+                                    isExpanded && "justify-between pe-3",
                                 )}
                             >
                                 <Link
@@ -214,7 +214,7 @@ const SidebarContent = ({
                                         <Label
                                             variant={EVariantLabel.bodySmall}
                                             color={isGroupActive ? "text-white" : "text-gray-800"}
-                                            className="ml-3 cursor-pointer truncate"
+                                            className="ms-3 cursor-pointer truncate"
                                         >
                                             {item.label}
                                         </Label>

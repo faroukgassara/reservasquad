@@ -42,7 +42,16 @@ function entityLabel(
     t: ReturnType<typeof useTranslations<'admin.auditLog'>>,
     entityType: string,
 ): string {
-    const known = ['RESERVATION', 'DAILY_INCOME', 'INCOME_LINE', 'CREDIT'] as const;
+    const known = [
+        'RESERVATION',
+        'DAILY_INCOME',
+        'INCOME_LINE',
+        'CREDIT',
+        'POS_PRODUCT',
+        'POS_CATEGORY',
+        'POS_SESSION',
+        'POS_ORDER',
+    ] as const;
     if ((known as readonly string[]).includes(entityType)) {
         return t(`entities.${entityType as (typeof known)[number]}`);
     }
@@ -97,6 +106,10 @@ export default function AuditLogPage() {
             { value: 'DAILY_INCOME', label: t('entities.DAILY_INCOME') },
             { value: 'INCOME_LINE', label: t('entities.INCOME_LINE') },
             { value: 'CREDIT', label: t('entities.CREDIT') },
+            { value: 'POS_ORDER', label: t('entities.POS_ORDER') },
+            { value: 'POS_SESSION', label: t('entities.POS_SESSION') },
+            { value: 'POS_PRODUCT', label: t('entities.POS_PRODUCT') },
+            { value: 'POS_CATEGORY', label: t('entities.POS_CATEGORY') },
         ],
         [t],
     );

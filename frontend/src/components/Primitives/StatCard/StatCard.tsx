@@ -12,9 +12,10 @@ export interface IStatCard {
     label: string;
     value: string;
     action?: ReactNode;
+    isLoading?: boolean;
 }
 
-const StatCard = ({ icon, iconBg, iconColor, label, value, action }: IStatCard) => {
+const StatCard = ({ icon, iconBg, iconColor, label, value, action, isLoading = false }: IStatCard) => {
     return (
         <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <Div className="flex items-center gap-3">
@@ -25,13 +26,17 @@ const StatCard = ({ icon, iconBg, iconColor, label, value, action }: IStatCard) 
                     <Label variant={EVariantLabel.caption} color="text-gray-500" className="block truncate">
                         {label}
                     </Label>
-                    <Label
-                        variant={EVariantLabel.h5}
-                        color="text-gray-900"
-                        className="block truncate font-semibold tabular-nums"
-                    >
-                        {value}
-                    </Label>
+                    {isLoading ? (
+                        <Div className="mt-1 h-6 w-24 animate-pulse rounded-md bg-gray-100" />
+                    ) : (
+                        <Label
+                            variant={EVariantLabel.h5}
+                            color="text-gray-900"
+                            className="block truncate font-semibold tabular-nums"
+                        >
+                            {value}
+                        </Label>
+                    )}
                 </Div>
                 {action ? <Div className="shrink-0">{action}</Div> : null}
             </Div>

@@ -13,6 +13,7 @@ const Button = memo(function Button({
   iconPosition = 'left',
   size = EButtonSize.medium,
   type = EButtonType.primary,
+  htmlType = 'button',
   disabled = false,
   isLoading = false,
   onClick,
@@ -27,7 +28,7 @@ const Button = memo(function Button({
 
   const buttonClassName = twMerge(
     [
-      'relative flex items-center justify-center transition-colors duration-200',
+      'ds-btn relative flex items-center justify-center whitespace-nowrap transition-colors duration-200',
       ...(isIconOnly
         ? [ICON_ONLY_SIZES[size], 'rounded-full']
         : [BUTTON_SIZES[size], 'rounded-xl px-4 py-2']),
@@ -77,7 +78,7 @@ const Button = memo(function Button({
 
   return (
     <button
-      type="button"
+      type={htmlType}
       className={buttonClassName}
       disabled={disabled}
       onClick={onClick}

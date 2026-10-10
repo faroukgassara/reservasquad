@@ -92,12 +92,12 @@
   color-scheme: dark;
 
   /* Neutrals invert: surfaces go dark, text shades go light. */
-  --ds-white: oklch(0.2683 0.0263 270.55); /* card / panel surface */
+  --ds-white: oklch(0.2955 0.0262 270.55); /* card / panel surface — raised vs bg for 1.3:1 separation */
   --ds-black: oklch(0.2644 0.0178 266.29); /* overlays stay dark */
 
   --ds-gray-25: oklch(0.2168 0.0205 270.5); /* app background */
   --ds-gray-50: oklch(0.3021 0.0281 270.5);
-  --ds-gray-100: oklch(0.3389 0.0301 270.4);
+  --ds-gray-100: oklch(0.39 0.03 270.4); /* card borders must read on the raised surface */
   --ds-gray-200: oklch(0.3937 0.0323 270.3);
   --ds-gray-300: oklch(0.4635 0.0341 270.2);
   --ds-gray-400: oklch(0.5542 0.0308 269.4);
@@ -215,6 +215,24 @@ html {
   overflow-x: clip;
 }
 
+/* ---------------------------------------------------------------------------
+ * Global affordances: one focus ring everywhere, 44px touch targets on
+ * coarse pointers. Both are opt-in-safe (outline only on keyboard focus;
+ * min-size only on touch), so desktop layouts are unchanged.
+ * ------------------------------------------------------------------------- */
+/* .ds-input-field is excluded: its rounded wrapper already shows focus via focus-within. */
+:where(a[href], button, [role='button'], input:not(.ds-input-field), select, textarea:not(.ds-input-field), summary, [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: 2px solid var(--ds-primary-500);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .ds-btn {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
 /* Hero ambient blobs — CSS animation (GPU compositor) instead of JS infinite loops */
 @keyframes hero-blob-drift-a {
   0%,
@@ -327,10 +345,24 @@ html {
 .dark .ds-input-field:-webkit-autofill:hover,
 .dark .ds-input-field:-webkit-autofill:focus,
 .dark .ds-input-field:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px oklch(0.2683 0.0263 270.55) inset !important;
-  box-shadow: 0 0 0 1000px oklch(0.2683 0.0263 270.55) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px oklch(0.2955 0.0262 270.55) inset !important;
+  box-shadow: 0 0 0 1000px oklch(0.2955 0.0262 270.55) inset !important;
   -webkit-text-fill-color: oklch(0.9108 0.0102 264.9) !important;
   transition: background-color 99999s ease-out 0s;
+}
+
+/* Number inputs: the design system drives value entry via the key filter in
+   Input.tsx; native spin buttons add visual noise and inflate field height. */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Calendar period transitions — slide with nav direction, fade for jumps. Flipped for RTL. */

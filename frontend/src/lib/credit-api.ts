@@ -15,6 +15,10 @@ export interface CreditClientRecord {
     firstName: string;
     lastName: string;
     phone: string | null;
+    email?: string | null;
+    address?: string | null;
+    taxId?: string | null;
+    cin?: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -64,8 +68,7 @@ export interface PaginatedCreditClients {
 }
 
 export const CREDIT_ERROR_PAYMENT_EXCEEDS = 'Payment exceeds the remaining amount';
-export const CREDIT_ERROR_AMOUNT_BELOW_PAID =
-    'Credit amount cannot be lower than the amount already paid';
+export const CREDIT_ERROR_REGISTER_PAYMENT = 'Register payments must be refunded from the register';
 
 export function todayDateInputValue(): string {
     const now = new Date();
@@ -120,11 +123,17 @@ export async function fetchCreditClient(id: string): Promise<CreditClientDetail>
     return unwrapData<CreditClientDetail>(res.data as { data?: CreditClientDetail });
 }
 
-export async function createCreditClient(body: {
+export interface CreditClientInput {
     firstName: string;
     lastName: string;
     phone?: string;
-}): Promise<CreditClientRecord> {
+    email?: string;
+    address?: string;
+    taxId?: string;
+    cin?: string;
+}
+
+export async function createCreditClient(body: CreditClientInput): Promise<CreditClientRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.post('/api/credits/clients', body, headers);
     if (!isSuccess(res.status)) throw errorFrom(res.data, 'Failed to create client');
@@ -133,7 +142,7 @@ export async function createCreditClient(body: {
 
 export async function updateCreditClient(
     id: string,
-    body: { firstName: string; lastName: string; phone?: string },
+    body: CreditClientInput,
 ): Promise<CreditClientRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.post(`/api/credits/clients/${id}`, body, headers);
@@ -150,21 +159,13 @@ export async function deleteCreditClient(id: string): Promise<void> {
 export async function createCredit(body: {
     clientId: string;
     date: string;
-    amount: number;
+    productId: string;
+    quantity: number;
     description?: string;
 }): Promise<void> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.post('/api/credits/items', body, headers);
     if (!isSuccess(res.status)) throw errorFrom(res.data, 'Failed to create credit');
-}
-
-export async function updateCredit(
-    id: string,
-    body: { date: string; amount: number; description?: string },
-): Promise<void> {
-    const headers = await CommonFunction.createHeaders({ withToken: true });
-    const res = await api.post(`/api/credits/items/${id}`, body, headers);
-    if (!isSuccess(res.status)) throw errorFrom(res.data, 'Failed to update credit');
 }
 
 export async function deleteCredit(id: string): Promise<void> {

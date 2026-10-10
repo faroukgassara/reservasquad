@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { seedSuperAdmin } from './data/superAdmin.seeder';
+import { seedPosCatalog } from './data/posCatalog.seeder';
+import { seedClients } from './data/clients.seeder';
+import { seedPosHistory } from './data/posHistory.seeder';
+import { seedSubscriptions } from './data/subscriptions.seeder';
+import { seedInvoices } from './data/invoices.seeder';
 
 @Injectable()
 export class SeederService {
@@ -11,6 +16,11 @@ export class SeederService {
 
   private readonly seeders = [
     { name: 'superAdmin', fn: seedSuperAdmin },
+    { name: 'posCatalog', fn: seedPosCatalog },
+    { name: 'clients', fn: seedClients },
+    { name: 'posHistory', fn: seedPosHistory },
+    { name: 'subscriptions', fn: seedSubscriptions },
+    { name: 'invoices', fn: seedInvoices },
   ];
 
   async seedAll() {

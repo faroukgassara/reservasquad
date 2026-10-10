@@ -22,9 +22,23 @@ export const Routes = {
     DailyIncome: {
         index: '/daily-income',
     },
-    Credits: {
-        index: '/credits',
-        show: (id: string) => `/credits/${id}`,
+    Pos: {
+        index: '/caisse',
+        register: '/caisse/register',
+        sessions: '/caisse/sessions',
+        session: (id: string) => `/caisse/sessions/${id}`,
+        products: '/caisse/products',
+        product: (id: string) => `/caisse/products/${id}`,
+        categories: '/caisse/categories',
+        clients: '/caisse/clients',
+        client: (id: string) => `/caisse/clients/${id}`,
+        sales: '/caisse/sales',
+        sale: (id: string) => `/caisse/sales/${id}`,
+        invoices: '/caisse/invoices',
+        invoice: (id: string) => `/caisse/invoices/${id}`,
+        subscriptions: '/caisse/subscriptions',
+        subscription: (id: string) => `/caisse/subscriptions/${id}`,
+        newSubscriptionFor: (clientId: string) => `/caisse/subscriptions/new?client=${clientId}`,
     },
     Users: {
         index: '/users',

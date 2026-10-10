@@ -12,6 +12,8 @@ const ui = {
   breakPoints: {
     xs: { max: '576px' },
     sm: '577px',
+    tablet: '768px',
+    laptop: '1024px',
     md: '1131px',
     lg: '1201px',
     xl: '1362px',

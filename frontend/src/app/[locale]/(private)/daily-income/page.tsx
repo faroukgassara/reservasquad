@@ -301,7 +301,12 @@ export default function DailyIncomePage() {
                     label: t('date'),
                     mobile: 'primary',
                     render: (_: unknown, row: DailyIncomeRecord) => (
-                        <OrganismTable.Cell mainText={formatDate(row.date)} />
+                        <OrganismTable.Cell
+                            mainText={formatDate(row.date)}
+                            supportingText={
+                                row.posSession ? t('posSession', { number: row.posSession.number }) : undefined
+                            }
+                        />
                     ),
                 },
             },
@@ -504,7 +509,7 @@ export default function DailyIncomePage() {
             key: 'income',
             icon: IconComponentsEnum.layers,
             iconBg: 'bg-success-50',
-            iconColor: 'text-success-600',
+            iconColor: 'text-success-700',
             label: t('totalIncome'),
             value: formatMoney(summary?.totalIncome ?? 0),
         },
@@ -512,7 +517,7 @@ export default function DailyIncomePage() {
             key: 'charges',
             icon: IconComponentsEnum.alert,
             iconBg: 'bg-warning-50',
-            iconColor: 'text-warning-600',
+            iconColor: 'text-warning-700',
             label: t('totalCharges'),
             value: formatMoney(summary?.totalCharges ?? 0),
         },
@@ -528,7 +533,7 @@ export default function DailyIncomePage() {
             key: 'savings',
             icon: IconComponentsEnum.checkCircle,
             iconBg: 'bg-success-50',
-            iconColor: 'text-success-600',
+            iconColor: 'text-success-700',
             label: t('totalSavings'),
             value: formatMoney(summary?.totalSavings ?? 0),
         },
@@ -552,7 +557,7 @@ export default function DailyIncomePage() {
             key: 'majdi',
             icon: IconComponentsEnum.user,
             iconBg: 'bg-success-50',
-            iconColor: 'text-success-600',
+            iconColor: 'text-success-700',
             label: t('majdi'),
             value: formatMoney(summary?.totalMajdi ?? 0),
         },

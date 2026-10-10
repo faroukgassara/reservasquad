@@ -37,7 +37,7 @@ const Checkbox = ({ id, disabled = false, checked = false, label, onChange, ...p
                     </div>
                 )}
             </div>
-            <Label htmlFor={id} className='ml-2 cursor-pointer' variant={EVariantLabel.bodySmall} color="text-gray-900">{label}</Label>
+            <Label htmlFor={id} className='ms-2 cursor-pointer' variant={EVariantLabel.bodySmall} color="text-gray-900">{label}</Label>
         </div>
     )
 }

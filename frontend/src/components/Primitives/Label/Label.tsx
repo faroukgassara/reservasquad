@@ -3,6 +3,7 @@ import typography from '@/theme/typography'
 import type { ELabelColor } from '@/theme/labelColors'
 import WithChildren from '@/types/WithChildren'
 import React from 'react'
+import { twMerge } from 'tailwind-merge'
 
 type LabelProps = WithChildren<{
     className?: string
@@ -53,7 +54,8 @@ const Label: React.FC<LabelProps> = ({
         }
         : { fontFamily }
 
-    const sharedClassName = [color, 'inline-block', className].filter(Boolean).join(' ')
+    // Color stays outside twMerge: custom font-size classes would otherwise be read as a conflicting text color.
+    const sharedClassName = [color, twMerge('inline-block', className)].filter(Boolean).join(' ')
 
     if (htmlFor) {
         return (
@@ -65,7 +67,7 @@ const Label: React.FC<LabelProps> = ({
                 {...rest}
             >
                 {children}
-                {required && <span className="ml-1 text-primary-500">*</span>}
+                {required && <span className="ms-1 text-primary-500">*</span>}
             </label>
         )
     }
@@ -76,7 +78,7 @@ const Label: React.FC<LabelProps> = ({
         return (
             <Tag className={sharedClassName} style={style} onClick={onClick} {...rest}>
                 {children}
-                {required && <span className="ml-1 text-primary-500">*</span>}
+                {required && <span className="ms-1 text-primary-500">*</span>}
             </Tag>
         )
     }
@@ -84,7 +86,7 @@ const Label: React.FC<LabelProps> = ({
     return (
         <span className={sharedClassName} style={style} onClick={onClick} {...rest}>
             {children}
-            {required && <span className="ml-1 text-primary-500">*</span>}
+            {required && <span className="ms-1 text-primary-500">*</span>}
         </span>
     )
 }

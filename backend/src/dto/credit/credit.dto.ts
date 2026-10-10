@@ -7,8 +7,10 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateCreditDto {
@@ -21,31 +23,25 @@ export class CreateCreditDto {
   @IsNotEmpty()
   date: string;
 
-  @ApiProperty({ example: 25 })
-  @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0.01)
-  amount: number;
-
-  @ApiPropertyOptional({ example: 'Café + impression' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  description?: string;
-}
-
-export class UpdateCreditDto {
-  @ApiPropertyOptional({ example: '2026-10-05' })
-  @IsOptional()
-  @IsDateString()
-  date?: string;
-
-  @ApiPropertyOptional({ example: 25 })
-  @IsOptional()
+  @ApiPropertyOptional({ example: 25, description: 'Required without a product; computed from the product otherwise' })
+  @ValidateIf((dto: CreateCreditDto) => !dto.productId)
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0.01)
   amount?: number;
+
+  @ApiPropertyOptional({ description: 'Product taken on credit; its stock is decreased' })
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
+
+  @ApiPropertyOptional({ example: 2 })
+  @ValidateIf((dto: CreateCreditDto) => !!dto.productId)
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0.001)
+  @Max(10000)
+  quantity?: number;
 
   @ApiPropertyOptional({ example: 'Café + impression' })
   @IsOptional()

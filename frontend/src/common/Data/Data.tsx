@@ -7,22 +7,24 @@ export const TYPE_VARIANT_CLASSES: Record<EButtonType, string> = {
     [EButtonType.tertiary]: 'text-primary-500 cursor-pointer hover:bg-primary-50 focus:bg-white focus:border-3 focus:border-primary-200 active:bg-primary-100 disabled:bg-white  disabled:text-gray-400 disabled:cursor-not-allowed',
 };
 
+// Below `sm` (phones) small/medium controls get a 44px minimum touch target; desktop sizes are unchanged.
 export const BUTTON_SIZES: Record<EButtonSize, string> = {
-    [EButtonSize.small]: 'h-8 px-3 text-sm',
-    [EButtonSize.medium]: 'h-10 px-4 text-md',
+    [EButtonSize.small]: 'h-8 min-h-11 px-3 text-sm sm:min-h-0',
+    [EButtonSize.medium]: 'h-10 min-h-11 px-4 text-md sm:min-h-0',
     [EButtonSize.large]: 'h-12 px-6 text-lg',
 };
 
 export const ICON_ONLY_SIZES: Record<EButtonSize, string> = {
-    [EButtonSize.small]: 'h-8 w-8',
-    [EButtonSize.medium]: 'h-10 w-10',
+    [EButtonSize.small]: 'h-8 w-8 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
+    [EButtonSize.medium]: 'h-10 w-10 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0',
     [EButtonSize.large]: 'h-12 w-12',
 };
 
+// 16px text on phones keeps iOS Safari from zooming into focused fields.
 export const INPUT_SIZES: Record<EInputSize, { field: string; text: string; iconLeft: string; iconRight: string; iconSize: ESize }> = {
-    [EInputSize.small]: { field: 'h-8', text: 'text-sm', iconLeft: 'left-2.5', iconRight: 'right-2.5', iconSize: ESize.xs },
-    [EInputSize.medium]: { field: 'h-10', text: 'text-sm', iconLeft: 'left-3', iconRight: 'right-3', iconSize: ESize.sm },
-    [EInputSize.large]: { field: 'h-12', text: 'text-base', iconLeft: 'left-4', iconRight: 'right-4', iconSize: ESize.md },
+    [EInputSize.small]: { field: 'h-8', text: 'text-base sm:text-sm', iconLeft: 'start-2.5', iconRight: 'end-2.5', iconSize: ESize.xs },
+    [EInputSize.medium]: { field: 'h-10 min-h-11 sm:min-h-0', text: 'text-base sm:text-sm', iconLeft: 'start-3', iconRight: 'end-3', iconSize: ESize.sm },
+    [EInputSize.large]: { field: 'h-12', text: 'text-base', iconLeft: 'start-4', iconRight: 'end-4', iconSize: ESize.md },
 };
 
 export const INPUT_STATUS_FIELD: Record<EInputStatus, string> = {
@@ -33,13 +35,13 @@ export const INPUT_STATUS_FIELD: Record<EInputStatus, string> = {
 
 export const INPUT_STATUS_HINT_COLOR: Record<EInputStatus, ELabelColor> = {
     [EInputStatus.default]: 'text-gray-600',
-    [EInputStatus.success]: 'text-success-600',
+    [EInputStatus.success]: 'text-success-700',
     [EInputStatus.error]: 'text-danger-600',
 };
 
 export const INPUT_STATUS_ICON_COLOR: Record<EInputStatus, ELabelColor> = {
     [EInputStatus.default]: 'text-gray-500',
-    [EInputStatus.success]: 'text-success-500',
+    [EInputStatus.success]: 'text-success-600',
     [EInputStatus.error]: 'text-danger-500',
 };
 
@@ -59,23 +61,23 @@ export const ICON_ONLY_SIZES_BADGE: Record<EBadgeSize, string> = {
 
 export const TYPE_VARIANT_CLASSES_BADGE: Record<EBadgeType, string> = {
     [EBadgeType.primary]: 'bg-accent-500 text-white',
-    [EBadgeType.success]: 'bg-success-500 text-white',
-    [EBadgeType.warning]: 'bg-warning-500 text-white',
+    [EBadgeType.success]: 'bg-success-100 text-success-900 border border-success-200',
+    [EBadgeType.warning]: 'bg-warning-100 text-warning-900 border border-warning-200',
     [EBadgeType.error]: 'bg-danger-500 text-white',
     [EBadgeType.revprimary]: 'bg-primary-50 text-primary-500 border border-primary-500',
-    [EBadgeType.revsuccess]: 'bg-success-50 text-success-500 border border-success-500',
-    [EBadgeType.revwarning]: 'bg-warning-50 text-warning-500 border border-warning-500',
+    [EBadgeType.revsuccess]: 'bg-success-50 text-success-700 border border-success-500',
+    [EBadgeType.revwarning]: 'bg-warning-50 text-warning-700 border border-warning-500',
     [EBadgeType.reverror]: 'bg-danger-50 text-danger-500 border border-danger-500',
 };
 
 export const DISMISSIBLE_ICON_COLOR: Record<EBadgeType, ELabelColor> = {
     [EBadgeType.primary]: 'text-white',
-    [EBadgeType.success]: 'text-white',
-    [EBadgeType.warning]: 'text-white',
+    [EBadgeType.success]: 'text-success-900',
+    [EBadgeType.warning]: 'text-warning-900',
     [EBadgeType.error]: 'text-white',
     [EBadgeType.revprimary]: 'text-primary-500',
-    [EBadgeType.revsuccess]: 'text-success-500',
-    [EBadgeType.revwarning]: 'text-warning-500',
+    [EBadgeType.revsuccess]: 'text-success-700',
+    [EBadgeType.revwarning]: 'text-warning-700',
     [EBadgeType.reverror]: 'text-danger-500',
 };
 

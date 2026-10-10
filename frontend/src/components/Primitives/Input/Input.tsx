@@ -25,10 +25,10 @@ function getHorizontalPadding(
         return size === EInputSize.large ? 'px-11' : 'px-10';
     }
     if (hasLeftIcon) {
-        return size === EInputSize.large ? 'pl-11 pr-4' : 'pl-10 pr-3';
+        return size === EInputSize.large ? 'ps-11 pe-4' : 'ps-10 pe-3';
     }
     if (hasRightIcon) {
-        return size === EInputSize.large ? 'pl-4 pr-11' : 'pl-3 pr-10';
+        return size === EInputSize.large ? 'ps-4 pe-11' : 'ps-3 pe-10';
     }
     return size === EInputSize.large ? 'px-4' : 'px-3';
 }
@@ -49,7 +49,7 @@ function getFieldWrapperClassName({
     const sizeConfig = INPUT_SIZES[size];
 
     return twMerge(
-        'relative flex w-full items-center rounded-lg border transition-colors duration-200',
+        'relative flex w-full items-center rounded-xl border transition-colors duration-200',
         sizeConfig.field,
         INPUT_STATUS_FIELD[status],
         hasValue && !disabled && 'border-gray-300 bg-gray-50',
@@ -102,6 +102,7 @@ const Input = forwardRef<HTMLInputElement, IInput>(
             value,
             onKeyDown,
             onRightIconClick,
+            suffix,
         },
         ref,
     ) => {
@@ -275,6 +276,7 @@ const Input = forwardRef<HTMLInputElement, IInput>(
                         />
                     )}
                     {renderRightIcon()}
+                    {suffix ? <div className="flex shrink-0 items-center pe-1">{suffix}</div> : null}
                 </div>
                 {renderHintText()}
             </div>

@@ -222,7 +222,7 @@ function AddDayButton({
             iconPosition="only"
             icon={{ name: IconComponentsEnum.plus, size: ESize.xs, color: 'text-primary-500' }}
             aria-label={ariaLabel}
-            className={`h-6 w-6 shrink-0 bg-white/80 shadow-xs opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 ${className}`}
+            className={`h-6 w-6 shrink-0 bg-white/80 shadow-xs opacity-100 after:absolute after:-inset-2.5 after:content-[''] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 ${className}`}
             onClick={(e: MouseEvent) => {
                 e.stopPropagation();
                 onClick();
@@ -979,7 +979,7 @@ export default function CalendarPage() {
     // hit area caused accidental modal opens while scrolling. The + button and the empty
     // slot stay explicit, tappable affordances on every screen size.
     const handleCellClick = (day: Date) => {
-        if (typeof window !== 'undefined' && window.innerWidth < 768) return;
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) return;
         openCreateForDay(day);
     };
 

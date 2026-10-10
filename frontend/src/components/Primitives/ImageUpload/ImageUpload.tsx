@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import UploadDropzone from '@/components/Primitives/UploadDropzone/UploadDropzone';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
@@ -30,6 +30,7 @@ export interface IImageUpload {
     error?: boolean;
     hintText?: string;
     containerClassName?: string;
+    previewClassName?: string;
 }
 
 export default function ImageUpload({
@@ -42,8 +43,10 @@ export default function ImageUpload({
     error = false,
     hintText,
     containerClassName = '',
+    previewClassName = 'h-40',
 }: Readonly<IImageUpload>) {
     const displayUrl = useMemo(() => getMediaUrl(value || ''), [value]);
+    const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
     const handleFilesSelected = useCallback(
         async (files: File[]) => {
@@ -65,7 +68,7 @@ export default function ImageUpload({
                 <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="mb-1">
                     {label}
                     {required && (
-                        <Label color="text-primary-500" className="align-middle ml-1" variant={EVariantLabel.bodySmall}>
+                        <Label color="text-primary-500" className="align-middle ms-1" variant={EVariantLabel.bodySmall}>
                             *
                         </Label>
                     )}
@@ -73,13 +76,24 @@ export default function ImageUpload({
             )}
             {value ? (
                 <Div className="relative rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                        src={displayUrl}
-                        alt="Aperçu"
-                        className="w-full h-40 object-cover"
-                    />
-                    <Div className="absolute top-2 right-2 flex gap-2">
+                    {failedUrl === displayUrl ? (
+                        <Div className={`flex w-full items-center justify-center ${previewClassName}`}>
+                            <Icon name={IconComponentsEnum.image} size={ESize.lg} color="text-gray-400" />
+                        </Div>
+                    ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                            // The server-rendered image can fail before hydration, when onError is not attached yet.
+                            ref={(img) => {
+                                if (img?.complete && img.naturalWidth === 0) setFailedUrl(displayUrl);
+                            }}
+                            src={displayUrl}
+                            alt="Aperçu"
+                            className={`w-full object-cover ${previewClassName}`}
+                            onError={() => setFailedUrl(displayUrl)}
+                        />
+                    )}
+                    <Div className="absolute top-2 end-2 flex gap-2">
                         <Button
                             id={`${id}-change-btn`}
                             type={EButtonType.secondary}

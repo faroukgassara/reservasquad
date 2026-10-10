@@ -36,11 +36,7 @@ import {
   CreateCreditClientDto,
   UpdateCreditClientDto,
 } from 'src/dto/credit/creditClient.dto';
-import {
-  CreateCreditDto,
-  CreateCreditPaymentDto,
-  UpdateCreditDto,
-} from 'src/dto/credit/credit.dto';
+import { CreateCreditDto, CreateCreditPaymentDto } from 'src/dto/credit/credit.dto';
 
 const CLIENT_SORTING_OPTIONS: SortingDecoratorOptions = {
   allowedFields: ['createdAt', 'updatedAt', 'firstName', 'lastName'],
@@ -203,24 +199,6 @@ export class CreditBackofficeController {
       if (!dto) return;
       const data = await this.creditService.addPayment(id, dto, req.user?.id);
       return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data });
-    } catch (error: unknown) {
-      return sendCaughtError(res, error);
-    }
-  }
-
-  @Post('credits/:id')
-  @swagger.ApiOperation({ summary: 'Update a credit' })
-  async updateCredit(
-    @Res() res: Response,
-    @Req() req: IRequest,
-    @Param('id') id: string,
-    @Body() body: UpdateCreditDto,
-  ) {
-    try {
-      const dto = await this.validateDto(UpdateCreditDto, body, res);
-      if (!dto) return;
-      const data = await this.creditService.updateCredit(id, dto, req.user?.id);
-      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
     }

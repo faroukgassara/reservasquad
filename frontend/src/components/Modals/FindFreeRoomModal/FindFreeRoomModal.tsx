@@ -94,7 +94,7 @@ function ResultsList({
                         <Label
                             variant={EVariantLabel.bodySmall}
                             color="text-gray-900"
-                            className="font-medium mr-1"
+                            className="font-medium me-1"
                         >
                             {room.name}
                         </Label>
@@ -196,7 +196,7 @@ export default function FindFreeRoomModal({
                     searchMutation.mutate();
                 }}
             >
-                <DrawerScrollContent className="gap-0 space-y-4 p-6">
+                <DrawerScrollContent>
                     <DateTimeField
                         id="find-room-start"
                         label={t('startAt')}

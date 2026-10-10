@@ -4,123 +4,45 @@ import { useEffect, useMemo, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
-import {
-    Bar,
-    CartesianGrid,
-    ComposedChart,
-    Line,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-    type TooltipContentProps,
-} from 'recharts';
+import dynamic from 'next/dynamic';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import Label from '@/components/Primitives/Label/Label';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
-import { EVariantLabel, ESize, IconComponentsEnum } from '@/Enum/Enum';
+import StatCard from '@/components/Primitives/StatCard/StatCard';
+import Button from '@/components/Primitives/Button/Button';
+import { EButtonType, EVariantLabel, ESize, IconComponentsEnum } from '@/Enum/Enum';
 import { fetchDashboardStats, fetchReservationTrend, formatMoney, type DashboardRoomBreakdown } from '@/lib/reservation-api';
 import { fetchDailyIncomeSummary, fetchIncomeTrend } from '@/lib/daily-income-api';
 import { Link } from '@/i18n/navigation';
 import { Routes } from '@/lib/routes';
-import colors from '@/theme/colors';
 import type { ELabelColor } from '@/theme/labelColors';
 import { useAuthorization } from '@/hooks/useAuthorization';
-import { useTheme } from 'next-themes';
+
+function ChartLoader() {
+    return <Div aria-hidden="true" className="h-56 w-full animate-pulse rounded-xl bg-gray-100" />;
+}
+
+const ReservationRevenueChart = dynamic(
+    () => import('@/components/Organisms/Dashboard/DashboardCharts').then((m) => m.ReservationRevenueChart),
+    { ssr: false, loading: () => <ChartLoader /> },
+);
+
+const ReservationCountChart = dynamic(
+    () => import('@/components/Organisms/Dashboard/DashboardCharts').then((m) => m.ReservationCountChart),
+    { ssr: false, loading: () => <ChartLoader /> },
+);
+
+const IncomeTrendChart = dynamic(
+    () => import('@/components/Organisms/Dashboard/DashboardCharts').then((m) => m.IncomeTrendChart),
+    { ssr: false, loading: () => <ChartLoader /> },
+);
 
 function formatMonthLabel(year: number, month: number): string {
     return new Date(year, month - 1, 1).toLocaleDateString('fr-FR', {
         month: 'long',
         year: 'numeric',
     });
-}
-
-// recharts consumes colors as SVG attributes, which cannot resolve var(--ds-*),
-// so chart colors are picked per theme as literals.
-const LIGHT_CHART_COLORS = {
-    grid: colors.gray[100],
-    tick: colors.gray[500],
-    cursor: colors.primary[25],
-    barPrimary: colors.primary[300],
-    barPrimaryStrong: colors.primary[400],
-    lineAccent: colors.accent[500],
-};
-
-const DARK_CHART_COLORS = {
-    grid: 'oklch(0.3389 0.0301 270.4)',
-    tick: 'oklch(0.6486 0.0275 268.6)',
-    cursor: 'oklch(0.2855 0.0492 271.5)',
-    barPrimary: 'oklch(0.5222 0.0821 273.5)',
-    barPrimaryStrong: 'oklch(0.6011 0.0691 274)',
-    lineAccent: 'oklch(0.6156 0.2193 27.4)',
-};
-
-function ChartTooltip({ active, payload, label, formatter }: Readonly<TooltipContentProps>) {
-    if (!active || !payload?.length) return null;
-    return (
-        <Div className="rounded-lg border border-gray-100 bg-white px-3 py-2 shadow-md">
-            {label ? (
-                <Label variant={EVariantLabel.caption} color="text-gray-500" className="mb-1 block font-semibold">
-                    {label}
-                </Label>
-            ) : null}
-            <Div className="space-y-0.5">
-                {payload.map((entry, index) => {
-                    const formatted = formatter
-                        ? formatter(entry.value, entry.name, entry, index, payload)
-                        : entry.value;
-                    return (
-                        <Div key={String(entry.dataKey)} className="flex items-center gap-1.5">
-                            <Div
-                                className="size-1.5 shrink-0 rounded-full"
-                                style={{ backgroundColor: entry.color }}
-                            />
-                            <Label variant={EVariantLabel.caption} color="text-gray-700">
-                                {entry.name}: {Array.isArray(formatted) ? formatted[0] : formatted}
-                            </Label>
-                        </Div>
-                    );
-                })}
-            </Div>
-        </Div>
-    );
-}
-
-function StatCard({
-    icon,
-    iconBg,
-    iconColor,
-    label,
-    value,
-}: Readonly<{
-    icon: IconComponentsEnum;
-    iconBg: string;
-    iconColor: ELabelColor;
-    label: string;
-    value: string;
-}>) {
-    return (
-        <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Div className="flex items-center gap-3">
-                <Div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
-                    <Icon name={icon} size={ESize.sm} color={iconColor} />
-                </Div>
-                <Div className="min-w-0 flex flex-col">
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block truncate">
-                        {label}
-                    </Label>
-                    <Label
-                        variant={EVariantLabel.h5}
-                        color="text-gray-900"
-                        className="block truncate font-semibold tabular-nums"
-                    >
-                        {value}
-                    </Label>
-                </Div>
-            </Div>
-        </Div>
-    );
 }
 
 function SectionHeader({
@@ -130,16 +52,16 @@ function SectionHeader({
     viewAllLabel,
 }: Readonly<{ icon: IconComponentsEnum; title: string; href: string; viewAllLabel: string }>) {
     return (
-        <Div className="flex items-center justify-between">
-            <Div className="flex items-center gap-2.5">
-                <Div className="flex size-8 items-center justify-center rounded-lg bg-primary-50">
+        <Div className="flex items-center justify-between gap-3">
+            <Div className="flex min-w-0 items-center gap-2.5">
+                <Div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-50">
                     <Icon name={icon} size={ESize.sm} color="text-primary-600" />
                 </Div>
-                <Label variant={EVariantLabel.h5} color="text-gray-900" className="font-semibold">
+                <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate font-semibold">
                     {title}
                 </Label>
             </Div>
-            <Link href={href} className="shrink-0">
+            <Link href={href} className="flex min-h-11 shrink-0 items-center sm:min-h-0">
                 <Label
                     variant={EVariantLabel.caption}
                     color="text-primary-600"
@@ -167,7 +89,11 @@ function ChartPanel({
     );
 }
 
-function EmptyChartState({ label }: Readonly<{ label: string }>) {
+function EmptyChartState({
+    label,
+    actionLabel,
+    actionHref,
+}: Readonly<{ label: string; actionLabel?: string; actionHref?: string }>) {
     return (
         <Div className="flex h-56 flex-col items-center justify-center gap-2 text-center">
             <Div className="flex size-10 items-center justify-center rounded-full bg-gray-100">
@@ -176,6 +102,17 @@ function EmptyChartState({ label }: Readonly<{ label: string }>) {
             <Label variant={EVariantLabel.caption} color="text-gray-400">
                 {label}
             </Label>
+            {actionLabel && actionHref ? (
+                <Link href={actionHref}>
+                    <Label
+                        variant={EVariantLabel.caption}
+                        color="text-primary-600"
+                        className="font-medium hover:underline"
+                    >
+                        {actionLabel}
+                    </Label>
+                </Link>
+            ) : null}
         </Div>
     );
 }
@@ -204,14 +141,14 @@ function TopRoomsList({
                 <Label
                     variant={EVariantLabel.caption}
                     color="text-gray-500"
-                    className="text-right font-medium"
+                    className="text-end font-medium"
                 >
                     {monthLabel}
                 </Label>
                 <Label
                     variant={EVariantLabel.caption}
                     color="text-gray-500"
-                    className="text-right font-medium"
+                    className="text-end font-medium"
                 >
                     {totalLabel}
                 </Label>
@@ -232,14 +169,14 @@ function TopRoomsList({
                         <Label
                             variant={EVariantLabel.bodySmall}
                             color="text-primary-700"
-                            className="text-right font-semibold tabular-nums"
+                            className="text-end font-semibold tabular-nums"
                         >
                             {formatMoney(room.monthRevenue)}
                         </Label>
                         <Label
                             variant={EVariantLabel.caption}
                             color="text-gray-600"
-                            className="text-right tabular-nums"
+                            className="text-end tabular-nums"
                         >
                             {formatMoney(room.totalRevenue)}
                         </Label>
@@ -254,8 +191,6 @@ export default function DashboardPage() {
     const t = useTranslations('dashboard');
     const tIncome = useTranslations('admin.dailyIncome');
     const tCommon = useTranslations('common');
-    const { resolvedTheme } = useTheme();
-    const chartColors = resolvedTheme === 'dark' ? DARK_CHART_COLORS : LIGHT_CHART_COLORS;
     const router = useRouter();
     const { isAllowed } = useAuthorization();
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
@@ -335,7 +270,7 @@ export default function DashboardPage() {
             key: 'paid',
             icon: IconComponentsEnum.checkCircle,
             iconBg: 'bg-success-50',
-            iconColor: 'text-success-600',
+            iconColor: 'text-success-700',
             label: t('kpiPaidMonth'),
             value: formatMoney(data?.month.paidRevenue ?? 0),
         },
@@ -343,7 +278,7 @@ export default function DashboardPage() {
             key: 'unpaidMonth',
             icon: IconComponentsEnum.alert,
             iconBg: 'bg-warning-50',
-            iconColor: 'text-warning-600',
+            iconColor: 'text-warning-700',
             label: t('kpiUnpaidMonth'),
             value: formatMoney(data?.month.unpaidRevenue ?? 0),
         },
@@ -359,7 +294,7 @@ export default function DashboardPage() {
             key: 'totalPaid',
             icon: IconComponentsEnum.check,
             iconBg: 'bg-success-50',
-            iconColor: 'text-success-600',
+            iconColor: 'text-success-700',
             label: t('kpiTotalPaid'),
             value: formatMoney(data?.totalPaid ?? 0),
         },
@@ -367,7 +302,7 @@ export default function DashboardPage() {
             key: 'totalUnpaid',
             icon: IconComponentsEnum.alert,
             iconBg: 'bg-warning-50',
-            iconColor: 'text-warning-600',
+            iconColor: 'text-warning-700',
             label: t('kpiTotalUnpaid'),
             value: formatMoney(data?.totalUnpaid ?? 0),
         },
@@ -385,7 +320,7 @@ export default function DashboardPage() {
             key: 'income',
             icon: IconComponentsEnum.layers,
             iconBg: 'bg-success-50',
-            iconColor: 'text-success-600',
+            iconColor: 'text-success-700',
             label: tIncome('totalIncome'),
             value: formatMoney(incomeSummary?.totalIncome ?? 0),
         },
@@ -393,7 +328,7 @@ export default function DashboardPage() {
             key: 'charges',
             icon: IconComponentsEnum.alert,
             iconBg: 'bg-warning-50',
-            iconColor: 'text-warning-600',
+            iconColor: 'text-warning-700',
             label: tIncome('totalCharges'),
             value: formatMoney(incomeSummary?.totalCharges ?? 0),
         },
@@ -409,7 +344,7 @@ export default function DashboardPage() {
             key: 'savings',
             icon: IconComponentsEnum.checkCircle,
             iconBg: 'bg-success-50',
-            iconColor: 'text-success-600',
+            iconColor: 'text-success-700',
             label: tIncome('totalSavings'),
             value: formatMoney(incomeSummary?.totalSavings ?? 0),
         },
@@ -454,6 +389,29 @@ export default function DashboardPage() {
                         <Label variant={EVariantLabel.bodyLarge} color="text-gray-600" className="mt-2">
                             {t('welcomeBody')}
                         </Label>
+                        <Div className="mt-4 flex flex-wrap gap-3">
+                            <Button
+                                id="dashboard-quick-new-reservation"
+                                text={t('quickNewReservation')}
+                                type={EButtonType.primary}
+                                icon={{ name: IconComponentsEnum.plus, size: ESize.sm, color: 'text-white' }}
+                                onClick={() => router.push(Routes.Reservations.index)}
+                            />
+                            <Button
+                                id="dashboard-quick-open-register"
+                                text={t('quickOpenRegister')}
+                                type={EButtonType.secondary}
+                                icon={{ name: IconComponentsEnum.shoppingCart, size: ESize.sm, color: 'text-primary-500' }}
+                                onClick={() => router.push(Routes.Pos.register)}
+                            />
+                            <Button
+                                id="dashboard-quick-calendar"
+                                text={t('quickCalendar')}
+                                type={EButtonType.secondary}
+                                icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-500' }}
+                                onClick={() => router.push(Routes.Calendar)}
+                            />
+                        </Div>
                     </Div>
 
                     <Div className="space-y-4">
@@ -471,8 +429,9 @@ export default function DashboardPage() {
                                         icon={card.icon}
                                         iconBg={card.iconBg}
                                         iconColor={card.iconColor}
-                                        label={isLoading ? '—' : card.label}
-                                        value={isLoading ? '—' : card.value}
+                                        label={card.label}
+                                        value={card.value}
+                                        isLoading={isLoading}
                                     />
                                 </Div>
                             ))}
@@ -480,84 +439,36 @@ export default function DashboardPage() {
 
                         <ChartPanel title={t('reservationTrendTitle')}>
                             {hasReservationTrend ? (
-                                <ResponsiveContainer width="100%" height={260}>
-                                    <ComposedChart
-                                        data={reservationTrendData}
-                                        margin={{ top: 4, right: 8, left: -12, bottom: 0 }}
-                                    >
-                                        <CartesianGrid vertical={false} stroke={chartColors.grid} />
-                                        <XAxis
-                                            dataKey="label"
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                        />
-                                        <YAxis
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                            width={40}
-                                        />
-                                        <Tooltip
-                                            content={ChartTooltip}
-                                            cursor={{ fill: chartColors.cursor }}
-                                            formatter={(value) => formatMoney(value as number)}
-                                        />
-                                        <Bar
-                                            dataKey="revenue"
-                                            name={t('chartRevenue')}
-                                            fill={chartColors.barPrimary}
-                                            radius={[4, 4, 0, 0]}
-                                            maxBarSize={32}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="paidRevenue"
-                                            name={t('chartPaidRevenue')}
-                                            stroke={chartColors.lineAccent}
-                                            strokeWidth={2}
-                                            dot={{ r: 3, fill: chartColors.lineAccent, strokeWidth: 0 }}
-                                        />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
+                                <ReservationRevenueChart
+                                    data={reservationTrendData}
+                                    title={t('reservationTrendTitle')}
+                                    periodLabel={t('chartPeriod')}
+                                    revenueLabel={t('chartRevenue')}
+                                    paidRevenueLabel={t('chartPaidRevenue')}
+                                />
                             ) : (
-                                <EmptyChartState label={tCommon('empty')} />
+                                <EmptyChartState
+                                    label={tCommon('empty')}
+                                    actionLabel={t('quickNewReservation')}
+                                    actionHref={Routes.Reservations.index}
+                                />
                             )}
                         </ChartPanel>
 
                         <ChartPanel title={t('trendTitle')}>
                             {hasReservationTrend ? (
-                                <ResponsiveContainer width="100%" height={260}>
-                                    <ComposedChart
-                                        data={reservationTrendData}
-                                        margin={{ top: 4, right: 8, left: -12, bottom: 0 }}
-                                    >
-                                        <CartesianGrid vertical={false} stroke={chartColors.grid} />
-                                        <XAxis
-                                            dataKey="label"
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                        />
-                                        <YAxis
-                                            allowDecimals={false}
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                            width={30}
-                                        />
-                                        <Tooltip content={ChartTooltip} cursor={{ fill: chartColors.cursor }} />
-                                        <Bar
-                                            dataKey="count"
-                                            name={t('chartReservations')}
-                                            fill={chartColors.barPrimaryStrong}
-                                            radius={[4, 4, 0, 0]}
-                                            maxBarSize={28}
-                                        />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
+                                <ReservationCountChart
+                                    data={reservationTrendData}
+                                    title={t('trendTitle')}
+                                    periodLabel={t('chartPeriod')}
+                                    countLabel={t('chartReservations')}
+                                />
                             ) : (
-                                <EmptyChartState label={tCommon('empty')} />
+                                <EmptyChartState
+                                    label={tCommon('empty')}
+                                    actionLabel={t('quickNewReservation')}
+                                    actionHref={Routes.Reservations.index}
+                                />
                             )}
                         </ChartPanel>
 
@@ -587,51 +498,22 @@ export default function DashboardPage() {
                                         icon={card.icon}
                                         iconBg={card.iconBg}
                                         iconColor={card.iconColor}
-                                        label={incomeSummaryLoading ? '—' : card.label}
-                                        value={incomeSummaryLoading ? '—' : card.value}
+                                        label={card.label}
+                                        value={card.value}
+                                        isLoading={incomeSummaryLoading}
                                     />
                                 </Div>
                             ))}
                         </Div>
 
                         <ChartPanel title={t('incomeTrendTitle')}>
-                                <ResponsiveContainer width="100%" height={260}>
-                                    <ComposedChart data={incomeTrendData} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-                                        <CartesianGrid vertical={false} stroke={chartColors.grid} />
-                                        <XAxis
-                                            dataKey="label"
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                        />
-                                        <YAxis
-                                            tick={{ fontSize: 12, fill: chartColors.tick }}
-                                            axisLine={false}
-                                            tickLine={false}
-                                            width={40}
-                                        />
-                                        <Tooltip
-                                            content={ChartTooltip}
-                                            cursor={{ fill: chartColors.cursor }}
-                                            formatter={(value) => formatMoney(value as number)}
-                                        />
-                                        <Bar
-                                            dataKey="income"
-                                            name={t('chartIncome')}
-                                            fill={chartColors.barPrimary}
-                                            radius={[4, 4, 0, 0]}
-                                            maxBarSize={32}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="netBalance"
-                                            name={t('chartNetBalance')}
-                                            stroke={chartColors.lineAccent}
-                                            strokeWidth={2}
-                                            dot={{ r: 3, fill: chartColors.lineAccent, strokeWidth: 0 }}
-                                        />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
+                            <IncomeTrendChart
+                                data={incomeTrendData}
+                                title={t('incomeTrendTitle')}
+                                periodLabel={t('chartPeriod')}
+                                incomeLabel={t('chartIncome')}
+                                netBalanceLabel={t('chartNetBalance')}
+                            />
                         </ChartPanel>
                     </Div>
                 </Div>

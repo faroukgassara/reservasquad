@@ -45,7 +45,7 @@ const Radio = ({ value, label, id, disabled: disabledProp, ...props }: IRadio) =
                     </div>
                 )}
             </div>
-            {label && <Label htmlFor={id} className='ml-2 cursor-pointer' variant={EVariantLabel.hint} color="text-gray-900">{label}</Label>}
+            {label && <Label htmlFor={id} className='ms-2 cursor-pointer' variant={EVariantLabel.hint} color="text-gray-900">{label}</Label>}
         </div>
     );
 };

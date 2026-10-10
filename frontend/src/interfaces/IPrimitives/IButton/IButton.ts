@@ -6,7 +6,8 @@ export default interface IButton {
   icon?: IIcon;
   iconPosition?: 'left' | 'right' | 'only';
   size?: EButtonSize;
-  type?: EButtonType
+  type?: EButtonType;
+  htmlType?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
   isLoading?: boolean;
   onClick?: any,

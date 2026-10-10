@@ -8,12 +8,12 @@ export function DrawerForm({ className, ...props }: FormHTMLAttributes<HTMLFormE
     return <form {...props} className={twMerge('flex h-full min-h-0 flex-col', className)} />;
 }
 
-/** Scrollable drawer content area (fields, filters, etc.). */
+/** Scrollable drawer content area (fields, filters, etc.), with the standard drawer padding. */
 export function DrawerScrollContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     return (
         <div
             {...props}
-            className={twMerge('flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto', className)}
+            className={twMerge('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6', className)}
         />
     );
 }

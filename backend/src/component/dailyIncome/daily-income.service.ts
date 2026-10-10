@@ -17,7 +17,7 @@ import {
 } from 'src/dto/dailyIncome/createIncomeLine.dto';
 import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
 import { SetPreviousMonthRestDto } from 'src/dto/dailyIncome/setPreviousMonthRest.dto';
-import { EIncomeLineType } from 'src/generated/prisma/client';
+import { EIncomeLineType, Prisma } from 'src/generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
@@ -74,7 +74,7 @@ export class DailyIncomeService {
   async createDailyIncome(dto: CreateDailyIncomeDto, actorId?: string) {
     const date = this.toDateOnly(dto.date);
     const existing = await this.prismaService.dailyIncome.findFirst({
-      where: { date, deletedAt: null },
+      where: { date, deletedAt: null, posSessionId: null },
     });
     if (existing) {
       throw new ConflictException('A daily income entry already exists for this date');
@@ -104,6 +104,24 @@ export class DailyIncomeService {
     return created;
   }
 
+  /** Each closed register session gets its own entry, alongside the day's manual entry. */
+  async createForSession(
+    tx: Prisma.TransactionClient,
+    posSessionId: string,
+    value: Date,
+    amount: number,
+  ) {
+    const totalIncome = Math.round(amount * 100) / 100;
+    return tx.dailyIncome.create({
+      data: {
+        date: this.toDateOnly(value),
+        totalIncome: totalIncome.toFixed(2),
+        ...this.calcShares(totalIncome),
+        posSessionId,
+      },
+    });
+  }
+
   async updateDailyIncome(
     id: string,
     dto: UpdateDailyIncomeDto,
@@ -114,9 +132,11 @@ export class DailyIncomeService {
     let date = existing.date;
     if (dto.date !== undefined) {
       date = this.toDateOnly(dto.date);
-      const conflict = await this.prismaService.dailyIncome.findFirst({
-        where: { date, deletedAt: null, id: { not: id } },
-      });
+      const conflict =
+        !existing.posSessionId &&
+        (await this.prismaService.dailyIncome.findFirst({
+          where: { date, deletedAt: null, posSessionId: null, id: { not: id } },
+        }));
       if (conflict) {
         throw new ConflictException('A daily income entry already exists for this date');
       }
@@ -180,7 +200,8 @@ export class DailyIncomeService {
 
     const days = await this.prismaService.dailyIncome.findMany({
       where: { deletedAt: null, date: dateFilter },
-      orderBy: { date: 'asc' },
+      orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
+      include: { posSession: { select: { number: true } } },
     });
 
     const lines = await this.prismaService.incomeLine.findMany({
@@ -202,11 +223,12 @@ export class DailyIncomeService {
       linesByDay.set(key, bucket);
     }
 
+    // Several entries can share a date (manual + register sessions): the day's lines go on the first one only.
+    const seenDays = new Set<string>();
     const data = days.map((day) => {
-      const bucket = linesByDay.get(this.dateKey(day.date)) ?? {
-        charges: 0,
-        investments: 0,
-      };
+      const key = this.dateKey(day.date);
+      const bucket = (!seenDays.has(key) && linesByDay.get(key)) || { charges: 0, investments: 0 };
+      seenDays.add(key);
       const chargesInvestment = Math.round((bucket.charges + bucket.investments) * 100) / 100;
       return {
         ...day,

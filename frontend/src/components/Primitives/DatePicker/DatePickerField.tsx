@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { twMerge } from 'tailwind-merge';
-import { EInputSize, EInputStatus, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
-import { INPUT_SIZES, INPUT_STATUS_FIELD, INPUT_STATUS_ICON_COLOR } from '@/common/Data/Data';
+import { EInputSize, EInputStatus, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
+import { INPUT_SIZES, INPUT_STATUS_FIELD, INPUT_STATUS_HINT_COLOR, INPUT_STATUS_ICON_COLOR } from '@/common/Data/Data';
 import { formatDateDisplay, hasDateValue, resolveInputStatus } from './datePicker.utils';
 import Label from '../Label/Label';
 import Icon from '../Icon/Icon';
@@ -26,6 +26,7 @@ export interface IDatePickerFieldProps {
     className?: string;
     containerClassName?: string;
     placeholder?: string;
+    hintText?: string;
     onChange?: (value: string) => void;
 }
 
@@ -47,7 +48,7 @@ function getDateFieldWrapperClassName({
     const sizeConfig = INPUT_SIZES[size];
 
     return twMerge(
-        'relative flex w-full min-w-0 items-center rounded-lg border bg-white text-left transition-colors duration-200',
+        'relative flex w-full min-w-0 items-center rounded-xl border bg-white text-start transition-colors duration-200',
         sizeConfig.field,
         INPUT_STATUS_FIELD[status],
         status === EInputStatus.default && hasValue && !disabled && 'border-gray-300 bg-gray-50',
@@ -73,6 +74,7 @@ const DatePickerField = ({
     className,
     containerClassName,
     placeholder = 'jj/mm/aaaa',
+    hintText,
     onChange,
 }: IDatePickerFieldProps) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -169,7 +171,7 @@ const DatePickerField = ({
                             color={filled ? 'text-gray-900' : 'text-gray-500'}
                             className={twMerge(
                                 'pointer-events-none shrink-0 whitespace-nowrap',
-                                size === EInputSize.large ? 'pl-4' : 'pl-3',
+                                size === EInputSize.large ? 'ps-4' : 'ps-3',
                             )}
                         >
                             {prefix} :
@@ -179,9 +181,9 @@ const DatePickerField = ({
                         variant={EVariantLabel.bodySmall}
                         color={filled ? 'text-gray-900' : 'text-gray-400'}
                         className={twMerge(
-                            'min-w-0 flex-1 truncate text-left leading-none',
-                            !prefix && (size === EInputSize.large ? 'pl-4' : 'pl-3'),
-                            size === EInputSize.large ? 'pr-11' : 'pr-10',
+                            'min-w-0 flex-1 truncate text-start leading-none',
+                            !prefix && (size === EInputSize.large ? 'ps-4' : 'ps-3'),
+                            size === EInputSize.large ? 'pe-11' : 'pe-10',
                             sizeConfig.text,
                         )}
                     >
@@ -195,6 +197,15 @@ const DatePickerField = ({
                     />
                 </button>
             </div>
+
+            {hintText ? (
+                <div className="mt-1.5 flex items-center gap-1.5">
+                    <Icon color={INPUT_STATUS_HINT_COLOR[resolvedStatus]} name={IconComponentsEnum.info} size={ESize.xs} />
+                    <Label variant={EVariantLabel.hint} color={INPUT_STATUS_HINT_COLOR[resolvedStatus]}>
+                        {hintText}
+                    </Label>
+                </div>
+            ) : null}
 
             {calendarPopover}
         </div>

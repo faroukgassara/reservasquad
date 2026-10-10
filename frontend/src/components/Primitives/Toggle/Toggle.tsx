@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EToggleSize } from '@/Enum/Enum';
 import { IToggle } from '@/interfaces/IPrimitives/IToggle/IToggle';
 
@@ -14,6 +14,10 @@ const Toggle = ({
   className = '',
 }: IToggle) => {
   const [isChecked, setIsChecked] = useState(checked);
+
+  useEffect(() => {
+    setIsChecked(checked);
+  }, [checked]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;
@@ -45,7 +49,7 @@ const Toggle = ({
   return (
     <label
       className={`
-        relative inline-block cursor-pointer
+        relative inline-block shrink-0 cursor-pointer
         ${sizeConfig.switch}
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         ${className}
