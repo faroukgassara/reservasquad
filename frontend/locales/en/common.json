@@ -93,6 +93,7 @@
         "resetPasswordFailed": "Failed to reset password. Please try again.",
         "invalidResetToken": "This reset link is invalid or expired.",
         "modalLoginSubtitle": "Sign in to your Biblio Squad account",
+        "rememberSession": "Remember this session",
         "modalRegisterSubtitle": "Create an account to continue",
         "registerSuccess": "Check your email to activate your account before signing in.",
         "registerFailed": "Registration failed. Please try again.",
@@ -860,7 +861,10 @@
             "difference": "Difference",
             "note": "Closing note",
             "submit": "Close session",
-            "dailyIncome": "Added to daily income"
+            "dailyIncome": "Added to daily income",
+            "syncDailyIncome": "Synchronize with daily income",
+            "syncDailyIncomeActive": "Session revenue ({total}) will be added to daily income.",
+            "syncDailyIncomeInactive": "Do not add this session to daily income."
         },
         "orders": {
             "number": "Order",

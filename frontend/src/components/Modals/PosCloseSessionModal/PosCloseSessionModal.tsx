@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { twMerge } from 'tailwind-merge';
 import Modal from '@/components/Primitives/Modal/Modal';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Input from '@/components/Primitives/Input/Input';
 import Label from '@/components/Primitives/Label/Label';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
+import Toggle from '@/components/Primitives/Toggle/Toggle';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, EInputType, ESize, EVariantLabel } from '@/Enum/Enum';
 import { formatMoney } from '@/lib/daily-income-api';
@@ -17,7 +19,7 @@ import type { ELabelColor } from '@/theme/labelColors';
 
 interface PosCloseSessionModalProps {
     sessionId: string;
-    onSubmit: (values: { countedCash: number; note?: string }) => void;
+    onSubmit: (values: { countedCash: number; note?: string; syncDailyIncome: boolean }) => void;
     isLoading?: boolean;
 }
 
@@ -58,6 +60,7 @@ export default function PosCloseSessionModal({
     const { closeModal } = useCurrentModal();
     const [counted, setCounted] = useState('');
     const [note, setNote] = useState('');
+    const [syncDailyIncome, setSyncDailyIncome] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const { data: summary, isLoading: summaryLoading } = useQuery({
@@ -75,7 +78,11 @@ export default function PosCloseSessionModal({
             return;
         }
         setError(null);
-        onSubmit({ countedCash: countedValue, note: note.trim() || undefined });
+        onSubmit({
+            countedCash: countedValue,
+            note: note.trim() || undefined,
+            syncDailyIncome,
+        });
     };
 
     return (
@@ -144,16 +151,47 @@ export default function PosCloseSessionModal({
                             </Div>
                         </Div>
 
-                        {summary.revenue > 0 ? (
-                            <Div className="flex items-center justify-between gap-3 rounded-xl bg-primary-50 px-4 py-3">
-                                <Label variant={EVariantLabel.bodySmall} color="text-primary-700">
-                                    {t('dailyIncome')}
-                                </Label>
-                                <Label variant={EVariantLabel.subtitle} color="text-primary-700" className="tabular-nums">
-                                    {formatMoney(summary.revenue)}
-                                </Label>
+                        <Div
+                            className={twMerge(
+                                'rounded-xl border p-4 transition-colors',
+                                syncDailyIncome
+                                    ? 'border-primary-200 bg-primary-50/70 dark:border-primary-900/60 dark:bg-primary-950/40'
+                                    : 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50',
+                            )}
+                        >
+                            <Div className="flex items-center justify-between gap-3">
+                                <Div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                    <Label
+                                        variant={EVariantLabel.subtitle}
+                                        color={syncDailyIncome ? 'text-primary-900' : 'text-gray-700'}
+                                    >
+                                        {t('syncDailyIncome')}
+                                    </Label>
+                                    <Label
+                                        variant={EVariantLabel.caption}
+                                        color={syncDailyIncome ? 'text-primary-700' : 'text-gray-500'}
+                                    >
+                                        {syncDailyIncome
+                                            ? t('syncDailyIncomeActive', { total: formatMoney(summary.revenue) })
+                                            : t('syncDailyIncomeInactive')}
+                                    </Label>
+                                </Div>
+                                <Div className="flex shrink-0 items-center gap-3">
+                                    <Label
+                                        variant={EVariantLabel.subtitle}
+                                        color={syncDailyIncome ? 'text-primary-700' : 'text-gray-400'}
+                                        className="tabular-nums font-semibold"
+                                    >
+                                        {formatMoney(summary.revenue)}
+                                    </Label>
+                                    <Toggle
+                                        id="pos-close-sync-daily-income"
+                                        checked={syncDailyIncome}
+                                        onChange={setSyncDailyIncome}
+                                    />
+                                </Div>
                             </Div>
-                        ) : null}
+                        </Div>
 
                         <Input
                             id="pos-close-note"

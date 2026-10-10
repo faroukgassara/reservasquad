@@ -69,7 +69,7 @@ export default function PosInvoicesPage() {
                     mobile: 'primary',
                     render: (_: unknown, row: Invoice) => (
                         <OrganismTable.Cell
-                            mainText={row.displayNumber === '/' ? t('draftNumber') : row.displayNumber}
+                            mainText={row.displayNumber}
                             supportingText={row.type === 'CREDIT_NOTE' ? t('typeCREDIT_NOTE') : undefined}
                         />
                     ),
@@ -88,7 +88,9 @@ export default function PosInvoicesPage() {
                     value: 'invoiceDate',
                     label: t('date'),
                     render: (_: unknown, row: Invoice) => (
-                        <OrganismTable.Cell mainText={formatPosDate(row.invoiceDate)} />
+                        <OrganismTable.Cell
+                            mainText={row.status === 'DRAFT' || !row.invoiceDate ? '' : formatPosDate(row.invoiceDate)}
+                        />
                     ),
                 },
             },
@@ -97,16 +99,24 @@ export default function PosInvoicesPage() {
                     value: 'dueDate',
                     label: t('dueDate'),
                     render: (_: unknown, row: Invoice) => {
-                        if (!row.dueDate) return <OrganismTable.Cell mainText="—" />;
-                        const overdue =
-                            row.status === 'POSTED' && row.paymentState !== 'PAID' && row.dueDate.slice(0, 10) < today;
+                        if (row.paymentState === 'PAID' || !row.dueDate) {
+                            return <OrganismTable.Cell mainText="" />;
+                        }
+                        const overdue = row.dueDate.slice(0, 10) < today;
+                        const due = new Date(row.dueDate.slice(0, 10));
+                        const now = new Date(today.slice(0, 10));
+                        const diffDays = Math.round((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+                        const dueText =
+                            diffDays > 0 && diffDays <= 60
+                                ? `il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`
+                                : formatPosDate(row.dueDate);
                         return (
                             <Label
                                 variant={EVariantLabel.bodySmall}
                                 color={overdue ? 'text-danger-600' : 'text-gray-900'}
                                 className={overdue ? 'font-semibold' : ''}
                             >
-                                {formatPosDate(row.dueDate)}
+                                {dueText}
                             </Label>
                         );
                     },
@@ -127,14 +137,7 @@ export default function PosInvoicesPage() {
                     label: t('total'),
                     mobile: 'primary',
                     render: (_: unknown, row: Invoice) => (
-                        <OrganismTable.Cell
-                            mainText={formatMoney(toAmount(row.total))}
-                            supportingText={
-                                row.status === 'POSTED' && row.amountDue > 0
-                                    ? t('amountDueShort', { value: formatMoney(row.amountDue) })
-                                    : undefined
-                            }
-                        />
+                        <OrganismTable.Cell mainText={formatMoney(toAmount(row.total))} />
                     ),
                 },
             },
@@ -142,17 +145,14 @@ export default function PosInvoicesPage() {
                 headerElement: {
                     value: 'paymentState',
                     label: t('paymentState'),
-                    render: (_: unknown, row: Invoice) =>
-                        row.status === 'POSTED' ? (
-                            <Badge
-                                id={`invoice-payment-${row.id}`}
-                                text={t(`payment${row.paymentState}`)}
-                                type={PAYMENT_STATE_BADGE[row.paymentState]}
-                                size={EBadgeSize.small}
-                            />
-                        ) : (
-                            <OrganismTable.Cell mainText="—" />
-                        ),
+                    render: (_: unknown, row: Invoice) => (
+                        <Badge
+                            id={`invoice-payment-${row.id}`}
+                            text={t(`payment${row.paymentState}`)}
+                            type={PAYMENT_STATE_BADGE[row.paymentState]}
+                            size={EBadgeSize.small}
+                        />
+                    ),
                 },
             },
             {
@@ -172,6 +172,9 @@ export default function PosInvoicesPage() {
         ];
     }, [t]);
 
+    const rows = useMemo(() => data?.data ?? [], [data?.data]);
+    const totalUntaxed = useMemo(() => rows.reduce((sum, r) => sum + toAmount(r.untaxed), 0), [rows]);
+    const totalAmount = useMemo(() => rows.reduce((sum, r) => sum + toAmount(r.total), 0), [rows]);
     const resetPage = () => setPage(1);
 
     return (
@@ -260,7 +263,7 @@ export default function PosInvoicesPage() {
                     </Div>
                     <OrganismTable<Invoice>
                         columns={columns}
-                        rows={data?.data ?? []}
+                        rows={rows}
                         pageSize={PER_PAGE}
                         searchable
                         searchValue={search}
@@ -275,6 +278,14 @@ export default function PosInvoicesPage() {
                         totalRows={data?.meta?.total ?? 0}
                         onPageChange={setPage}
                         onClickRow={(row) => router.push(Routes.Pos.invoice(row.id))}
+                        footerRow={
+                            rows.length > 0
+                                ? {
+                                      untaxed: formatMoney(totalUntaxed),
+                                      total: formatMoney(totalAmount),
+                                  }
+                                : undefined
+                        }
                     />
                 </Div>
             }

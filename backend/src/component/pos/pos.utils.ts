@@ -34,7 +34,7 @@ export function formatSaleNumber(value: number): string {
 }
 
 export function formatSubscriptionNumber(value: number): string {
-  return `ABN${String(value).padStart(5, '0')}`;
+  return `S${String(value).padStart(5, '0')}`;
 }
 
 export function formatInvoiceNumber(

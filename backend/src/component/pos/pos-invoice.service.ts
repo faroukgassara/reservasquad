@@ -136,6 +136,16 @@ export class PosInvoiceService {
           : query.paymentState === 'PARTIAL'
             ? { AND: [{ amountPaid: { gt: 0 } }, { amountPaid: { lt: total } }] }
             : undefined;
+    let searchSequence: number | undefined;
+    let searchYear: number | undefined;
+    if (search) {
+      const match = search.match(/(?:fac|av)?\/?(?:(\d{4})\/)?0*(\d+)/i);
+      if (match) {
+        if (match[1]) searchYear = Number(match[1]);
+        if (match[2]) searchSequence = Number(match[2]);
+      }
+    }
+
     const where: Prisma.InvoiceWhereInput = {
       deletedAt: null,
       ...(query.type && { type: query.type }),
@@ -145,6 +155,13 @@ export class PosInvoiceService {
       ...paymentFilter,
       ...(search && {
         OR: [
+          ...(searchSequence !== undefined && searchSequence <= 2147483647
+            ? [
+                searchYear !== undefined
+                  ? { AND: [{ year: searchYear }, { sequence: searchSequence }] }
+                  : { sequence: searchSequence },
+              ]
+            : []),
           { client: { firstName: { contains: search, mode: 'insensitive' } } },
           { client: { lastName: { contains: search, mode: 'insensitive' } } },
         ],

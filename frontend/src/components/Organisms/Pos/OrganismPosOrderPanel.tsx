@@ -6,7 +6,6 @@ import { twMerge } from 'tailwind-merge';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
-import Input from '@/components/Primitives/Input/Input';
 import Label from '@/components/Primitives/Label/Label';
 import PosNumpad, { type PosNumpadKey } from '@/components/Organisms/Pos/PosNumpad';
 import { cartLineTotal, usePosCart, type PosCartLine } from '@/contexts/PosCartContext';
@@ -33,7 +32,7 @@ const MODE_FIELD: Record<NumpadMode, keyof Pick<PosCartLine, 'quantity' | 'disco
 
 interface IOrganismPosOrderPanel {
     onPay: () => void;
-    onPickClient: () => void;
+    onPickClient?: () => void;
     onPickInvoice: () => void;
     onPickSubscription: () => void;
     onPickCreditPayment: () => void;
@@ -41,7 +40,6 @@ interface IOrganismPosOrderPanel {
 
 export default function OrganismPosOrderPanel({
     onPay,
-    onPickClient,
     onPickInvoice,
     onPickSubscription,
     onPickCreditPayment,
@@ -135,11 +133,13 @@ export default function OrganismPosOrderPanel({
         <Div className="flex h-full min-h-0 flex-col bg-white">
             {/* Phones scroll the lines and the controls together so the pinned pay bar never squeezes the cart. */}
             <Div className="flex min-h-0 flex-1 flex-col overflow-y-auto tablet:overflow-hidden">
-                <div ref={listRef} className="tablet:min-h-0 tablet:flex-1 tablet:overflow-y-auto">
+                <div ref={listRef} className="min-h-[220px] tablet:min-h-[260px] tablet:flex-1 tablet:overflow-y-auto">
                     {cart.lines.length === 0 ? (
-                        <Div className="flex flex-col items-center justify-center gap-2 px-6 py-10 tablet:h-full tablet:py-6">
-                            <Icon name={IconComponentsEnum.shoppingCart} size={ESize.xl} color="text-gray-300" />
-                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                        <Div className="flex h-full min-h-[220px] tablet:min-h-[260px] flex-col items-center justify-center gap-3 px-6 py-12 tablet:py-10">
+                            <div className="flex size-16 items-center justify-center rounded-2xl bg-gray-50 border border-gray-100 shadow-2xs">
+                                <Icon name={IconComponentsEnum.shoppingCart} size={ESize.lg} color="text-gray-400" />
+                            </div>
+                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500" className="text-center font-medium">
                                 {t('emptyOrder')}
                             </Label>
                         </Div>
@@ -189,7 +189,7 @@ export default function OrganismPosOrderPanel({
                     )}
                 </div>
 
-                <Div className="shrink-0 space-y-3 border-t border-gray-200 bg-white p-3">
+                <Div className="shrink-0 space-y-2.5 border-t border-gray-200 bg-white p-3 tablet:space-y-2">
                     <Div className="hidden items-baseline justify-between gap-3 tablet:flex">
                         <Label variant={EVariantLabel.subtitle} color="text-gray-700">
                             {t('total')}
@@ -199,17 +199,7 @@ export default function OrganismPosOrderPanel({
                         </Label>
                     </Div>
 
-                    <Div className="flex gap-2">
-                        <Button
-                            id="pos-order-client"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.medium}
-                            iconPosition="left"
-                            icon={{ name: IconComponentsEnum.user, size: ESize.sm, color: 'text-primary-500' }}
-                            text={cart.client ? `${cart.client.firstName} ${cart.client.lastName}` : t('client')}
-                            onClick={onPickClient}
-                            className="min-w-0 flex-1 truncate rounded-lg"
-                        />
+                    <Div className="flex items-center gap-2">
                         <Button
                             id="pos-order-credit-payment"
                             type={EButtonType.secondary}
@@ -218,7 +208,27 @@ export default function OrganismPosOrderPanel({
                             icon={{ name: IconComponentsEnum.userCheck, size: ESize.sm, color: 'text-primary-500' }}
                             text={t('creditPaymentButton')}
                             onClick={onPickCreditPayment}
-                            className="shrink-0 rounded-lg"
+                            className="min-w-0 flex-1 truncate rounded-lg px-2 text-xs font-semibold tablet:px-2.5 tablet:text-sm"
+                        />
+                        <Button
+                            id="pos-order-invoice"
+                            type={EButtonType.secondary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.filetext, size: ESize.sm, color: 'text-primary-500' }}
+                            text={t('invoiceButton')}
+                            onClick={onPickInvoice}
+                            className="min-w-0 flex-1 truncate rounded-lg px-2 text-xs font-semibold tablet:px-2.5 tablet:text-sm"
+                        />
+                        <Button
+                            id="pos-order-subscription"
+                            type={EButtonType.secondary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-500' }}
+                            text={t('subscriptionButton')}
+                            onClick={onPickSubscription}
+                            className="min-w-0 flex-1 truncate rounded-lg px-2 text-xs font-semibold tablet:px-2.5 tablet:text-sm"
                         />
                         {cart.lines.length > 0 ? (
                             <Button
@@ -229,40 +239,10 @@ export default function OrganismPosOrderPanel({
                                 icon={{ name: IconComponentsEnum.trash, size: ESize.sm, color: 'text-danger-600' }}
                                 aria-label={t('clearOrder')}
                                 onClick={cart.clear}
+                                className="shrink-0 rounded-lg px-2.5"
                             />
                         ) : null}
                     </Div>
-
-                    <Div className="grid grid-cols-2 gap-2">
-                        <Button
-                            id="pos-order-invoice"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.medium}
-                            iconPosition="left"
-                            icon={{ name: IconComponentsEnum.filetext, size: ESize.sm, color: 'text-primary-500' }}
-                            text={t('invoiceButton')}
-                            onClick={onPickInvoice}
-                            className="min-w-0 truncate rounded-lg"
-                        />
-                        <Button
-                            id="pos-order-subscription"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.medium}
-                            iconPosition="left"
-                            icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-500' }}
-                            text={t('subscriptionButton')}
-                            onClick={onPickSubscription}
-                            className="min-w-0 truncate rounded-lg"
-                        />
-                    </Div>
-
-                    <Input
-                        id="pos-order-note"
-                        placeholder={t('notePlaceholder')}
-                        value={cart.note}
-                        onChange={(e) => cart.setNote(e.target.value)}
-                        leftIcon="message"
-                    />
 
                     <PosNumpad
                         id="pos-order-numpad"
@@ -291,7 +271,7 @@ export default function OrganismPosOrderPanel({
                     text={t('payment')}
                     disabled={!canPay}
                     onClick={onPay}
-                    className="h-14 min-w-0 flex-1 rounded-lg rtl:[&_svg]:-scale-x-100"
+                    className="h-12 min-w-0 flex-1 rounded-lg rtl:[&_svg]:-scale-x-100"
                 />
             </Div>
         </Div>

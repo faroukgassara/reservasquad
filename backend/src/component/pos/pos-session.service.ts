@@ -127,6 +127,7 @@ export class PosSessionService {
     await this.getOpenSessionOrThrow(id);
     const { expectedCash, revenue } = await this.getSummary(id);
     const difference = round3(dto.countedCash - expectedCash);
+    const shouldSyncDailyIncome = Boolean(dto.syncDailyIncome);
     const { session, dailyIncome } = await this.prismaService.$transaction(async (tx) => {
       const session = await tx.posSession.update({
         where: { id },
@@ -143,7 +144,7 @@ export class PosSessionService {
       });
       const opened = session.openedAt;
       const dailyIncome =
-        revenue > 0
+        shouldSyncDailyIncome && revenue > 0
           ? await this.dailyIncomeService.createForSession(
               tx,
               session.id,

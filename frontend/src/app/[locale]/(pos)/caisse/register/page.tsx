@@ -114,7 +114,8 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
     });
 
     const closeMutation = useMutation({
-        mutationFn: (body: { countedCash: number; note?: string }) => closePosSession(session.id, body),
+        mutationFn: (body: { countedCash: number; note?: string; syncDailyIncome?: boolean }) =>
+            closePosSession(session.id, body),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ['pos-session-current'] });
             void queryClient.invalidateQueries({ queryKey: ['pos-session-last-closed'] });
@@ -202,7 +203,7 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
                 </Div>
                 <Div
                     className={twMerge(
-                        'min-h-0 flex-1 flex-col border-gray-200 tablet:order-first tablet:flex tablet:w-80 tablet:flex-none tablet:border-e laptop:w-[400px] xl:w-[440px]',
+                        'min-h-0 flex-1 flex-col border-gray-200 tablet:order-first tablet:flex tablet:w-96 tablet:flex-none tablet:border-e laptop:w-[460px] xl:w-[500px] 2xl:w-[540px]',
                         mobileView === 'order' ? 'flex' : 'hidden',
                     )}
                 >
@@ -224,7 +225,6 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
                     <Div className="min-h-0 flex-1">
                         <OrganismPosOrderPanel
                             onPay={() => setScreen('payment')}
-                            onPickClient={() => clientModal.openModal()}
                             onPickInvoice={() => invoiceModal.openModal()}
                             onPickSubscription={() => subscriptionModal.openModal()}
                             onPickCreditPayment={() => creditPaymentModal.openModal()}

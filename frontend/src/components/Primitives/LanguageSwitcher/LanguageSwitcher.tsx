@@ -242,11 +242,11 @@ export default function LanguageSwitcher({
                             open && 'border-primary-500 bg-primary-700',
                         )
                         : twMerge(
-                            'inline-flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200',
+                            'inline-flex h-9 items-center justify-between gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 shadow-xs transition-all duration-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200',
                             className?.includes('w-auto') ? 'w-auto' : 'w-full',
-                            'hover:border-primary-200 hover:bg-gray-50 hover:shadow-md',
+                            'hover:border-primary-200 hover:bg-gray-50 hover:shadow-sm dark:hover:border-gray-600 dark:hover:bg-gray-700/80',
                             'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:ring-offset-1',
-                            open && 'border-primary-300 bg-gray-50 shadow-md',
+                            open && 'border-primary-300 bg-gray-50 shadow-sm dark:border-primary-500 dark:bg-gray-700',
                         ),
                 )}
             >

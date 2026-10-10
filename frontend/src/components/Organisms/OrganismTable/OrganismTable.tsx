@@ -842,6 +842,7 @@ const OrganismTable = <TRow,>({
     onClickFilter,
     actions,
     footer,
+    footerRow,
     isLoading = false,
     emptyMessage,
     className,
@@ -1042,6 +1043,23 @@ const OrganismTable = <TRow,>({
                                     </tr>
                                 )}
                             </tbody>
+
+                            {footerRow && (
+                                <tfoot className="border-t border-gray-200 bg-gray-50/70 font-semibold text-gray-900">
+                                    <tr>
+                                        {flatColumns.map((col) => (
+                                            <td
+                                                key={`footer-${col.key}`}
+                                                style={col.width ? { width: col.width } : undefined}
+                                                className={twMerge('px-4 py-3 align-middle', col.cellClassName)}
+                                            >
+                                                {footerRow[col.key] ?? null}
+                                            </td>
+                                        ))}
+                                        {actions && <td className="w-14" />}
+                                    </tr>
+                                </tfoot>
+                            )}
                         </table>
                     </div>
 
@@ -1061,6 +1079,19 @@ const OrganismTable = <TRow,>({
                             ))
                         ) : (
                             emptyState
+                        )}
+
+                        {footerRow && (
+                            <div className="border-t border-gray-200 bg-gray-50/70 px-4 py-3 flex flex-wrap justify-end gap-x-6 gap-y-1 text-sm font-semibold text-gray-900">
+                                {Object.entries(footerRow).map(([key, val]) => (
+                                    <div key={key}>
+                                        <span className="text-gray-500 font-normal mr-1.5">
+                                            {flatColumns.find((c) => c.key === key)?.label ?? key}:
+                                        </span>
+                                        {val}
+                                    </div>
+                                ))}
+                            </div>
                         )}
                     </div>
 

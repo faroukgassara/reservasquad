@@ -337,8 +337,10 @@ export const openPosSession = (body: { openingCash: number }) =>
 export const fetchPosSessionSummary = (id: string) =>
     posGet<PosSessionSummary>(`sessions/${id}/summary`, 'Failed to fetch session summary');
 
-export const closePosSession = (id: string, body: { countedCash: number; note?: string }) =>
-    posPost<PosSession>(`sessions/${id}/close`, body, 'Failed to close session');
+export const closePosSession = (
+    id: string,
+    body: { countedCash: number; note?: string; syncDailyIncome?: boolean },
+) => posPost<PosSession>(`sessions/${id}/close`, body, 'Failed to close session');
 // Orders
 
 export const fetchPosOrders = (params: {
@@ -652,7 +654,7 @@ export interface SubscriptionInput {
 }
 
 export function formatSubscriptionNumber(value: number): string {
-    return `ABN${String(value).padStart(5, '0')}`;
+    return `S${String(value).padStart(5, '0')}`;
 }
 
 function addUtcDays(date: Date, days: number): Date {

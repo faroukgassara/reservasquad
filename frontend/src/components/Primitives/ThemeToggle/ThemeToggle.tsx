@@ -3,10 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 import { useTranslations } from 'next-intl';
-import Button from '@/components/Primitives/Button/Button';
-import { EButtonSize, EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum';
+import Icon from '@/components/Primitives/Icon/Icon';
+import { ESize, IconComponentsEnum } from '@/Enum/Enum';
+import { twMerge } from 'tailwind-merge';
 
-const ThemeToggle = () => {
+interface IThemeToggle {
+    className?: string;
+}
+
+const ThemeToggle = ({ className }: IThemeToggle = {}) => {
     const { resolvedTheme, setTheme } = useTheme();
     const t = useTranslations('common');
     const [mounted, setMounted] = useState(false);
@@ -18,20 +23,45 @@ const ThemeToggle = () => {
     const isDark = mounted && resolvedTheme === 'dark';
 
     return (
-        <Button
+        <button
+            type="button"
             id="theme-toggle"
-            type={EButtonType.tertiary}
-            size={EButtonSize.medium}
-            iconPosition="only"
-            icon={{
-                name: isDark ? IconComponentsEnum.sun : IconComponentsEnum.moon,
-                size: ESize.md,
-                color: 'text-primary-500',
-            }}
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
             aria-label={t('toggleTheme')}
-            className="shrink-0 border-none bg-gray-100 hover:bg-gray-100 hover:opacity-70"
-        />
+            className={twMerge(
+                'relative inline-flex h-9 items-center rounded-full border border-gray-200 bg-gray-100 p-0.5 transition-colors duration-200 dark:border-gray-700 dark:bg-gray-800 select-none cursor-pointer',
+                className,
+            )}
+        >
+            <span
+                className={twMerge(
+                    'flex size-7 items-center justify-center rounded-full transition-all duration-200',
+                    !isDark
+                        ? 'bg-white text-warning-500 shadow-xs'
+                        : 'text-gray-400 hover:text-gray-200',
+                )}
+            >
+                <Icon
+                    name={IconComponentsEnum.sun}
+                    size={ESize.xs}
+                    color={!isDark ? 'text-warning-500' : 'text-gray-400'}
+                />
+            </span>
+            <span
+                className={twMerge(
+                    'flex size-7 items-center justify-center rounded-full transition-all duration-200',
+                    isDark
+                        ? 'bg-gray-900 text-primary-400 shadow-xs dark:bg-gray-950 dark:text-primary-300'
+                        : 'text-gray-400 hover:text-gray-600',
+                )}
+            >
+                <Icon
+                    name={IconComponentsEnum.moon}
+                    size={ESize.xs}
+                    color={isDark ? 'text-primary-300' : 'text-gray-400'}
+                />
+            </span>
+        </button>
     );
 };
 

@@ -93,6 +93,7 @@
         "resetPasswordFailed": "فشل إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى.",
         "invalidResetToken": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية.",
         "modalLoginSubtitle": "سجّل الدخول إلى حسابك في Biblio Squad",
+        "rememberSession": "تذكر هذه الجلسة",
         "modalRegisterSubtitle": "أنشئ حسابًا للمتابعة",
         "registerSuccess": "تحقق من بريدك الإلكتروني لتفعيل حسابك قبل تسجيل الدخول.",
         "registerFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى.",
@@ -860,7 +861,10 @@
             "difference": "الفرق",
             "note": "ملاحظة الإغلاق",
             "submit": "إغلاق الجلسة",
-            "dailyIncome": "يُضاف إلى المداخيل اليومية"
+            "dailyIncome": "يُضاف إلى المداخيل اليومية",
+            "syncDailyIncome": "المزامنة مع المداخيل اليومية",
+            "syncDailyIncomeActive": "سيتم إضافة إيرادات الجلسة ({total}) إلى المداخيل اليومية.",
+            "syncDailyIncomeInactive": "عدم إضافة هذه الجلسة إلى المداخيل اليومية."
         },
         "orders": {
             "number": "الطلب",

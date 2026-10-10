@@ -126,7 +126,7 @@ export class PosSubscriptionService {
 
   async list(query: FetchSubscriptionsDto, pagination: PaginationData) {
     const search = query.search?.trim();
-    const digits = search?.replace(/^abn/i, '');
+    const digits = search?.replace(/^(abn|s)/i, '');
     const searchNumber = digits && /^\d+$/.test(digits) ? Number(digits) : undefined;
     const where: Prisma.SubscriptionWhereInput = {
       deletedAt: null,

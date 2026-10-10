@@ -131,6 +131,7 @@ export interface ITable<TRow = unknown> {
     onClickFilter?: () => void;
     actions?: ITableAction<TRow>[];
     footer?: ReactNode[];
+    footerRow?: Record<string, ReactNode>;
     isLoading?: boolean;
     emptyMessage?: string;
     className?: string;

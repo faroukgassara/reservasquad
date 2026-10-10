@@ -13,6 +13,7 @@ const Button = memo(function Button({
   iconPosition = 'left',
   size = EButtonSize.medium,
   type = EButtonType.primary,
+  htmlType = 'button',
   disabled = false,
   isLoading = false,
   onClick,
@@ -77,7 +78,7 @@ const Button = memo(function Button({
 
   return (
     <button
-      type="button"
+      type={htmlType}
       className={buttonClassName}
       disabled={disabled}
       onClick={onClick}

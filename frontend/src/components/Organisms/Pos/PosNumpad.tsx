@@ -39,7 +39,7 @@ export default function PosNumpad({ id, rows, activeValue, onKey, disabled = fal
                         disabled={disabled}
                         onClick={() => onKey(key.value)}
                         className={twMerge(
-                            'h-12 rounded-lg px-1 tabular-nums',
+                            'h-11 rounded-lg px-1 tabular-nums',
                             key.accent && !isActive && 'bg-gray-100 hover:bg-gray-200',
                         )}
                     />
