@@ -316,26 +316,57 @@ export const seedPosHistory = async (prisma: PrismaClient) => {
     });
   }
 
+  // 6. Clean up existing POS records to prevent duplicate key collisions
+  console.log('Cleaning up existing POS sessions and orders for fresh historical import...');
+  try {
+    await prisma.dailyIncome.updateMany({
+      where: { posSessionId: { not: null } },
+      data: { posSessionId: null },
+    });
+    await prisma.creditPayment.updateMany({
+      where: { posOrderLineId: { not: null } },
+      data: { posOrderLineId: null },
+    });
+    await prisma.invoicePayment.updateMany({
+      where: { posOrderLineId: { not: null } },
+      data: { posOrderLineId: null },
+    });
+    await prisma.posPayment.deleteMany({});
+    await prisma.posOrderLine.deleteMany({});
+    await prisma.posOrder.deleteMany({});
+    await prisma.posSession.deleteMany({});
+  } catch (cleanErr) {
+    console.warn('Notice during POS cleanup:', cleanErr);
+  }
+
   console.log(`Inserting ${sessionsToInsert.length} sessions...`);
-  await chunkInsert(sessionsToInsert, 500, (chunk) => prisma.posSession.createMany({ data: chunk }));
+  await chunkInsert(sessionsToInsert, 500, (chunk) =>
+    prisma.posSession.createMany({ data: chunk, skipDuplicates: true }),
+  );
 
   console.log(`Inserting ${ordersToInsert.length} orders...`);
-  await chunkInsert(ordersToInsert, 1000, (chunk) => prisma.posOrder.createMany({ data: chunk }));
+  await chunkInsert(ordersToInsert, 1000, (chunk) =>
+    prisma.posOrder.createMany({ data: chunk, skipDuplicates: true }),
+  );
 
   console.log(`Inserting ${linesToInsert.length} order lines...`);
-  await chunkInsert(linesToInsert, 1000, (chunk) => prisma.posOrderLine.createMany({ data: chunk }));
+  await chunkInsert(linesToInsert, 1000, (chunk) =>
+    prisma.posOrderLine.createMany({ data: chunk, skipDuplicates: true }),
+  );
 
   console.log(`Inserting ${paymentsToInsert.length} payments...`);
-  await chunkInsert(paymentsToInsert, 1000, (chunk) => prisma.posPayment.createMany({ data: chunk }));
+  await chunkInsert(paymentsToInsert, 1000, (chunk) =>
+    prisma.posPayment.createMany({ data: chunk, skipDuplicates: true }),
+  );
 
-  // 6. Synchronize Postgres autoincrement sequences to avoid collision with future orders
+  // 7. Synchronize Postgres autoincrement sequences to avoid collision with future orders
   console.log('Synchronizing PostgreSQL serial sequences...');
   try {
     await prisma.$executeRawUnsafe(
-      `SELECT setval(pg_get_serial_sequence('"PosSession"', 'number'), COALESCE(MAX(number), 1)) FROM "PosSession";`,
+      `SELECT setval(pg_get_serial_sequence('"PosSession"', 'number'), (SELECT COALESCE(MAX(number), 1) FROM "PosSession"));`,
     );
     await prisma.$executeRawUnsafe(
-      `SELECT setval(pg_get_serial_sequence('"PosOrder"', 'number'), COALESCE(MAX(number), 1)) FROM "PosOrder";`,
+      `SELECT setval(pg_get_serial_sequence('"PosOrder"', 'number'), (SELECT COALESCE(MAX(number), 1) FROM "PosOrder"));`,
     );
     console.log('Sequences synchronized successfully.');
   } catch (err) {
