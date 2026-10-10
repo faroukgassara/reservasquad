@@ -7,6 +7,7 @@ import {
   EPosSessionStatus,
   PrismaClient,
 } from 'src/generated/prisma/client';
+import { resolveCsvPath } from './resolveCsvPath';
 
 function parseCsvLine(text: string): string[] {
   const result: string[] = [];
@@ -96,7 +97,7 @@ export const seedPosHistory = async (prisma: PrismaClient) => {
   }
 
   // 3. Locate CSV file
-  const localCsv = path.join(__dirname, 'pos_orders_history.csv');
+  const localCsv = resolveCsvPath('pos_orders_history.csv');
   const desktopCsv = 'C:\\Users\\MSI\\Desktop\\data-1791592355882.csv';
   const csvPath = fs.existsSync(localCsv) ? localCsv : desktopCsv;
 

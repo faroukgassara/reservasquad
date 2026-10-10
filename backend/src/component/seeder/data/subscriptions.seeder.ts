@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { EDiscountType, ESubscriptionStatus, ESubscriptionUnit, PrismaClient } from 'src/generated/prisma/client';
+import { resolveCsvPath } from './resolveCsvPath';
 
 interface CsvRow {
   reference_vente: string;
@@ -138,7 +139,7 @@ export const seedSubscriptions = async (prisma: PrismaClient) => {
   }
 
   // 4. Load CSV file
-  const csvPath = path.join(__dirname, 'subscriptions_history.csv');
+  const csvPath = resolveCsvPath('subscriptions_history.csv');
   if (!fs.existsSync(csvPath)) {
     console.warn(`[seedSubscriptions] File not found: ${csvPath}`);
     return;

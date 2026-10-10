@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { EPosProductType, ESubscriptionUnit, PrismaClient } from 'src/generated/prisma/client';
+import { resolveCsvPath } from './resolveCsvPath';
 
 const CATEGORIES_TO_CREATE = [
   { name: 'Bibliotheque', sortOrder: 1 },
@@ -87,10 +88,11 @@ export const seedPosCatalog = async (prisma: PrismaClient) => {
   }
 
   console.log('--- Loading and Upserting Products from products.csv ---');
-  const csvPath = path.join(__dirname, 'products.csv');
+  const csvPath = resolveCsvPath('products.csv');
   if (!fs.existsSync(csvPath)) {
     throw new Error(`Products CSV file not found at ${csvPath}`);
   }
+  console.log(`Using products CSV at: ${csvPath}`);
 
   const csvText = fs.readFileSync(csvPath, 'utf8');
   const csvRows = parseCsv(csvText);
