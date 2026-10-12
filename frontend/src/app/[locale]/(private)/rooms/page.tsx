@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
+import StatCard from '@/components/Primitives/StatCard/StatCard';
 import Button from '@/components/Primitives/Button/Button';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
 import RoomFormModal, { type RoomFormValues } from '@/components/Modals/RoomFormModal/RoomFormModal';
@@ -109,6 +110,15 @@ export default function RoomsAdminPage() {
 
     const rows = data?.data ?? [];
     const totalRows = data?.meta?.total ?? 0;
+
+    const stats = useMemo(() => {
+        const count = totalRows;
+        const totalCapacity = rows.reduce((acc, r) => acc + (Number(r.capacity) || 0), 0);
+        const avgPrice = rows.length
+            ? rows.reduce((acc, r) => acc + (Number(r.pricePerHour) || 0), 0) / rows.length
+            : 0;
+        return { count, totalCapacity, avgPrice };
+    }, [rows, totalRows]);
 
     const handleFormSubmit = useCallback(
         async (values: RoomFormValues) => {
@@ -224,7 +234,33 @@ export default function RoomsAdminPage() {
                 title={t('title')}
                 subTitle={t('subtitle')}
                 mainSection={
-                    <div className="min-h-full">
+                    <div className="flex min-h-full flex-col gap-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                            <StatCard
+                                icon={IconComponentsEnum.home}
+                                iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                iconColor="text-primary-600"
+                                label={t('totalRooms')}
+                                value={isLoading ? '—' : String(stats.count)}
+                                isLoading={isLoading}
+                            />
+                            <StatCard
+                                icon={IconComponentsEnum.users}
+                                iconBg="bg-accent-50 dark:bg-accent-950/40"
+                                iconColor="text-accent-600"
+                                label={t('totalCapacity')}
+                                value={isLoading ? '—' : String(stats.totalCapacity)}
+                                isLoading={isLoading}
+                            />
+                            <StatCard
+                                icon={IconComponentsEnum.star}
+                                iconBg="bg-success-50 dark:bg-success-950/40"
+                                iconColor="text-success-600"
+                                label={t('averageRate')}
+                                value={isLoading ? '—' : formatPrice(stats.avgPrice)}
+                                isLoading={isLoading}
+                            />
+                        </div>
                         <OrganismTable<RoomRecord>
                             columns={columns}
                             rows={rows}

@@ -1,10 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
 import { EVariantLabel } from '@/Enum/Enum';
+import logoLight from '@/assets/images/bibliosquad-logo.png';
 import { formatMoney } from '@/lib/daily-income-api';
 import { documentLineName } from '@/lib/pos-documents';
 import {
@@ -34,9 +36,12 @@ export default function OrganismPosReceipt({ order, className }: Readonly<IOrgan
             )}
         >
             <Div className="flex flex-col items-center text-center">
-                <Label variant={EVariantLabel.h5} color="text-gray-900">
-                    {t('brand')}
-                </Label>
+                <Image
+                    src={logoLight}
+                    alt="Biblio Squad"
+                    priority
+                    className="mx-auto mb-1 h-11 w-auto object-contain"
+                />
                 <Label variant={EVariantLabel.caption} color="text-gray-600">
                     {isRefund ? t('refundTitle') : t('title')}
                 </Label>
@@ -53,9 +58,6 @@ export default function OrganismPosReceipt({ order, className }: Readonly<IOrgan
                 ) : null}
                 <Label variant={EVariantLabel.caption} color="text-gray-700" className="block">
                     {formatPosDateTime(order.createdAt)}
-                </Label>
-                <Label variant={EVariantLabel.caption} color="text-gray-700" className="block">
-                    {t('cashier', { name: personName(order.cashier) })}
                 </Label>
                 {order.creditClient ? (
                     <Label variant={EVariantLabel.caption} color="text-gray-700" className="block">

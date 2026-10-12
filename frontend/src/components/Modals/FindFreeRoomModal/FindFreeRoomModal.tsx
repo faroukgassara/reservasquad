@@ -88,7 +88,7 @@ function ResultsList({
             {rooms.map((room) => (
                 <Div
                     key={room.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-200 px-4 py-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3"
                 >
                     <Div className="min-w-0">
                         <Label

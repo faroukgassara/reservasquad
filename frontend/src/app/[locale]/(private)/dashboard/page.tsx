@@ -382,35 +382,41 @@ export default function DashboardPage() {
             subTitle={t('subtitle')}
             mainSection={
                 <Div className="mx-auto max-w-7xl space-y-8">
-                    <Div className="flex flex-col">
-                        <Label variant={EVariantLabel.h3} color="text-gray-900">
-                            {t('welcome')}
-                        </Label>
-                        <Label variant={EVariantLabel.bodyLarge} color="text-gray-600" className="mt-2">
-                            {t('welcomeBody')}
-                        </Label>
-                        <Div className="mt-4 flex flex-wrap gap-3">
-                            <Button
-                                id="dashboard-quick-new-reservation"
-                                text={t('quickNewReservation')}
-                                type={EButtonType.primary}
-                                icon={{ name: IconComponentsEnum.plus, size: ESize.sm, color: 'text-white' }}
-                                onClick={() => router.push(Routes.Reservations.index)}
-                            />
-                            <Button
-                                id="dashboard-quick-open-register"
-                                text={t('quickOpenRegister')}
-                                type={EButtonType.secondary}
-                                icon={{ name: IconComponentsEnum.shoppingCart, size: ESize.sm, color: 'text-primary-500' }}
-                                onClick={() => router.push(Routes.Pos.register)}
-                            />
-                            <Button
-                                id="dashboard-quick-calendar"
-                                text={t('quickCalendar')}
-                                type={EButtonType.secondary}
-                                icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-500' }}
-                                onClick={() => router.push(Routes.Calendar)}
-                            />
+                    {/* Hero Welcome Card */}
+                    <Div className="relative overflow-hidden rounded-3xl border border-primary-100 bg-gradient-to-br from-primary-50/70 via-white to-accent-50/30 p-6 shadow-2xs sm:p-8">
+                        <Div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
+                            <Div className="max-w-2xl">
+                                <Label variant={EVariantLabel.h3} color="text-gray-900" className="font-extrabold tracking-tight">
+                                    {t('welcome')}
+                                </Label>
+                                <Label variant={EVariantLabel.bodyLarge} color="text-gray-600" className="mt-2 block">
+                                    {t('welcomeBody')}
+                                </Label>
+                            </Div>
+                            <Div className="flex flex-wrap items-center gap-3">
+                                <Button
+                                    id="dashboard-quick-new-reservation"
+                                    text={t('quickNewReservation')}
+                                    type={EButtonType.primary}
+                                    icon={{ name: IconComponentsEnum.plus, size: ESize.sm, color: 'text-white' }}
+                                    onClick={() => router.push(Routes.Reservations.index)}
+                                    className="shadow-sm shadow-primary-500/20"
+                                />
+                                <Button
+                                    id="dashboard-quick-open-register"
+                                    text={t('quickOpenRegister')}
+                                    type={EButtonType.secondary}
+                                    icon={{ name: IconComponentsEnum.shoppingCart, size: ESize.sm, color: 'text-primary-600' }}
+                                    onClick={() => router.push(Routes.Pos.register)}
+                                />
+                                <Button
+                                    id="dashboard-quick-calendar"
+                                    text={t('quickCalendar')}
+                                    type={EButtonType.secondary}
+                                    icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-600' }}
+                                    onClick={() => router.push(Routes.Calendar)}
+                                />
+                            </Div>
                         </Div>
                     </Div>
 
@@ -437,40 +443,42 @@ export default function DashboardPage() {
                             ))}
                         </Div>
 
-                        <ChartPanel title={t('reservationTrendTitle')}>
-                            {hasReservationTrend ? (
-                                <ReservationRevenueChart
-                                    data={reservationTrendData}
-                                    title={t('reservationTrendTitle')}
-                                    periodLabel={t('chartPeriod')}
-                                    revenueLabel={t('chartRevenue')}
-                                    paidRevenueLabel={t('chartPaidRevenue')}
-                                />
-                            ) : (
-                                <EmptyChartState
-                                    label={tCommon('empty')}
-                                    actionLabel={t('quickNewReservation')}
-                                    actionHref={Routes.Reservations.index}
-                                />
-                            )}
-                        </ChartPanel>
+                        <Div className="grid gap-4 lg:grid-cols-2">
+                            <ChartPanel title={t('reservationTrendTitle')}>
+                                {hasReservationTrend ? (
+                                    <ReservationRevenueChart
+                                        data={reservationTrendData}
+                                        title={t('reservationTrendTitle')}
+                                        periodLabel={t('chartPeriod')}
+                                        revenueLabel={t('chartRevenue')}
+                                        paidRevenueLabel={t('chartPaidRevenue')}
+                                    />
+                                ) : (
+                                    <EmptyChartState
+                                        label={tCommon('empty')}
+                                        actionLabel={t('quickNewReservation')}
+                                        actionHref={Routes.Reservations.index}
+                                    />
+                                )}
+                            </ChartPanel>
 
-                        <ChartPanel title={t('trendTitle')}>
-                            {hasReservationTrend ? (
-                                <ReservationCountChart
-                                    data={reservationTrendData}
-                                    title={t('trendTitle')}
-                                    periodLabel={t('chartPeriod')}
-                                    countLabel={t('chartReservations')}
-                                />
-                            ) : (
-                                <EmptyChartState
-                                    label={tCommon('empty')}
-                                    actionLabel={t('quickNewReservation')}
-                                    actionHref={Routes.Reservations.index}
-                                />
-                            )}
-                        </ChartPanel>
+                            <ChartPanel title={t('trendTitle')}>
+                                {hasReservationTrend ? (
+                                    <ReservationCountChart
+                                        data={reservationTrendData}
+                                        title={t('trendTitle')}
+                                        periodLabel={t('chartPeriod')}
+                                        countLabel={t('chartReservations')}
+                                    />
+                                ) : (
+                                    <EmptyChartState
+                                        label={tCommon('empty')}
+                                        actionLabel={t('quickNewReservation')}
+                                        actionHref={Routes.Reservations.index}
+                                    />
+                                )}
+                            </ChartPanel>
+                        </Div>
 
                         <ChartPanel title={t('topRoomsTitle')}>
                             <TopRoomsList

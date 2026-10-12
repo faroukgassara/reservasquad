@@ -9,17 +9,13 @@ import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import PosSalesDetailsModal from '@/components/Modals/PosSalesDetailsModal/PosSalesDetailsModal';
 import { useModal } from '@/contexts/ModalContext';
 import Badge from '@/components/Primitives/Badge/Badge';
+import StatCard from '@/components/Primitives/StatCard/StatCard';
 import Button from '@/components/Primitives/Button/Button';
 import { formatMoney } from '@/lib/daily-income-api';
 import { Routes } from '@/lib/routes';
-import { fetchPosSessions, formatPosDateTime, personName, toAmount, type PosSession } from '@/lib/pos-api';
+import { fetchPosSessions, formatPosDateTime, getSessionCashPayments, personName, type PosSession } from '@/lib/pos-api';
 import { EBadgeSize, EBadgeType, EButtonSize, EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum';
 import { ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
-
-function differenceBadgeType(value: number): EBadgeType {
-    if (value === 0) return EBadgeType.success;
-    return value > 0 ? EBadgeType.primary : EBadgeType.error;
-}
 
 export default function PosSessionsPage() {
     const t = useTranslations('pos');
@@ -31,6 +27,22 @@ export default function PosSessionsPage() {
         queryKey: ['pos-sessions', page],
         queryFn: () => fetchPosSessions({ page, perPage: 10 }),
     });
+
+    const sessions = data?.data ?? [];
+    const stats = useMemo(() => {
+        const totalCount = data?.meta?.total ?? 0;
+        const openCount =
+            data?.summary?.openSessionsCount ?? sessions.filter((s) => s.status === 'OPEN').length;
+        const totalCash =
+            data?.summary?.totalCashCollected ??
+            sessions.reduce((sum, s) => sum + getSessionCashPayments(s), 0);
+        return { totalCount, openCount, totalCash };
+    }, [
+        data?.meta?.total,
+        data?.summary?.openSessionsCount,
+        data?.summary?.totalCashCollected,
+        sessions,
+    ]);
 
     const columns = useMemo(
         (): ITableColumn<PosSession>[] => [
@@ -49,10 +61,7 @@ export default function PosSessionsPage() {
                     value: 'openedAt',
                     label: t('session.openedAt'),
                     render: (_: unknown, row: PosSession) => (
-                        <OrganismTable.Cell
-                            mainText={formatPosDateTime(row.openedAt)}
-                            supportingText={formatMoney(toAmount(row.openingCash))}
-                        />
+                        <OrganismTable.Cell mainText={formatPosDateTime(row.openedAt)} />
                     ),
                 },
             },
@@ -61,12 +70,7 @@ export default function PosSessionsPage() {
                     value: 'closedAt',
                     label: t('session.closedAt'),
                     render: (_: unknown, row: PosSession) => (
-                        <OrganismTable.Cell
-                            mainText={formatPosDateTime(row.closedAt)}
-                            supportingText={
-                                row.countedCash === null ? undefined : formatMoney(toAmount(row.countedCash))
-                            }
-                        />
+                        <OrganismTable.Cell mainText={formatPosDateTime(row.closedAt)} />
                     ),
                 },
             },
@@ -81,30 +85,30 @@ export default function PosSessionsPage() {
             },
             {
                 headerElement: {
-                    value: 'difference',
-                    label: t('session.difference'),
+                    value: 'cashPayments',
+                    label: t('session.cashPayments'),
+                    render: (_: unknown, row: PosSession) => (
+                        <OrganismTable.Cell mainText={formatMoney(getSessionCashPayments(row))} />
+                    ),
+                },
+            },
+            {
+                headerElement: {
+                    value: 'status',
+                    label: t('session.status'),
                     mobile: 'primary',
-                    render: (_: unknown, row: PosSession) => {
-                        if (row.status === 'OPEN') {
-                            return (
+                    render: (_: unknown, row: PosSession) => (
+                        <OrganismTable.Cell
+                            leftChildren={
                                 <Badge
                                     id={`pos-session-status-${row.id}`}
-                                    text={t('session.statusOpen')}
-                                    type={EBadgeType.warning}
+                                    text={row.status === 'OPEN' ? t('session.statusOpen') : t('session.statusClosed')}
+                                    type={row.status === 'OPEN' ? EBadgeType.success : EBadgeType.reverror}
                                     size={EBadgeSize.small}
                                 />
-                            );
-                        }
-                        const difference = toAmount(row.difference);
-                        return (
-                            <Badge
-                                id={`pos-session-difference-${row.id}`}
-                                text={formatMoney(difference)}
-                                type={differenceBadgeType(difference)}
-                                size={EBadgeSize.small}
-                            />
-                        );
-                    },
+                            }
+                        />
+                    ),
                 },
             },
         ],
@@ -129,17 +133,46 @@ export default function PosSessionsPage() {
                     />
                 }
                 mainSection={
-                    <OrganismTable<PosSession>
-                        columns={columns}
-                        rows={data?.data ?? []}
-                        pageSize={10}
-                        isLoading={isLoading}
-                        emptyMessage={t('sessions.empty')}
-                        page={page}
-                        totalRows={data?.meta?.total ?? 0}
-                        onPageChange={setPage}
-                        onClickRow={(row) => router.push(Routes.Pos.session(row.id))}
-                    />
+                    <div className="flex min-h-full flex-col gap-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                            <StatCard
+                                icon={IconComponentsEnum.layers}
+                                iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                iconColor="text-primary-600"
+                                label={t('sessions.totalSessions')}
+                                value={isLoading ? '—' : String(stats.totalCount)}
+                                isLoading={isLoading}
+                            />
+                            <StatCard
+                                icon={IconComponentsEnum.checkCircle}
+                                iconBg="bg-success-50 dark:bg-success-950/40"
+                                iconColor="text-success-600"
+                                label={t('sessions.openSessions')}
+                                value={isLoading ? '—' : String(stats.openCount)}
+                                isLoading={isLoading}
+                            />
+                            <StatCard
+                                icon={IconComponentsEnum.star}
+                                iconBg="bg-accent-50 dark:bg-accent-950/40"
+                                iconColor="text-accent-600"
+                                label={t('sessions.cashCollected')}
+                                value={isLoading ? '—' : formatMoney(stats.totalCash)}
+                                isLoading={isLoading}
+                            />
+                        </div>
+                        <OrganismTable<PosSession>
+                            columns={columns}
+                            rows={sessions}
+                            pageSize={10}
+                            searchable={false}
+                            isLoading={isLoading}
+                            emptyMessage={t('sessions.empty')}
+                            page={page}
+                            totalRows={data?.meta?.total ?? 0}
+                            onPageChange={setPage}
+                            onClickRow={(row) => router.push(Routes.Pos.session(row.id))}
+                        />
+                    </div>
                 }
             />
         </>

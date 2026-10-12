@@ -19,7 +19,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
     const t = useTranslations();
 
     return (
-        <div className="relative flex min-h-dvh flex-col items-center justify-center bg-gray-50/60 p-4 transition-colors duration-200 dark:bg-[#0b121e] sm:p-6">
+        <div className="relative flex min-h-dvh flex-col items-center justify-center bg-gray-50/60 p-4 transition-colors duration-200 dark:bg-gray-900 sm:p-6">
             {/* Top Controls: LanguageSwitcher & ThemeToggle above Card, aligned to right edge */}
             <div className="mb-3.5 flex w-full max-w-[420px] items-center justify-end gap-2">
                 <LanguageSwitcher menuPlacement="top" className="w-auto" />
@@ -27,7 +27,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
             </div>
 
             {/* Main Auth Card */}
-            <div className="w-full max-w-[420px] rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-colors duration-200 dark:border-gray-800/80 dark:bg-[#131b2e] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:p-8">
+            <div className="w-full max-w-[420px] rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-colors duration-200 dark:border-gray-800 dark:bg-gray-800 dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:p-8">
                 {/* Logo & Title */}
                 <div className="mb-6 flex flex-col items-center text-center">
                     <div className="mb-2.5 flex justify-center">

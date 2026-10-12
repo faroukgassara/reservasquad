@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
+import StatCard from '@/components/Primitives/StatCard/StatCard';
 import Button from '@/components/Primitives/Button/Button';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
 import OrganismProfessorRanking from '@/components/Organisms/OrganismProfessorRanking/OrganismProfessorRanking';
@@ -128,6 +129,15 @@ export default function ProfessorsAdminPage() {
 
     const rows = data?.data ?? [];
     const totalRows = data?.meta?.total ?? 0;
+
+    const stats = useMemo(() => {
+        const count = totalRows;
+        const withSpecialty = rows.filter((p) => Boolean(p.specialty)).length;
+        const withSpecialPrice = rows.filter(
+            (p) => p.specialPrice != null && Number(p.specialPrice) > 0,
+        ).length;
+        return { count, withSpecialty, withSpecialPrice };
+    }, [rows, totalRows]);
 
     const handleFormSubmit = useCallback(
         async (values: ProfessorFormValues) => {
@@ -290,42 +300,70 @@ export default function ProfessorsAdminPage() {
                         {tab === 'ranking' ? (
                             <OrganismProfessorRanking />
                         ) : (
-                        <OrganismTable<ProfessorRecord>
-                            columns={columns}
-                            rows={rows}
-                            pageSize={10}
-                            searchable
-                            searchValue={searchValue}
-                            onSearchChange={(value) => {
-                                setSearchValue(value);
-                                setPage(1);
-                            }}
-                            placeholder={tCommon('search')}
-                            actions={actions}
-                            isLoading={isLoading}
-                            emptyMessage={tCommon('empty')}
-                            page={page}
-                            totalRows={totalRows}
-                            onPageChange={setPage}
-                            primaryAction={
-                                <Button
-                                    id="professors-add-btn"
-                                    type={EButtonType.primary}
-                                    size={EButtonSize.medium}
-                                    iconPosition="left"
-                                    icon={{
-                                        name: IconComponentsEnum.plus,
-                                        size: ESize.sm,
-                                        color: 'text-white',
+                            <>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                                    <StatCard
+                                        icon={IconComponentsEnum.users}
+                                        iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                        iconColor="text-primary-600"
+                                        label={t('totalProfessors')}
+                                        value={isLoading ? '—' : String(stats.count)}
+                                        isLoading={isLoading}
+                                    />
+                                    <StatCard
+                                        icon={IconComponentsEnum.sparkles}
+                                        iconBg="bg-accent-50 dark:bg-accent-950/40"
+                                        iconColor="text-accent-600"
+                                        label={t('withSpecialty')}
+                                        value={isLoading ? '—' : String(stats.withSpecialty)}
+                                        isLoading={isLoading}
+                                    />
+                                    <StatCard
+                                        icon={IconComponentsEnum.star}
+                                        iconBg="bg-warning-50 dark:bg-warning-950/40"
+                                        iconColor="text-warning-600"
+                                        label={t('withCustomRate')}
+                                        value={isLoading ? '—' : String(stats.withSpecialPrice)}
+                                        isLoading={isLoading}
+                                    />
+                                </div>
+                                <OrganismTable<ProfessorRecord>
+                                    columns={columns}
+                                    rows={rows}
+                                    pageSize={10}
+                                    searchable
+                                    searchValue={searchValue}
+                                    onSearchChange={(value) => {
+                                        setSearchValue(value);
+                                        setPage(1);
                                     }}
-                                    text={t('create')}
-                                    onClick={() => {
-                                        setModalState({ type: 'form', professor: null });
-                                        openModal();
-                                    }}
+                                    placeholder={tCommon('search')}
+                                    actions={actions}
+                                    isLoading={isLoading}
+                                    emptyMessage={tCommon('empty')}
+                                    page={page}
+                                    totalRows={totalRows}
+                                    onPageChange={setPage}
+                                    primaryAction={
+                                        <Button
+                                            id="professors-add-btn"
+                                            type={EButtonType.primary}
+                                            size={EButtonSize.medium}
+                                            iconPosition="left"
+                                            icon={{
+                                                name: IconComponentsEnum.plus,
+                                                size: ESize.sm,
+                                                color: 'text-white',
+                                            }}
+                                            text={t('create')}
+                                            onClick={() => {
+                                                setModalState({ type: 'form', professor: null });
+                                                openModal();
+                                            }}
+                                        />
+                                    }
                                 />
-                            }
-                        />
+                            </>
                         )}
                     </div>
                 }

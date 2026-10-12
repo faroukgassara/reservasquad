@@ -31,6 +31,7 @@ import {
     EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
+import StatCard from '@/components/Primitives/StatCard/StatCard';
 import type { ELabelColor } from '@/theme/labelColors';
 
 function formatTime(iso: string): string {
@@ -49,44 +50,27 @@ function professorName(professor: TodayProfessor | null): string {
     return `${professor.firstName} ${professor.lastName}`.trim();
 }
 
-function StatCard({
+function SectionTitle({
+    title,
     icon,
-    iconBg,
-    iconColor,
-    label,
-    value,
+    action,
 }: Readonly<{
-    icon: IconComponentsEnum;
-    iconBg: string;
-    iconColor: ELabelColor;
-    label: string;
-    value: string;
+    title: string;
+    icon?: IconComponentsEnum;
+    action?: ReactNode;
 }>) {
     return (
-        <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Div className="flex items-center gap-3">
-                <Div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
-                    <Icon name={icon} size={ESize.sm} color={iconColor} />
-                </Div>
-                <Div className="min-w-0 flex flex-col">
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
-                        {label}
-                    </Label>
-                    <Label variant={EVariantLabel.h5} color="text-gray-900" className="block">
-                        {value}
-                    </Label>
-                </Div>
+        <Div className="mb-3.5 flex items-center justify-between gap-3">
+            <Div className="flex items-center gap-2">
+                {icon ? (
+                    <Div className="flex size-7 items-center justify-center rounded-lg bg-primary-50">
+                        <Icon name={icon} size={ESize.xs} color="text-primary-600" />
+                    </Div>
+                ) : null}
+                <Label variant={EVariantLabel.h6} color="text-gray-900" className="font-semibold">
+                    {title}
+                </Label>
             </Div>
-        </Div>
-    );
-}
-
-function SectionTitle({ title, action }: Readonly<{ title: string; action?: ReactNode }>) {
-    return (
-        <Div className="mb-3 flex items-center justify-between gap-3">
-            <Label variant={EVariantLabel.h6} color="text-gray-900">
-                {title}
-            </Label>
             {action}
         </Div>
     );
@@ -101,59 +85,68 @@ function RoomStatusCard({
 }>) {
     const occupied = room.status === 'OCCUPIED';
     return (
-        <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Div className="mb-3 flex items-start justify-between gap-2">
-                <Div className="min-w-0 flex items-center gap-2">
-                    <Label variant={EVariantLabel.body} color="text-gray-900" className="block truncate">
-                        {room.roomName}
-                    </Label>
-                    <Label variant={EVariantLabel.caption} color="text-gray-500">
-                        {t('capacity', { count: room.capacity })}
-                    </Label>
+        <Div className="group flex flex-col justify-between rounded-2xl border border-gray-200/80 bg-white p-4 shadow-2xs transition-all duration-200 hover:border-primary-300 hover:shadow-md">
+            <div>
+                <Div className="mb-3 flex items-start justify-between gap-2">
+                    <Div className="min-w-0 flex items-center gap-2">
+                        <Label variant={EVariantLabel.body} color="text-gray-900" className="block truncate font-bold">
+                            {room.roomName}
+                        </Label>
+                        <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-600">
+                            {t('capacity', { count: room.capacity })}
+                        </span>
+                    </Div>
+                    <Badge
+                        id={`today-room-status-${room.roomId}`}
+                        text={occupied ? t('occupied') : t('free')}
+                        type={occupied ? EBadgeType.warning : EBadgeType.success}
+                        size={EBadgeSize.small}
+                    />
                 </Div>
-                <Badge
-                    id={`today-room-status-${room.roomId}`}
-                    text={occupied ? t('occupied') : t('free')}
-                    type={occupied ? EBadgeType.warning : EBadgeType.success}
-                    size={EBadgeSize.small}
-                />
-            </Div>
 
-            {occupied && room.current ? (
-                <Div className="space-y-1">
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block me-1">
-                        {professorName(room.current.professor)}
-                    </Label>
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
-                        {formatRange(room.current.startAt, room.current.endAt)}
-                    </Label>
-                    {room.nextFreeAt ? (
-                        <Label variant={EVariantLabel.caption} color="text-primary-600" className="block ms-1">
-                            {t('freesAt', { time: formatTime(room.nextFreeAt) })}
-                        </Label>
-                    ) : null}
-                </Div>
-            ) : (
-                <Div className="flex justify-between space-y-1">
-                    {room.freeUntil ? (
-                        <Label variant={EVariantLabel.caption} color="text-success-700" className="block">
-                            {t('freeUntil', { time: formatTime(room.freeUntil) })}
-                        </Label>
-                    ) : null}
-                    {room.nextBusy ? (
-                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
-                            {t('nextBusy', {
-                                time: formatTime(room.nextBusy.startAt),
-                                who: professorName(room.nextBusy.professor),
-                            })}
-                        </Label>
-                    ) : (
-                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
-                            {t('freeRestOfDay')}
-                        </Label>
-                    )}
-                </Div>
-            )}
+                {occupied && room.current ? (
+                    <Div className="rounded-xl bg-warning-50/60 p-2.5">
+                        <Div className="flex items-center gap-2">
+                            <Div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-warning-100 text-[11px] font-bold text-warning-800">
+                                {room.current.professor?.firstName?.[0] || 'P'}
+                            </Div>
+                            <Label variant={EVariantLabel.caption} color="text-gray-900" className="block truncate font-semibold">
+                                {professorName(room.current.professor)}
+                            </Label>
+                        </Div>
+                        <Div className="mt-1.5 flex items-center justify-between text-xs text-gray-600">
+                            <span>{formatRange(room.current.startAt, room.current.endAt)}</span>
+                            {room.nextFreeAt ? (
+                                <span className="font-medium text-primary-600">
+                                    {t('freesAt', { time: formatTime(room.nextFreeAt) })}
+                                </span>
+                            ) : null}
+                        </Div>
+                    </Div>
+                ) : (
+                    <Div className="rounded-xl bg-success-50/40 p-2.5">
+                        <Div className="flex items-center justify-between gap-2">
+                            {room.freeUntil ? (
+                                <span className="text-xs font-semibold text-success-700">
+                                    {t('freeUntil', { time: formatTime(room.freeUntil) })}
+                                </span>
+                            ) : (
+                                <span className="text-xs font-medium text-success-700">
+                                    {t('freeRestOfDay')}
+                                </span>
+                            )}
+                            {room.nextBusy ? (
+                                <span className="text-xs text-gray-500 truncate" title={professorName(room.nextBusy.professor)}>
+                                    {t('nextBusy', {
+                                        time: formatTime(room.nextBusy.startAt),
+                                        who: professorName(room.nextBusy.professor),
+                                    })}
+                                </span>
+                            ) : null}
+                        </Div>
+                    </Div>
+                )}
+            </div>
         </Div>
     );
 }
@@ -248,6 +241,7 @@ export default function TodayPage() {
                                     iconColor="text-warning-700"
                                     label={t('kpiOccupied')}
                                     value={String(data.counts.roomsOccupied)}
+                                    isLoading={isLoading}
                                 />
                                 <StatCard
                                     icon={IconComponentsEnum.check}
@@ -255,6 +249,7 @@ export default function TodayPage() {
                                     iconColor="text-success-700"
                                     label={t('kpiFree')}
                                     value={String(data.counts.roomsFree)}
+                                    isLoading={isLoading}
                                 />
                                 <StatCard
                                     icon={IconComponentsEnum.calendar}
@@ -262,6 +257,7 @@ export default function TodayPage() {
                                     iconColor="text-primary-600"
                                     label={t('kpiConfirmed')}
                                     value={String(data.counts.confirmedToday)}
+                                    isLoading={isLoading}
                                 />
                                 <StatCard
                                     icon={IconComponentsEnum.bell}
@@ -269,11 +265,12 @@ export default function TodayPage() {
                                     iconColor="text-danger-600"
                                     label={t('kpiUnpaid')}
                                     value={String(data.counts.unpaidToday)}
+                                    isLoading={isLoading}
                                 />
                             </Div>
 
                             <Div>
-                                <SectionTitle title={t('roomsSection')} />
+                                <SectionTitle title={t('roomsSection')} icon={IconComponentsEnum.home} />
                                 {data.rooms.length === 0 ? (
                                     <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
                                         {t('noRooms')}
@@ -288,31 +285,31 @@ export default function TodayPage() {
                             </Div>
 
                             <Div>
-                                <SectionTitle title={t('nextFreeSection')} />
+                                <SectionTitle title={t('nextFreeSection')} icon={IconComponentsEnum.clock} />
                                 {data.nextFreeSlots.length === 0 ? (
                                     <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
                                         {t('noFreeSlots')}
                                     </Label>
                                 ) : (
-                                    <Div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                                    <Div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-2xs">
                                         <Div className="divide-y divide-gray-100">
                                             {data.nextFreeSlots.map((slot) => (
                                                 <Div
                                                     key={`${slot.roomId}-${slot.availableAt}`}
-                                                    className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                                                    className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 transition-colors hover:bg-gray-50/80"
                                                 >
                                                     <Div className="min-w-0">
                                                         <Label
                                                             variant={EVariantLabel.body}
                                                             color="text-gray-900"
-                                                            className="block"
+                                                            className="block font-semibold"
                                                         >
                                                             {slot.roomName}
                                                         </Label>
                                                         <Label
                                                             variant={EVariantLabel.caption}
                                                             color="text-gray-500"
-                                                            className="block ms-1"
+                                                            className="block"
                                                         >
                                                             {new Date(slot.availableAt).getTime() <= Date.now() + 1000
                                                                 ? t('availableNow')
@@ -322,9 +319,9 @@ export default function TodayPage() {
                                                         </Label>
                                                     </Div>
                                                     {slot.freeUntil ? (
-                                                        <Label variant={EVariantLabel.caption} color="text-gray-600">
+                                                        <span className="rounded-lg bg-success-50 px-2 py-1 text-xs font-semibold text-success-700">
                                                             {t('freeUntil', { time: formatTime(slot.freeUntil) })}
-                                                        </Label>
+                                                        </span>
                                                     ) : null}
                                                 </Div>
                                             ))}
@@ -336,6 +333,7 @@ export default function TodayPage() {
                             <Div>
                                 <SectionTitle
                                     title={t('unpaidSection')}
+                                    icon={IconComponentsEnum.bell}
                                     action={
                                         unpaidIds.length > 0 ? (
                                             <Button
@@ -350,22 +348,25 @@ export default function TodayPage() {
                                     }
                                 />
                                 {data.unpaidToday.length === 0 ? (
-                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                        {t('noUnpaid')}
-                                    </Label>
+                                    <Div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center">
+                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                            {t('noUnpaid')}
+                                        </Label>
+                                    </Div>
                                 ) : (
-                                    <Div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                                    <Div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-2xs">
                                         <Div className="divide-y divide-gray-100">
                                             {data.unpaidToday.map((row) => (
                                                 <Div
                                                     key={row.id}
-                                                    className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                                                    className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50/80"
                                                 >
                                                     <Div className="min-w-0 flex-1">
                                                         <Div className="mb-1 flex flex-wrap items-center gap-2">
-                                                            <Label
+                                                             <Label
                                                                 variant={EVariantLabel.body}
                                                                 color="text-gray-900"
+                                                                className="font-semibold"
                                                             >
                                                                 {row.room.name}
                                                             </Label>
@@ -378,8 +379,8 @@ export default function TodayPage() {
                                                         </Div>
                                                         <Label
                                                             variant={EVariantLabel.caption}
-                                                            color="text-gray-500"
-                                                            className="block me-1"
+                                                            color="text-gray-600"
+                                                            className="block font-medium"
                                                         >
                                                             {professorName(row.professor)}
                                                         </Label>
@@ -392,12 +393,9 @@ export default function TodayPage() {
                                                         </Label>
                                                     </Div>
                                                     <Div className="flex items-center gap-3">
-                                                        <Label
-                                                            variant={EVariantLabel.body}
-                                                            color="text-gray-900"
-                                                        >
+                                                        <span className="font-bold text-gray-900 tabular-nums">
                                                             {formatMoney(row.price)}
-                                                        </Label>
+                                                        </span>
                                                         <Link href={Routes.Reservations.index}>
                                                             <Button
                                                                 id={`today-open-${row.id}`}

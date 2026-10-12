@@ -19,7 +19,7 @@ import {
 } from '@/lib/credit-api';
 import { formatMoney } from '@/lib/daily-income-api';
 import { formatPosDate, personName, type PosClientRef } from '@/lib/pos-api';
-import { EButtonSize, EButtonType, EInputType, ESize, EVariantLabel } from '@/Enum/Enum';
+import { EButtonSize, EButtonType, EInputType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 
 interface PosCreditPaymentModalProps {
     onSelect: (selection: { client: PosClientRef; credit: { id: string; label: string }; amount: number }) => void;
@@ -51,7 +51,13 @@ export default function PosCreditPaymentModal({ onSelect }: Readonly<PosCreditPa
 
     const { data, isLoading } = useQuery({
         queryKey: ['credit-clients', 'pos-credit-payment', debouncedSearch],
-        queryFn: () => fetchCreditClients({ page: 1, perPage: 50, search: debouncedSearch || undefined }),
+        queryFn: () =>
+            fetchCreditClients({
+                page: 1,
+                perPage: 100,
+                search: debouncedSearch || undefined,
+                filter: 'with_balance',
+            }),
     });
     const clients = (data?.data ?? []).filter((c) => c.remaining > 0);
 
@@ -175,10 +181,16 @@ export default function PosCreditPaymentModal({ onSelect }: Readonly<PosCreditPa
         <>
             <Input
                 id="pos-credit-payment-search"
-                leftIcon="search"
+                leftIcon={IconComponentsEnum.search}
+                rightIcon={search ? IconComponentsEnum.close : undefined}
+                onRightIconClick={() => setSearch('')}
                 placeholder={t('search')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Escape') setSearch('');
+                    if (e.key === 'Enter') setDebouncedSearch(search.trim());
+                }}
             />
             <Div className="max-h-[50dvh] min-h-40 space-y-1 overflow-y-auto">
                 {isLoading ? (

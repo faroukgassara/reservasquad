@@ -104,12 +104,18 @@ export async function fetchCreditClients(params: {
     page?: number;
     perPage?: number;
     search?: string;
+    filter?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
 }): Promise<PaginatedCreditClients> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const sp = new URLSearchParams();
     if (params.page) sp.set('page', String(params.page));
     if (params.perPage) sp.set('perPage', String(params.perPage));
     if (params.search) sp.set('search', params.search);
+    if (params.filter && params.filter !== 'all') sp.set('filter', params.filter);
+    if (params.sortBy) sp.set('sortBy', params.sortBy);
+    if (params.sortOrder) sp.set('sortOrder', params.sortOrder);
     const q = sp.toString();
     const res = await api.get(`/api/credits/clients${q ? `?${q}` : ''}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw errorFrom(res.data, 'Failed to fetch credit clients');

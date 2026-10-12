@@ -88,7 +88,12 @@ export default function OrganismPosOrderPanel({
             { value: NUMPAD_SIGN, label: '+/-' },
             { value: '0', label: '0' },
             { value: NUMPAD_DECIMAL, label: ',' },
-            { value: NUMPAD_BACKSPACE, label: '⌫', accent: true },
+            {
+                value: NUMPAD_BACKSPACE,
+                label: '⌫',
+                accent: true,
+                className: 'bg-warning-50 hover:bg-warning-100 text-warning-800 border border-warning-200/80 font-bold',
+            },
         ],
     ];
 
@@ -136,10 +141,10 @@ export default function OrganismPosOrderPanel({
                 <div ref={listRef} className="min-h-[220px] tablet:min-h-[260px] tablet:flex-1 tablet:overflow-y-auto">
                     {cart.lines.length === 0 ? (
                         <Div className="flex h-full min-h-[220px] tablet:min-h-[260px] flex-col items-center justify-center gap-3 px-6 py-12 tablet:py-10">
-                            <div className="flex size-16 items-center justify-center rounded-2xl bg-gray-50 border border-gray-100 shadow-2xs">
-                                <Icon name={IconComponentsEnum.shoppingCart} size={ESize.lg} color="text-gray-400" />
+                            <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/60 border border-primary-200/60 shadow-2xs">
+                                <Icon name={IconComponentsEnum.shoppingCart} size={ESize.lg} color="text-primary-500" />
                             </div>
-                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500" className="text-center font-medium">
+                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500" className="text-center font-semibold">
                                 {t('emptyOrder')}
                             </Label>
                         </Div>
@@ -155,7 +160,7 @@ export default function OrganismPosOrderPanel({
                                             onClick={() => cart.selectLine(line.id)}
                                             className={twMerge(
                                                 'flex w-full items-start justify-between gap-3 border-b border-gray-100 px-4 py-2.5 text-start transition-colors hover:bg-gray-50',
-                                                selected && 'bg-primary-50 hover:bg-primary-50',
+                                                selected && 'bg-primary-50/70 border-s-4 border-s-primary-500',
                                             )}
                                         >
                                             <Div className="flex min-w-0 flex-col">
@@ -194,53 +199,50 @@ export default function OrganismPosOrderPanel({
                         <Label variant={EVariantLabel.subtitle} color="text-gray-700">
                             {t('total')}
                         </Label>
-                        <Label variant={EVariantLabel.h4} color="text-gray-900" className="tabular-nums">
+                        <span className="text-2xl font-black text-gray-900 tabular-nums">
                             {formatMoney(cart.total)}
-                        </Label>
+                        </span>
                     </Div>
 
+                    {/* Distinct colorful document buttons: Crédit, Facture, Abonnement */}
                     <Div className="flex items-center gap-2">
-                        <Button
+                        <button
                             id="pos-order-credit-payment"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.medium}
-                            iconPosition="left"
-                            icon={{ name: IconComponentsEnum.userCheck, size: ESize.sm, color: 'text-primary-500' }}
-                            text={t('creditPaymentButton')}
+                            type="button"
                             onClick={onPickCreditPayment}
-                            className="min-w-0 flex-1 truncate rounded-lg px-2 text-xs font-semibold tablet:px-2.5 tablet:text-sm"
-                        />
-                        <Button
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-warning-300 bg-warning-50/80 px-2 py-2 text-xs font-bold text-warning-900 shadow-2xs transition-colors hover:border-warning-400 hover:bg-warning-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                        >
+                            <Icon name={IconComponentsEnum.userCheck} size={ESize.sm} color="text-warning-600" />
+                            <span className="truncate">{t('creditPaymentButton')}</span>
+                        </button>
+                        <button
                             id="pos-order-invoice"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.medium}
-                            iconPosition="left"
-                            icon={{ name: IconComponentsEnum.filetext, size: ESize.sm, color: 'text-primary-500' }}
-                            text={t('invoiceButton')}
+                            type="button"
                             onClick={onPickInvoice}
-                            className="min-w-0 flex-1 truncate rounded-lg px-2 text-xs font-semibold tablet:px-2.5 tablet:text-sm"
-                        />
-                        <Button
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-2 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                        >
+                            <Icon name={IconComponentsEnum.filetext} size={ESize.sm} color="text-primary-600" />
+                            <span className="truncate">{t('invoiceButton')}</span>
+                        </button>
+                        <button
                             id="pos-order-subscription"
-                            type={EButtonType.secondary}
-                            size={EButtonSize.medium}
-                            iconPosition="left"
-                            icon={{ name: IconComponentsEnum.calendar, size: ESize.sm, color: 'text-primary-500' }}
-                            text={t('subscriptionButton')}
+                            type="button"
                             onClick={onPickSubscription}
-                            className="min-w-0 flex-1 truncate rounded-lg px-2 text-xs font-semibold tablet:px-2.5 tablet:text-sm"
-                        />
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-accent-300 bg-accent-50/80 px-2 py-2 text-xs font-bold text-accent-900 shadow-2xs transition-colors hover:border-accent-400 hover:bg-accent-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                        >
+                            <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-accent-600" />
+                            <span className="truncate">{t('subscriptionButton')}</span>
+                        </button>
                         {cart.lines.length > 0 ? (
-                            <Button
+                            <button
                                 id="pos-order-clear"
-                                type={EButtonType.secondary}
-                                size={EButtonSize.medium}
-                                iconPosition="only"
-                                icon={{ name: IconComponentsEnum.trash, size: ESize.sm, color: 'text-danger-600' }}
+                                type="button"
                                 aria-label={t('clearOrder')}
                                 onClick={cart.clear}
-                                className="shrink-0 rounded-lg px-2.5"
-                            />
+                                className="shrink-0 rounded-xl border-2 border-danger-200 bg-danger-50 p-2 text-danger-600 transition-colors hover:border-danger-300 hover:bg-danger-100 cursor-pointer"
+                            >
+                                <Icon name={IconComponentsEnum.trash} size={ESize.sm} color="text-danger-600" />
+                            </button>
                         ) : null}
                     </Div>
 
@@ -253,26 +255,44 @@ export default function OrganismPosOrderPanel({
                 </Div>
             </Div>
 
+            {/* Bottom Pay CTA */}
             <Div className="flex shrink-0 items-center gap-3 border-t border-gray-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] tablet:border-t-0 tablet:pt-0 tablet:shadow-none">
                 <Div className="flex min-w-0 flex-col tablet:hidden">
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('total')}
                     </Label>
-                    <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate tabular-nums">
+                    <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate tabular-nums font-bold">
                         {formatMoney(cart.total)}
                     </Label>
                 </Div>
-                <Button
-                    id="pos-order-pay"
-                    type={EButtonType.primary}
-                    size={EButtonSize.large}
-                    iconPosition="right"
-                    icon={{ name: IconComponentsEnum.arrowRight, size: ESize.sm, color: 'text-white' }}
-                    text={t('payment')}
-                    disabled={!canPay}
-                    onClick={onPay}
-                    className="h-12 min-w-0 flex-1 rounded-lg rtl:[&_svg]:-scale-x-100"
-                />
+                {canPay ? (
+                    <button
+                        id="pos-order-pay"
+                        type="button"
+                        onClick={onPay}
+                        className="group relative flex h-13 min-w-0 flex-1 items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-accent-500 to-accent-600 px-5 text-white shadow-lg shadow-accent-500/25 transition-all hover:from-accent-600 hover:to-accent-700 active:scale-[0.99] cursor-pointer"
+                    >
+                        <span className="text-base font-bold sm:text-lg">{t('payment')}</span>
+                        <div className="flex items-center gap-2.5">
+                            <span className="text-lg font-black tabular-nums sm:text-xl">
+                                {formatMoney(cart.total)}
+                            </span>
+                            <div className="flex size-7 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                                <Icon name={IconComponentsEnum.arrowRight} size={ESize.xs} color="text-white" />
+                            </div>
+                        </div>
+                    </button>
+                ) : (
+                    <button
+                        id="pos-order-pay"
+                        type="button"
+                        disabled
+                        className="flex h-13 min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-100 px-4 text-sm font-semibold text-gray-400 cursor-not-allowed"
+                    >
+                        <span>{t('payment')}</span>
+                        <Icon name={IconComponentsEnum.arrowRight} size={ESize.xs} color="text-gray-400" />
+                    </button>
+                )}
             </Div>
         </Div>
     );

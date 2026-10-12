@@ -86,6 +86,7 @@ export interface PosSession {
     countedCash: Money | null;
     expectedCash: Money | null;
     difference: Money | null;
+    cashPayments?: Money | number | null;
     closingNote: string | null;
     _count?: { orders: number };
 }
@@ -217,6 +218,16 @@ export function round3(value: number): number {
     return Math.round(value * 1000) / 1000;
 }
 
+export function getSessionCashPayments(session: PosSession): number {
+    if (session.cashPayments !== undefined && session.cashPayments !== null) {
+        return toAmount(session.cashPayments);
+    }
+    if (session.expectedCash !== null && session.expectedCash !== undefined) {
+        return round3(toAmount(session.expectedCash) - toAmount(session.openingCash));
+    }
+    return 0;
+}
+
 function unwrapData<T>(raw: { data?: T } | T): T {
     if (raw && typeof raw === 'object' && 'data' in raw) {
         return (raw as { data: T }).data;
@@ -297,6 +308,22 @@ export const fetchPosProducts = (params: {
 export const fetchAvailablePosProducts = () =>
     posGet<PosProduct[]>('products/available', 'Failed to fetch products');
 
+export const fetchPosProductsInventory = (params?: {
+    categoryId?: string;
+    search?: string;
+    availableInPos?: boolean;
+    stockableOnly?: boolean;
+}) =>
+    posGet<PosProduct[]>(
+        withQuery('products/inventory', {
+            categoryId: params?.categoryId,
+            search: params?.search,
+            availableInPos: params?.availableInPos,
+            stockableOnly: params?.stockableOnly ? 'true' : undefined,
+        }),
+        'Failed to fetch inventory products',
+    );
+
 export const fetchPosProduct = (id: string) =>
     posGet<PosProduct>(`products/${id}`, 'Failed to fetch product');
 
@@ -328,8 +355,15 @@ export const fetchCurrentPosSession = () =>
 export const fetchLastClosedPosSession = () =>
     posGet<PosSession | null>('sessions/last-closed', 'Failed to fetch session');
 
+export interface PosSessionsResponse extends Paginated<PosSession> {
+    summary?: {
+        totalCashCollected: number;
+        openSessionsCount?: number;
+    };
+}
+
 export const fetchPosSessions = (params: { page?: number; perPage?: number }) =>
-    posGet<Paginated<PosSession>>(withQuery('sessions/list', params), 'Failed to fetch sessions');
+    posGet<PosSessionsResponse>(withQuery('sessions/list', params), 'Failed to fetch sessions');
 
 export const openPosSession = (body: { openingCash: number }) =>
     posPost<PosSession>('sessions/open', body, 'Failed to open session');
@@ -701,6 +735,16 @@ export const fetchSubscriptions = (params: {
         withQuery('subscriptions/list', { ...params, payable: params.payable ? 'true' : undefined }),
         'Failed to fetch subscriptions',
     );
+
+export interface SubscriptionSummary {
+    all: number;
+    running: number;
+    expiring: number;
+    expired: number;
+}
+
+export const fetchSubscriptionSummary = () =>
+    posGet<SubscriptionSummary>('subscriptions/summary', 'Failed to fetch subscription summary');
 
 export const fetchSubscription = (id: string) =>
     posGet<SubscriptionDetail>(`subscriptions/${id}`, 'Failed to fetch subscription');

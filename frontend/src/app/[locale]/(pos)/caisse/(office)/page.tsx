@@ -165,7 +165,7 @@ export default function PosDashboardPage() {
                                     text={current ? t('dashboard.continueSelling') : t('session.open')}
                                     isLoading={currentLoading}
                                     onClick={() => (current ? router.push(Routes.Pos.register) : openModal())}
-                                    className="mt-auto w-full"
+                                    className="mt-auto w-full font-bold shadow-md shadow-accent-500/25"
                                 />
                             </Div>
 

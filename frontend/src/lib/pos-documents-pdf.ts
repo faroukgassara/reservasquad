@@ -903,7 +903,6 @@ export async function printSubscriptionPdf(subscription: SubscriptionDetail, lab
     y += 11.7;
     const infos = [
         { label: labels.subscriptionDate, value: formatPosDate(subscription.activatedAt ?? subscription.startDate) },
-        ...(subscription.createdBy ? [{ label: labels.salesperson, value: personName(subscription.createdBy) }] : []),
     ];
     infos.forEach((info, index) => {
         const x = index === 0 ? SUB_LEFT : 104.9;

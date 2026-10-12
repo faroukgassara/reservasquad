@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl';
 import Avatar from '@/components/Primitives/Avatar/Avatar';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
+import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 import ui from '@/theme/ui';
 
 export default function PrivateLayout({
@@ -177,7 +178,17 @@ export default function PrivateLayout({
                         />
 
                         <SidebarFooter className={sidebarOpen || isMobile ? 'p-4' : 'px-0 py-4'}>
-                            <LanguageSwitcher compact={!sidebarOpen && !isMobile} />
+                            {sidebarOpen || isMobile ? (
+                                <div className="flex items-center justify-between gap-2">
+                                    <LanguageSwitcher compact={false} className="w-auto flex-1" />
+                                    <ThemeToggle />
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-2">
+                                    <LanguageSwitcher compact={true} />
+                                    <ThemeToggle />
+                                </div>
+                            )}
                             {sidebarOpen || isMobile ? (
                                 <div className="mt-4 flex w-full items-center justify-between gap-2">
                                     <Avatar

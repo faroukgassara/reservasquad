@@ -224,7 +224,7 @@ const Input = forwardRef<HTMLInputElement, IInput>(
                     className={twMerge(
                         'absolute top-1/2 -translate-y-1/2 select-none',
                         sizeConfig.iconRight,
-                        onRightIconClick ? 'cursor-pointer' : 'pointer-events-none',
+                        onRightIconClick ? 'cursor-pointer hover:opacity-70 transition-all active:scale-95' : 'pointer-events-none',
                     )}
                     name={rightIcon}
                     size={sizeConfig.iconSize}

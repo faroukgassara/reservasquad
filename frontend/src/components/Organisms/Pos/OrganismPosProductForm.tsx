@@ -153,6 +153,8 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
         queryKey: ['pos-stock-entries', product.id],
       })
       void queryClient.invalidateQueries({ queryKey: ['pos-products'] })
+      void queryClient.invalidateQueries({ queryKey: ['pos-products-available'] })
+      void queryClient.invalidateQueries({ queryKey: ['pos-product', product.id] })
       openToast(tCommon('success'), t('purchaseAdded'), {
         type: EToastType.SUCCESS,
       })
@@ -177,47 +179,19 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
     },
   })
 
-  const statItems = [
-    {
-      key: 'bought',
-      label: t('bought'),
-      value: stats?.bought,
-      icon: IconComponentsEnum.truck,
-      iconBg: 'bg-primary-50',
-      iconColor: 'text-primary-500',
-    },
-    {
-      key: 'sold',
-      label: t('sold'),
-      value: stats?.sold,
-      icon: IconComponentsEnum.shoppingCart,
-      iconBg: 'bg-success-50',
-      iconColor: 'text-success-700',
-    },
-    {
-      key: 'remaining',
-      label: t('remaining'),
-      value: stats?.remaining,
-      icon: IconComponentsEnum.archive,
-      iconBg: 'bg-warning-50',
-      iconColor: 'text-warning-700',
-    },
-  ] as const
+  const currentStock = stats?.remaining ?? toAmount(product.stockQty)
 
   return (
     <Div className="space-y-4">
       <Div className="grid gap-3 sm:grid-cols-3">
-        {statItems.map((item) => (
-          <StatCard
-            key={item.key}
-            icon={item.icon}
-            iconBg={item.iconBg}
-            iconColor={item.iconColor}
-            label={item.label}
-            value={t('units', { count: item.value ?? 0 })}
-            isLoading={statsLoading}
-          />
-        ))}
+        <StatCard
+          icon={IconComponentsEnum.archive}
+          iconBg="bg-success-50"
+          iconColor="text-success-700"
+          label={t('stock')}
+          value={t('units', { count: currentStock })}
+          isLoading={statsLoading}
+        />
       </Div>
 
       <Div className="grid items-start gap-4 lg:grid-cols-5">

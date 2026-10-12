@@ -425,7 +425,7 @@ const DropdownOptionItem = ({
             <span className="truncate">{option.label}</span>
         </span>
         {isSelected && (
-            <Icon name={IconComponentsEnum.check} size="text-large" color="text-primary-600" className="shrink-0" />
+            <Icon name={IconComponentsEnum.check} size={ESize.sm} color="text-primary-600" className="shrink-0" />
         )}
     </button>
 );
@@ -493,6 +493,7 @@ function getEmptyMessage(
 }
 
 const Dropdown = ({
+    id,
     label,
     required,
     error,
@@ -509,7 +510,8 @@ const Dropdown = ({
     onChange,
     searchable = false,
 }: IDropdown) => {
-    const fieldId = useId();
+    const generatedId = useId();
+    const fieldId = id || generatedId;
     const searchId = `${fieldId}-search`;
     const [search, setSearch] = useState('');
 

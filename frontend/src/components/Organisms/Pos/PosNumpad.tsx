@@ -9,6 +9,7 @@ export interface PosNumpadKey {
     value: string;
     label: string;
     accent?: boolean;
+    className?: string;
 }
 
 interface IPosNumpad {
@@ -39,8 +40,9 @@ export default function PosNumpad({ id, rows, activeValue, onKey, disabled = fal
                         disabled={disabled}
                         onClick={() => onKey(key.value)}
                         className={twMerge(
-                            'h-11 rounded-lg px-1 tabular-nums',
-                            key.accent && !isActive && 'bg-gray-100 hover:bg-gray-200',
+                            'h-11 rounded-lg px-1 tabular-nums font-semibold transition-all',
+                            key.accent && !isActive && 'bg-gray-100 hover:bg-gray-200 text-gray-800',
+                            key.className,
                         )}
                     />
                 );

@@ -7,6 +7,7 @@ export interface IDropdownOption {
 }
 
 export default interface IDropdown {
+    id?: string;
     label?: string;
     required?: boolean;
     error?: boolean;

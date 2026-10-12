@@ -6,12 +6,15 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
+import StatCard from '@/components/Primitives/StatCard/StatCard';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
+import { twMerge } from 'tailwind-merge';
 import { usePosSubscriptionColumns } from '@/hooks/usePosSubscriptionColumns';
 import {
     fetchSubscriptions,
+    fetchSubscriptionSummary,
     type Subscription,
     type SubscriptionState,
     type SubscriptionStatus,
@@ -42,6 +45,11 @@ export default function PosSubscriptionsPage() {
 
     const { status, state } = FILTERS.find((item) => item.value === filter) ?? FILTERS[0];
 
+    const { data: summary, isLoading: isSummaryLoading } = useQuery({
+        queryKey: ['subscriptions-summary'],
+        queryFn: fetchSubscriptionSummary,
+    });
+
     const { data, isLoading } = useQuery({
         queryKey: ['subscriptions', page, search, filter],
         queryFn: () =>
@@ -64,7 +72,97 @@ export default function PosSubscriptionsPage() {
                 />
             }
             mainSection={
-                <Div className="space-y-3">
+                <Div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFilter('all');
+                                setPage(1);
+                            }}
+                            className={twMerge(
+                                'text-start rounded-2xl transition-all focus:outline-none cursor-pointer',
+                                filter === 'all'
+                                    ? 'ring-2 ring-primary-500 shadow-md'
+                                    : 'hover:border-gray-300 hover:shadow-xs',
+                            )}
+                        >
+                            <StatCard
+                                icon={IconComponentsEnum.layers}
+                                iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                iconColor="text-primary-600"
+                                label={t('filter_all')}
+                                value={summary?.all != null ? String(summary.all) : data?.meta?.total != null && filter === 'all' ? String(data.meta.total) : '—'}
+                                isLoading={isSummaryLoading && !summary}
+                            />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFilter('running');
+                                setPage(1);
+                            }}
+                            className={twMerge(
+                                'text-start rounded-2xl transition-all focus:outline-none cursor-pointer',
+                                filter === 'running'
+                                    ? 'ring-2 ring-success-500 shadow-md'
+                                    : 'hover:border-gray-300 hover:shadow-xs',
+                            )}
+                        >
+                            <StatCard
+                                icon={IconComponentsEnum.checkCircle}
+                                iconBg="bg-success-50 dark:bg-success-950/40"
+                                iconColor="text-success-600"
+                                label={t('filter_running')}
+                                value={summary?.running != null ? String(summary.running) : data?.meta?.total != null && filter === 'running' ? String(data.meta.total) : '—'}
+                                isLoading={isSummaryLoading && !summary}
+                            />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFilter('expiring');
+                                setPage(1);
+                            }}
+                            className={twMerge(
+                                'text-start rounded-2xl transition-all focus:outline-none cursor-pointer',
+                                filter === 'expiring'
+                                    ? 'ring-2 ring-warning-500 shadow-md'
+                                    : 'hover:border-gray-300 hover:shadow-xs',
+                            )}
+                        >
+                            <StatCard
+                                icon={IconComponentsEnum.alert}
+                                iconBg="bg-warning-50 dark:bg-warning-950/40"
+                                iconColor="text-warning-600"
+                                label={t('filter_expiring')}
+                                value={summary?.expiring != null ? String(summary.expiring) : data?.meta?.total != null && filter === 'expiring' ? String(data.meta.total) : '—'}
+                                isLoading={isSummaryLoading && !summary}
+                            />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFilter('expired');
+                                setPage(1);
+                            }}
+                            className={twMerge(
+                                'text-start rounded-2xl transition-all focus:outline-none cursor-pointer',
+                                filter === 'expired'
+                                    ? 'ring-2 ring-danger-500 shadow-md'
+                                    : 'hover:border-gray-300 hover:shadow-xs',
+                            )}
+                        >
+                            <StatCard
+                                icon={IconComponentsEnum.clock}
+                                iconBg="bg-danger-50 dark:bg-danger-950/40"
+                                iconColor="text-danger-600"
+                                label={t('filter_expired')}
+                                value={summary?.expired != null ? String(summary.expired) : data?.meta?.total != null && filter === 'expired' ? String(data.meta.total) : '—'}
+                                isLoading={isSummaryLoading && !summary}
+                            />
+                        </button>
+                    </div>
                     <Div className="flex justify-end">
                         <Dropdown
                             leftIcon="filter"
