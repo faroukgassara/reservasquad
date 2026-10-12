@@ -144,6 +144,20 @@ export class PosCatalogController {
     }
   }
 
+  @Get('products/inventory')
+  @swagger.ApiOperation({ summary: 'List all products for inventory export' })
+  async listProductsForInventory(
+    @Res() res: Response,
+    @Query() query: FetchPosProductsDto,
+  ) {
+    try {
+      const data = await this.catalogService.listAllProductsForInventory(query);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Post('products')
   @swagger.ApiOperation({ summary: 'Create a POS product' })
   async createProduct(

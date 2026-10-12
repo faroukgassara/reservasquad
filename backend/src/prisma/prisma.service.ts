@@ -17,7 +17,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       throw new Error('DATABASE_URL is not configured');
     }
     const adapter = new PrismaPg({ connectionString });
-    super({ adapter });
+    super({
+      adapter,
+      transactionOptions: {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    });
   }
 
   async onModuleInit() {

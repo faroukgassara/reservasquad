@@ -50,6 +50,17 @@ export class PosSubscriptionController {
     }
   }
 
+  @Get('summary')
+  @swagger.ApiOperation({ summary: 'Count of subscriptions by state' })
+  async summary(@Res() res: Response) {
+    try {
+      const data = await this.subscriptionService.summary();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Post()
   @swagger.ApiOperation({ summary: 'Create a draft subscription' })
   async create(@Res() res: Response, @Req() req: IRequest, @Body() body: SaveSubscriptionDto) {

@@ -10,7 +10,12 @@ export const SortingQuery = createParamDecorator(
         const request = ctx.switchToHttp().getRequest();
         const sortBy = request.query?.sortBy as string | undefined;
         const rawSortOrder = request.query?.sortOrder as string | undefined;
-        const sortOrder = rawSortOrder === ESort.asc ? ESort.asc : ESort.desc;
+        const sortOrder =
+            rawSortOrder === ESort.asc
+                ? ESort.asc
+                : rawSortOrder === ESort.desc
+                  ? ESort.desc
+                  : options.defaultOrder || ESort.desc;
 
         return buildOrderBy(
             sortBy,

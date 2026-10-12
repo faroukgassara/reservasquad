@@ -174,6 +174,29 @@ export class PosCatalogService {
     });
   }
 
+  async listAllProductsForInventory(query?: FetchPosProductsDto) {
+    const search = query?.search?.trim();
+    const where: Prisma.PosProductWhereInput = {
+      deletedAt: null,
+      ...(query?.categoryId && { categoryId: query.categoryId }),
+      ...(query?.availableInPos !== undefined && { availableInPos: query.availableInPos }),
+      ...(query?.stockableOnly && { type: 'STOCKABLE' }),
+      ...(query?.subscription && { subscriptionDuration: { not: null }, subscriptionUnit: { not: null } }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { barcode: { contains: search, mode: 'insensitive' } },
+          { reference: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+    return this.prismaService.posProduct.findMany({
+      where,
+      orderBy: [{ category: { name: 'asc' } }, { name: 'asc' }],
+      include: { category: { select: categorySelect } },
+    });
+  }
+
   async getProductById(id: string) {
     const product = await this.prismaService.posProduct.findFirst({
       where: { id, deletedAt: null },
@@ -243,32 +266,12 @@ export class PosCatalogService {
 
   async getProductStats(id: string) {
     const product = await this.getProductById(id);
-    const [bought, soldInPos, soldInSaleOrders, soldOnCredit] = await Promise.all([
-      this.prismaService.posStockEntry.aggregate({
-        where: { productId: id },
-        _sum: { quantity: true },
-      }),
-      this.prismaService.posOrderLine.aggregate({
-        where: { productId: id },
-        _sum: { quantity: true },
-      }),
-      this.prismaService.saleOrderLine.aggregate({
-        where: { productId: id, saleOrder: { status: 'CONFIRMED' } },
-        _sum: { quantity: true },
-      }),
-      this.prismaService.credit.aggregate({
-        where: { productId: id, deletedAt: null },
-        _sum: { quantity: true },
-      }),
-    ]);
+    const stock = round3(Number(product.stockQty));
     return {
-      bought: round3(Number(bought._sum.quantity ?? 0)),
-      sold: round3(
-        Number(soldInPos._sum.quantity ?? 0) +
-          Number(soldInSaleOrders._sum.quantity ?? 0) +
-          Number(soldOnCredit._sum.quantity ?? 0),
-      ),
-      remaining: round3(Number(product.stockQty)),
+      bought: 0,
+      sold: 0,
+      remaining: stock,
+      stock,
     };
   }
 

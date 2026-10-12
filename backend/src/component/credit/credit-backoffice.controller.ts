@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
   Res,
 } from '@nestjs/common';
@@ -37,13 +38,15 @@ import {
   UpdateCreditClientDto,
 } from 'src/dto/credit/creditClient.dto';
 import { CreateCreditDto, CreateCreditPaymentDto } from 'src/dto/credit/credit.dto';
+import { ESort } from 'src/enum/sort.enum';
 
 const CLIENT_SORTING_OPTIONS: SortingDecoratorOptions = {
   allowedFields: ['createdAt', 'updatedAt', 'firstName', 'lastName'],
-  defaultSort: 'createdAt',
+  defaultSort: 'firstName',
+  defaultOrder: ESort.asc,
 };
 
-const CLIENT_SEARCH_FIELDS = ['firstName', 'lastName', 'phone'];
+const CLIENT_SEARCH_FIELDS = ['firstName', 'lastName', 'phone', 'email', 'cin', 'taxId'];
 
 @swagger.ApiTags('credit-backoffice')
 @Controller('backoffice/credit')
@@ -102,9 +105,15 @@ export class CreditBackofficeController {
     pagination: PaginationData,
     @SortingQuery(CLIENT_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
     @SearchQuery({ fields: CLIENT_SEARCH_FIELDS }) search: object,
+    @Query('filter') filter?: string,
   ) {
     try {
-      const data = await this.creditService.listClients(pagination, orderBy, search as never);
+      const data = await this.creditService.listClients(
+        pagination,
+        orderBy,
+        search as never,
+        filter,
+      );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

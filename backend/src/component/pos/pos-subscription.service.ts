@@ -152,6 +152,16 @@ export class PosSubscriptionService {
     return proxied.findManyPaginated({ where, orderBy, include: listInclude }, pagination);
   }
 
+  async summary() {
+    const [all, running, expiring, expired] = await Promise.all([
+      this.prismaService.subscription.count({ where: { deletedAt: null } }),
+      this.prismaService.subscription.count({ where: { deletedAt: null, ...stateWhere('running') } }),
+      this.prismaService.subscription.count({ where: { deletedAt: null, ...stateWhere('expiring') } }),
+      this.prismaService.subscription.count({ where: { deletedAt: null, ...stateWhere('expired') } }),
+    ]);
+    return { all, running, expiring, expired };
+  }
+
   async getById(id: string) {
     return this.findOrThrow(id);
   }

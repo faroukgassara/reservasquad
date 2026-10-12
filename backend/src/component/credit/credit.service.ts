@@ -162,13 +162,68 @@ export class CreditService {
     pagination: PaginationData,
     orderBy: Record<string, unknown>[],
     search?: Prisma.CreditClientWhereInput,
+    filter?: string,
   ) {
     const andWhere = buildAndFilters(search);
+    let idFilter: Prisma.StringFilter | undefined;
+
+    if (filter === 'with_balance' || filter === 'settled') {
+      const credits = await this.prismaService.credit.findMany({
+        where: { deletedAt: null, client: { deletedAt: null } },
+        include: { payments: activePayments },
+      });
+      const remainingByClient = new Map<string, number>();
+      for (const credit of credits) {
+        const ct = this.creditTotals(credit);
+        remainingByClient.set(
+          credit.clientId,
+          (remainingByClient.get(credit.clientId) ?? 0) + ct.remaining,
+        );
+      }
+      const withBal: string[] = [];
+      for (const [clientId, rem] of remainingByClient) {
+        if (round2(rem) > 0) withBal.push(clientId);
+      }
+      if (filter === 'with_balance') {
+        idFilter = { in: withBal };
+      } else {
+        idFilter = { notIn: withBal };
+      }
+    } else if (filter === 'has_credit') {
+      const credits = await this.prismaService.credit.findMany({
+        where: { deletedAt: null, client: { deletedAt: null } },
+        select: { clientId: true },
+        distinct: ['clientId'],
+      });
+      idFilter = { in: credits.map((c) => c.clientId) };
+    }
+
     const proxied = ProxyPrismaModel(this.prismaService.creditClient as any);
+    const whereCondition = idFilter
+      ? composeWhere({ deletedAt: null, id: idFilter }, andWhere)
+      : composeWhere({ deletedAt: null }, andWhere);
+
+    let resolvedOrderBy = orderBy;
+    if (Array.isArray(orderBy)) {
+      resolvedOrderBy = orderBy.flatMap((o) => {
+        if (o && typeof o === 'object') {
+          if ('name' in o) {
+            const dir = (o as any).name;
+            return [{ firstName: dir }, { lastName: dir }];
+          }
+          if ('firstName' in o) {
+            const dir = (o as any).firstName;
+            return [{ firstName: dir }, { lastName: dir }];
+          }
+        }
+        return [o];
+      });
+    }
+
     const page = await proxied.findManyPaginated(
       {
-        where: composeWhere({ deletedAt: null }, andWhere),
-        orderBy,
+        where: whereCondition,
+        orderBy: resolvedOrderBy,
       },
       pagination,
     );

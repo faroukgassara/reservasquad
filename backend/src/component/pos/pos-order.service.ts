@@ -154,10 +154,13 @@ export class PosOrderService {
       const productIds = [
         ...new Set(dto.lines.map((l) => l.productId).filter((id): id is string => !!id)),
       ];
-      const products = await tx.posProduct.findMany({
-        where: { id: { in: productIds }, deletedAt: null, subscriptionDuration: null },
-        select: { id: true, name: true, type: true },
-      });
+      const products =
+        productIds.length > 0
+          ? await tx.posProduct.findMany({
+              where: { id: { in: productIds }, deletedAt: null, subscriptionDuration: null },
+              select: { id: true, name: true, type: true },
+            })
+          : [];
       const productById = new Map(products.map((p) => [p.id, p]));
       if (productById.size !== productIds.length) {
         throw new BadRequestException('Some products are unavailable');
@@ -166,10 +169,13 @@ export class PosOrderService {
       const saleOrderIds = [
         ...new Set(dto.lines.map((l) => l.saleOrderId).filter((id): id is string => !!id)),
       ];
-      const saleOrders = await tx.saleOrder.findMany({
-        where: { id: { in: saleOrderIds }, deletedAt: null, status: 'CONFIRMED' },
-        select: { id: true, number: true, clientId: true, total: true, amountPaid: true },
-      });
+      const saleOrders =
+        saleOrderIds.length > 0
+          ? await tx.saleOrder.findMany({
+              where: { id: { in: saleOrderIds }, deletedAt: null, status: 'CONFIRMED' },
+              select: { id: true, number: true, clientId: true, total: true, amountPaid: true },
+            })
+          : [];
       const saleOrderById = new Map(saleOrders.map((o) => [o.id, o]));
       if (saleOrderById.size !== saleOrderIds.length) {
         throw new BadRequestException('Some sale orders are not confirmed');
@@ -178,10 +184,13 @@ export class PosOrderService {
       const subscriptionIds = [
         ...new Set(dto.lines.map((l) => l.subscriptionId).filter((id): id is string => !!id)),
       ];
-      const subscriptions = await tx.subscription.findMany({
-        where: { id: { in: subscriptionIds }, deletedAt: null, status: { in: ['DRAFT', 'ACTIVE'] } },
-        select: { id: true, number: true, status: true, clientId: true, total: true, amountPaid: true },
-      });
+      const subscriptions =
+        subscriptionIds.length > 0
+          ? await tx.subscription.findMany({
+              where: { id: { in: subscriptionIds }, deletedAt: null, status: { in: ['DRAFT', 'ACTIVE'] } },
+              select: { id: true, number: true, status: true, clientId: true, total: true, amountPaid: true },
+            })
+          : [];
       const subscriptionById = new Map(subscriptions.map((s) => [s.id, s]));
       if (subscriptionById.size !== subscriptionIds.length) {
         throw new BadRequestException('Some subscriptions cannot be paid');
@@ -192,20 +201,23 @@ export class PosOrderService {
       if (invoiceIds.length !== invoiceLines.length) {
         throw new BadRequestException('An invoice can only be paid once per order');
       }
-      const invoices = await tx.invoice.findMany({
-        where: { id: { in: invoiceIds }, type: 'INVOICE', status: 'POSTED', deletedAt: null },
-        select: {
-          id: true,
-          type: true,
-          year: true,
-          sequence: true,
-          clientId: true,
-          total: true,
-          amountPaid: true,
-          saleOrderId: true,
-          subscriptionId: true,
-        },
-      });
+      const invoices =
+        invoiceIds.length > 0
+          ? await tx.invoice.findMany({
+              where: { id: { in: invoiceIds }, type: 'INVOICE', status: 'POSTED', deletedAt: null },
+              select: {
+                id: true,
+                type: true,
+                year: true,
+                sequence: true,
+                clientId: true,
+                total: true,
+                amountPaid: true,
+                saleOrderId: true,
+                subscriptionId: true,
+              },
+            })
+          : [];
       const invoiceById = new Map(invoices.map((i) => [i.id, i]));
       if (invoiceById.size !== invoiceIds.length) {
         throw new BadRequestException('Some invoices cannot be paid');
@@ -216,10 +228,13 @@ export class PosOrderService {
       if (creditIds.length !== creditLines.length) {
         throw new BadRequestException('A credit can only be paid once per order');
       }
-      const credits = await tx.credit.findMany({
-        where: { id: { in: creditIds }, deletedAt: null, client: { deletedAt: null } },
-        include: { payments: { where: { deletedAt: null }, select: { amount: true } } },
-      });
+      const credits =
+        creditIds.length > 0
+          ? await tx.credit.findMany({
+              where: { id: { in: creditIds }, deletedAt: null, client: { deletedAt: null } },
+              include: { payments: { where: { deletedAt: null }, select: { amount: true } } },
+            })
+          : [];
       const creditById = new Map(credits.map((c) => [c.id, c]));
       if (creditById.size !== creditIds.length) {
         throw new BadRequestException('Some credits are unavailable');
@@ -454,11 +469,15 @@ export class PosOrderService {
         });
       }
 
+      const stockDecrements = new Map<string, number>();
       for (const line of lines) {
         if (!line.productId) continue;
+        stockDecrements.set(line.productId, (stockDecrements.get(line.productId) ?? 0) + line.quantity);
+      }
+      for (const [productId, quantity] of stockDecrements) {
         await tx.posProduct.update({
-          where: { id: line.productId },
-          data: { stockQty: { decrement: line.quantity } },
+          where: { id: productId },
+          data: { stockQty: { decrement: quantity } },
         });
       }
 
@@ -562,7 +581,7 @@ export class PosOrderService {
       }
 
       return created;
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     await this.auditService.log({
       entityType: POS_AUDIT.order,
@@ -622,7 +641,7 @@ export class PosOrderService {
         );
       }
       return { client, credits };
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     for (const credit of credits) {
       await this.auditService.log({
@@ -694,11 +713,18 @@ export class PosOrderService {
         },
       });
 
+      const stockIncrements = new Map<string, number>();
       for (const line of refundLines) {
         if (!line.productId) continue;
+        stockIncrements.set(
+          line.productId,
+          (stockIncrements.get(line.productId) ?? 0) + (-line.quantity),
+        );
+      }
+      for (const [productId, quantity] of stockIncrements) {
         await tx.posProduct.update({
-          where: { id: line.productId },
-          data: { stockQty: { increment: -line.quantity } },
+          where: { id: productId },
+          data: { stockQty: { increment: quantity } },
         });
       }
 
@@ -746,7 +772,7 @@ export class PosOrderService {
         }
       }
       return { refund: created, original, total };
-    });
+    }, { maxWait: 10000, timeout: 30000 });
 
     await this.auditService.log({
       entityType: POS_AUDIT.order,

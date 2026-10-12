@@ -234,6 +234,17 @@ export class FetchPosProductsDto {
   @IsIn(['true'])
   subscription?: string;
 
+  @ApiPropertyOptional({ enum: ['true', 'false'], description: 'Only stockable products' })
+  @IsOptional()
+  @Transform(({ obj, key }) => {
+    const raw = (obj as Record<string, unknown>)[key];
+    if (raw === 'true' || raw === true) return true;
+    if (raw === 'false' || raw === false) return false;
+    return raw;
+  })
+  @IsBoolean()
+  stockableOnly?: boolean;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

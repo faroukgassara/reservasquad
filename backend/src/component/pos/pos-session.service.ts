@@ -56,13 +56,64 @@ export class PosSessionService {
 
   async list(pagination: PaginationData) {
     const proxied = ProxyPrismaModel(this.prismaService.posSession as any);
-    return proxied.findManyPaginated(
+    const result = await proxied.findManyPaginated(
       {
         orderBy: [{ openedAt: 'desc' }],
         include: { ...sessionInclude, _count: { select: { orders: true } } },
       },
       pagination,
     );
+
+    const [closedSessions, openSession] = await Promise.all([
+      this.prismaService.posSession.findMany({
+        where: { status: 'CLOSED' },
+        select: { expectedCash: true, openingCash: true },
+      }),
+      this.prismaService.posSession.findFirst({
+        where: { status: 'OPEN' },
+        select: { id: true },
+      }),
+    ]);
+
+    const openCashMap = new Map<string, number>();
+    let openSessionCash = 0;
+    if (openSession) {
+      const summary = await this.getSummary(openSession.id);
+      openCashMap.set(openSession.id, summary.cashPayments);
+      openSessionCash = summary.cashPayments;
+    }
+
+    const totalClosedCash = closedSessions.reduce(
+      (sum, s) =>
+        sum +
+        (s.expectedCash !== null
+          ? Number(s.expectedCash) - Number(s.openingCash)
+          : 0),
+      0,
+    );
+    const totalCashCollected = round3(totalClosedCash + openSessionCash);
+
+    const data = (result.data as any[]).map((s) => {
+      const cashPayments =
+        s.status === 'OPEN'
+          ? (openCashMap.get(s.id) ?? 0)
+          : s.expectedCash !== null
+            ? round3(Number(s.expectedCash) - Number(s.openingCash))
+            : 0;
+      return {
+        ...s,
+        cashPayments,
+      };
+    });
+
+    return {
+      ...result,
+      data,
+      summary: {
+        totalCashCollected,
+        openSessionsCount: openSession ? 1 : 0,
+      },
+    };
   }
 
   async open(dto: OpenPosSessionDto, actorId?: string) {
