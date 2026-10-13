@@ -25,6 +25,7 @@ export default function OrganismPosNav() {
         { href: Routes.Pos.subscriptions, label: t('nav.subscriptions') },
         { href: Routes.Pos.sales, label: t('nav.billing'), alsoActive: [Routes.Pos.invoices] },
         { href: Routes.Pos.products, label: t('nav.products') },
+        { href: Routes.Pos.analytics, label: t('nav.analytics') },
         { href: Routes.Pos.categories, label: t('nav.categories') },
         { href: Routes.Pos.clients, label: t('nav.clients') },
     ];
@@ -51,12 +52,12 @@ export default function OrganismPosNav() {
                         href={homePathForRole(session?.user?.role)}
                         aria-label={t('backToApp')}
                         title={t('backToApp')}
-                        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 sm:size-10"
+                        className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white shadow-2xs transition-all hover:bg-primary-700 active:bg-primary-800 sm:size-10"
                     >
                         <Icon
                             name={IconComponentsEnum.arrowLeft}
                             size={ESize.sm}
-                            color="text-gray-600"
+                            color="text-white"
                             className="rtl:-scale-x-100"
                         />
                     </Link>
@@ -92,10 +93,10 @@ export default function OrganismPosNav() {
                 <ThemeToggle />
                 <Link
                     href={homePathForRole(session?.user?.role)}
-                    className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50"
+                    className="flex items-center gap-2 rounded-lg bg-primary-600 px-3.5 py-2 text-white shadow-2xs transition-all hover:bg-primary-700 active:bg-primary-800"
                 >
-                    <Icon name={IconComponentsEnum.arrowLeft} size={ESize.sm} color="text-gray-600" className="rtl:-scale-x-100" />
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="font-medium">
+                    <Icon name={IconComponentsEnum.arrowLeft} size={ESize.sm} color="text-white" className="rtl:-scale-x-100" />
+                    <Label variant={EVariantLabel.bodySmall} color="text-white" className="font-semibold">
                         {t('backToApp')}
                     </Label>
                 </Link>

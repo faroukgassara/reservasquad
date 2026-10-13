@@ -14,6 +14,7 @@ import {
   todayDateOnly,
   toDateOnly,
 } from './pos.utils';
+import { formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const userSelect = { id: true, firstName: true, lastName: true } satisfies Prisma.UserSelect;
 const clientSelect = {
@@ -128,7 +129,7 @@ export class PosSaleOrderService {
         lines: { create: lines },
       },
     });
-    await this.log(order.id, 'CREATE', `Created quotation ${formatSaleNumber(order.number)}`, actorId);
+    await this.log(order.id, 'CREATE', `Devis N° ${formatSaleNumber(order.number)} créé · Montant : ${formatAuditMoney(order.total)}`, actorId);
     return this.findOrThrow(order.id);
   }
 
@@ -155,7 +156,7 @@ export class PosSaleOrderService {
         },
       }),
     ]);
-    await this.log(id, 'UPDATE', `Updated quotation ${formatSaleNumber(existing.number)}`, actorId);
+    await this.log(id, 'UPDATE', `Devis N° ${formatSaleNumber(existing.number)} modifié · Montant : ${formatAuditMoney(total)}`, actorId);
     return this.findOrThrow(id);
   }
 
@@ -163,7 +164,7 @@ export class PosSaleOrderService {
     const order = await this.findOrThrow(id);
     if (order.status !== 'DRAFT') throw new BadRequestException('Only draft quotations can be sent');
     await this.prismaService.saleOrder.update({ where: { id }, data: { status: 'SENT' } });
-    await this.log(id, 'UPDATE', `Quotation ${formatSaleNumber(order.number)} marked as sent`, actorId);
+    await this.log(id, 'UPDATE', `Devis N° ${formatSaleNumber(order.number)} marqué comme envoyé`, actorId);
     return this.findOrThrow(id);
   }
 
@@ -186,7 +187,7 @@ export class PosSaleOrderService {
         data: { status: 'CONFIRMED', confirmedAt: new Date() },
       });
     });
-    await this.log(id, 'UPDATE', `Confirmed order ${formatSaleNumber(order.number)}`, actorId);
+    await this.log(id, 'UPDATE', `Commande vente N° ${formatSaleNumber(order.number)} confirmée · Montant : ${formatAuditMoney(order.total)}`, actorId);
     return this.findOrThrow(id);
   }
 
@@ -215,7 +216,7 @@ export class PosSaleOrderService {
       });
       await tx.saleOrder.update({ where: { id }, data: { status: 'CANCELLED' } });
     });
-    await this.log(id, 'UPDATE', `Cancelled order ${formatSaleNumber(order.number)}`, actorId);
+    await this.log(id, 'UPDATE', `Commande vente N° ${formatSaleNumber(order.number)} annulée`, actorId);
     return this.findOrThrow(id);
   }
 
@@ -274,7 +275,7 @@ export class PosSaleOrderService {
       entityId: invoice.id,
       action: 'CREATE',
       userId: actorId,
-      summary: `Draft invoice created from ${formatSaleNumber(order.number)}`,
+      summary: `Facture brouillon créée depuis commande vente N° ${formatSaleNumber(order.number)} · Montant : ${formatAuditMoney(invoice.total)}`,
     });
     return invoice;
   }
@@ -285,7 +286,7 @@ export class PosSaleOrderService {
       throw new BadRequestException('Only draft or cancelled orders can be deleted');
     }
     await this.prismaService.saleOrder.update({ where: { id }, data: { deletedAt: new Date() } });
-    await this.log(id, 'DELETE', `Deleted order ${formatSaleNumber(order.number)}`, actorId);
+    await this.log(id, 'DELETE', `Commande vente N° ${formatSaleNumber(order.number)} supprimée`, actorId);
     return { id };
   }
 }

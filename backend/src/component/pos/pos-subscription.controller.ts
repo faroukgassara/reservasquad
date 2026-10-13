@@ -143,6 +143,17 @@ export class PosSubscriptionController {
     }
   }
 
+  @Post(':id/remind')
+  @swagger.ApiOperation({ summary: 'Send expiration reminder email to the client' })
+  async sendReminder(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.subscriptionService.sendManualReminder(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Delete(':id')
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Delete a draft or cancelled subscription' })

@@ -58,6 +58,7 @@ const LABEL_KEYS = [
     'scanQr',
     'memberCard',
     'memberCardHint',
+    'address',
 ] as const;
 
 export function usePosPdfLabels(): PosPdfLabels {

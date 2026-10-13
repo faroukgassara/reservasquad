@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { FileUploadService } from 'src/common/common-services/file-upload.service';
 import { AuditModule } from '../audit/audit.module';
+import { EmailModule } from 'src/common/email/email.module';
 import { DailyIncomeModule } from '../dailyIncome/daily-income.module';
 import { PosCatalogController } from './pos-catalog.controller';
 import { PosCatalogService } from './pos-catalog.service';
@@ -20,7 +21,7 @@ import { PosSubscriptionCardController } from './pos-subscription-card.controlle
 import { PosSubscriptionService } from './pos-subscription.service';
 
 @Module({
-  imports: [PrismaModule, AuditModule, DailyIncomeModule],
+  imports: [PrismaModule, AuditModule, DailyIncomeModule, EmailModule],
   controllers: [
     PosCatalogController,
     PosSessionController,

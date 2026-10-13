@@ -304,7 +304,7 @@ export default function ProfessorsAdminPage() {
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                                     <StatCard
                                         icon={IconComponentsEnum.users}
-                                        iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                        iconBg="bg-primary-50"
                                         iconColor="text-primary-600"
                                         label={t('totalProfessors')}
                                         value={isLoading ? '—' : String(stats.count)}
@@ -312,7 +312,7 @@ export default function ProfessorsAdminPage() {
                                     />
                                     <StatCard
                                         icon={IconComponentsEnum.sparkles}
-                                        iconBg="bg-accent-50 dark:bg-accent-950/40"
+                                        iconBg="bg-accent-50"
                                         iconColor="text-accent-600"
                                         label={t('withSpecialty')}
                                         value={isLoading ? '—' : String(stats.withSpecialty)}
@@ -320,7 +320,7 @@ export default function ProfessorsAdminPage() {
                                     />
                                     <StatCard
                                         icon={IconComponentsEnum.star}
-                                        iconBg="bg-warning-50 dark:bg-warning-950/40"
+                                        iconBg="bg-warning-50"
                                         iconColor="text-warning-600"
                                         label={t('withCustomRate')}
                                         value={isLoading ? '—' : String(stats.withSpecialPrice)}

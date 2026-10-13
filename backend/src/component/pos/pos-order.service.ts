@@ -19,6 +19,7 @@ import {
   round3,
   sumBy,
 } from './pos.utils';
+import { formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const userSelect = { id: true, firstName: true, lastName: true } satisfies Prisma.UserSelect;
 const clientSelect = {
@@ -135,17 +136,42 @@ export class PosOrderService {
   }
 
   async create(dto: CreatePosOrderDto, actorId?: string) {
+    const nonZeroPayments = dto.payments.filter((p) => p.amount > 0);
     const isFullCredit =
-      dto.payments.length > 0 &&
-      dto.payments.every((p) => p.method === 'CLIENT_ACCOUNT') &&
-      dto.lines.every(
-        (l) => l.productId && !l.saleOrderId && !l.subscriptionId && !l.creditId && !l.invoiceId,
-      );
+      nonZeroPayments.length > 0 &&
+      nonZeroPayments.every((p) => p.method === 'CLIENT_ACCOUNT') &&
+      dto.lines.length > 0 &&
+      dto.lines.every((l) => !l.creditId);
     if (isFullCredit) {
-      if (!dto.creditClientId) {
+      let creditClientId = dto.creditClientId;
+      if (!creditClientId) {
+        const firstSubId = dto.lines.find((l) => l.subscriptionId)?.subscriptionId;
+        const firstSaleId = dto.lines.find((l) => l.saleOrderId)?.saleOrderId;
+        const firstInvoiceId = dto.lines.find((l) => l.invoiceId)?.invoiceId;
+        if (firstSubId) {
+          const sub = await this.prismaService.subscription.findUnique({
+            where: { id: firstSubId },
+            select: { clientId: true },
+          });
+          creditClientId = sub?.clientId;
+        } else if (firstSaleId) {
+          const so = await this.prismaService.saleOrder.findUnique({
+            where: { id: firstSaleId },
+            select: { clientId: true },
+          });
+          creditClientId = so?.clientId;
+        } else if (firstInvoiceId) {
+          const inv = await this.prismaService.invoice.findUnique({
+            where: { id: firstInvoiceId },
+            select: { clientId: true },
+          });
+          creditClientId = inv?.clientId;
+        }
+      }
+      if (!creditClientId) {
         throw new BadRequestException('A client is required for client account payments');
       }
-      return this.createOnCredit({ lines: dto.lines, creditClientId: dto.creditClientId }, actorId);
+      return this.createOnCredit({ lines: dto.lines, creditClientId }, actorId);
     }
 
     const order = await this.prismaService.$transaction(async (tx) => {
@@ -421,23 +447,52 @@ export class PosOrderService {
         throw new BadRequestException('A credit settlement cannot be paid on the client account');
       }
 
+      const isDepositWithCredit = clientAccountAmount > 0;
+      const orderTotal = isDepositWithCredit ? round3(total - clientAccountAmount) : total;
+      const orderAmountPaid = isDepositWithCredit ? round3(amountPaid - clientAccountAmount) : amountPaid;
+      const orderChange = change;
+      const actualPayments = isDepositWithCredit
+        ? dto.payments.filter((p) => p.method !== 'CLIENT_ACCOUNT' && p.amount > 0)
+        : dto.payments;
+
+      let orderLines = lines;
+      if (isDepositWithCredit) {
+        const ratio = total > 0 ? orderTotal / total : 1;
+        let running = 0;
+        orderLines = lines.map((l, idx) => {
+          const isLast = idx === lines.length - 1;
+          const lineTot = isLast ? round3(orderTotal - running) : round3(Number(l.total) * ratio);
+          running = round3(running + lineTot);
+          const qty = Number(l.quantity) || 1;
+          const unitPr = round3(lineTot / qty);
+          const hasAcompte = l.productName.toLowerCase().includes('acompte');
+          return {
+            ...l,
+            productName: hasAcompte ? l.productName : `${l.productName} (Acompte)`,
+            unitPrice: unitPr,
+            total: lineTot,
+          };
+        });
+      }
+
       const created = await tx.posOrder.create({
         data: {
           sessionId: session.id,
           cashierId: actorId || null,
           creditClientId: client?.id ?? null,
           note: dto.note?.trim() || null,
-          total,
-          amountPaid,
-          change,
-          lines: { create: lines },
+          total: orderTotal,
+          amountPaid: orderAmountPaid,
+          change: orderChange,
+          lines: { create: orderLines },
           payments: {
-            create: dto.payments.map((p) => ({ method: p.method, amount: p.amount })),
+            create: actualPayments.map((p) => ({ method: p.method, amount: p.amount })),
           },
         },
         include: {
           payments: true,
           lines: { select: { id: true, creditId: true, invoiceId: true, total: true } },
+          creditClient: { select: { id: true, firstName: true, lastName: true } },
         },
       });
 
@@ -455,17 +510,14 @@ export class PosOrderService {
       }
 
       if (clientAccountAmount > 0 && client) {
-        const credit = await tx.credit.create({
+        const lineNames = lines.map((l) => l.productName).join(', ');
+        await tx.credit.create({
           data: {
             clientId: client.id,
             date: startOfToday(),
             amount: clientAccountAmount.toFixed(2),
-            description: `Caisse - Commande ${formatOrderNumber(created.number)}`,
+            description: `Reste ${lineNames} - Commande ${formatOrderNumber(created.number)}`,
           },
-        });
-        await tx.posPayment.updateMany({
-          where: { orderId: created.id, method: 'CLIENT_ACCOUNT' },
-          data: { creditId: credit.id },
         });
       }
 
@@ -523,8 +575,12 @@ export class PosOrderService {
       for (const line of created.lines) {
         if (!line.invoiceId) continue;
         const invoice = invoiceById.get(line.invoiceId)!;
+        const originalLine = lines.find((l) => l.invoiceId === line.invoiceId);
+        const originalAmount = originalLine ? round3(Number(originalLine.total)) : round3(Number(line.total));
         const amount = round3(Number(line.total));
-        const rest = creditRestByInvoice.get(invoice.id) ?? 0;
+        const invoiceCreditRest = creditRestByInvoice.get(invoice.id) ?? 0;
+        const depositCreditRest = round3(originalAmount - amount);
+        const rest = round3(invoiceCreditRest + depositCreditRest);
         const paid = round3(amount + rest);
         const payment = {
           invoiceId: invoice.id,
@@ -534,9 +590,12 @@ export class PosOrderService {
           posOrderLineId: line.id,
         };
         await tx.invoicePayment.create({ data: { ...payment, method: invoiceMethod, amount } });
-        if (rest > 0) {
-          await tx.invoicePayment.create({ data: { ...payment, method: 'CLIENT_ACCOUNT', amount: rest } });
-          await creditRest(formatInvoiceNumber(invoice.type, invoice.year, invoice.sequence), rest);
+        if (depositCreditRest > 0) {
+          await tx.invoicePayment.create({ data: { ...payment, method: 'CLIENT_ACCOUNT', amount: depositCreditRest } });
+        }
+        if (invoiceCreditRest > 0) {
+          await tx.invoicePayment.create({ data: { ...payment, method: 'CLIENT_ACCOUNT', amount: invoiceCreditRest } });
+          await creditRest(formatInvoiceNumber(invoice.type, invoice.year, invoice.sequence), invoiceCreditRest);
         }
         await tx.invoice.update({ where: { id: invoice.id }, data: { amountPaid: { increment: paid } } });
         if (invoice.saleOrderId) {
@@ -583,17 +642,27 @@ export class PosOrderService {
       return created;
     }, { maxWait: 10000, timeout: 30000 });
 
+    const clientPart = order.creditClient
+      ? ` · Client : ${order.creditClient.firstName} ${order.creditClient.lastName}`
+      : '';
     await this.auditService.log({
       entityType: POS_AUDIT.order,
       entityId: order.id,
       action: 'CREATE',
       userId: actorId,
-      summary: `POS order ${formatOrderNumber(order.number)} paid (${order.total.toString()})`,
+      summary: `Commande caisse N° ${formatOrderNumber(order.number)} payée · Total : ${formatAuditMoney(order.total)}${clientPart}`,
+      metadata: {
+        orderNumber: order.number,
+        total: Number(order.total),
+        client: order.creditClient
+          ? `${order.creditClient.firstName} ${order.creditClient.lastName}`
+          : undefined,
+      },
     });
     return this.getById(order.id);
   }
 
-  /** Products paid fully on client credit become credits, not a register order. */
+  /** Items paid fully on client credit become credits, not a register order. */
   private async createOnCredit(dto: { lines: CreatePosOrderDto['lines']; creditClientId: string }, actorId?: string) {
     const { client, credits } = await this.prismaService.$transaction(async (tx) => {
       const client = await tx.creditClient.findFirst({
@@ -602,44 +671,235 @@ export class PosOrderService {
       });
       if (!client) throw new BadRequestException('Client not found');
 
-      const productIds = [...new Set(dto.lines.map((l) => l.productId))];
-      if (productIds.some((id) => !id) || dto.lines.some((l) => l.saleOrderId || l.subscriptionId || l.creditId)) {
-        throw new BadRequestException('Only products can be sold on credit');
-      }
-      const products = await tx.posProduct.findMany({
-        where: { id: { in: productIds as string[] }, deletedAt: null, subscriptionDuration: null },
-        select: { id: true, name: true },
-      });
-      const productById = new Map(products.map((p) => [p.id, p]));
-      if (productById.size !== productIds.length) {
-        throw new BadRequestException('Some products are unavailable');
+      if (dto.lines.some((l) => l.creditId)) {
+        throw new BadRequestException('A credit settlement cannot be paid on the client account');
       }
 
       const today = startOfToday();
       const credits: { id: string; amount: Prisma.Decimal }[] = [];
-      for (const line of dto.lines) {
-        if (line.quantity <= 0) throw new BadRequestException('Returns cannot be sold on credit');
-        const amount = round2(lineTotal(line.quantity, line.unitPrice, line.discountPct ?? 0));
-        if (amount <= 0) throw new BadRequestException('Credit amount must be positive');
-        const product = productById.get(line.productId!)!;
-        await tx.posProduct.update({
-          where: { id: product.id },
-          data: { stockQty: { decrement: line.quantity } },
+
+      const payLinkedInvoice = async (origin: Prisma.InvoiceWhereInput, amount: number) => {
+        const invoice = await tx.invoice.findFirst({
+          where: { ...origin, type: 'INVOICE', status: { not: 'CANCELLED' }, deletedAt: null },
+          select: { id: true, total: true, amountPaid: true },
         });
-        credits.push(
-          await tx.credit.create({
+        const invoiceAmount = invoice
+          ? round3(Math.min(amount, Number(invoice.total) - Number(invoice.amountPaid)))
+          : 0;
+        if (!invoice || invoiceAmount <= 0) return;
+        await tx.invoicePayment.create({
+          data: {
+            invoiceId: invoice.id,
+            date: today,
+            method: 'CLIENT_ACCOUNT',
+            amount: invoiceAmount,
+            note: 'Caisse - Crédit',
+            createdById: actorId || null,
+          },
+        });
+        await tx.invoice.update({
+          where: { id: invoice.id },
+          data: { amountPaid: { increment: invoiceAmount } },
+        });
+      };
+
+      // 1. Process Subscription lines
+      const subscriptionLines = dto.lines.filter((l) => l.subscriptionId);
+      if (subscriptionLines.length > 0) {
+        const subscriptionIds = [
+          ...new Set(subscriptionLines.map((l) => l.subscriptionId as string)),
+        ];
+        const subscriptions = await tx.subscription.findMany({
+          where: { id: { in: subscriptionIds }, deletedAt: null, status: { in: ['DRAFT', 'ACTIVE'] } },
+        });
+        const subscriptionById = new Map(subscriptions.map((s) => [s.id, s]));
+        if (subscriptionById.size !== subscriptionIds.length) {
+          throw new BadRequestException('Some subscriptions are unavailable');
+        }
+        for (const s of subscriptions) {
+          if (s.clientId !== client.id) {
+            throw new BadRequestException('The client does not match the subscription');
+          }
+        }
+        for (const line of subscriptionLines) {
+          const subscription = subscriptionById.get(line.subscriptionId!)!;
+          const remaining = round3(Number(subscription.total) - Number(subscription.amountPaid));
+          const amount = round2(lineTotal(line.quantity, line.unitPrice, line.discountPct ?? 0));
+          if (amount > remaining + EPSILON) {
+            throw new BadRequestException('Amount exceeds what remains on the subscription');
+          }
+          await tx.subscription.update({
+            where: { id: subscription.id },
             data: {
-              clientId: client.id,
-              date: today,
-              amount: amount.toFixed(2),
-              description: line.quantity === 1 ? product.name : `${line.quantity} x ${product.name}`,
-              productId: product.id,
-              quantity: line.quantity,
+              amountPaid: { increment: amount },
+              ...(subscription.status === 'DRAFT' && { status: 'ACTIVE', activatedAt: new Date() }),
             },
-            select: { id: true, amount: true },
-          }),
-        );
+          });
+          await payLinkedInvoice({ subscriptionId: subscription.id }, amount);
+          credits.push(
+            await tx.credit.create({
+              data: {
+                clientId: client.id,
+                date: today,
+                amount: amount.toFixed(2),
+                description: `Abonnement ${formatSubscriptionNumber(subscription.number)} - ${subscription.productName}`,
+              },
+              select: { id: true, amount: true },
+            }),
+          );
+        }
       }
+
+      // 2. Process Sale Order lines
+      const saleOrderLines = dto.lines.filter((l) => l.saleOrderId);
+      if (saleOrderLines.length > 0) {
+        const saleOrderIds = [...new Set(saleOrderLines.map((l) => l.saleOrderId as string))];
+        const saleOrders = await tx.saleOrder.findMany({
+          where: { id: { in: saleOrderIds }, deletedAt: null, status: 'CONFIRMED' },
+          select: { id: true, number: true, clientId: true, total: true, amountPaid: true },
+        });
+        const saleOrderById = new Map(saleOrders.map((o) => [o.id, o]));
+        if (saleOrderById.size !== saleOrderIds.length) {
+          throw new BadRequestException('Some sale orders are unavailable');
+        }
+        for (const so of saleOrders) {
+          if (so.clientId !== client.id) {
+            throw new BadRequestException('The client does not match the sale order');
+          }
+        }
+        for (const line of saleOrderLines) {
+          const saleOrder = saleOrderById.get(line.saleOrderId!)!;
+          const remaining = round3(Number(saleOrder.total) - Number(saleOrder.amountPaid));
+          const amount = round2(lineTotal(line.quantity, line.unitPrice, line.discountPct ?? 0));
+          if (amount > remaining + EPSILON) {
+            throw new BadRequestException('Amount exceeds what remains on the sale order');
+          }
+          await tx.saleOrder.update({
+            where: { id: saleOrder.id },
+            data: { amountPaid: { increment: amount } },
+          });
+          await payLinkedInvoice({ saleOrderId: saleOrder.id }, amount);
+          credits.push(
+            await tx.credit.create({
+              data: {
+                clientId: client.id,
+                date: today,
+                amount: amount.toFixed(2),
+                description: `Commande ${formatSaleNumber(saleOrder.number)}`,
+              },
+              select: { id: true, amount: true },
+            }),
+          );
+        }
+      }
+
+      // 3. Process Invoice lines
+      const invoiceLines = dto.lines.filter((l) => l.invoiceId);
+      if (invoiceLines.length > 0) {
+        const invoiceIds = [...new Set(invoiceLines.map((l) => l.invoiceId as string))];
+        const invoices = await tx.invoice.findMany({
+          where: { id: { in: invoiceIds }, deletedAt: null, status: 'POSTED', type: 'INVOICE' },
+          select: { id: true, type: true, year: true, sequence: true, clientId: true, total: true, amountPaid: true, saleOrderId: true, subscriptionId: true },
+        });
+        const invoiceById = new Map(invoices.map((i) => [i.id, i]));
+        if (invoiceById.size !== invoiceIds.length) {
+          throw new BadRequestException('Some invoices are unavailable');
+        }
+        for (const inv of invoices) {
+          if (inv.clientId !== client.id) {
+            throw new BadRequestException('The client does not match the invoice');
+          }
+        }
+        for (const line of invoiceLines) {
+          const invoice = invoiceById.get(line.invoiceId!)!;
+          const remaining = round3(Number(invoice.total) - Number(invoice.amountPaid));
+          const amount = round2(lineTotal(line.quantity, line.unitPrice, line.discountPct ?? 0));
+          if (amount > remaining + EPSILON) {
+            throw new BadRequestException('Amount exceeds what remains on the invoice');
+          }
+          await tx.invoicePayment.create({
+            data: {
+              invoiceId: invoice.id,
+              date: today,
+              method: 'CLIENT_ACCOUNT',
+              amount,
+              note: 'Caisse - Crédit',
+              createdById: actorId || null,
+            },
+          });
+          await tx.invoice.update({
+            where: { id: invoice.id },
+            data: { amountPaid: { increment: amount } },
+          });
+          if (invoice.saleOrderId) {
+            await tx.saleOrder.update({
+              where: { id: invoice.saleOrderId },
+              data: { amountPaid: { increment: amount } },
+            });
+          }
+          if (invoice.subscriptionId) {
+            await tx.subscription.update({
+              where: { id: invoice.subscriptionId },
+              data: {
+                amountPaid: { increment: amount },
+                status: 'ACTIVE',
+                activatedAt: new Date(),
+              },
+            });
+          }
+          credits.push(
+            await tx.credit.create({
+              data: {
+                clientId: client.id,
+                date: today,
+                amount: amount.toFixed(2),
+                description: `Facture ${formatInvoiceNumber(invoice.type, invoice.year, invoice.sequence)}`,
+              },
+              select: { id: true, amount: true },
+            }),
+          );
+        }
+      }
+
+      // 4. Process Product lines
+      const productLines = dto.lines.filter(
+        (l) => l.productId && !l.saleOrderId && !l.subscriptionId && !l.invoiceId,
+      );
+      if (productLines.length > 0) {
+        const productIds = [...new Set(productLines.map((l) => l.productId as string))];
+        const products = await tx.posProduct.findMany({
+          where: { id: { in: productIds }, deletedAt: null, subscriptionDuration: null },
+          select: { id: true, name: true },
+        });
+        const productById = new Map(products.map((p) => [p.id, p]));
+        if (productById.size !== productIds.length) {
+          throw new BadRequestException('Some products are unavailable');
+        }
+        for (const line of productLines) {
+          if (line.quantity <= 0) throw new BadRequestException('Returns cannot be sold on credit');
+          const amount = round2(lineTotal(line.quantity, line.unitPrice, line.discountPct ?? 0));
+          if (amount <= 0) throw new BadRequestException('Credit amount must be positive');
+          const product = productById.get(line.productId!)!;
+          await tx.posProduct.update({
+            where: { id: product.id },
+            data: { stockQty: { decrement: line.quantity } },
+          });
+          credits.push(
+            await tx.credit.create({
+              data: {
+                clientId: client.id,
+                date: today,
+                amount: amount.toFixed(2),
+                description: line.quantity === 1 ? product.name : `${line.quantity} x ${product.name}`,
+                productId: product.id,
+                quantity: line.quantity,
+              },
+              select: { id: true, amount: true },
+            }),
+          );
+        }
+      }
+
       return { client, credits };
     }, { maxWait: 10000, timeout: 30000 });
 
@@ -649,7 +909,12 @@ export class PosOrderService {
         entityId: credit.id,
         action: 'CREATE',
         userId: actorId,
-        summary: `Register sale on credit of ${credit.amount.toString()} for ${client.firstName} ${client.lastName}`,
+        summary: `Vente caisse à crédit : ${client.firstName} ${client.lastName} · Montant : ${formatAuditMoney(credit.amount)}`,
+        metadata: {
+          clientId: client.id,
+          clientName: `${client.firstName} ${client.lastName}`,
+          amount: Number(credit.amount),
+        },
       });
     }
     return {
@@ -779,7 +1044,12 @@ export class PosOrderService {
       entityId: refund.id,
       action: 'CREATE',
       userId: actorId,
-      summary: `POS refund ${formatOrderNumber(refund.number)} of order ${formatOrderNumber(original.number)} (${total})`,
+      summary: `Remboursement N° ${formatOrderNumber(refund.number)} de la commande N° ${formatOrderNumber(original.number)} · Montant : ${formatAuditMoney(total)}`,
+      metadata: {
+        refundOrderNumber: refund.number,
+        originalOrderNumber: original.number,
+        total,
+      },
     });
     return this.getById(refund.id);
   }

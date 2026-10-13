@@ -191,7 +191,7 @@ export default function OrganismPosPaymentScreen({
                 value: NUMPAD_BACKSPACE,
                 label: '⌫',
                 accent: true,
-                className: 'bg-warning-50 hover:bg-warning-100 text-warning-800 border border-warning-200/80 font-bold',
+                className: 'bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white border-0 font-bold shadow-2xs',
             },
         ],
     ];

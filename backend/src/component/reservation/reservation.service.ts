@@ -23,6 +23,15 @@ import { ProxyPrismaModel } from 'src/common/pagination/proxy';
 import { buildAndFilters, composeWhere } from 'src/common/pagination/prisma-query.builder';
 import { PaginationData } from 'src/common/pagination/types';
 import { AuditService } from '../audit/audit.service';
+import {
+  formatAuditDate,
+  formatAuditDateTime,
+  formatAuditMoney,
+  formatAuditTime,
+  formatProfessorName,
+  formatReservationLabel,
+  formatReservationSlot,
+} from 'src/common/utils/audit-format.util';
 
 const reservationInclude = {
   room: true,
@@ -274,13 +283,31 @@ export class ReservationService {
       include: reservationInclude,
     });
 
+    const paymentLabel = created.isPaid
+      ? `Payée le ${formatAuditDateTime(created.paidAt || new Date())}`
+      : 'Non payée';
+    const summary = `Réservation créée : ${formatProfessorName(created.professor)} · ${formatReservationLabel(created)} · Montant : ${formatAuditMoney(created.price)} · ${paymentLabel}`;
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: created.id,
       action: 'CREATE',
       userId: createdById,
-      summary: `Created reservation for ${created.room.name}`,
-      metadata: { roomId: created.roomId, startAt: created.startAt, endAt: created.endAt },
+      summary,
+      metadata: {
+        reservationId: created.id,
+        roomId: created.roomId,
+        roomName: created.room.name,
+        professorId: created.professorId,
+        professorName: formatProfessorName(created.professor),
+        startAt: created.startAt,
+        endAt: created.endAt,
+        price: Number(created.price),
+        isPaid: created.isPaid,
+        paidAt: created.paidAt,
+        status: created.status,
+        title: created.title,
+      },
     });
 
     return created;
@@ -383,17 +410,25 @@ export class ReservationService {
       ),
     );
 
+    const totalSeriesAmount = created.reduce((sum, r) => sum + Number(r.price), 0);
+    const freqLabel = dto.frequency === 'WEEKLY' ? 'hebdomadaire' : 'mensuelle';
+    const firstOcc = created[0];
+    const seriesSummary = `Série de ${created.length} réservations créée (${freqLabel} jusqu'au ${formatAuditDate(dto.until)}) : ${formatProfessorName(firstOcc.professor)} · Salle ${firstOcc.room.name} [${formatAuditTime(firstOcc.startAt)} à ${formatAuditTime(firstOcc.endAt)}] · Total estimé : ${formatAuditMoney(totalSeriesAmount)}`;
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: seriesId,
       action: 'SERIES_CREATE',
       userId: createdById,
-      summary: `Created series of ${created.length} reservations for ${created[0].room.name}`,
+      summary: seriesSummary,
       metadata: {
         seriesId,
         count: created.length,
         frequency: dto.frequency,
         until: dto.until,
+        room: firstOcc.room.name,
+        professor: formatProfessorName(firstOcc.professor),
+        totalAmount: totalSeriesAmount,
       },
     });
 
@@ -415,16 +450,20 @@ export class ReservationService {
       data: { deletedAt: new Date() },
     });
 
+    const deleteSeriesSummary = `Suppression de ${result.count} occurrence(s) future(s) de la série à partir du ${formatAuditDate(existing.startAt)} : ${formatProfessorName(existing.professor)} · Salle ${existing.room.name}`;
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: existing.seriesId,
       action: 'DELETE',
       userId: actorId,
-      summary: `Deleted ${result.count} future series occurrences for ${existing.room.name}`,
+      summary: deleteSeriesSummary,
       metadata: {
         seriesId: existing.seriesId,
         fromReservationId: id,
         deleted: result.count,
+        room: existing.room.name,
+        professor: formatProfessorName(existing.professor),
       },
     });
 
@@ -501,12 +540,80 @@ export class ReservationService {
       include: reservationInclude,
     });
 
+    const changes: string[] = [];
+    if (existing.roomId !== updated.roomId) {
+      changes.push(`Salle : ${existing.room.name} ➔ ${updated.room.name}`);
+    }
+    if (existing.professorId !== updated.professorId) {
+      changes.push(
+        `Professeur : ${formatProfessorName(existing.professor)} ➔ ${formatProfessorName(updated.professor)}`,
+      );
+    }
+    if (
+      existing.startAt.getTime() !== updated.startAt.getTime() ||
+      existing.endAt.getTime() !== updated.endAt.getTime()
+    ) {
+      changes.push(
+        `Créneau : ${formatReservationSlot(existing.startAt, existing.endAt)} ➔ ${formatReservationSlot(updated.startAt, updated.endAt)}`,
+      );
+    }
+    if (Number(existing.price) !== Number(updated.price)) {
+      changes.push(
+        `Montant : ${formatAuditMoney(existing.price)} ➔ ${formatAuditMoney(updated.price)}`,
+      );
+    }
+    if (existing.status !== updated.status) {
+      changes.push(`Statut : ${existing.status} ➔ ${updated.status}`);
+    }
+    if ((existing.title || '') !== (updated.title || '')) {
+      changes.push(
+        `Intitulé : "${existing.title || 'Sans titre'}" ➔ "${updated.title || 'Sans titre'}"`,
+      );
+    }
+
+    let summary = '';
+    const profLabel = formatProfessorName(updated.professor);
+    const resLabel = formatReservationLabel(updated);
+    const priceLabel = formatAuditMoney(updated.price);
+
+    if (!existing.isPaid && updated.isPaid) {
+      const paidDateLabel = formatAuditDateTime(updated.paidAt || new Date());
+      summary = `Paiement validé : ${profLabel} · ${resLabel} · Montant : ${priceLabel} · Date de paiement : ${paidDateLabel}`;
+      if (changes.length > 0) {
+        summary += ` (Autres modifications : ${changes.join(', ')})`;
+      }
+    } else if (existing.isPaid && !updated.isPaid) {
+      summary = `Paiement annulé (marquée non payée) : ${profLabel} · ${resLabel} · Montant : ${priceLabel}`;
+      if (changes.length > 0) {
+        summary += ` (Modifications : ${changes.join(', ')})`;
+      }
+    } else if (changes.length > 0) {
+      summary = `Réservation modifiée [${changes.join(', ')}] : ${profLabel} · ${resLabel} · Montant : ${priceLabel} · ${updated.isPaid ? 'Payée' : 'Non payée'}`;
+    } else {
+      summary = `Réservation mise à jour : ${profLabel} · ${resLabel} · Montant : ${priceLabel} · ${updated.isPaid ? 'Payée' : 'Non payée'}`;
+    }
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: updated.id,
       action: 'UPDATE',
       userId: actorId,
-      summary: `Updated reservation for ${updated.room.name}`,
+      summary,
+      metadata: {
+        reservationId: updated.id,
+        roomId: updated.roomId,
+        roomName: updated.room.name,
+        professorId: updated.professorId,
+        professorName: formatProfessorName(updated.professor),
+        startAt: updated.startAt,
+        endAt: updated.endAt,
+        price: Number(updated.price),
+        isPaid: updated.isPaid,
+        paidAt: updated.paidAt,
+        status: updated.status,
+        title: updated.title,
+        changes: changes.length > 0 ? changes : undefined,
+      },
     });
 
     return updated;
@@ -679,12 +786,23 @@ export class ReservationService {
       include: reservationInclude,
     });
 
+    const summary = `Réservation annulée : ${formatProfessorName(cancelled.professor)} · ${formatReservationLabel(cancelled)} · Montant : ${formatAuditMoney(cancelled.price)} · Statut paiement : ${cancelled.isPaid ? 'Payée' : 'Non payée'}`;
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: cancelled.id,
       action: 'CANCEL',
       userId: actorId,
-      summary: `Cancelled reservation for ${cancelled.room.name}`,
+      summary,
+      metadata: {
+        reservationId: cancelled.id,
+        room: cancelled.room.name,
+        professor: formatProfessorName(cancelled.professor),
+        startAt: cancelled.startAt,
+        endAt: cancelled.endAt,
+        price: Number(cancelled.price),
+        isPaid: cancelled.isPaid,
+      },
     });
 
     return cancelled;
@@ -698,12 +816,22 @@ export class ReservationService {
       include: reservationInclude,
     });
 
+    const summary = `Réservation déplacée dans la corbeille : ${formatProfessorName(deleted.professor)} · ${formatReservationLabel(deleted)} · Montant : ${formatAuditMoney(deleted.price)}`;
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: deleted.id,
       action: 'DELETE',
       userId: actorId,
-      summary: `Deleted reservation for ${deleted.room.name}`,
+      summary,
+      metadata: {
+        reservationId: deleted.id,
+        room: deleted.room.name,
+        professor: formatProfessorName(deleted.professor),
+        startAt: deleted.startAt,
+        endAt: deleted.endAt,
+        price: Number(deleted.price),
+      },
     });
 
     return deleted;
@@ -751,12 +879,22 @@ export class ReservationService {
       include: reservationInclude,
     });
 
+    const summary = `Réservation restaurée : ${formatProfessorName(restored.professor)} · ${formatReservationLabel(restored)} · Montant : ${formatAuditMoney(restored.price)} · ${restored.isPaid ? 'Payée' : 'Non payée'}`;
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: restored.id,
       action: 'RESTORE',
       userId: actorId,
-      summary: `Restored reservation for ${restored.room.name}`,
+      summary,
+      metadata: {
+        reservationId: restored.id,
+        room: restored.room.name,
+        professor: formatProfessorName(restored.professor),
+        startAt: restored.startAt,
+        endAt: restored.endAt,
+        price: Number(restored.price),
+      },
     });
 
     return restored;
@@ -769,12 +907,22 @@ export class ReservationService {
       include: reservationInclude,
     });
 
+    const summary = `Réservation supprimée définitivement : ${formatProfessorName(existing.professor)} · ${formatReservationLabel(existing)} · Montant : ${formatAuditMoney(existing.price)}`;
+
     await this.auditService.log({
       entityType: 'RESERVATION',
       entityId: existing.id,
       action: 'HARD_DELETE',
       userId: actorId,
-      summary: `Permanently deleted reservation for ${existing.room.name}`,
+      summary,
+      metadata: {
+        reservationId: existing.id,
+        room: existing.room.name,
+        professor: formatProfessorName(existing.professor),
+        startAt: existing.startAt,
+        endAt: existing.endAt,
+        price: Number(existing.price),
+      },
     });
 
     return removed;
@@ -782,22 +930,67 @@ export class ReservationService {
 
   async bulkMarkPaid(ids: string[], actorId?: string) {
     const uniqueIds = Array.from(new Set(ids));
-    const result = await this.prismaService.reservation.updateMany({
+    const now = new Date();
+    const targeted = await this.prismaService.reservation.findMany({
       where: {
         id: { in: uniqueIds },
         deletedAt: null,
         isPaid: false,
       },
-      data: { isPaid: true, paidAt: new Date() },
+      include: reservationInclude,
     });
+
+    if (targeted.length === 0) {
+      return { updated: 0 };
+    }
+
+    const result = await this.prismaService.reservation.updateMany({
+      where: {
+        id: { in: targeted.map((r) => r.id) },
+        deletedAt: null,
+        isPaid: false,
+      },
+      data: { isPaid: true, paidAt: now },
+    });
+
+    const paidDateLabel = formatAuditDateTime(now);
+    const totalAmount = targeted.reduce((sum, r) => sum + Number(r.price), 0);
+
+    let summary = '';
+    if (targeted.length === 1) {
+      const single = targeted[0];
+      summary = `Paiement validé : ${formatProfessorName(single.professor)} · ${formatReservationLabel(single)} · Montant : ${formatAuditMoney(single.price)} · Date de paiement : ${paidDateLabel}`;
+    } else {
+      const itemsDetail = targeted
+        .map(
+          (r) =>
+            `${formatProfessorName(r.professor)} (${r.room.name}, ${formatAuditDate(r.startAt)} : ${formatAuditMoney(r.price)})`,
+        )
+        .join(' ; ');
+      const truncatedDetail =
+        itemsDetail.length > 250 ? itemsDetail.slice(0, 247) + '...' : itemsDetail;
+      summary = `Paiement groupé validé pour ${targeted.length} réservation(s) le ${paidDateLabel} (Total : ${formatAuditMoney(totalAmount)}) : ${truncatedDetail}`;
+    }
 
     await this.auditService.log({
       entityType: 'RESERVATION',
-      entityId: uniqueIds[0] ?? 'bulk',
+      entityId: targeted[0]?.id ?? 'bulk',
       action: 'BULK_PAID',
       userId: actorId,
-      summary: `Marked ${result.count} reservations as paid`,
-      metadata: { ids: uniqueIds, updated: result.count },
+      summary,
+      metadata: {
+        count: result.count,
+        totalAmount,
+        paidAt: now,
+        reservations: targeted.map((r) => ({
+          id: r.id,
+          professor: formatProfessorName(r.professor),
+          room: r.room.name,
+          startAt: r.startAt,
+          endAt: r.endAt,
+          price: Number(r.price),
+        })),
+      },
     });
 
     return { updated: result.count };

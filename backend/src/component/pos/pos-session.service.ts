@@ -7,6 +7,7 @@ import { ClosePosSessionDto, OpenPosSessionDto } from 'src/dto/pos/posSession.dt
 import { AuditService } from '../audit/audit.service';
 import { DailyIncomeService } from '../dailyIncome/daily-income.service';
 import { POS_AUDIT, round3, sumBy } from './pos.utils';
+import { formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const userSelect = { id: true, firstName: true, lastName: true } satisfies Prisma.UserSelect;
 
@@ -133,7 +134,8 @@ export class PosSessionService {
       entityId: session.id,
       action: 'CREATE',
       userId: actorId,
-      summary: `Opened POS session #${session.number} with ${dto.openingCash}`,
+      summary: `Ouverture de la session de caisse N° ${session.number} · Fond de caisse initial : ${formatAuditMoney(dto.openingCash)}`,
+      metadata: { sessionNumber: session.number, openingCash: Number(dto.openingCash) },
     });
     return session;
   }
@@ -210,7 +212,14 @@ export class PosSessionService {
       entityId: session.id,
       action: 'UPDATE',
       userId: actorId,
-      summary: `Closed POS session #${session.number} (counted ${dto.countedCash}, expected ${expectedCash}, difference ${difference})`,
+      summary: `Clôture de la session de caisse N° ${session.number} · Espèces comptées : ${formatAuditMoney(dto.countedCash)} · Espèces attendues : ${formatAuditMoney(expectedCash)} · Écart : ${formatAuditMoney(difference)} · Revenu total : ${formatAuditMoney(revenue)}`,
+      metadata: {
+        sessionNumber: session.number,
+        countedCash: Number(dto.countedCash),
+        expectedCash,
+        difference,
+        revenue,
+      },
     });
     if (dailyIncome) {
       await this.auditService.log({
@@ -218,7 +227,12 @@ export class PosSessionService {
         entityId: dailyIncome.id,
         action: 'CREATE',
         userId: actorId,
-        summary: `Created daily income ${revenue} from POS session #${session.number}`,
+        summary: `Revenu journalier généré depuis la caisse N° ${session.number} · Montant : ${formatAuditMoney(revenue)}`,
+        metadata: {
+          posSessionId: session.id,
+          sessionNumber: session.number,
+          revenue,
+        },
       });
     }
     return session;

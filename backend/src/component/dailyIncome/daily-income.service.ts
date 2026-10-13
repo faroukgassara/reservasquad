@@ -19,6 +19,24 @@ import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
 import { SetPreviousMonthRestDto } from 'src/dto/dailyIncome/setPreviousMonthRest.dto';
 import { EIncomeLineType, Prisma } from 'src/generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
+import { formatAuditDate, formatAuditMoney } from 'src/common/utils/audit-format.util';
+
+function incomeLineTypeLabel(type: EIncomeLineType): string {
+  switch (type) {
+    case 'CHARGE':
+      return 'Charge';
+    case 'INVESTMENT':
+      return 'Investissement';
+    case 'ECOFACTURE':
+      return 'Écofacture';
+    case 'FAROUK':
+      return 'Farouk';
+    case 'MAJDI':
+      return 'Majdi';
+    default:
+      return type;
+  }
+}
 
 @Injectable()
 export class DailyIncomeService {
@@ -93,12 +111,21 @@ export class DailyIncomeService {
       },
     });
 
+    const summary = `Revenu journalier enregistré pour le ${formatAuditDate(created.date)} · Total : ${formatAuditMoney(created.totalIncome)} (Épargne : ${formatAuditMoney(created.savings)}, Bénéfices : ${formatAuditMoney(created.benefits)}, Charges : ${formatAuditMoney(created.savingsForCharges)})`;
+
     await this.auditService.log({
       entityType: 'DAILY_INCOME',
       entityId: created.id,
       action: 'CREATE',
       userId: actorId,
-      summary: `Created daily income for ${this.dateKey(created.date)}`,
+      summary,
+      metadata: {
+        date: created.date,
+        totalIncome: Number(created.totalIncome),
+        savings: Number(created.savings),
+        benefits: Number(created.benefits),
+        savingsForCharges: Number(created.savingsForCharges),
+      },
     });
 
     return created;
@@ -158,12 +185,21 @@ export class DailyIncomeService {
       },
     });
 
+    const summary = `Revenu journalier modifié pour le ${formatAuditDate(updated.date)} · Total : ${formatAuditMoney(updated.totalIncome)} (Épargne : ${formatAuditMoney(updated.savings)}, Bénéfices : ${formatAuditMoney(updated.benefits)}, Charges : ${formatAuditMoney(updated.savingsForCharges)})`;
+
     await this.auditService.log({
       entityType: 'DAILY_INCOME',
       entityId: updated.id,
       action: 'UPDATE',
       userId: actorId,
-      summary: `Updated daily income for ${this.dateKey(updated.date)}`,
+      summary,
+      metadata: {
+        date: updated.date,
+        totalIncome: Number(updated.totalIncome),
+        savings: Number(updated.savings),
+        benefits: Number(updated.benefits),
+        savingsForCharges: Number(updated.savingsForCharges),
+      },
     });
 
     return updated;
@@ -184,12 +220,18 @@ export class DailyIncomeService {
       data: { deletedAt: new Date() },
     });
 
+    const summary = `Revenu journalier supprimé pour le ${formatAuditDate(deleted.date)} · Total : ${formatAuditMoney(deleted.totalIncome)}`;
+
     await this.auditService.log({
       entityType: 'DAILY_INCOME',
       entityId: deleted.id,
       action: 'DELETE',
       userId: actorId,
-      summary: `Deleted daily income for ${this.dateKey(deleted.date)}`,
+      summary,
+      metadata: {
+        date: deleted.date,
+        totalIncome: Number(deleted.totalIncome),
+      },
     });
 
     return deleted;
@@ -312,12 +354,20 @@ export class DailyIncomeService {
       update: { amount },
     });
 
+    const periodLabel = `${String(dto.month).padStart(2, '0')}/${dto.year}`;
+    const summary = `Reste du mois précédent défini pour ${periodLabel} : ${formatAuditMoney(amount)}`;
+
     await this.auditService.log({
       entityType: 'DAILY_INCOME',
       entityId: saved.id,
       action: 'UPDATE',
       userId: actorId,
-      summary: `Set previous month rest for ${dto.year}-${String(dto.month).padStart(2, '0')}: ${amount}`,
+      summary,
+      metadata: {
+        year: dto.year,
+        month: dto.month,
+        amount,
+      },
     });
 
     return saved;
@@ -344,12 +394,21 @@ export class DailyIncomeService {
       },
     });
 
+    const typeLabel = incomeLineTypeLabel(created.type);
+    const summary = `Ligne de revenu créée [${typeLabel}] : "${created.label}" · Montant : ${formatAuditMoney(created.amount)} · Date : ${formatAuditDate(created.date)}`;
+
     await this.auditService.log({
       entityType: 'INCOME_LINE',
       entityId: created.id,
       action: 'CREATE',
       userId: actorId,
-      summary: `Created ${created.type.toLowerCase()} line: ${created.label}`,
+      summary,
+      metadata: {
+        type: created.type,
+        label: created.label,
+        amount: Number(created.amount),
+        date: created.date,
+      },
     });
 
     return created;
@@ -371,12 +430,21 @@ export class DailyIncomeService {
       },
     });
 
+    const typeLabel = incomeLineTypeLabel(updated.type);
+    const summary = `Ligne de revenu modifiée [${typeLabel}] : "${updated.label}" · Montant : ${formatAuditMoney(updated.amount)} · Date : ${formatAuditDate(updated.date)}`;
+
     await this.auditService.log({
       entityType: 'INCOME_LINE',
       entityId: updated.id,
       action: 'UPDATE',
       userId: actorId,
-      summary: `Updated income line: ${updated.label}`,
+      summary,
+      metadata: {
+        type: updated.type,
+        label: updated.label,
+        amount: Number(updated.amount),
+        date: updated.date,
+      },
     });
 
     return updated;
@@ -397,12 +465,21 @@ export class DailyIncomeService {
       data: { deletedAt: new Date() },
     });
 
+    const typeLabel = incomeLineTypeLabel(deleted.type);
+    const summary = `Ligne de revenu supprimée [${typeLabel}] : "${deleted.label}" · Montant : ${formatAuditMoney(deleted.amount)} · Date : ${formatAuditDate(deleted.date)}`;
+
     await this.auditService.log({
       entityType: 'INCOME_LINE',
       entityId: deleted.id,
       action: 'DELETE',
       userId: actorId,
-      summary: `Deleted income line: ${deleted.label}`,
+      summary,
+      metadata: {
+        type: deleted.type,
+        label: deleted.label,
+        amount: Number(deleted.amount),
+        date: deleted.date,
+      },
     });
 
     return deleted;

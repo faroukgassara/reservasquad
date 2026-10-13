@@ -39,6 +39,7 @@ export const Routes = {
         subscriptions: '/caisse/subscriptions',
         subscription: (id: string) => `/caisse/subscriptions/${id}`,
         newSubscriptionFor: (clientId: string) => `/caisse/subscriptions/new?client=${clientId}`,
+        analytics: '/caisse/analytics',
     },
     Users: {
         index: '/users',

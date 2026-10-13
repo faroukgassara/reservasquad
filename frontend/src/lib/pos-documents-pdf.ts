@@ -77,6 +77,7 @@ export interface PosPdfLabels {
     memberCard: string;
     memberCardHint: string;
     methods: Record<PosPaymentMethod, string>;
+    address?: string;
 }
 
 type Rgb = [number, number, number];
@@ -84,24 +85,66 @@ type DocWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } };
 
 const PRIMARY: Rgb = [37, 49, 101];
 const PRIMARY_LIGHT: Rgb = [237, 240, 247];
-const GRAY_900: Rgb = [33, 37, 46];
-const GRAY_600: Rgb = [74, 79, 92];
-const GRAY_400: Rgb = [156, 163, 175];
+const SUB_LEFT = 10.2;
+const SUB_RIGHT = 199.6;
+const SUB_BLACK: Rgb = [0, 0, 0];
+const SUB_DARK: Rgb = [33, 37, 41];
+const SUB_TEXT: Rgb = [73, 80, 87];
+const SUB_MUTED: Rgb = [108, 117, 125];
+const SUB_BORDER: Rgb = [222, 226, 230];
+const SUB_STRIPE: Rgb = [248, 245, 247];
+const SUB_SEPARATOR: Rgb = [233, 236, 239];
+const SUB_TOTAL_LINE: Rgb = [206, 212, 218];
+const SUB_FOOTER_FILL: Rgb = [248, 249, 250];
+const SUB_FONT = 9;
+const SUB_FOOTER_TOP = 257;
+const SUB_FOOTER_HEIGHT = 33;
+const SUB_CONTENT_BOTTOM = SUB_FOOTER_TOP - 7;
 
-const MARGIN = 14;
-const FOOTER_HEIGHT = 30;
+/** Large enough (with a white quiet zone) for phones to scan reliably from paper. */
+const SOCIAL_QR_SIZE = 20;
+const SOCIAL_CARD_PADDING = 2;
+const SOCIAL_CARD_GAP = 4;
 
-function money(value: number): string {
-    return new Intl.NumberFormat('fr-TN', {
-        style: 'currency',
-        currency: 'TND',
-        minimumFractionDigits: 3,
-        maximumFractionDigits: 3,
-    }).format(value);
+interface SocialQr {
+    label: string;
+    color: Rgb;
+    data: string;
+}
+
+type SocialQrStyle = 'instagram' | 'facebook';
+
+const QR_CANVAS_SIZE = 600;
+const QR_QUIET_ZONE = 2;
+
+function decimal(value: number, digits: number): string {
+    return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits })
+        .format(value)
+        .replace(/\s/g, ' ');
 }
 
 function quantity(value: number): string {
     return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 }).format(value);
+}
+
+function subText(doc: jsPDF, color: Rgb, size = SUB_FONT, weight: 'bold' | 'normal' | 'italic' = 'bold'): void {
+    doc.setFont('helvetica', weight);
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+}
+
+function fileSafe(value: string): string {
+    return value.replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function documentTaxes(lines: DocumentLine[]) {
+    return taxesByRate(
+        lines.map((line) => ({
+            taxRate: toAmount(line.taxRate),
+            subtotal: toAmount(line.subtotal),
+            taxAmount: toAmount(line.taxAmount),
+        })),
+    );
 }
 
 async function loadImage(url: string): Promise<{ data: string; width: number; height: number } | null> {
@@ -127,242 +170,234 @@ async function loadImage(url: string): Promise<{ data: string; width: number; he
     }
 }
 
-interface FooterQr {
-    label: string;
-    data: string;
+function fillFinderPattern(ctx: CanvasRenderingContext2D, x: number, y: number, cell: number, rounded: boolean): void {
+    const radius = (value: number) => (rounded ? value * cell : 0);
+    ctx.beginPath();
+    ctx.roundRect(x, y, 7 * cell, 7 * cell, radius(2.2));
+    ctx.roundRect(x + cell, y + cell, 5 * cell, 5 * cell, radius(1.5));
+    ctx.fill('evenodd');
+    ctx.beginPath();
+    ctx.roundRect(x + 2 * cell, y + 2 * cell, 3 * cell, 3 * cell, radius(1));
+    ctx.fill();
 }
 
-async function footerQrCodes(): Promise<FooterQr[]> {
+function drawInstagramGlyph(ctx: CanvasRenderingContext2D, center: number, size: number): void {
+    ctx.lineWidth = size * 0.11;
+    ctx.beginPath();
+    ctx.roundRect(center - size / 2, center - size / 2, size, size, size * 0.3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(center, center, size * 0.22, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(center + size * 0.26, center - size * 0.26, size * 0.065, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+/** Instagram: gradient dots with the logo in the middle (needs error correction H); Facebook: classic black modules. */
+function styledQrDataUrl(url: string, style: SocialQrStyle): string {
+    const instagram = style === 'instagram';
+    const { modules } = QRCode.create(url, { errorCorrectionLevel: instagram ? 'H' : 'M' });
+    const count = modules.size;
+    const cell = QR_CANVAS_SIZE / (count + QR_QUIET_ZONE * 2);
+    const offset = QR_QUIET_ZONE * cell;
+    const canvas = document.createElement('canvas');
+    canvas.width = QR_CANVAS_SIZE;
+    canvas.height = QR_CANVAS_SIZE;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas is not supported');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, QR_CANVAS_SIZE, QR_CANVAS_SIZE);
+    if (instagram) {
+        const gradient = ctx.createLinearGradient(0, QR_CANVAS_SIZE, QR_CANVAS_SIZE, 0);
+        gradient.addColorStop(0, '#f77737');
+        gradient.addColorStop(0.5, '#e1306c');
+        gradient.addColorStop(1, '#833ab4');
+        ctx.fillStyle = gradient;
+        ctx.strokeStyle = gradient;
+    } else {
+        ctx.fillStyle = '#000000';
+    }
+
+    const logoModules = instagram ? Math.round(count * 0.24) | 1 : 0;
+    const logoStart = (count - logoModules) / 2;
+    const isFinder = (row: number, col: number) =>
+        (row < 7 && col < 7) || (row < 7 && col >= count - 7) || (row >= count - 7 && col < 7);
+    const isLogo = (row: number, col: number) =>
+        row >= logoStart && row < logoStart + logoModules && col >= logoStart && col < logoStart + logoModules;
+
+    for (let row = 0; row < count; row += 1) {
+        for (let col = 0; col < count; col += 1) {
+            if (!modules.get(row, col) || isFinder(row, col) || isLogo(row, col)) continue;
+            const x = offset + col * cell;
+            const y = offset + row * cell;
+            if (instagram) {
+                ctx.beginPath();
+                ctx.arc(x + cell / 2, y + cell / 2, cell * 0.46, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillRect(x, y, cell + 0.5, cell + 0.5);
+            }
+        }
+    }
+
+    for (const [row, col] of [[0, 0], [0, count - 7], [count - 7, 0]]) {
+        fillFinderPattern(ctx, offset + col * cell, offset + row * cell, cell, instagram);
+    }
+    if (instagram) drawInstagramGlyph(ctx, QR_CANVAS_SIZE / 2, logoModules * cell * 0.72);
+
+    return canvas.toDataURL('image/png');
+}
+
+function subscriptionSocialQrCodes(): SocialQr[] {
     const links = [
-        { label: 'Web', url: COMPANY.website },
-        { label: 'Instagram', url: COMPANY.instagramUrl },
-        { label: 'Facebook', url: COMPANY.facebookUrl },
-    ].filter((link): link is { label: string; url: string } => !!link.url);
-    return Promise.all(
-        links.map(async (link) => {
-            const url = /^https?:\/\//i.test(link.url) ? link.url : `https://${link.url}`;
-            return { label: link.label, data: await QRCode.toDataURL(url, { margin: 0, width: 160 }) };
-        }),
-    );
+        { label: 'Instagram', color: [232, 111, 54] as Rgb, style: 'instagram' as const, url: COMPANY.instagramUrl },
+        { label: 'Facebook', color: [43, 57, 110] as Rgb, style: 'facebook' as const, url: COMPANY.facebookUrl },
+    ].filter((link): link is { label: string; color: Rgb; style: SocialQrStyle; url: string } => !!link.url);
+    return links.map((link) => ({ label: link.label, color: link.color, data: styledQrDataUrl(link.url, link.style) }));
 }
 
-async function drawCompanyHeader(doc: jsPDF): Promise<number> {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let logoBottom = MARGIN;
+async function drawDocumentHeader(doc: jsPDF): Promise<number> {
     const logo = await loadImage(COMPANY.logoUrl);
     if (logo) {
-        const maxWidth = 45;
-        const maxHeight = 22;
-        const ratio = Math.min(maxWidth / logo.width, maxHeight / logo.height);
-        const width = logo.width * ratio;
-        const height = logo.height * ratio;
+        const ratio = Math.min(32.4 / logo.width, 20.4 / logo.height);
         const format = logo.data.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-        doc.addImage(logo.data, format, MARGIN, MARGIN, width, height);
-        logoBottom = MARGIN + height;
+        doc.addImage(logo.data, format, SUB_LEFT, 4.8, logo.width * ratio, logo.height * ratio);
     }
+    subText(doc, PRIMARY, 10, 'bold');
+    doc.text(COMPANY.name.toUpperCase(), 46.1, 8.6);
 
     const lines = [
         COMPANY.addressLine,
         [COMPANY.city, COMPANY.country].filter(Boolean).join(', '),
-        COMPANY.taxId,
+        COMPANY.taxId ? `MF : ${COMPANY.taxId}` : null,
     ].filter((line): line is string => !!line);
 
-    doc.setTextColor(...GRAY_900);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text(COMPANY.name, pageWidth - MARGIN, MARGIN + 4, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...GRAY_600);
-    lines.forEach((line, index) => doc.text(line, pageWidth - MARGIN, MARGIN + 9 + index * 4.5, { align: 'right' }));
+    subText(doc, SUB_TEXT, 8.5, 'normal');
+    lines.forEach((line, index) => doc.text(line, 46.1, 13.8 + index * 4.8));
 
-    const bottom = Math.max(logoBottom, MARGIN + 9 + lines.length * 4.5) + 3;
-    doc.setDrawColor(...PRIMARY);
-    doc.setLineWidth(0.6);
-    doc.line(MARGIN, bottom, pageWidth - MARGIN, bottom);
-    return bottom + 6;
+    const separatorY = 30.4;
+    doc.setDrawColor(...SUB_SEPARATOR);
+    doc.setLineWidth(0.2);
+    doc.line(SUB_LEFT, separatorY, SUB_RIGHT, separatorY);
+    return separatorY;
 }
 
-function drawClientBlock(doc: jsPDF, client: DocumentClient, y: number, labels: PosPdfLabels): number {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const x = pageWidth / 2 + 10;
-    const lines = [
-        client.address,
-        client.phone,
-        client.email,
-        client.cin ? `${labels.cin}: ${client.cin}` : null,
-        client.taxId ? `${labels.taxId}: ${client.taxId}` : null,
-    ].filter((line): line is string => !!line);
-    doc.setTextColor(...GRAY_900);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text(personName(client), x, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...GRAY_600);
-    let cursor = y + 5;
-    for (const line of lines) {
-        const wrapped = doc.splitTextToSize(line, pageWidth - MARGIN - x) as string[];
-        doc.text(wrapped, x, cursor);
-        cursor += wrapped.length * 4.5;
-    }
-    return cursor + 6;
-}
+function drawDocumentClientBox(
+    doc: jsPDF,
+    client: DocumentClient,
+    tableTop: number,
+    labels: PosPdfLabels,
+): number {
+    const addressLabel = labels.address || (labels.invoice === 'Facture' ? 'Adresse' : 'Address');
+    const clientRows: [string, string][] = [
+        [labels.client, personName(client)],
+        client.address ? [addressLabel, client.address] : null,
+        client.phone ? [labels.phone, client.phone] : null,
+        client.email ? [labels.email, client.email] : null,
+        client.taxId ? [labels.taxId || 'MF', client.taxId] : null,
+        client.cin ? [labels.cin || 'CIN', client.cin] : null,
+    ].filter((row): row is [string, string] => row !== null);
 
-function drawTitle(doc: jsPDF, title: string, y: number): number {
-    doc.setTextColor(...PRIMARY);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.text(title, MARGIN, y);
-    return y + 9;
-}
+    const valueX = 42.4;
+    const valueMaxWidth = SUB_RIGHT - valueX - 2.5;
+    let currentY = tableTop;
 
-function drawInfoRow(doc: jsPDF, items: { label: string; value: string }[], y: number): number {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const columnWidth = (pageWidth - MARGIN * 2) / Math.max(items.length, 1);
-    items.forEach((item, index) => {
-        const x = MARGIN + index * columnWidth;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(...GRAY_900);
-        doc.text(item.label, x, y);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...GRAY_600);
-        doc.text(item.value, x, y + 5);
+    const rowHeights: number[] = clientRows.map(([, value]) => {
+        const lines = doc.splitTextToSize(value, valueMaxWidth) as string[];
+        return Math.max(6.2, 2.8 + lines.length * 3.8);
     });
-    return y + 12;
-}
 
-function drawLinesTable(doc: DocWithAutoTable, lines: DocumentLine[], y: number, labels: PosPdfLabels): number {
-    const hasDiscount = lines.some((line) => toAmount(line.discountPct) > 0);
-    const head = [
-        labels.description,
-        labels.quantity,
-        labels.unitPrice,
-        ...(hasDiscount ? [labels.discount] : []),
-        labels.taxes,
-        labels.amount,
-    ];
-    const body = lines.map((line) => [
-        line.description ? `${line.productName}\n${line.description}` : line.productName,
-        quantity(toAmount(line.quantity)),
-        money(toAmount(line.unitPrice)),
-        ...(hasDiscount ? [toAmount(line.discountPct) ? `${toAmount(line.discountPct)}%` : ''] : []),
-        toAmount(line.taxRate) ? `${labels.vat} ${toAmount(line.taxRate)}%` : '',
-        money(toAmount(line.subtotal)),
-    ]);
-    const lastColumn = head.length - 1;
-    autoTable(doc, {
-        startY: y,
-        head: [head],
-        body,
-        margin: { left: MARGIN, right: MARGIN, bottom: FOOTER_HEIGHT + 4 },
-        theme: 'plain',
-        styles: { fontSize: 9, textColor: GRAY_900, cellPadding: 2.2 },
-        headStyles: { fillColor: PRIMARY_LIGHT, textColor: PRIMARY, fontStyle: 'bold' },
-        bodyStyles: { lineColor: [229, 231, 235], lineWidth: { bottom: 0.2 } },
-        columnStyles: {
-            0: { cellWidth: 'auto' },
-            1: { halign: 'right' },
-            2: { halign: 'right' },
-            [lastColumn - 1]: { halign: 'right' },
-            [lastColumn]: { halign: 'right', fontStyle: 'bold' },
-            ...(hasDiscount ? { 3: { halign: 'right' } } : {}),
-        },
-    });
-    return (doc.lastAutoTable?.finalY ?? y) + 6;
-}
-
-interface TotalsRow {
-    label: string;
-    value: number;
-    strong?: boolean;
-}
-
-function ensureSpace(doc: jsPDF, y: number, needed: number): number {
-    const pageHeight = doc.internal.pageSize.getHeight();
-    if (y + needed <= pageHeight - FOOTER_HEIGHT - 4) return y;
-    doc.addPage();
-    return MARGIN + 6;
-}
-
-function drawTotals(doc: jsPDF, rows: TotalsRow[], y: number): number {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const left = pageWidth - MARGIN - 80;
-    let cursor = ensureSpace(doc, y, rows.length * 6 + 4);
-    for (const row of rows) {
-        if (row.strong) {
-            doc.setFillColor(...PRIMARY_LIGHT);
-            doc.rect(left - 2, cursor - 4.2, 82, 6.4, 'F');
+    clientRows.forEach(([label, value], index) => {
+        const rowHeight = rowHeights[index];
+        if (index % 2 === 0) {
+            doc.setFillColor(...SUB_STRIPE);
+            doc.rect(SUB_LEFT, currentY, SUB_RIGHT - SUB_LEFT, rowHeight, 'F');
         }
-        doc.setFont('helvetica', row.strong ? 'bold' : 'normal');
-        doc.setFontSize(row.strong ? 10.5 : 9.5);
-        doc.setTextColor(...(row.strong ? PRIMARY : GRAY_900));
-        doc.text(row.label, left, cursor);
-        doc.text(money(row.value), pageWidth - MARGIN, cursor, { align: 'right' });
-        cursor += 6.5;
+        subText(doc, SUB_BLACK, 8.5, 'bold');
+        doc.text(`${label} :`, SUB_LEFT + 1.2, currentY + 4.4);
+
+        subText(doc, SUB_TEXT, 8.5, 'normal');
+        const wrapped = doc.splitTextToSize(value, valueMaxWidth) as string[];
+        doc.text(wrapped, valueX + 1.2, currentY + 4.4);
+
+        currentY += rowHeight;
+    });
+
+    const tableBottom = currentY;
+    doc.setDrawColor(...SUB_BORDER);
+    doc.setLineWidth(0.2);
+
+    let lineCursor = tableTop;
+    doc.line(SUB_LEFT, lineCursor, SUB_RIGHT, lineCursor);
+    for (let index = 0; index < clientRows.length; index += 1) {
+        lineCursor += rowHeights[index];
+        doc.line(SUB_LEFT, lineCursor, SUB_RIGHT, lineCursor);
     }
-    return cursor + 4;
+    doc.line(SUB_LEFT, tableTop, SUB_LEFT, tableBottom);
+    doc.line(valueX, tableTop, valueX, tableBottom);
+    doc.line(SUB_RIGHT, tableTop, SUB_RIGHT, tableBottom);
+
+    return tableBottom;
 }
 
-function drawParagraph(doc: jsPDF, text: string, y: number, options: { bold?: boolean } = {}): number {
+function drawSubscriptionFooters(doc: jsPDF, socialQrCodes: SocialQr[], labels: PosPdfLabels): void {
     const pageWidth = doc.internal.pageSize.getWidth();
-    const wrapped = doc.splitTextToSize(text, pageWidth - MARGIN * 2) as string[];
-    const cursor = ensureSpace(doc, y, wrapped.length * 4.5 + 2);
-    doc.setFont('helvetica', options.bold ? 'bold' : 'normal');
-    doc.setFontSize(9.5);
-    doc.setTextColor(...GRAY_900);
-    doc.text(wrapped, MARGIN, cursor);
-    return cursor + wrapped.length * 4.5 + 3;
-}
-
-function drawFooters(doc: jsPDF, qrCodes: FooterQr[], labels: PosPdfLabels): void {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
     const totalPages = doc.getNumberOfPages();
-    const contact = [COMPANY.phone, COMPANY.email, COMPANY.website].filter(Boolean).join('  ·  ');
-    const qrSize = 14;
+    const panelBottom = SUB_FOOTER_TOP + SUB_FOOTER_HEIGHT;
+    const contact = [
+        { label: labels.phone, value: COMPANY.phone },
+        { label: labels.email, value: COMPANY.email },
+        { label: labels.website, value: COMPANY.website },
+    ].filter((row): row is { label: string; value: string } => !!row.value);
+    const cardWidth = SOCIAL_QR_SIZE + SOCIAL_CARD_PADDING * 2;
+    const cardHeight = SOCIAL_QR_SIZE + SOCIAL_CARD_PADDING + 6.5;
+    const cardTop = SUB_FOOTER_TOP + (SUB_FOOTER_HEIGHT - cardHeight) / 2;
+    const cardsLeft = SUB_RIGHT - 4 - socialQrCodes.length * cardWidth - (socialQrCodes.length - 1) * SOCIAL_CARD_GAP;
+    const textLeft = SUB_LEFT + 6;
 
     for (let page = 1; page <= totalPages; page += 1) {
         doc.setPage(page);
-        const top = pageHeight - FOOTER_HEIGHT;
-        doc.setDrawColor(...GRAY_400);
+        doc.setFillColor(...SUB_FOOTER_FILL);
+        doc.setDrawColor(...SUB_BORDER);
         doc.setLineWidth(0.2);
-        doc.line(MARGIN, top, pageWidth - MARGIN, top);
+        doc.roundedRect(SUB_LEFT, SUB_FOOTER_TOP, SUB_RIGHT - SUB_LEFT, SUB_FOOTER_HEIGHT, 3, 3, 'FD');
 
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8.5);
-        doc.setTextColor(...GRAY_600);
-        if (contact) doc.text(contact, MARGIN, top + 6);
-        if (COMPANY.footerNote) {
-            const note = doc.splitTextToSize(COMPANY.footerNote, pageWidth - MARGIN * 2 - qrCodes.length * (qrSize + 4)) as string[];
-            doc.text(note.slice(0, 3), MARGIN, top + 11);
-        }
-        doc.setTextColor(...GRAY_400);
-        doc.text(`${labels.page} ${page} / ${totalPages}`, MARGIN, pageHeight - 6);
-
-        qrCodes.forEach((qr, index) => {
-            const x = pageWidth - MARGIN - (qrCodes.length - index) * (qrSize + 4) + 4;
-            doc.addImage(qr.data, 'PNG', x, top + 3, qrSize, qrSize);
-            doc.setFontSize(6.5);
-            doc.setTextColor(...GRAY_600);
-            doc.text(qr.label, x + qrSize / 2, top + qrSize + 6, { align: 'center' });
+        subText(doc, PRIMARY, 9.5);
+        doc.text(COMPANY.name.toUpperCase(), textLeft, SUB_FOOTER_TOP + 8);
+        subText(doc, SUB_DARK, 8);
+        const valueX = textLeft + Math.max(0, ...contact.map((row) => doc.getTextWidth(`${row.label} :`))) + 2.5;
+        contact.forEach((row, index) => {
+            const y = SUB_FOOTER_TOP + 14 + index * 5.5;
+            subText(doc, SUB_DARK, 8);
+            doc.text(`${row.label} :`, textLeft, y);
+            subText(doc, SUB_TEXT, 8, 'normal');
+            doc.text(row.value, valueX, y);
         });
+
+        if (socialQrCodes.length > 0) {
+            const captionX = cardsLeft - 5;
+            const middle = SUB_FOOTER_TOP + SUB_FOOTER_HEIGHT / 2;
+            subText(doc, PRIMARY, 9);
+            doc.text(labels.followUs, captionX, middle - 1, { align: 'right' });
+            subText(doc, SUB_MUTED, 7.5, 'normal');
+            doc.text(labels.scanQr, captionX, middle + 3.5, { align: 'right' });
+        }
+
+        socialQrCodes.forEach((qr, index) => {
+            const x = cardsLeft + index * (cardWidth + SOCIAL_CARD_GAP);
+            doc.setFillColor(255, 255, 255);
+            doc.setDrawColor(...SUB_BORDER);
+            doc.roundedRect(x, cardTop, cardWidth, cardHeight, 2, 2, 'FD');
+            doc.addImage(qr.data, 'PNG', x + SOCIAL_CARD_PADDING, cardTop + SOCIAL_CARD_PADDING, SOCIAL_QR_SIZE, SOCIAL_QR_SIZE);
+            subText(doc, qr.color, 7.5);
+            doc.text(qr.label, x + cardWidth / 2, cardTop + cardHeight - 2.2, { align: 'center' });
+        });
+
+        subText(doc, SUB_MUTED, 7.5, 'normal');
+        doc.text(`${labels.page}: ${page} ${labels.pageOf} ${totalPages}`, pageWidth / 2, panelBottom + 4.5, { align: 'center' });
     }
-}
-
-function fileSafe(value: string): string {
-    return value.replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
-}
-
-function documentTaxes(lines: DocumentLine[]) {
-    return taxesByRate(
-        lines.map((line) => ({
-            taxRate: toAmount(line.taxRate),
-            subtotal: toAmount(line.subtotal),
-            taxAmount: toAmount(line.taxAmount),
-        })),
-    );
 }
 
 export async function printSaleOrderPdf(
@@ -370,39 +405,223 @@ export async function printSaleOrderPdf(
     labels: PosPdfLabels,
 ): Promise<void> {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' }) as DocWithAutoTable;
-    const qrCodes = await footerQrCodes();
+    const socialQrCodes = subscriptionSocialQrCodes();
     const number = formatSaleNumber(order.number);
     const isOrder = order.status === 'CONFIRMED';
     const kind = isOrder ? labels.order : labels.quotation;
+    const title = `${kind} # ${number}`;
 
-    let y = await drawCompanyHeader(doc);
-    y = drawClientBlock(doc, order.client, y, labels);
-    y = drawTitle(doc, `${kind} # ${number}`, y);
-    y = drawInfoRow(
-        doc,
-        [
-            {
-                label: isOrder ? labels.orderDate : labels.quotationDate,
-                value: formatPosDate(order.confirmedAt ?? order.orderDate),
-            },
-            ...(!isOrder && order.validUntil ? [{ label: labels.validUntil, value: formatPosDate(order.validUntil) }] : []),
-            ...(order.salesperson ? [{ label: labels.salesperson, value: personName(order.salesperson) }] : []),
-        ],
-        y,
-    );
-    y = drawLinesTable(doc, order.lines, y, labels);
+    // 1. Header
+    await drawDocumentHeader(doc);
 
-    const rows: TotalsRow[] = [{ label: labels.untaxed, value: toAmount(order.untaxed) }];
-    for (const tax of documentTaxes(order.lines)) rows.push({ label: `${labels.vat} ${tax.rate}%`, value: tax.tax });
-    rows.push({ label: labels.total, value: toAmount(order.total), strong: true });
-    if (toAmount(order.amountPaid) > 0) {
-        rows.push({ label: labels.amountPaid, value: toAmount(order.amountPaid) });
-        rows.push({ label: labels.amountDue, value: toAmount(order.total) - toAmount(order.amountPaid), strong: true });
+    // 2. Client Box
+    const clientBoxBottom = drawDocumentClientBox(doc, order.client, 36.5, labels);
+
+    // 3. Title & Status Badge
+    let y = clientBoxBottom + 9.5;
+    subText(doc, PRIMARY, 17, 'bold');
+    doc.text(title, SUB_LEFT, y);
+
+    let badgeText = isOrder ? 'CONFIRMÉ' : 'DEVIS';
+    let badgeFill: Rgb = isOrder ? [240, 253, 244] : [243, 244, 246];
+    let badgeTextColor: Rgb = isOrder ? [22, 101, 52] : [75, 85, 99];
+    let badgeBorderColor: Rgb = isOrder ? [187, 247, 208] : [209, 213, 219];
+
+    if (order.status === 'CANCELLED') {
+        badgeText = 'ANNULÉ';
+        badgeFill = [254, 242, 242];
+        badgeTextColor = [185, 28, 28];
+        badgeBorderColor = [254, 202, 202];
     }
-    y = drawTotals(doc, rows, y);
-    if (order.note) drawParagraph(doc, order.note, y);
 
-    drawFooters(doc, qrCodes, labels);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    const badgePaddingX = 3.8;
+    const badgeTextWidth = doc.getTextWidth(badgeText);
+    const badgeWidth = badgeTextWidth + badgePaddingX * 2;
+    const badgeHeight = 5.6;
+    const badgeX = SUB_RIGHT - badgeWidth;
+    const badgeY = y - 4.6;
+
+    doc.setFillColor(...badgeFill);
+    doc.setDrawColor(...badgeBorderColor);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 1.5, 1.5, 'FD');
+    doc.setTextColor(...badgeTextColor);
+    doc.text(badgeText, badgeX + badgeWidth / 2, badgeY + 3.9, { align: 'center' });
+
+    // 4. Metadata
+    y += 9.5;
+    const infos: { label: string; value: string }[] = [
+        {
+            label: isOrder ? labels.orderDate : labels.quotationDate,
+            value: formatPosDate(order.confirmedAt ?? order.orderDate),
+        },
+        ...(!isOrder && order.validUntil ? [{ label: labels.validUntil, value: formatPosDate(order.validUntil) }] : []),
+        ...(order.salesperson ? [{ label: labels.salesperson, value: personName(order.salesperson) }] : []),
+    ];
+
+    const colWidth = (SUB_RIGHT - SUB_LEFT) / Math.max(infos.length, 1);
+    infos.forEach((info, index) => {
+        const x = SUB_LEFT + index * colWidth;
+        subText(doc, SUB_BLACK, 8.5, 'bold');
+        doc.text(`${info.label} :`, x, y);
+        subText(doc, SUB_TEXT, 8.5, 'normal');
+        doc.text(info.value, x, y + 4.6);
+    });
+
+    y += 10;
+    doc.setDrawColor(...SUB_BORDER);
+    doc.setLineWidth(0.2);
+    doc.line(SUB_LEFT, y, SUB_RIGHT, y);
+
+    // 5. Lines Table
+    const hasDiscount = order.lines.some((line) => toAmount(line.discountPct) > 0);
+    const tableHead = [
+        labels.description,
+        labels.quantity,
+        labels.unitPrice,
+        ...(hasDiscount ? [labels.discount] : []),
+        labels.taxes,
+        labels.amount,
+    ];
+
+    const tableBody = order.lines.map((line) => [
+        line.description ? `${line.productName}\n${line.description}` : line.productName,
+        quantity(toAmount(line.quantity)),
+        `${decimal(toAmount(line.unitPrice), 3)} DT`,
+        ...(hasDiscount ? [toAmount(line.discountPct) > 0 ? `${decimal(toAmount(line.discountPct), 2)}%` : '-'] : []),
+        toAmount(line.taxRate) > 0 ? `${toAmount(line.taxRate)}%` : '-',
+        `${decimal(toAmount(line.subtotal), 3)} DT`,
+    ]);
+
+    const lastColIdx = tableHead.length - 1;
+    autoTable(doc, {
+        startY: y + 2,
+        head: [tableHead],
+        body: tableBody,
+        margin: { left: SUB_LEFT, right: 210 - SUB_RIGHT, bottom: SUB_FOOTER_HEIGHT + 8 },
+        theme: 'plain',
+        styles: {
+            font: 'helvetica',
+            fontSize: 8.5,
+            textColor: SUB_DARK,
+            cellPadding: { top: 2.8, bottom: 2.8, left: 2.2, right: 2.2 },
+            valign: 'middle',
+        },
+        headStyles: {
+            fillColor: PRIMARY_LIGHT,
+            textColor: PRIMARY,
+            fontStyle: 'bold',
+            fontSize: 8.5,
+            cellPadding: { top: 3.2, bottom: 3.2, left: 2.2, right: 2.2 },
+            lineColor: SUB_BORDER,
+            lineWidth: { bottom: 0.3 },
+        },
+        alternateRowStyles: {
+            fillColor: SUB_STRIPE,
+        },
+        bodyStyles: {
+            lineColor: SUB_BORDER,
+            lineWidth: { bottom: 0.15 },
+        },
+        columnStyles: {
+            0: { cellWidth: 'auto', fontStyle: 'bold' },
+            1: { halign: 'right', cellWidth: 20 },
+            2: { halign: 'right', cellWidth: 26 },
+            ...(hasDiscount ? { 3: { halign: 'right', cellWidth: 18 } } : {}),
+            [lastColIdx - 1]: { halign: 'right', cellWidth: 18 },
+            [lastColIdx]: { halign: 'right', cellWidth: 28, fontStyle: 'bold', textColor: SUB_BLACK },
+        },
+    });
+
+    let cursorY = (doc.lastAutoTable?.finalY ?? y) + 6;
+
+    // 6. Totals & Notes
+    const totalsRows: { label: string; value: string; isTotal?: boolean; isHighlight?: boolean }[] = [
+        { label: labels.untaxed, value: `${decimal(toAmount(order.untaxed), 3)} DT` },
+    ];
+    for (const tax of documentTaxes(order.lines)) {
+        totalsRows.push({
+            label: `${labels.vat} ${tax.rate}%`,
+            value: `${decimal(tax.tax, 3)} DT`,
+        });
+    }
+    totalsRows.push({
+        label: `${labels.total} TTC`,
+        value: `${decimal(toAmount(order.total), 3)} DT`,
+        isTotal: true,
+    });
+    if (toAmount(order.amountPaid) > 0) {
+        totalsRows.push({
+            label: labels.amountPaid,
+            value: `${decimal(toAmount(order.amountPaid), 3)} DT`,
+        });
+        totalsRows.push({
+            label: labels.amountDue,
+            value: `${decimal(toAmount(order.total) - toAmount(order.amountPaid), 3)} DT`,
+            isHighlight: true,
+        });
+    }
+
+    const rowHeight = 5.8;
+    const totalsCardHeight = totalsRows.length * rowHeight + 2;
+
+    if (cursorY + totalsCardHeight > SUB_CONTENT_BOTTOM) {
+        doc.addPage();
+        cursorY = 25;
+    }
+
+    const totalsCardX = 115.6;
+    const totalsCardWidth = SUB_RIGHT - totalsCardX;
+
+    doc.setFillColor(...SUB_FOOTER_FILL);
+    doc.setDrawColor(...SUB_BORDER);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(totalsCardX, cursorY, totalsCardWidth, totalsCardHeight, 2, 2, 'FD');
+
+    let rowY = cursorY + 1;
+    totalsRows.forEach((row, index) => {
+        const textY = rowY + 4.1;
+        if (row.isTotal) {
+            doc.setFillColor(...PRIMARY_LIGHT);
+            doc.rect(totalsCardX + 0.2, rowY, totalsCardWidth - 0.4, rowHeight, 'F');
+            subText(doc, PRIMARY, 9, 'bold');
+        } else if (row.isHighlight) {
+            doc.setFillColor(254, 242, 242);
+            doc.rect(totalsCardX + 0.2, rowY, totalsCardWidth - 0.4, rowHeight, 'F');
+            subText(doc, [185, 28, 28], 9, 'bold');
+        } else {
+            subText(doc, SUB_DARK, 8.5, index === 0 ? 'bold' : 'normal');
+        }
+
+        doc.text(row.label, totalsCardX + 3, textY);
+        doc.text(row.value, SUB_RIGHT - 3, textY, { align: 'right' });
+
+        if (index < totalsRows.length - 1) {
+            doc.setDrawColor(...SUB_BORDER);
+            doc.setLineWidth(0.15);
+            doc.line(totalsCardX, rowY + rowHeight, SUB_RIGHT, rowY + rowHeight);
+        }
+        rowY += rowHeight;
+    });
+
+    if (order.note) {
+        let noteY = cursorY + totalsCardHeight + 5;
+        subText(doc, SUB_TEXT, 8.5, 'normal');
+        for (const line of doc.splitTextToSize(order.note, SUB_RIGHT - SUB_LEFT) as string[]) {
+            if (noteY > SUB_CONTENT_BOTTOM) {
+                doc.addPage();
+                noteY = 25;
+            }
+            doc.text(line, SUB_LEFT, noteY);
+            noteY += 4.5;
+        }
+    }
+
+    // 7. Footer
+    drawSubscriptionFooters(doc, socialQrCodes, labels);
+
     doc.save(`${fileSafe(kind)}-${number}.pdf`);
 }
 
@@ -411,41 +630,264 @@ export async function printInvoicePdf(
     labels: PosPdfLabels,
 ): Promise<void> {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' }) as DocWithAutoTable;
-    const qrCodes = await footerQrCodes();
+    const socialQrCodes = subscriptionSocialQrCodes();
     const kind = invoice.type === 'CREDIT_NOTE' ? labels.creditNote : labels.invoice;
-    const numbered = invoice.displayNumber !== '/';
-    const title = numbered ? `${kind} ${invoice.displayNumber}` : `${kind} ${labels.draft}`;
+    const numbered = invoice.displayNumber && invoice.displayNumber !== '/';
+    const title = numbered ? `${kind} # ${invoice.displayNumber}` : `${kind} (${labels.draft})`;
 
-    let y = await drawCompanyHeader(doc);
-    y = drawClientBlock(doc, invoice.client, y, labels);
-    y = drawTitle(doc, title, y);
-    y = drawInfoRow(
-        doc,
-        [
-            { label: labels.invoiceDate, value: formatPosDate(invoice.invoiceDate) },
-            ...(invoice.dueDate ? [{ label: labels.dueDate, value: formatPosDate(invoice.dueDate) }] : []),
-            ...(invoice.saleOrder ? [{ label: labels.source, value: formatSaleNumber(invoice.saleOrder.number) }] : []),
-        ],
-        y,
-    );
-    y = drawLinesTable(doc, invoice.lines, y, labels);
+    // 1. Brand Header
+    await drawDocumentHeader(doc);
 
-    const rows: TotalsRow[] = [{ label: labels.untaxed, value: toAmount(invoice.untaxed) }];
-    for (const tax of documentTaxes(invoice.lines)) rows.push({ label: `${labels.vat} ${tax.rate}%`, value: tax.tax });
-    if (toAmount(invoice.stampDuty) > 0) rows.push({ label: labels.stampDuty, value: toAmount(invoice.stampDuty) });
-    rows.push({ label: labels.total, value: toAmount(invoice.total), strong: true });
+    // 2. Client Box
+    const clientBoxBottom = drawDocumentClientBox(doc, invoice.client, 36.5, labels);
+
+    // 3. Title & Status Badge
+    let y = clientBoxBottom + 9.5;
+    subText(doc, PRIMARY, 17, 'bold');
+    doc.text(title, SUB_LEFT, y);
+
+    let badgeText = '';
+    let badgeFill: Rgb = [243, 244, 246];
+    let badgeTextColor: Rgb = [75, 85, 99];
+    let badgeBorderColor: Rgb = [209, 213, 219];
+
+    if (invoice.status === 'DRAFT') {
+        badgeText = labels.draft.toUpperCase();
+        badgeFill = [243, 244, 246];
+        badgeTextColor = [75, 85, 99];
+        badgeBorderColor = [209, 213, 219];
+    } else if (invoice.status === 'CANCELLED') {
+        badgeText = 'ANNULÉE';
+        badgeFill = [254, 242, 242];
+        badgeTextColor = [185, 28, 28];
+        badgeBorderColor = [254, 202, 202];
+    } else if (invoice.paymentState === 'PAID') {
+        badgeText = 'PAYÉE';
+        badgeFill = [240, 253, 244];
+        badgeTextColor = [22, 101, 52];
+        badgeBorderColor = [187, 247, 208];
+    } else if (invoice.paymentState === 'PARTIAL') {
+        badgeText = 'PARTIEL';
+        badgeFill = [254, 243, 199];
+        badgeTextColor = [180, 83, 9];
+        badgeBorderColor = [253, 230, 138];
+    } else {
+        badgeText = 'À RÉGLER';
+        badgeFill = [239, 246, 255];
+        badgeTextColor = [29, 78, 216];
+        badgeBorderColor = [191, 219, 254];
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    const badgePaddingX = 3.8;
+    const badgeTextWidth = doc.getTextWidth(badgeText);
+    const badgeWidth = badgeTextWidth + badgePaddingX * 2;
+    const badgeHeight = 5.6;
+    const badgeX = SUB_RIGHT - badgeWidth;
+    const badgeY = y - 4.6;
+
+    doc.setFillColor(...badgeFill);
+    doc.setDrawColor(...badgeBorderColor);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 1.5, 1.5, 'FD');
+    doc.setTextColor(...badgeTextColor);
+    doc.text(badgeText, badgeX + badgeWidth / 2, badgeY + 3.9, { align: 'center' });
+
+    // 4. Metadata
+    y += 9.5;
+    const infos: { label: string; value: string }[] = [
+        { label: labels.invoiceDate, value: formatPosDate(invoice.invoiceDate) },
+        ...(invoice.dueDate ? [{ label: labels.dueDate, value: formatPosDate(invoice.dueDate) }] : []),
+        ...(invoice.saleOrder ? [{ label: labels.source, value: formatSaleNumber(invoice.saleOrder.number) }] : []),
+        ...(invoice.subscription ? [{ label: labels.subscription, value: formatSubscriptionNumber(invoice.subscription.number) }] : []),
+        ...(invoice.reversedInvoice && invoice.reversedInvoice.year && invoice.reversedInvoice.sequence
+            ? [{ label: labels.source, value: `${labels.invoice} ${invoice.reversedInvoice.year}-${String(invoice.reversedInvoice.sequence).padStart(4, '0')}` }]
+            : []),
+    ];
+
+    const colWidth = (SUB_RIGHT - SUB_LEFT) / Math.max(infos.length, 1);
+    infos.forEach((info, index) => {
+        const x = SUB_LEFT + index * colWidth;
+        subText(doc, SUB_BLACK, 8.5, 'bold');
+        doc.text(`${info.label} :`, x, y);
+        subText(doc, SUB_TEXT, 8.5, 'normal');
+        doc.text(info.value, x, y + 4.6);
+    });
+
+    y += 10;
+    doc.setDrawColor(...SUB_BORDER);
+    doc.setLineWidth(0.2);
+    doc.line(SUB_LEFT, y, SUB_RIGHT, y);
+
+    // 5. Lines Table
+    const hasDiscount = invoice.lines.some((line) => toAmount(line.discountPct) > 0);
+    const tableHead = [
+        labels.description,
+        labels.quantity,
+        labels.unitPrice,
+        ...(hasDiscount ? [labels.discount] : []),
+        labels.taxes,
+        labels.amount,
+    ];
+
+    const tableBody = invoice.lines.map((line) => [
+        line.description ? `${line.productName}\n${line.description}` : line.productName,
+        quantity(toAmount(line.quantity)),
+        `${decimal(toAmount(line.unitPrice), 3)} DT`,
+        ...(hasDiscount ? [toAmount(line.discountPct) > 0 ? `${decimal(toAmount(line.discountPct), 2)}%` : '-'] : []),
+        toAmount(line.taxRate) > 0 ? `${toAmount(line.taxRate)}%` : '-',
+        `${decimal(toAmount(line.subtotal), 3)} DT`,
+    ]);
+
+    const lastColIdx = tableHead.length - 1;
+    autoTable(doc, {
+        startY: y + 2,
+        head: [tableHead],
+        body: tableBody,
+        margin: { left: SUB_LEFT, right: 210 - SUB_RIGHT, bottom: SUB_FOOTER_HEIGHT + 8 },
+        theme: 'plain',
+        styles: {
+            font: 'helvetica',
+            fontSize: 8.5,
+            textColor: SUB_DARK,
+            cellPadding: { top: 2.8, bottom: 2.8, left: 2.2, right: 2.2 },
+            valign: 'middle',
+        },
+        headStyles: {
+            fillColor: PRIMARY_LIGHT,
+            textColor: PRIMARY,
+            fontStyle: 'bold',
+            fontSize: 8.5,
+            cellPadding: { top: 3.2, bottom: 3.2, left: 2.2, right: 2.2 },
+            lineColor: SUB_BORDER,
+            lineWidth: { bottom: 0.3 },
+        },
+        alternateRowStyles: {
+            fillColor: SUB_STRIPE,
+        },
+        bodyStyles: {
+            lineColor: SUB_BORDER,
+            lineWidth: { bottom: 0.15 },
+        },
+        columnStyles: {
+            0: { cellWidth: 'auto', fontStyle: 'bold' },
+            1: { halign: 'right', cellWidth: 20 },
+            2: { halign: 'right', cellWidth: 26 },
+            ...(hasDiscount ? { 3: { halign: 'right', cellWidth: 18 } } : {}),
+            [lastColIdx - 1]: { halign: 'right', cellWidth: 18 },
+            [lastColIdx]: { halign: 'right', cellWidth: 28, fontStyle: 'bold', textColor: SUB_BLACK },
+        },
+    });
+
+    let cursorY = (doc.lastAutoTable?.finalY ?? y) + 6;
+
+    // 6. Totals & Notes
+    const totalsRows: { label: string; value: string; isTotal?: boolean; isHighlight?: boolean }[] = [
+        { label: labels.untaxed, value: `${decimal(toAmount(invoice.untaxed), 3)} DT` },
+    ];
+    for (const tax of documentTaxes(invoice.lines)) {
+        totalsRows.push({
+            label: `${labels.vat} ${tax.rate}%`,
+            value: `${decimal(tax.tax, 3)} DT`,
+        });
+    }
+    if (toAmount(invoice.stampDuty) > 0) {
+        totalsRows.push({
+            label: labels.stampDuty,
+            value: `${decimal(toAmount(invoice.stampDuty), 3)} DT`,
+        });
+    }
+    totalsRows.push({
+        label: `${labels.total} TTC`,
+        value: `${decimal(toAmount(invoice.total), 3)} DT`,
+        isTotal: true,
+    });
     if (toAmount(invoice.amountPaid) > 0) {
-        rows.push({ label: labels.amountPaid, value: toAmount(invoice.amountPaid) });
-        rows.push({ label: labels.amountDue, value: invoice.amountDue, strong: true });
+        totalsRows.push({
+            label: labels.amountPaid,
+            value: `${decimal(toAmount(invoice.amountPaid), 3)} DT`,
+        });
+        totalsRows.push({
+            label: labels.amountDue,
+            value: `${decimal(invoice.amountDue, 3)} DT`,
+            isHighlight: true,
+        });
     }
-    y = drawTotals(doc, rows, y);
 
+    const rowHeight = 5.8;
+    const totalsCardHeight = totalsRows.length * rowHeight + 2;
+
+    if (cursorY + totalsCardHeight > SUB_CONTENT_BOTTOM) {
+        doc.addPage();
+        cursorY = 25;
+    }
+
+    const totalsCardX = 115.6;
+    const totalsCardWidth = SUB_RIGHT - totalsCardX;
+
+    doc.setFillColor(...SUB_FOOTER_FILL);
+    doc.setDrawColor(...SUB_BORDER);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(totalsCardX, cursorY, totalsCardWidth, totalsCardHeight, 2, 2, 'FD');
+
+    let rowY = cursorY + 1;
+    totalsRows.forEach((row, index) => {
+        const textY = rowY + 4.1;
+        if (row.isTotal) {
+            doc.setFillColor(...PRIMARY_LIGHT);
+            doc.rect(totalsCardX + 0.2, rowY, totalsCardWidth - 0.4, rowHeight, 'F');
+            subText(doc, PRIMARY, 9, 'bold');
+        } else if (row.isHighlight) {
+            doc.setFillColor(254, 242, 242);
+            doc.rect(totalsCardX + 0.2, rowY, totalsCardWidth - 0.4, rowHeight, 'F');
+            subText(doc, [185, 28, 28], 9, 'bold');
+        } else {
+            subText(doc, SUB_DARK, 8.5, index === 0 ? 'bold' : 'normal');
+        }
+
+        doc.text(row.label, totalsCardX + 3, textY);
+        doc.text(row.value, SUB_RIGHT - 3, textY, { align: 'right' });
+
+        if (index < totalsRows.length - 1) {
+            doc.setDrawColor(...SUB_BORDER);
+            doc.setLineWidth(0.15);
+            doc.line(totalsCardX, rowY + rowHeight, SUB_RIGHT, rowY + rowHeight);
+        }
+        rowY += rowHeight;
+    });
+
+    // Left side: Payment reference (clean, properly wrapped typography)
     if (numbered && invoice.type === 'INVOICE') {
-        y = drawParagraph(doc, `${labels.paymentReference} ${invoice.displayNumber}`, y, { bold: true });
-    }
-    if (invoice.note) drawParagraph(doc, invoice.note, y);
+        const refMaxWidth = totalsCardX - SUB_LEFT - 8;
+        let leftY = cursorY + 4;
 
-    drawFooters(doc, qrCodes, labels);
+        subText(doc, SUB_MUTED, 8, 'normal');
+        const refPrompt = doc.splitTextToSize(labels.paymentReference, refMaxWidth) as string[];
+        doc.text(refPrompt, SUB_LEFT, leftY);
+        leftY += refPrompt.length * 4.2;
+
+        subText(doc, PRIMARY, 9.5, 'bold');
+        doc.text(invoice.displayNumber, SUB_LEFT, leftY);
+    }
+
+    // Notes below totals
+    if (invoice.note) {
+        let noteY = cursorY + totalsCardHeight + 5;
+        subText(doc, SUB_TEXT, 8.5, 'normal');
+        for (const line of doc.splitTextToSize(invoice.note, SUB_RIGHT - SUB_LEFT) as string[]) {
+            if (noteY > SUB_CONTENT_BOTTOM) {
+                doc.addPage();
+                noteY = 25;
+            }
+            doc.text(line, SUB_LEFT, noteY);
+            noteY += 4.5;
+        }
+    }
+
+    // 7. Footer
+    drawSubscriptionFooters(doc, socialQrCodes, labels);
+
     doc.save(`${fileSafe(title)}.pdf`);
 }
 
@@ -631,195 +1073,6 @@ export async function printSalesDetailsPdf(
     doc.save(`${fileSafe(labels.salesDetails)}-${report.from.slice(0, 10)}-${report.to.slice(0, 10)}.pdf`);
 }
 
-const SUB_LEFT = 10.2;
-const SUB_RIGHT = 199.6;
-const SUB_BLACK: Rgb = [0, 0, 0];
-const SUB_DARK: Rgb = [33, 37, 41];
-const SUB_TEXT: Rgb = [73, 80, 87];
-const SUB_MUTED: Rgb = [108, 117, 125];
-const SUB_BORDER: Rgb = [222, 226, 230];
-const SUB_STRIPE: Rgb = [248, 245, 247];
-const SUB_SEPARATOR: Rgb = [233, 236, 239];
-const SUB_TOTAL_LINE: Rgb = [206, 212, 218];
-const SUB_FOOTER_FILL: Rgb = [248, 249, 250];
-const SUB_FONT = 9;
-const SUB_FOOTER_TOP = 257;
-const SUB_FOOTER_HEIGHT = 33;
-const SUB_CONTENT_BOTTOM = SUB_FOOTER_TOP - 7;
-/** Large enough (with a white quiet zone) for phones to scan reliably from paper. */
-const SOCIAL_QR_SIZE = 20;
-const SOCIAL_CARD_PADDING = 2;
-const SOCIAL_CARD_GAP = 4;
-
-interface SocialQr {
-    label: string;
-    color: Rgb;
-    data: string;
-}
-
-type SocialQrStyle = 'instagram' | 'facebook';
-
-const QR_CANVAS_SIZE = 600;
-const QR_QUIET_ZONE = 2;
-
-function fillFinderPattern(ctx: CanvasRenderingContext2D, x: number, y: number, cell: number, rounded: boolean): void {
-    const radius = (value: number) => (rounded ? value * cell : 0);
-    ctx.beginPath();
-    ctx.roundRect(x, y, 7 * cell, 7 * cell, radius(2.2));
-    ctx.roundRect(x + cell, y + cell, 5 * cell, 5 * cell, radius(1.5));
-    ctx.fill('evenodd');
-    ctx.beginPath();
-    ctx.roundRect(x + 2 * cell, y + 2 * cell, 3 * cell, 3 * cell, radius(1));
-    ctx.fill();
-}
-
-function drawInstagramGlyph(ctx: CanvasRenderingContext2D, center: number, size: number): void {
-    ctx.lineWidth = size * 0.11;
-    ctx.beginPath();
-    ctx.roundRect(center - size / 2, center - size / 2, size, size, size * 0.3);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(center, center, size * 0.22, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(center + size * 0.26, center - size * 0.26, size * 0.065, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-/** Instagram: gradient dots with the logo in the middle (needs error correction H); Facebook: classic black modules. */
-function styledQrDataUrl(url: string, style: SocialQrStyle): string {
-    const instagram = style === 'instagram';
-    const { modules } = QRCode.create(url, { errorCorrectionLevel: instagram ? 'H' : 'M' });
-    const count = modules.size;
-    const cell = QR_CANVAS_SIZE / (count + QR_QUIET_ZONE * 2);
-    const offset = QR_QUIET_ZONE * cell;
-    const canvas = document.createElement('canvas');
-    canvas.width = QR_CANVAS_SIZE;
-    canvas.height = QR_CANVAS_SIZE;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas is not supported');
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, QR_CANVAS_SIZE, QR_CANVAS_SIZE);
-    if (instagram) {
-        const gradient = ctx.createLinearGradient(0, QR_CANVAS_SIZE, QR_CANVAS_SIZE, 0);
-        gradient.addColorStop(0, '#f77737');
-        gradient.addColorStop(0.5, '#e1306c');
-        gradient.addColorStop(1, '#833ab4');
-        ctx.fillStyle = gradient;
-        ctx.strokeStyle = gradient;
-    } else {
-        ctx.fillStyle = '#000000';
-    }
-
-    const logoModules = instagram ? Math.round(count * 0.24) | 1 : 0;
-    const logoStart = (count - logoModules) / 2;
-    const isFinder = (row: number, col: number) =>
-        (row < 7 && col < 7) || (row < 7 && col >= count - 7) || (row >= count - 7 && col < 7);
-    const isLogo = (row: number, col: number) =>
-        row >= logoStart && row < logoStart + logoModules && col >= logoStart && col < logoStart + logoModules;
-
-    for (let row = 0; row < count; row += 1) {
-        for (let col = 0; col < count; col += 1) {
-            if (!modules.get(row, col) || isFinder(row, col) || isLogo(row, col)) continue;
-            const x = offset + col * cell;
-            const y = offset + row * cell;
-            if (instagram) {
-                ctx.beginPath();
-                ctx.arc(x + cell / 2, y + cell / 2, cell * 0.46, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                ctx.fillRect(x, y, cell + 0.5, cell + 0.5);
-            }
-        }
-    }
-
-    for (const [row, col] of [[0, 0], [0, count - 7], [count - 7, 0]]) {
-        fillFinderPattern(ctx, offset + col * cell, offset + row * cell, cell, instagram);
-    }
-    if (instagram) drawInstagramGlyph(ctx, QR_CANVAS_SIZE / 2, logoModules * cell * 0.72);
-
-    return canvas.toDataURL('image/png');
-}
-
-function subscriptionSocialQrCodes(): SocialQr[] {
-    const links = [
-        { label: 'Instagram', color: [232, 111, 54] as Rgb, style: 'instagram' as const, url: COMPANY.instagramUrl },
-        { label: 'Facebook', color: [43, 57, 110] as Rgb, style: 'facebook' as const, url: COMPANY.facebookUrl },
-    ].filter((link): link is { label: string; color: Rgb; style: SocialQrStyle; url: string } => !!link.url);
-    return links.map((link) => ({ label: link.label, color: link.color, data: styledQrDataUrl(link.url, link.style) }));
-}
-
-function decimal(value: number, digits: number): string {
-    return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits })
-        .format(value)
-        .replace(/\s/g, ' ');
-}
-
-function subText(doc: jsPDF, color: Rgb, size = SUB_FONT, weight: 'bold' | 'normal' = 'bold'): void {
-    doc.setFont('helvetica', weight);
-    doc.setFontSize(size);
-    doc.setTextColor(...color);
-}
-
-function drawSubscriptionFooters(doc: jsPDF, socialQrCodes: SocialQr[], labels: PosPdfLabels): void {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const totalPages = doc.getNumberOfPages();
-    const panelBottom = SUB_FOOTER_TOP + SUB_FOOTER_HEIGHT;
-    const contact = [
-        { label: labels.phone, value: COMPANY.phone },
-        { label: labels.email, value: COMPANY.email },
-        { label: labels.website, value: COMPANY.website },
-    ].filter((row): row is { label: string; value: string } => !!row.value);
-    const cardWidth = SOCIAL_QR_SIZE + SOCIAL_CARD_PADDING * 2;
-    const cardHeight = SOCIAL_QR_SIZE + SOCIAL_CARD_PADDING + 6.5;
-    const cardTop = SUB_FOOTER_TOP + (SUB_FOOTER_HEIGHT - cardHeight) / 2;
-    const cardsLeft = SUB_RIGHT - 4 - socialQrCodes.length * cardWidth - (socialQrCodes.length - 1) * SOCIAL_CARD_GAP;
-    const textLeft = SUB_LEFT + 6;
-
-    for (let page = 1; page <= totalPages; page += 1) {
-        doc.setPage(page);
-        doc.setFillColor(...SUB_FOOTER_FILL);
-        doc.setDrawColor(...SUB_BORDER);
-        doc.setLineWidth(0.2);
-        doc.roundedRect(SUB_LEFT, SUB_FOOTER_TOP, SUB_RIGHT - SUB_LEFT, SUB_FOOTER_HEIGHT, 3, 3, 'FD');
-
-        subText(doc, PRIMARY, 9.5);
-        doc.text(COMPANY.name.toUpperCase(), textLeft, SUB_FOOTER_TOP + 8);
-        subText(doc, SUB_DARK, 8);
-        const valueX = textLeft + Math.max(0, ...contact.map((row) => doc.getTextWidth(`${row.label} :`))) + 2.5;
-        contact.forEach((row, index) => {
-            const y = SUB_FOOTER_TOP + 14 + index * 5.5;
-            subText(doc, SUB_DARK, 8);
-            doc.text(`${row.label} :`, textLeft, y);
-            subText(doc, SUB_TEXT, 8, 'normal');
-            doc.text(row.value, valueX, y);
-        });
-
-        if (socialQrCodes.length > 0) {
-            const captionX = cardsLeft - 5;
-            const middle = SUB_FOOTER_TOP + SUB_FOOTER_HEIGHT / 2;
-            subText(doc, PRIMARY, 9);
-            doc.text(labels.followUs, captionX, middle - 1, { align: 'right' });
-            subText(doc, SUB_MUTED, 7.5, 'normal');
-            doc.text(labels.scanQr, captionX, middle + 3.5, { align: 'right' });
-        }
-
-        socialQrCodes.forEach((qr, index) => {
-            const x = cardsLeft + index * (cardWidth + SOCIAL_CARD_GAP);
-            doc.setFillColor(255, 255, 255);
-            doc.setDrawColor(...SUB_BORDER);
-            doc.roundedRect(x, cardTop, cardWidth, cardHeight, 2, 2, 'FD');
-            doc.addImage(qr.data, 'PNG', x + SOCIAL_CARD_PADDING, cardTop + SOCIAL_CARD_PADDING, SOCIAL_QR_SIZE, SOCIAL_QR_SIZE);
-            subText(doc, qr.color, 7.5);
-            doc.text(qr.label, x + cardWidth / 2, cardTop + cardHeight - 2.2, { align: 'center' });
-        });
-
-        subText(doc, SUB_MUTED, 7.5, 'normal');
-        doc.text(`${labels.page}: ${page} ${labels.pageOf} ${totalPages}`, pageWidth / 2, panelBottom + 4.5, { align: 'center' });
-    }
-}
-
 const MEMBER_CARD_QR_SIZE = 26;
 const MEMBER_CARD_WIDTH = 88;
 
@@ -849,52 +1102,11 @@ async function drawMemberCardQr(
 
 export async function printSubscriptionPdf(subscription: SubscriptionDetail, labels: PosPdfLabels): Promise<void> {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const logo = await loadImage(COMPANY.logoUrl);
     const socialQrCodes = subscriptionSocialQrCodes();
     const number = formatSubscriptionNumber(subscription.number);
 
-    if (logo) {
-        const ratio = Math.min(32.4 / logo.width, 20.4 / logo.height);
-        const format = logo.data.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-        doc.addImage(logo.data, format, SUB_LEFT, 4.8, logo.width * ratio, logo.height * ratio);
-    }
-    subText(doc, SUB_TEXT);
-    [COMPANY.name.toUpperCase(), COMPANY.addressLine, COMPANY.city, COMPANY.country]
-        .filter(Boolean)
-        .forEach((line, index) => doc.text(line, 46.1, 8.6 + index * 5.07));
-    doc.setDrawColor(...SUB_SEPARATOR);
-    doc.setLineWidth(0.2);
-    doc.line(SUB_LEFT, 30.4, SUB_RIGHT, 30.4);
-
-    const client = subscription.client;
-    const clientRows = [
-        [labels.client, personName(client)],
-        ...(client.phone ? [[labels.phone, client.phone]] : []),
-        ...(client.cin ? [[labels.cin, client.cin]] : []),
-    ];
-    const tableTop = 40.1;
-    const rowHeight = 6.9;
-    const valueX = 42.4;
-    clientRows.forEach(([label, value], index) => {
-        const top = tableTop + index * rowHeight;
-        if (index % 2 === 0) {
-            doc.setFillColor(...SUB_STRIPE);
-            doc.rect(SUB_LEFT, top, SUB_RIGHT - SUB_LEFT, rowHeight, 'F');
-        }
-        subText(doc, SUB_BLACK);
-        doc.text(`${label} :`, SUB_LEFT + 0.7, top + 4.6);
-        subText(doc, SUB_TEXT);
-        doc.text(value, valueX + 0.7, top + 4.6);
-    });
-    const tableBottom = tableTop + clientRows.length * rowHeight;
-    doc.setDrawColor(...SUB_BORDER);
-    for (let index = 0; index <= clientRows.length; index += 1) {
-        const lineY = tableTop + index * rowHeight;
-        doc.line(SUB_LEFT, lineY, SUB_RIGHT, lineY);
-    }
-    doc.line(SUB_LEFT, tableTop, SUB_LEFT, tableBottom);
-    doc.line(valueX, tableTop, valueX, tableBottom);
-    doc.line(SUB_RIGHT, tableTop, SUB_RIGHT, tableBottom);
+    await drawDocumentHeader(doc);
+    const tableBottom = drawDocumentClientBox(doc, subscription.client, 36.5, labels);
 
     let y = tableBottom + 12.6;
     subText(doc, SUB_BLACK, 18);

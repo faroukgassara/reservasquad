@@ -678,7 +678,7 @@ model Subscription {
   number         Int                 @unique @default(autoincrement())
   /// Secret, unguessable id used in the member card QR code (public link).
   cardToken      String              @unique @default(uuid())
-  status         ESubscriptionStatus @default(DRAFT)
+  status         ESubscriptionStatus @default(ACTIVE)
   clientId       String
   client         CreditClient        @relation(fields: [clientId], references: [id], onDelete: Restrict)
   productId      String?
@@ -704,6 +704,7 @@ model Subscription {
   createdById    String?
   createdBy      User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
   activatedAt    DateTime?
+  remindedAt     DateTime?
 
   invoices      Invoice[]
   posOrderLines PosOrderLine[]

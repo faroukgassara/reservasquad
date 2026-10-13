@@ -250,7 +250,10 @@
                 "POS_PRODUCT": "POS product",
                 "POS_CATEGORY": "POS category",
                 "POS_SESSION": "POS session",
-                "POS_ORDER": "POS order"
+                "POS_ORDER": "POS order",
+                "POS_SUBSCRIPTION": "Subscription",
+                "POS_SALE_ORDER": "Sale order",
+                "POS_INVOICE": "Invoice"
             },
             "actions": {
                 "CREATE": "Create",
@@ -258,7 +261,9 @@
                 "DELETE": "Delete",
                 "CANCEL": "Cancel",
                 "BULK_PAID": "Bulk paid",
-                "SERIES_CREATE": "Series create"
+                "SERIES_CREATE": "Series create",
+                "RESTORE": "Restore",
+                "HARD_DELETE": "Permanent delete"
             }
         },
         "rooms": {
@@ -635,7 +640,8 @@
             "billing": "Billing",
             "products": "Products",
             "categories": "Categories",
-            "clients": "Clients"
+            "clients": "Clients",
+            "analytics": "Analytics"
         },
         "dashboard": {
             "title": "Point of Sale",
@@ -776,7 +782,7 @@
             "exportInventoryTitle": "Stock inventory",
             "exportInventorySubtitle": "Export products and their stock quantities for physical stock counting or auditing.",
             "exportPdf": "Inventory sheet (PDF)",
-            "exportPdfDesc": "Printable A4 document with write-in boxes for physical counting on shelves.",
+            "exportPdfDesc": "Printable A4 document with product image, name, and stock quantity.",
             "exportCsv": "Spreadsheet Excel / CSV (.csv)",
             "exportCsvDesc": "Spreadsheet format compatible with Microsoft Excel or Google Sheets.",
             "exportScope": "All items",
@@ -819,7 +825,9 @@
             "sessionNumber": "Session #{number}",
             "orders": "Orders",
             "backend": "Dashboard",
-            "closeSession": "Close register",
+            "goToDashboard": "Reservations",
+            "goToCaisse": "Back office",
+            "closeSession": "Close session",
             "mobileProducts": "Products",
             "mobileOrder": "Order · {count} · {total}",
             "saleOrderSettleLine": "Settlement {number}",
@@ -1170,7 +1178,8 @@
             "baseAmount": "Base amount",
             "noTax": "No tax",
             "memberCard": "Membership card",
-            "memberCardHint": "Scan this code to get your card on your phone and show it at the reception."
+            "memberCardHint": "Scan this code to get your card on your phone and show it at the reception.",
+            "address": "Address"
         },
         "billing": {
             "quotations": "Quotations",
@@ -1266,6 +1275,62 @@
             "addToOrder": "Add to order",
             "pickCredit": "Open credits",
             "creditCaption": "{date} · total {total}"
+        },
+        "analytics": {
+            "title": "Product Sales Analytics",
+            "subtitle": "Sales performance, monthly trends and top-selling products leaderboard.",
+            "timeframe": "Timeframe",
+            "preset30d": "Last 30 Days",
+            "presetYtd": "Year to Date",
+            "presetAll": "All Time",
+            "presetCompare": "Year-over-Year",
+            "customRange": "Custom",
+            "annualComparisonTitle": "Year-over-Year Comparison (Month by Month)",
+            "annualComparisonSubtitle": "Comparative view of the same calendar month across all available years in the dataset.",
+            "metricRevenue": "Revenue",
+            "metricUnits": "Units Sold",
+            "metricOrders": "Orders",
+            "yoyGrowth": "YoY Growth",
+            "month": "Month",
+            "annualTotal": "Annual Total",
+            "monthlyAverage": "Monthly Average",
+            "bestMonth": "Best Month",
+            "highestGrowth": "Highest Growth",
+            "vsPreviousYear": "vs previous year",
+            "chartTypeLines": "Lines",
+            "chartTypeBars": "Bars",
+            "tableView": "Table",
+            "cardsView": "Cards",
+            "noDataAvailable": "No data available for this selection",
+            "startDate": "Start Date",
+            "endDate": "End Date",
+            "apply": "Apply",
+            "reset": "Reset",
+            "totalRevenue": "Total Revenue",
+            "totalUnitsSold": "Units Sold",
+            "totalOrders": "Orders",
+            "productsSold": "Products Sold",
+            "salesTrend": "Monthly Sales Trends",
+            "salesTrendDaily": "Daily sales trend (last 30 days)",
+            "allCategories": "All categories",
+            "revenueTrend": "Revenue Trend",
+            "unitsTrend": "Units Sold Trend",
+            "topSellingProducts": "Top-Selling Products",
+            "byUnits": "By Quantity Sold",
+            "byRevenue": "By Generated Revenue",
+            "rank": "Rank",
+            "product": "Product",
+            "category": "Category",
+            "price": "Price",
+            "unitsSold": "Units Sold",
+            "revenue": "Revenue",
+            "percentOfCatalog": "% of Catalog Sales",
+            "productBreakdown": "Product Breakdown",
+            "breakdownSubtitle": "Monthly sales performance for selected product",
+            "clearFilter": "View All Products",
+            "stock": "Stock",
+            "noData": "No sales recorded during this timeframe",
+            "filterByProduct": "Filter by product..."
         }
     },
     "subscriptionCard": {

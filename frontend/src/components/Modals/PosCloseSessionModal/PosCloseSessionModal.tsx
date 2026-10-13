@@ -56,7 +56,6 @@ export default function PosCloseSessionModal({
     isLoading = false,
 }: Readonly<PosCloseSessionModalProps>) {
     const t = useTranslations('pos.close');
-    const tMethod = useTranslations('pos.methods');
     const tCommon = useTranslations('common');
     const { closeModal } = useCurrentModal();
     const [counted, setCounted] = useState('');
@@ -125,21 +124,7 @@ export default function PosCloseSessionModal({
                         </Div>
 
                         {/* Cash Drawer Reconciliation */}
-                        <Div className="space-y-3 rounded-2xl border-2 border-success-100 bg-gradient-to-b from-white to-success-50/20 p-4 shadow-2xs">
-                            <div className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="flex size-9 items-center justify-center rounded-xl bg-success-500 text-white shadow-sm shadow-success-500/25">
-                                        <Icon name={IconComponentsEnum.layers} size={ESize.sm} color="text-white" />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-bold text-gray-900">{tMethod('CASH')} attendu</div>
-                                        <div className="text-xs text-gray-500">Tiroir-caisse théorique</div>
-                                    </div>
-                                </div>
-                                <div className="text-xl font-black text-success-800 tabular-nums">
-                                    {formatMoney(summary.expectedCash)}
-                                </div>
-                            </div>
+                        <Div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs">
 
                             <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-50/80 p-2.5 text-xs">
                                 <div>
@@ -194,8 +179,8 @@ export default function PosCloseSessionModal({
                             className={twMerge(
                                 'rounded-2xl border p-4 transition-colors',
                                 syncDailyIncome
-                                    ? 'border-primary-200 bg-primary-50/70 dark:border-primary-900/60 dark:bg-primary-950/40'
-                                    : 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50',
+                                    ? 'border-primary-200 bg-primary-50/70'
+                                    : 'border-gray-200 bg-gray-50',
                             )}
                         >
                             <Div className="flex items-center justify-between gap-3">

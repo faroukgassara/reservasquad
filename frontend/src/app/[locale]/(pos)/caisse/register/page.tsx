@@ -89,6 +89,12 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
             void queryClient.invalidateQueries({ queryKey: ['credit-client'] });
             void queryClient.invalidateQueries({ queryKey: ['credit-summary'] });
             if ('onCredit' in result) {
+                void queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+                void queryClient.invalidateQueries({ queryKey: ['subscription'] });
+                void queryClient.invalidateQueries({ queryKey: ['invoices'] });
+                void queryClient.invalidateQueries({ queryKey: ['invoice'] });
+                void queryClient.invalidateQueries({ queryKey: ['sale-orders'] });
+                void queryClient.invalidateQueries({ queryKey: ['sale-order'] });
                 openToast(
                     t('creditSaleTitle'),
                     t('creditSaleDone', { name: personName(cart.client), total: formatMoney(result.total) }),

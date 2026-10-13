@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
@@ -31,29 +30,11 @@ export default function OrganismPosRegisterBar({
     const t = useTranslations('pos.register');
     const tCommon = useTranslations('common');
     const { data: session } = useSession();
-    const [menuOpen, setMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
 
     const firstName = session?.user?.firstName ?? '';
     const lastName = session?.user?.lastName ?? '';
     const userName = [firstName, lastName].filter(Boolean).join(' ');
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-
-    useEffect(() => {
-        if (!menuOpen) return;
-        const onPointerDown = (event: MouseEvent) => {
-            if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
-        };
-        const onKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') setMenuOpen(false);
-        };
-        document.addEventListener('mousedown', onPointerDown);
-        document.addEventListener('keydown', onKeyDown);
-        return () => {
-            document.removeEventListener('mousedown', onPointerDown);
-            document.removeEventListener('keydown', onKeyDown);
-        };
-    }, [menuOpen]);
 
     return (
         <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-3 py-2 sm:px-4">
@@ -80,7 +61,7 @@ export default function OrganismPosRegisterBar({
                     type="button"
                     onClick={onOrders}
                     aria-label={t('orders')}
-                    className={`${TAB_BASE} hover:bg-white/70`}
+                    className={`${TAB_BASE} hover:bg-white/70 cursor-pointer`}
                 >
                     <Icon name={IconComponentsEnum.filetext} size={ESize.sm} color="text-gray-500" />
                     <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="hidden font-medium sm:inline">
@@ -111,70 +92,65 @@ export default function OrganismPosRegisterBar({
                     <ThemeToggle />
                 </Div>
 
-                <div ref={menuRef} className="relative">
-                    <button
-                        id="pos-register-user-menu"
-                        type="button"
-                        aria-haspopup="menu"
-                        aria-expanded={menuOpen}
-                        onClick={() => setMenuOpen((open) => !open)}
-                        className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pe-3 transition-colors hover:bg-gray-50 sm:min-h-0"
-                    >
-                        <Div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-500">
-                            {initials ? (
-                                <Label variant={EVariantLabel.caption} color="text-white" className="font-semibold leading-none">
-                                    {initials}
-                                </Label>
-                            ) : (
-                                <Icon name={IconComponentsEnum.user} size={ESize.sm} color="text-white" />
-                            )}
-                        </Div>
-                        {userName ? (
-                            <Label variant={EVariantLabel.bodySmall} color="text-gray-800" className="hidden font-medium md:inline">
-                                {userName}
-                            </Label>
-                        ) : null}
-                        <Icon name={IconComponentsEnum.chevronDown} size={ESize.sm} color="text-gray-500" />
-                    </button>
+                <Div className="hidden h-5 w-px bg-gray-200 sm:block" />
 
-                    {menuOpen ? (
-                        <Div
-                            role="menu"
-                            className="absolute end-0 top-full z-50 mt-2 w-56 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
-                        >
-                            <Div className="border-b border-gray-100 px-4 py-2 md:hidden">
-                                <Label variant={EVariantLabel.caption} color="text-gray-500">
-                                    {t('sessionNumber', { number: sessionNumber })}
-                                </Label>
-                            </Div>
-                            <Link
-                                href={Routes.Pos.index}
-                                role="menuitem"
-                                className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-gray-50"
-                            >
-                                <Icon name={IconComponentsEnum.home} size={ESize.sm} color="text-gray-500" />
-                                <Label variant={EVariantLabel.bodySmall} color="text-gray-800">
-                                    {t('backend')}
-                                </Label>
-                            </Link>
-                            <button
-                                id="pos-register-close-session"
-                                type="button"
-                                role="menuitem"
-                                onClick={() => {
-                                    setMenuOpen(false);
-                                    onCloseSession();
-                                }}
-                                className="flex w-full items-center gap-3 border-t border-gray-100 px-4 py-2.5 text-start transition-colors hover:bg-danger-50"
-                            >
-                                <Icon name={IconComponentsEnum.logOut} size={ESize.sm} color="text-danger-500" />
-                                <Label variant={EVariantLabel.bodySmall} color="text-danger-600" className="font-medium">
-                                    {t('closeSession')}
-                                </Label>
-                            </button>
-                        </Div>
-                    ) : null}
-                </div>
+                {/* Explicit action buttons: Réservations, Bureau caisse & Clôturer la session */}
+                <Div className="flex items-center gap-2">
+                    {/* Link to /dashboard (Reservations dashboard) */}
+                    <Link
+                        id="pos-register-link-dashboard"
+                        href={Routes.Dashboard}
+                        title={t('goToDashboard')}
+                        aria-label={t('goToDashboard')}
+                        className="inline-flex h-9 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                    >
+                        <Icon name={IconComponentsEnum.calendar} size={ESize.xs} color="text-gray-600" />
+                        <span className="hidden sm:inline">{t('goToDashboard')}</span>
+                    </Link>
+
+                    {/* Neutral Link to /caisse */}
+                    <Link
+                        id="pos-register-link-caisse"
+                        href={Routes.Pos.index}
+                        title={t('goToCaisse')}
+                        aria-label={t('goToCaisse')}
+                        className="inline-flex h-9 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                    >
+                        <Icon name={IconComponentsEnum.layers} size={ESize.xs} color="text-gray-600" />
+                        <span className="hidden sm:inline">{t('goToCaisse')}</span>
+                    </Link>
+
+                    {/* Distinct Close session button */}
+                    <button
+                        id="pos-register-close-session"
+                        type="button"
+                        onClick={onCloseSession}
+                        title={t('closeSession')}
+                        aria-label={t('closeSession')}
+                        className="inline-flex h-9 items-center gap-2 rounded-xl border border-danger-200 bg-danger-50 px-3 text-xs font-semibold text-danger-700 shadow-2xs transition-all hover:border-danger-300 hover:bg-danger-100 hover:text-danger-800 cursor-pointer"
+                    >
+                        <Icon name={IconComponentsEnum.lock} size={ESize.xs} color="text-danger-600" />
+                        <span className="hidden sm:inline">{t('closeSession')}</span>
+                    </button>
+                </Div>
+
+                <Div className="hidden h-5 w-px bg-gray-200 sm:block" />
+
+                {/* User Avatar only (placed on the far right) */}
+                <Div
+                    id="pos-register-user-avatar"
+                    title={userName || 'Utilisateur'}
+                    aria-label={userName || 'Utilisateur'}
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white font-semibold text-xs shadow-2xs select-none"
+                >
+                    {initials ? (
+                        <span className="font-bold text-white text-xs leading-none">
+                            {initials}
+                        </span>
+                    ) : (
+                        <Icon name={IconComponentsEnum.user} size={ESize.sm} color="text-white" />
+                    )}
+                </Div>
             </Div>
         </header>
     );

@@ -9,16 +9,13 @@ import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
-import Spinner from '@/components/Primitives/Spinner/Spinner';
 import Toggle from '@/components/Primitives/Toggle/Toggle';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
-import { formatMoney } from '@/lib/daily-income-api';
 import { exportInventoryCsv, exportInventoryPdf, type InventoryExportLabels } from '@/lib/export-inventory';
 import {
     fetchPosCategories,
     fetchPosProductsInventory,
-    toAmount,
     type PosCategory,
     type PosProduct,
 } from '@/lib/pos-api';
@@ -81,33 +78,20 @@ export default function PosExportInventoryModal({
     const selectedCategoryName =
         selectedCategoryId === ALL ? undefined : categories.find((c) => c.id === selectedCategoryId)?.name;
 
-    // Calculate preview summary
-    let totalUnits = 0;
-    let totalCost = 0;
-    let totalRetail = 0;
-    for (const p of products) {
-        const stock = toAmount(p.stockQty);
-        const cost = toAmount(p.cost);
-        const price = toAmount(p.price);
-        if (p.type === 'STOCKABLE') {
-            totalUnits += stock;
-            totalCost += stock * cost;
-            totalRetail += stock * price;
-        }
-    }
-
     const labels: InventoryExportLabels = {
         title: t('exportInventoryTitle'),
         subtitle: t('exportInventorySubtitle'),
         scope: selectedCategoryName || t('exportScope'),
         date: tCommon('date'),
+        image: 'Image',
+        productName: t('name'),
+        stock: 'Stock',
+        category: t('category'),
         totalProducts: t('totalProducts'),
         totalUnits: t('totalUnits'),
         totalCostValue: t('totalCostValue'),
         totalRetailValue: t('totalRetailValue'),
         reference: t('reference'),
-        productName: t('name'),
-        category: t('category'),
         type: t('type'),
         stockable: t('typeStockable'),
         consumable: t('typeConsumable'),
@@ -126,14 +110,14 @@ export default function PosExportInventoryModal({
         of: t('ofLabel'),
     };
 
-    const handleExportPdf = () => {
+    const handleExportPdf = async () => {
         if (products.length === 0) {
             openToast(tCommon('warning'), t('exportEmpty'), { type: EToastType.WARNING });
             return;
         }
         setIsExportingPdf(true);
         try {
-            exportInventoryPdf({
+            await exportInventoryPdf({
                 products,
                 categoryFilterName: selectedCategoryName,
                 stockableOnly,
@@ -177,7 +161,7 @@ export default function PosExportInventoryModal({
         >
             <Div className="space-y-5">
                 {/* Filter Options */}
-                <Div className="rounded-2xl border border-gray-200/80 bg-gray-25/80 p-4 space-y-3 dark:border-gray-800 dark:bg-gray-900/40">
+                <Div className="rounded-2xl border border-gray-200/80 bg-gray-25/80 p-4 space-y-3">
                     <Div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <Div className="min-w-0 flex-1">
                             <Label variant={EVariantLabel.caption} color="text-gray-600" className="mb-1 block font-medium">
@@ -212,54 +196,13 @@ export default function PosExportInventoryModal({
                     </Div>
                 </Div>
 
-                {/* Preview Summary Cards */}
-                <Div className="space-y-2">
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-semibold block">
-                        Aperçu des données d&apos;inventaire
-                    </Label>
-
-                    {isLoading ? (
-                        <Div className="flex items-center justify-center rounded-2xl border border-gray-100 bg-white py-10 shadow-2xs">
-                            <Spinner size={ESize.md} color="text-primary-500" />
-                        </Div>
-                    ) : products.length === 0 ? (
-                        <Div className="rounded-2xl border border-dashed border-gray-200 bg-white py-8 text-center shadow-2xs">
-                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                {t('exportEmpty')}
-                            </Label>
-                        </Div>
-                    ) : (
-                        <Div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                            <Div className="rounded-xl border border-gray-200/80 bg-white p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-800">
-                                <span className="block text-[11px] font-medium text-gray-500">{t('totalProducts')}</span>
-                                <span className="mt-1 block text-lg font-bold text-primary-700 tabular-nums">
-                                    {products.length}
-                                </span>
-                            </Div>
-
-                            <Div className="rounded-xl border border-gray-200/80 bg-white p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-800">
-                                <span className="block text-[11px] font-medium text-gray-500">{t('totalUnits')}</span>
-                                <span className="mt-1 block text-lg font-bold text-success-700 tabular-nums">
-                                    {Math.round(totalUnits * 1000) / 1000}
-                                </span>
-                            </Div>
-
-                            <Div className="rounded-xl border border-gray-200/80 bg-white p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-800">
-                                <span className="block text-[11px] font-medium text-gray-500">{t('totalCostValue')}</span>
-                                <span className="mt-1 block text-base font-bold text-gray-900 tabular-nums sm:text-lg">
-                                    {formatMoney(totalCost)}
-                                </span>
-                            </Div>
-
-                            <Div className="rounded-xl border border-gray-200/80 bg-white p-3 shadow-2xs dark:border-gray-800 dark:bg-gray-800">
-                                <span className="block text-[11px] font-medium text-gray-500">{t('totalRetailValue')}</span>
-                                <span className="mt-1 block text-base font-bold text-gray-900 tabular-nums sm:text-lg">
-                                    {formatMoney(totalRetail)}
-                                </span>
-                            </Div>
-                        </Div>
-                    )}
-                </Div>
+                {!isLoading && products.length === 0 ? (
+                    <Div className="rounded-xl border border-dashed border-gray-200 bg-white py-6 text-center">
+                        <Label variant={EVariantLabel.caption} color="text-gray-500">
+                            {t('exportEmpty')}
+                        </Label>
+                    </Div>
+                ) : null}
 
                 {/* Export Action Options */}
                 <Div className="grid gap-3 pt-2 sm:grid-cols-2">

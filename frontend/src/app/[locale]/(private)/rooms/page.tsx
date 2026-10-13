@@ -238,7 +238,7 @@ export default function RoomsAdminPage() {
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                             <StatCard
                                 icon={IconComponentsEnum.home}
-                                iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                iconBg="bg-primary-50"
                                 iconColor="text-primary-600"
                                 label={t('totalRooms')}
                                 value={isLoading ? '—' : String(stats.count)}
@@ -246,7 +246,7 @@ export default function RoomsAdminPage() {
                             />
                             <StatCard
                                 icon={IconComponentsEnum.users}
-                                iconBg="bg-accent-50 dark:bg-accent-950/40"
+                                iconBg="bg-accent-50"
                                 iconColor="text-accent-600"
                                 label={t('totalCapacity')}
                                 value={isLoading ? '—' : String(stats.totalCapacity)}
@@ -254,7 +254,7 @@ export default function RoomsAdminPage() {
                             />
                             <StatCard
                                 icon={IconComponentsEnum.star}
-                                iconBg="bg-success-50 dark:bg-success-950/40"
+                                iconBg="bg-success-50"
                                 iconColor="text-success-600"
                                 label={t('averageRate')}
                                 value={isLoading ? '—' : formatPrice(stats.avgPrice)}

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Rappel d'échéance d'abonnement — Biblio Squad</title>
+    <style>
+        @media screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+            }
+
+            .content {
+                padding: 28px 20px !important;
+            }
+
+            .detail-table td {
+                padding: 12px 14px !important;
+            }
+        }
+
+        .cta-btn:hover {
+            background-color: #D01418 !important;
+        }
+    </style>
+</head>
+
+<body style="margin:0;padding:0;background-color:#F7F8FA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+        Rappel : votre abonnement chez Biblio Squad arrive bientôt à expiration.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+        style="background-color:#F7F8FA;padding:40px 12px;">
+        <tr>
+            <td align="center">
+                <table class="container" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                    style="max-width:560px;">
+                    <!-- Brand Logo -->
+                    <tr>
+                        <td style="padding-bottom:28px;" align="center">
+                            <img src="cid:bibliosquad-logo" width="180"
+                                alt="Biblio Squad" style="display:block;border:0;outline:none;height:auto;max-width:180px;margin:0 auto;" />
+                        </td>
+                    </tr>
+                    <!-- Main Card -->
+                    <tr>
+                        <td class="content"
+                            style="background:#FFFFFF;border-radius:16px;padding:40px 36px;box-shadow:0 10px 30px rgba(37,49,101,0.06);border:1px solid #E5E7EB;border-top:4px solid #253165;">
+                            
+                            <!-- Header pill badge (Warning / Amber) -->
+                            <div style="text-align:center;margin-bottom:16px;">
+                                <span style="display:inline-block;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:4px 14px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.8px;">
+                                    Rappel d'échéance
+                                </span>
+                            </div>
+
+                            <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.3;color:#253165;font-weight:700;text-align:center;">
+                                Votre abonnement arrive à expiration
+                            </h1>
+                            <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#4A4F5C;text-align:center;">
+                                Bonjour <strong><%= clientName %></strong>,<br />
+                                Nous vous informons que votre abonnement au sein de <strong>Biblio Squad</strong> arrive prochainement à son terme.
+                            </p>
+
+                            <!-- Subscription Details Card -->
+                            <table class="detail-table" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                                style="background:#F7F8FA;border-radius:12px;border:1px solid #E2E5EB;margin:24px 0;overflow:hidden;">
+                                <tr>
+                                    <td style="padding:14px 20px;border-bottom:1px solid #E5E7EB;">
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="font-size:13px;color:#8F95A3;font-weight:500;">N° d'abonnement</td>
+                                                <td align="right" style="font-size:13px;color:#253165;font-weight:700;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;">
+                                                    <%= subscriptionNumber %>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:14px 20px;border-bottom:1px solid #E5E7EB;">
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="font-size:13px;color:#8F95A3;font-weight:500;">Formule</td>
+                                                <td align="right" style="font-size:14px;color:#253165;font-weight:700;">
+                                                    <%= productName %>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:14px 20px;border-bottom:1px solid #E5E7EB;">
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="font-size:13px;color:#8F95A3;font-weight:500;">Date d'échéance</td>
+                                                <td align="right" style="font-size:14px;color:#253165;font-weight:700;">
+                                                    <%= endDate %>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:14px 20px;background:#FFFBEB;">
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="font-size:13px;color:#92400E;font-weight:600;">Délai restant</td>
+                                                <td align="right">
+                                                    <span style="display:inline-block;background:#FDE8E8;color:#9B1C1C;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:700;">
+                                                        <%= daysLeftText %>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:20px 0;font-size:14px;line-height:1.6;color:#4A4F5C;text-align:center;">
+                                Pour renouveler votre formule en toute sérénité et conserver l'accès à tous vos services sans coupure, présentez-vous à la réception lors de votre prochain passage ou contactez notre équipe.
+                            </p>
+
+                            <!-- CTA Button (Rouge Squad Accent) -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:28px auto;">
+                                <tr>
+                                    <td align="center" bgcolor="#E4191D" style="border-radius:10px;box-shadow:0 4px 14px rgba(228,25,29,0.3);">
+                                        <a href="<%= cardUrl %>" target="_blank" class="cta-btn"
+                                            style="display:inline-block;padding:14px 34px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:10px;letter-spacing:0.2px;">
+                                            Consulter ma carte d'abonné(e) &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Fallback Link -->
+                            <div style="margin-top:30px;padding-top:20px;border-top:1px solid #E5E7EB;">
+                                <p style="margin:0 0 8px 0;font-size:12px;color:#8F95A3;text-align:center;">
+                                    Ou accédez à votre carte via ce lien direct :
+                                </p>
+                                <div style="background:#F7F8FA;border-radius:8px;padding:10px 14px;border:1px solid #E5E7EB;text-align:center;">
+                                    <a href="<%= cardUrl %>" target="_blank" style="margin:0;font-size:12px;color:#253165;word-break:break-all;text-decoration:none;font-weight:500;">
+                                        <%= cardUrl %>
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding-top:28px;text-align:center;">
+                            <p style="margin:0 0 4px 0;font-size:12px;font-weight:600;color:#4A4F5C;">
+                                Biblio Squad
+                            </p>
+                            <p style="margin:0;font-size:11px;color:#8F95A3;line-height:1.5;">
+                                Espace de Coworking &bull; Point de Vente &bull; Gestion
+                                <br />
+                                &copy; 2026 Biblio Squad. Tous droits r&eacute;serv&eacute;s.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

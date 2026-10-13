@@ -13,81 +13,111 @@
             }
 
             .content {
-                padding: 24px !important;
+                padding: 28px 20px !important;
             }
+
+            .code-text {
+                font-size: 22px !important;
+                letter-spacing: 2px !important;
+            }
+        }
+
+        .cta-btn:hover {
+            background-color: #D01418 !important;
         }
     </style>
 </head>
 
-<body style="margin:0;padding:0;background-color:#F4F7F9;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+<body style="margin:0;padding:0;background-color:#F7F8FA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
         You've been invited to join Biblio Squad.
     </div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-        style="background-color:#F4F7F9;padding:40px 10px;">
+        style="background-color:#F7F8FA;padding:40px 12px;">
         <tr>
             <td align="center">
                 <table class="container" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-                    style="max-width:580px;">
+                    style="max-width:560px;">
+                    <!-- Brand Logo -->
                     <tr>
-                        <td style="padding-bottom: 30px;" align="center">
-                            <img src="cid:bibliosquad-logo" width="200"
-                                alt="Biblio Squad" style="display:block; border:0; outline:none; height:auto; max-width:200px;" />
+                        <td style="padding-bottom:28px;" align="center">
+                            <img src="cid:bibliosquad-logo" width="180"
+                                alt="Biblio Squad" style="display:block;border:0;outline:none;height:auto;max-width:180px;margin:0 auto;" />
                         </td>
                     </tr>
+                    <!-- Main Card -->
                     <tr>
                         <td class="content"
-                            style="background:#FFFFFF; border-radius:12px; padding:40px; box-shadow:0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;">
-                            <h1
-                                style="margin:0 0 20px 0; font-size:24px; color:#1a1a1a; font-weight:700; text-align:center;">
-                                You're invited to join Biblio Squad
-                            </h1>
-                            <p
-                                style="margin:0 0 16px 0; font-size:16px; line-height:1.6; color:#4a4a4a; text-align:center;">
-                                <%= inviterName %> has invited you to join Biblio Squad.
-                                    Use the temporary password below and click the button to sign in to your account.
-                            </p>
-
-                            <div
-                                style="background:#f8f9fa; border-radius:8px; padding:20px; margin:24px 0; text-align:center;">
-                                <p
-                                    style="margin:0 0 8px 0; font-size:13px; color:#6c757d; text-transform:uppercase; letter-spacing:0.5px;">
-                                    Your temporary password
-                                </p>
-                                <p
-                                    style="margin:0; font-size:28px; font-weight:700; color:#1a1a1a; letter-spacing:2px; font-family:monospace;">
-                                    <%= invitationCode %>
-                                </p>
+                            style="background:#FFFFFF;border-radius:16px;padding:40px 36px;box-shadow:0 10px 30px rgba(37,49,101,0.06);border:1px solid #E5E7EB;border-top:4px solid #253165;">
+                            
+                            <!-- Header pill badge -->
+                            <div style="text-align:center;margin-bottom:16px;">
+                                <span style="display:inline-block;background:#EEF2F9;color:#253165;font-size:11px;font-weight:700;padding:4px 14px;border-radius:9999px;text-transform:uppercase;letter-spacing:0.8px;">
+                                    Invitation
+                                </span>
                             </div>
 
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0"
-                                style="margin: 30px auto;">
+                            <h1 style="margin:0 0 16px 0;font-size:24px;line-height:1.3;color:#253165;font-weight:700;text-align:center;">
+                                You're invited to join Biblio Squad
+                            </h1>
+                            <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#4A4F5C;text-align:center;">
+                                <strong><%= inviterName %></strong> has invited you to join Biblio Squad.
+                                Use the temporary password below and click the button to sign in to your account.
+                            </p>
+
+                            <!-- Temporary Password Box -->
+                            <div style="background:#F7F8FA;border-radius:12px;border:1px solid #E2E5EB;padding:22px 16px;margin:24px 0;text-align:center;">
+                                <p style="margin:0 0 10px 0;font-size:12px;font-weight:600;color:#4A4F5C;text-transform:uppercase;letter-spacing:0.8px;">
+                                    Your temporary password
+                                </p>
+                                <div style="display:inline-block;background:#FFFFFF;border:1px solid #CBD5E1;border-radius:8px;padding:10px 24px;">
+                                    <span class="code-text" style="font-size:26px;font-weight:800;color:#253165;letter-spacing:3px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">
+                                        <%= invitationCode %>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- CTA Button (Rouge Squad Accent) -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:30px auto;">
                                 <tr>
-                                    <td align="center" bgcolor="#79D2DF" style="border-radius:6px;">
-                                        <a href="<%= invitationLink %>" target="_blank"
-                                            style="display:inline-block; padding:16px 32px; font-size:16px; font-weight:bold; color:#FFFFFF; text-decoration:none; border-radius:6px;">
-                                            Sign in
+                                    <td align="center" bgcolor="#E4191D" style="border-radius:10px;box-shadow:0 4px 14px rgba(228,25,29,0.3);">
+                                        <a href="<%= invitationLink %>" target="_blank" class="cta-btn"
+                                            style="display:inline-block;padding:14px 34px;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;border-radius:10px;letter-spacing:0.2px;">
+                                            Sign in to your account &rarr;
                                         </a>
                                     </td>
                                 </tr>
                             </table>
 
-                            <p
-                                style="margin:20px 0 0 0; font-size:13px; line-height:1.5; color:#9b9b9b; text-align:center;">
+                            <p style="margin:20px 0 0 0;font-size:13px;line-height:1.5;color:#8F95A3;text-align:center;">
                                 For security, please change your password after your first login.
-                                If you did not expect this invitation, please ignore this email or contact support.
+                                If you did not expect this invitation, you can safely ignore this email.
                             </p>
 
-                            <div style="margin-top:30px; padding-top:20px; border-top:1px solid #e0e0e0;">
-                                <p
-                                    style="margin:0 0 8px 0; font-size:13px; line-height:1.5; color:#6c757d; text-align:center;">
+                            <!-- Fallback Link -->
+                            <div style="margin-top:30px;padding-top:20px;border-top:1px solid #E5E7EB;">
+                                <p style="margin:0 0 8px 0;font-size:12px;color:#8F95A3;text-align:center;">
                                     Or copy and paste this link into your browser:
                                 </p>
-                                <p
-                                    style="margin:0; font-size:12px; color:#79D2DF; text-align:center; word-break:break-all;">
-                                    <%= invitationLink %>
-                                </p>
+                                <div style="background:#F7F8FA;border-radius:8px;padding:10px 14px;border:1px solid #E5E7EB;text-align:center;">
+                                    <a href="<%= invitationLink %>" target="_blank" style="margin:0;font-size:12px;color:#253165;word-break:break-all;text-decoration:none;font-weight:500;">
+                                        <%= invitationLink %>
+                                    </a>
+                                </div>
                             </div>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding-top:28px;text-align:center;">
+                            <p style="margin:0 0 4px 0;font-size:12px;font-weight:600;color:#4A4F5C;">
+                                Biblio Squad
+                            </p>
+                            <p style="margin:0;font-size:11px;color:#8F95A3;line-height:1.5;">
+                                Coworking Space &bull; Point de Vente &bull; Gestion
+                                <br />
+                                &copy; 2026 Biblio Squad. All rights reserved.
+                            </p>
                         </td>
                     </tr>
                 </table>

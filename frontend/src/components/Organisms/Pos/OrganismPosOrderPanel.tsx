@@ -92,7 +92,7 @@ export default function OrganismPosOrderPanel({
                 value: NUMPAD_BACKSPACE,
                 label: '⌫',
                 accent: true,
-                className: 'bg-warning-50 hover:bg-warning-100 text-warning-800 border border-warning-200/80 font-bold',
+                className: 'bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white border-0 font-bold shadow-2xs',
             },
         ],
     ];
@@ -210,9 +210,9 @@ export default function OrganismPosOrderPanel({
                             id="pos-order-credit-payment"
                             type="button"
                             onClick={onPickCreditPayment}
-                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-warning-300 bg-warning-50/80 px-2 py-2 text-xs font-bold text-warning-900 shadow-2xs transition-colors hover:border-warning-400 hover:bg-warning-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-2 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
                         >
-                            <Icon name={IconComponentsEnum.userCheck} size={ESize.sm} color="text-warning-600" />
+                            <Icon name={IconComponentsEnum.userCheck} size={ESize.sm} color="text-primary-600" />
                             <span className="truncate">{t('creditPaymentButton')}</span>
                         </button>
                         <button
@@ -228,9 +228,9 @@ export default function OrganismPosOrderPanel({
                             id="pos-order-subscription"
                             type="button"
                             onClick={onPickSubscription}
-                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-accent-300 bg-accent-50/80 px-2 py-2 text-xs font-bold text-accent-900 shadow-2xs transition-colors hover:border-accent-400 hover:bg-accent-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-2 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
                         >
-                            <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-accent-600" />
+                            <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-primary-600" />
                             <span className="truncate">{t('subscriptionButton')}</span>
                         </button>
                         {cart.lines.length > 0 ? (

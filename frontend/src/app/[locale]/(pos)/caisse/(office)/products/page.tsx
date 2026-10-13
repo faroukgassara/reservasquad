@@ -249,13 +249,13 @@ export default function PosProductsPage() {
               >
                 {tCommon('showingRange', { from, to, total })}
               </Label>
-              <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-0.5 shadow-2xs dark:border-gray-800 dark:bg-gray-900">
+              <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-0.5 shadow-2xs">
                 <button
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage(page - 1)}
                   aria-label="Previous page"
-                  className="flex size-8 items-center justify-center rounded-lg text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent dark:text-gray-200 dark:hover:bg-gray-800 dark:disabled:text-gray-600"
+                  className="flex size-8 items-center justify-center rounded-lg text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
                 >
                   <Icon
                     name={IconComponentsEnum.chevronLeft}
@@ -263,7 +263,7 @@ export default function PosProductsPage() {
                     color={page > 1 ? 'text-gray-700' : 'text-gray-300'}
                   />
                 </button>
-                <span className="px-2 text-xs font-semibold text-gray-700 tabular-nums dark:text-gray-300">
+                <span className="px-2 text-xs font-semibold text-gray-700 tabular-nums">
                   {page} / {Math.max(lastPage, 1)}
                 </span>
                 <button
@@ -271,7 +271,7 @@ export default function PosProductsPage() {
                   disabled={page >= lastPage}
                   onClick={() => setPage(page + 1)}
                   aria-label="Next page"
-                  className="flex size-8 items-center justify-center rounded-lg text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent dark:text-gray-200 dark:hover:bg-gray-800 dark:disabled:text-gray-600"
+                  className="flex size-8 items-center justify-center rounded-lg text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
                 >
                   <Icon
                     name={IconComponentsEnum.chevronRight}

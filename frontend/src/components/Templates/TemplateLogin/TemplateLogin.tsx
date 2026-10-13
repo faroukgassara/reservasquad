@@ -17,7 +17,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
     const [rememberSession, setRememberSession] = useState(false);
 
     return (
-        <div className="relative flex min-h-dvh flex-col items-center justify-center bg-gray-50/60 p-4 transition-colors duration-200 dark:bg-gray-900 sm:p-6">
+        <div className="relative flex min-h-dvh flex-col items-center justify-center bg-gray-25 p-4 transition-colors duration-200 sm:p-6">
             {/* Top Controls: LanguageSwitcher & ThemeToggle directly above Card, aligned to right edge */}
             <div className="mb-3.5 flex w-full max-w-[420px] items-center justify-end gap-2">
                 <LanguageSwitcher menuPlacement="top" className="w-auto" />
@@ -25,7 +25,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
             </div>
 
             {/* Main Auth Card */}
-            <div className="w-full max-w-[420px] rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-colors duration-200 dark:border-gray-800 dark:bg-gray-800 dark:shadow-[0_12px_40px_rgba(0,0,0,0.45)] sm:p-8">
+            <div className="w-full max-w-[420px] rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-colors duration-200 sm:p-8">
                 {/* Logo & Subtitle */}
                 <div className="mb-6 flex flex-col items-center text-center">
                     <div className="mb-2.5 flex justify-center">
@@ -37,7 +37,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                             priority
                         />
                     </div>
-                    <p className="text-xs font-normal text-gray-500 dark:text-gray-400 sm:text-sm">
+                    <p className="text-xs font-normal text-gray-500 sm:text-sm">
                         {t('auth.modalLoginSubtitle')}
                     </p>
                 </div>
@@ -95,19 +95,19 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                     <div className="mb-4 flex justify-end">
                         <Link
                             href={Routes.ForgotPassword}
-                            className="text-xs font-medium text-gray-500 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
+                            className="text-xs font-medium text-gray-500 transition-colors hover:text-primary-600"
                         >
                             {t('auth.forgotPasswordTitle')}
                         </Link>
                     </div>
 
                     {/* Remember this session checkbox */}
-                    <label className="mb-6 flex cursor-pointer select-none items-center gap-2.5 text-xs text-gray-600 dark:text-gray-300">
+                    <label className="mb-6 flex cursor-pointer select-none items-center gap-2.5 text-xs text-gray-600">
                         <input
                             type="checkbox"
                             checked={rememberSession}
                             onChange={(e) => setRememberSession(e.target.checked)}
-                            className="size-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-800"
+                            className="size-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500/30"
                         />
                         <span>{t('auth.rememberSession')}</span>
                     </label>

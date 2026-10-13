@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { IEnv } from 'src/common/env/env';
+import { FileUploadService } from 'src/common/common-services/file-upload.service';
+import { EmailService } from 'src/common/email/email.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from 'src/generated/prisma/client';
 import { ProxyPrismaModel } from 'src/common/pagination/proxy';
@@ -19,6 +23,7 @@ import {
   todayDateOnly,
   toDateOnly,
 } from './pos.utils';
+import { formatAuditDate, formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const EXPIRING_DAYS = 7;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -64,10 +69,18 @@ function stateWhere(state: SubscriptionState): Prisma.SubscriptionWhereInput {
 
 @Injectable()
 export class PosSubscriptionService {
+  private readonly logger = new Logger(PosSubscriptionService.name);
+  private readonly config?: IEnv;
+
   constructor(
     private readonly prismaService: PrismaService,
     private readonly auditService: AuditService,
-  ) {}
+    private readonly fileUploadService: FileUploadService,
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
+  ) {
+    this.config = this.configService.get<IEnv>('env');
+  }
 
   private async log(entityId: string, action: 'CREATE' | 'UPDATE' | 'DELETE', summary: string, actorId?: string) {
     await this.auditService.log({ entityType: POS_AUDIT.subscription, entityId, action, userId: actorId, summary });
@@ -134,7 +147,7 @@ export class PosSubscriptionService {
       ...(query.state && stateWhere(query.state)),
       ...(query.clientId && { clientId: query.clientId }),
       ...(query.payable && {
-        status: { in: ['DRAFT', 'ACTIVE'] },
+        status: 'ACTIVE',
         amountPaid: { lt: this.prismaService.subscription.fields.total },
       }),
       ...(search && {
@@ -195,20 +208,32 @@ export class PosSubscriptionService {
   async create(dto: SaveSubscriptionDto, actorId?: string) {
     const data = await this.buildData(dto);
     const subscription = await this.prismaService.subscription.create({
-      data: { ...data, createdById: actorId || null },
+      data: {
+        ...data,
+        status: 'ACTIVE',
+        activatedAt: new Date(),
+        createdById: actorId || null,
+      },
     });
     await this.log(
       subscription.id,
       'CREATE',
-      `Created subscription ${formatSubscriptionNumber(subscription.number)}`,
+      `Abonnement N° ${formatSubscriptionNumber(subscription.number)} créé : Produit "${subscription.productName}" · Du ${formatAuditDate(subscription.startDate)} au ${formatAuditDate(subscription.endDate)} · Montant : ${formatAuditMoney(subscription.total)}`,
       actorId,
     );
+    await this.sendSubscriptionEmail(subscription, false);
     return this.findOrThrow(subscription.id);
   }
 
   async update(id: string, dto: SaveSubscriptionDto, actorId?: string) {
     const existing = await this.findOrThrow(id);
-    if (existing.status !== 'DRAFT') throw new BadRequestException('Only draft subscriptions can be edited');
+    if (existing.status === 'CANCELLED') throw new BadRequestException('Cancelled subscriptions cannot be edited');
+    if (existing.invoices.some((inv) => inv.type === 'INVOICE' && inv.status === 'POSTED')) {
+      throw new BadRequestException('This subscription has a posted invoice');
+    }
+    if (Number(existing.amountPaid) > 0) {
+      throw new BadRequestException('This subscription has payments from the register');
+    }
     const data = await this.buildData(dto);
     await this.prismaService.subscription.update({ where: { id }, data });
     await this.log(id, 'UPDATE', `Updated subscription ${formatSubscriptionNumber(existing.number)}`, actorId);
@@ -217,12 +242,13 @@ export class PosSubscriptionService {
 
   async activate(id: string, actorId?: string) {
     const subscription = await this.findOrThrow(id);
-    if (subscription.status !== 'DRAFT') throw new BadRequestException('Only draft subscriptions can be activated');
-    await this.prismaService.subscription.update({
-      where: { id },
-      data: { status: 'ACTIVE', activatedAt: new Date() },
-    });
-    await this.log(id, 'UPDATE', `Activated subscription ${formatSubscriptionNumber(subscription.number)}`, actorId);
+    if (subscription.status !== 'ACTIVE') {
+      await this.prismaService.subscription.update({
+        where: { id },
+        data: { status: 'ACTIVE', activatedAt: new Date() },
+      });
+      await this.log(id, 'UPDATE', `Activated subscription ${formatSubscriptionNumber(subscription.number)}`, actorId);
+    }
     return this.findOrThrow(id);
   }
 
@@ -242,11 +268,16 @@ export class PosSubscriptionService {
       }),
       this.prismaService.subscription.update({ where: { id }, data: { status: 'CANCELLED' } }),
     ]);
-    await this.log(id, 'UPDATE', `Cancelled subscription ${formatSubscriptionNumber(subscription.number)}`, actorId);
+    await this.log(
+      id,
+      'UPDATE',
+      `Abonnement N° ${formatSubscriptionNumber(subscription.number)} annulé : Produit "${subscription.productName}"`,
+      actorId,
+    );
     return this.findOrThrow(id);
   }
 
-  /** Creates the next period as a draft for the same client and product, from the chosen start date. */
+  /** Creates the next period as an active subscription for the same client and product, from the chosen start date. */
   async renew(id: string, dto: RenewSubscriptionDto, actorId?: string) {
     const subscription = await this.findOrThrow(id);
     if (subscription.status !== 'ACTIVE') throw new BadRequestException('Only active subscriptions can be renewed');
@@ -263,21 +294,31 @@ export class PosSubscriptionService {
       note: subscription.note,
     });
     const renewal = await this.prismaService.subscription.create({
-      data: { ...data, renewedFromId: id, createdById: actorId || null },
+      data: {
+        ...data,
+        status: 'ACTIVE',
+        activatedAt: new Date(),
+        renewedFromId: id,
+        createdById: actorId || null,
+      },
     });
     await this.log(
       renewal.id,
       'CREATE',
-      `Renewed ${formatSubscriptionNumber(subscription.number)} as ${formatSubscriptionNumber(renewal.number)}`,
+      `Abonnement N° ${formatSubscriptionNumber(subscription.number)} renouvelé sous le N° ${formatSubscriptionNumber(renewal.number)} : Produit "${renewal.productName}" · Du ${formatAuditDate(renewal.startDate)} au ${formatAuditDate(renewal.endDate)}`,
       actorId,
     );
+    await this.sendSubscriptionEmail(renewal, true);
     return this.findOrThrow(renewal.id);
   }
 
   async remove(id: string, actorId?: string) {
     const subscription = await this.findOrThrow(id);
-    if (subscription.status !== 'DRAFT' && subscription.status !== 'CANCELLED') {
-      throw new BadRequestException('Only draft or cancelled subscriptions can be deleted');
+    if (subscription.invoices.some((inv) => inv.type === 'INVOICE' && inv.status === 'POSTED')) {
+      throw new BadRequestException('This subscription has a posted invoice');
+    }
+    if (Number(subscription.amountPaid) > 0) {
+      throw new BadRequestException('This subscription has payments from the register');
     }
     await this.prismaService.subscription.update({
       where: { id },
@@ -285,5 +326,189 @@ export class PosSubscriptionService {
     });
     await this.log(id, 'DELETE', `Deleted subscription ${formatSubscriptionNumber(subscription.number)}`, actorId);
     return { id };
+  }
+
+  /**
+   * Manually sends an expiration reminder email to the client for an active/expiring subscription.
+   * Throws BadRequestException if client has no valid email.
+   */
+  async sendManualReminder(id: string, actorId?: string) {
+    const subscription = await this.findOrThrow(id);
+    const client = subscription.client;
+    if (!client) {
+      throw new BadRequestException('Client introuvable pour cet abonnement.');
+    }
+
+    if (subscription.remindedAt) {
+      throw new BadRequestException(
+        `Un e-mail de rappel a déjà été envoyé pour cet abonnement le ${formatAuditDate(subscription.remindedAt)}.`,
+      );
+    }
+
+    const email = client.email?.trim();
+    const clientName = `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'Client';
+
+    if (!email || !email.includes('@')) {
+      throw new BadRequestException(
+        `Le client "${clientName}" n'a pas d'adresse e-mail valide renseignée.`,
+      );
+    }
+
+    const frontUrl = (this.config?.FRONT_URL || process.env.FRONT_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const cardUrl = subscription.cardToken
+      ? `${frontUrl}/api/public/subscription-cards/${subscription.cardToken}`
+      : `${frontUrl}/caisse/subscriptions/${subscription.id}`;
+
+    const today = todayDateOnly();
+    const end = toDateOnly(subscription.endDate);
+    const diffDays = Math.round((end.getTime() - today.getTime()) / 86_400_000);
+    const daysLeftText =
+      diffDays <= 0
+        ? "Expire aujourd'hui"
+        : diffDays === 1
+          ? "Expire demain (dans 1 jour)"
+          : `Expire dans ${diffDays} jours`;
+
+    const html = await this.fileUploadService.renderTemplate(
+      {
+        clientName,
+        subscriptionNumber: formatSubscriptionNumber(subscription.number),
+        productName: subscription.productName,
+        startDate: formatAuditDate(subscription.startDate),
+        endDate: formatAuditDate(subscription.endDate),
+        daysLeftText,
+        cardUrl,
+        frontUrl,
+      },
+      'subscriptionReminderClient.ejs',
+    );
+
+    const fromAddress = this.config?.SMTP_SEND || process.env.SMTP_SEND || 'coworking-space@bibliosquad.com';
+
+    await this.emailService.sendMail({
+      to: email,
+      from: fromAddress,
+      subject: `Rappel d'échéance : votre abonnement Biblio Squad expire bientôt (${formatSubscriptionNumber(subscription.number)})`,
+      template: html,
+      attachments: [this.emailService.getBiblioSquadLogoAttachment()],
+    });
+
+    const now = new Date();
+    await this.prismaService.subscription.update({
+      where: { id },
+      data: { remindedAt: now },
+    });
+
+    await this.log(
+      id,
+      'UPDATE',
+      `Rappel d'échéance envoyé à ${clientName} (${email}) pour l'abonnement N° ${formatSubscriptionNumber(subscription.number)}`,
+      actorId,
+    );
+
+    return {
+      success: true,
+      email,
+      clientName,
+      subscriptionNumber: formatSubscriptionNumber(subscription.number),
+      remindedAt: now,
+    };
+  }
+
+  /**
+   * Sends confirmation / renewal email to client if valid email is present.
+   * If client has no email, logs warning and proceeds without error.
+   * Never throws or blocks subscription lifecycle.
+   */
+  private async sendSubscriptionEmail(
+    subscription: {
+      id: string;
+      number: number;
+      cardToken?: string | null;
+      productName: string;
+      duration: number;
+      unit: string;
+      startDate: Date;
+      endDate: Date;
+      total: any;
+      clientId: string;
+    },
+    isRenewal = false,
+  ): Promise<void> {
+    try {
+      const client = await this.prismaService.creditClient.findFirst({
+        where: { id: subscription.clientId, deletedAt: null },
+        select: { id: true, firstName: true, lastName: true, email: true },
+      });
+
+      if (!client) {
+        this.logger.warn(
+          `Impossible d'envoyer l'e-mail d'abonnement : client ID "${subscription.clientId}" introuvable.`,
+        );
+        return;
+      }
+
+      const email = client.email?.trim();
+      const clientName = `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'Client';
+
+      if (!email || !email.includes('@')) {
+        this.logger.warn(
+          `Abonnement N° ${formatSubscriptionNumber(subscription.number)} (${isRenewal ? 'renouvellement' : 'création'}) : le client "${clientName}" n'a pas d'adresse e-mail valide renseignée. Envoi de l'e-mail ignoré.`,
+        );
+        return;
+      }
+
+      const frontUrl = (this.config?.FRONT_URL || process.env.FRONT_URL || 'http://localhost:3000').replace(/\/$/, '');
+      const cardUrl = subscription.cardToken
+        ? `${frontUrl}/api/public/subscription-cards/${subscription.cardToken}`
+        : `${frontUrl}/caisse/subscriptions/${subscription.id}`;
+
+      const unitMap: Record<string, string> = {
+        DAY: 'Jour(s)',
+        WEEK: 'Semaine(s)',
+        MONTH: 'Mois',
+        YEAR: 'An(s)',
+      };
+      const durationText = `${subscription.duration} ${unitMap[subscription.unit] || subscription.unit}`;
+
+      const html = await this.fileUploadService.renderTemplate(
+        {
+          isRenewal,
+          clientName,
+          subscriptionNumber: formatSubscriptionNumber(subscription.number),
+          productName: subscription.productName,
+          durationText,
+          startDate: formatAuditDate(subscription.startDate),
+          endDate: formatAuditDate(subscription.endDate),
+          total: Number(subscription.total).toFixed(3),
+          cardUrl,
+          frontUrl,
+        },
+        'subscriptionConfirmationClient.ejs',
+      );
+
+      const subject = isRenewal
+        ? `Renouvellement de votre abonnement — Biblio Squad (${formatSubscriptionNumber(subscription.number)})`
+        : `Confirmation de votre abonnement — Biblio Squad (${formatSubscriptionNumber(subscription.number)})`;
+
+      const fromAddress = this.config?.SMTP_SEND || process.env.SMTP_SEND || 'coworking-space@bibliosquad.com';
+
+      await this.emailService.sendMail({
+        to: email,
+        from: fromAddress,
+        subject,
+        template: html,
+        attachments: [this.emailService.getBiblioSquadLogoAttachment()],
+      });
+
+      this.logger.log(
+        `E-mail de ${isRenewal ? 'renouvellement' : 'confirmation'} d'abonnement N° ${formatSubscriptionNumber(subscription.number)} envoyé avec succès à ${email}.`,
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Erreur lors de l'envoi de l'e-mail d'abonnement N° ${formatSubscriptionNumber(subscription.number)} pour le client (${subscription.clientId}) : ${msg}`,
+      );
+    }
   }
 }

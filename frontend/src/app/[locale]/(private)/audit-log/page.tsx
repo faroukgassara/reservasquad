@@ -31,6 +31,8 @@ function actionLabel(
         'CANCEL',
         'BULK_PAID',
         'SERIES_CREATE',
+        'RESTORE',
+        'HARD_DELETE',
     ] as const;
     if ((known as readonly string[]).includes(action)) {
         return t(`actions.${action as (typeof known)[number]}`);
@@ -51,6 +53,9 @@ function entityLabel(
         'POS_CATEGORY',
         'POS_SESSION',
         'POS_ORDER',
+        'POS_SUBSCRIPTION',
+        'POS_SALE_ORDER',
+        'POS_INVOICE',
     ] as const;
     if ((known as readonly string[]).includes(entityType)) {
         return t(`entities.${entityType as (typeof known)[number]}`);
@@ -107,6 +112,9 @@ export default function AuditLogPage() {
             { value: 'INCOME_LINE', label: t('entities.INCOME_LINE') },
             { value: 'CREDIT', label: t('entities.CREDIT') },
             { value: 'POS_ORDER', label: t('entities.POS_ORDER') },
+            { value: 'POS_SUBSCRIPTION', label: t('entities.POS_SUBSCRIPTION') },
+            { value: 'POS_SALE_ORDER', label: t('entities.POS_SALE_ORDER') },
+            { value: 'POS_INVOICE', label: t('entities.POS_INVOICE') },
             { value: 'POS_SESSION', label: t('entities.POS_SESSION') },
             { value: 'POS_PRODUCT', label: t('entities.POS_PRODUCT') },
             { value: 'POS_CATEGORY', label: t('entities.POS_CATEGORY') },
@@ -169,7 +177,14 @@ export default function AuditLogPage() {
                     label: t('columns.summary'),
                     mobile: 'primary',
                     render: (_: unknown, row: AuditLogRecord) => (
-                        <OrganismTable.Cell mainText={row.summary || '—'} />
+                        <div
+                            className="flex min-w-0 items-center px-4 py-2.5 max-w-2xl"
+                            title={row.summary || ''}
+                        >
+                            <span className="text-sm text-gray-900 leading-snug whitespace-normal break-words font-medium">
+                                {row.summary || '—'}
+                            </span>
+                        </div>
                     ),
                 },
             },

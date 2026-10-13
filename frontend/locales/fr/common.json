@@ -250,7 +250,10 @@
                 "POS_PRODUCT": "Produit caisse",
                 "POS_CATEGORY": "Catégorie caisse",
                 "POS_SESSION": "Session de caisse",
-                "POS_ORDER": "Commande caisse"
+                "POS_ORDER": "Commande caisse",
+                "POS_SUBSCRIPTION": "Abonnement",
+                "POS_SALE_ORDER": "Commande vente",
+                "POS_INVOICE": "Facture"
             },
             "actions": {
                 "CREATE": "Création",
@@ -258,7 +261,9 @@
                 "DELETE": "Suppression",
                 "CANCEL": "Annulation",
                 "BULK_PAID": "Paiement groupé",
-                "SERIES_CREATE": "Série créée"
+                "SERIES_CREATE": "Série créée",
+                "RESTORE": "Restauration",
+                "HARD_DELETE": "Suppression définitive"
             }
         },
         "rooms": {
@@ -635,7 +640,8 @@
             "billing": "Facturation",
             "products": "Produits",
             "categories": "Catégories",
-            "clients": "Clients"
+            "clients": "Clients",
+            "analytics": "Analytique"
         },
         "dashboard": {
             "title": "Caisse",
@@ -776,7 +782,7 @@
             "exportInventoryTitle": "Inventaire du stock",
             "exportInventorySubtitle": "Exportez la liste des produits avec leurs quantités en stock pour l'inventaire physique ou comptable.",
             "exportPdf": "Fiche d'inventaire (PDF)",
-            "exportPdfDesc": "Document A4 imprimable avec cases pour le comptage physique en rayon.",
+            "exportPdfDesc": "Document A4 avec image de l'article, nom et quantité en stock.",
             "exportCsv": "Tableur Excel / CSV (.csv)",
             "exportCsvDesc": "Format tableur pour Microsoft Excel ou Google Sheets.",
             "exportScope": "Tous les articles",
@@ -819,7 +825,9 @@
             "sessionNumber": "Session n°{number}",
             "orders": "Commandes",
             "backend": "Tableau de bord",
-            "closeSession": "Fermer la caisse",
+            "goToDashboard": "Réservations",
+            "goToCaisse": "Bureau caisse",
+            "closeSession": "Clôturer la session",
             "mobileProducts": "Produits",
             "mobileOrder": "Commande · {count} · {total}",
             "saleOrderSettleLine": "Règlement {number}",
@@ -1170,7 +1178,8 @@
             "baseAmount": "Montant de base",
             "noTax": "Pas de taxe",
             "memberCard": "Carte d'abonnement",
-            "memberCardHint": "Scannez ce code pour recevoir votre carte sur votre téléphone et présentez-la à l'accueil."
+            "memberCardHint": "Scannez ce code pour recevoir votre carte sur votre téléphone et présentez-la à l'accueil.",
+            "address": "Adresse"
         },
         "billing": {
             "quotations": "Devis",
@@ -1266,6 +1275,62 @@
             "addToOrder": "Ajouter à la commande",
             "pickCredit": "Crédits en cours",
             "creditCaption": "{date} · total {total}"
+        },
+        "analytics": {
+            "title": "Analytique des Ventes",
+            "subtitle": "Performances des ventes, tendances mensuelles et classement des meilleurs produits.",
+            "timeframe": "Période",
+            "preset30d": "30 derniers jours",
+            "presetYtd": "Cette année",
+            "presetAll": "Tout l'historique",
+            "presetCompare": "Comparatif annuel",
+            "customRange": "Personnalisé",
+            "annualComparisonTitle": "Comparatif Annuel (Mois par Mois)",
+            "annualComparisonSubtitle": "Vue comparative du même mois calendaire à travers toutes les années disponibles.",
+            "metricRevenue": "Chiffre d'affaires",
+            "metricUnits": "Unités vendues",
+            "metricOrders": "Commandes",
+            "yoyGrowth": "Évolution YoY",
+            "month": "Mois",
+            "annualTotal": "Total Annuel",
+            "monthlyAverage": "Moyenne mensuelle",
+            "bestMonth": "Meilleur mois",
+            "highestGrowth": "Plus forte croissance",
+            "vsPreviousYear": "vs année précédente",
+            "chartTypeLines": "Courbes",
+            "chartTypeBars": "Barres",
+            "tableView": "Tableau",
+            "cardsView": "Cartes",
+            "noDataAvailable": "Aucune donnée disponible pour cette sélection",
+            "startDate": "Date de début",
+            "endDate": "Date de fin",
+            "apply": "Appliquer",
+            "reset": "Réinitialiser",
+            "totalRevenue": "Chiffre d'affaires",
+            "totalUnitsSold": "Unités vendues",
+            "totalOrders": "Commandes",
+            "productsSold": "Produits vendus",
+            "salesTrend": "Tendance mensuelle des ventes",
+            "salesTrendDaily": "Tendance quotidienne des ventes (30 derniers jours)",
+            "allCategories": "Toutes les catégories",
+            "revenueTrend": "Évolution du chiffre d'affaires",
+            "unitsTrend": "Évolution des unités vendues",
+            "topSellingProducts": "Meilleurs produits vendus",
+            "byUnits": "Par volume (unités)",
+            "byRevenue": "Par chiffre d'affaires",
+            "rank": "Rang",
+            "product": "Produit",
+            "category": "Catégorie",
+            "price": "Prix",
+            "unitsSold": "Unités vendues",
+            "revenue": "Revenu",
+            "percentOfCatalog": "% du catalogue",
+            "productBreakdown": "Détail du produit",
+            "breakdownSubtitle": "Performance mensuelle du produit sélectionné",
+            "clearFilter": "Voir tout le catalogue",
+            "stock": "En stock",
+            "noData": "Aucune vente enregistrée sur cette période",
+            "filterByProduct": "Filtrer par produit..."
         }
     },
     "subscriptionCard": {

@@ -51,6 +51,7 @@ import Archive from "@/assets/icons/archive.svg";
 import Edit from "@/assets/icons/edit.svg";
 import Filter from "@/assets/icons/filter.svg";
 import LogOut from "@/assets/icons/log-out.svg";
+import Lock from "@/assets/icons/lock.svg";
 import Trash from "@/assets/icons/trash.svg";
 import Clock from "@/assets/icons/clock.svg";
 import Message from "@/assets/icons/message.svg";
@@ -124,6 +125,7 @@ export const iconComponents: Record<string, any> = {
     edit: Edit,
     filter: Filter,
     logOut: LogOut,
+    lock: Lock,
     trash: Trash,
     clock: Clock,
     message: Message,

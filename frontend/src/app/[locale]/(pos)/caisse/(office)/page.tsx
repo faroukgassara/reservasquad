@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -9,8 +10,8 @@ import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
-import StatCard from '@/components/Primitives/StatCard/StatCard';
 import PosOpenSessionModal from '@/components/Modals/PosOpenSessionModal/PosOpenSessionModal';
+import PosSubscriptionReminderModal from '@/components/Modals/PosSubscriptionReminderModal/PosSubscriptionReminderModal';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { formatMoney } from '@/lib/daily-income-api';
@@ -18,17 +19,18 @@ import { Routes } from '@/lib/routes';
 import {
     fetchCurrentPosSession,
     fetchLastClosedPosSession,
-    fetchPosSessionSummary,
     fetchSubscriptions,
     formatPosDate,
     formatPosDateTime,
     formatSubscriptionNumber,
     openPosSession,
     personName,
+    remindSubscription,
     SUBSCRIPTION_EXPIRING_DAYS,
     toAmount,
     toDateInput,
     todayInput,
+    type Subscription,
 } from '@/lib/pos-api';
 import {
     EBadgeSize,
@@ -55,6 +57,11 @@ export default function PosDashboardPage() {
     const { openToast } = useToast();
     const { openModal, closeModal, modalPortal } = useModal();
 
+    const [selectedReminder, setSelectedReminder] = useState<{ subscription: Subscription; daysLeft: number } | null>(null);
+    const { openModal: openReminderModal, modalPortal: reminderModalPortal } = useModal({
+        closeCallBack: () => setSelectedReminder(null),
+    });
+
     const { data: current, isLoading: currentLoading } = useQuery({
         queryKey: ['pos-session-current'],
         queryFn: fetchCurrentPosSession,
@@ -65,11 +72,6 @@ export default function PosDashboardPage() {
         queryFn: fetchLastClosedPosSession,
     });
 
-    const { data: summary } = useQuery({
-        queryKey: ['pos-session-summary', current?.id],
-        queryFn: () => fetchPosSessionSummary(current!.id),
-        enabled: !!current?.id,
-    });
 
     const { data: expiring, isLoading: expiringLoading } = useQuery({
         queryKey: ['subscriptions', 'expiring'],
@@ -88,6 +90,22 @@ export default function PosDashboardPage() {
             openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
     });
 
+    const remindMutation = useMutation({
+        mutationFn: (id: string) => remindSubscription(id),
+        onSuccess: (res) => {
+            void queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+            openToast(
+                tCommon('success'),
+                `E-mail de rappel envoyé avec succès à ${res.email} !`,
+                { type: EToastType.SUCCESS },
+            );
+        },
+        onError: (err: any) => {
+            const msg = err?.response?.data?.message || err?.message || "Échec de l'envoi du rappel";
+            openToast(tCommon('error'), msg, { type: EToastType.ERROR });
+        },
+    });
+
     return (
         <>
             {modalPortal(
@@ -99,105 +117,92 @@ export default function PosDashboardPage() {
                     isLoading={openMutation.isPending}
                 />,
             )}
+            {selectedReminder &&
+                reminderModalPortal(
+                    <PosSubscriptionReminderModal
+                        subscription={selectedReminder.subscription}
+                        daysLeft={selectedReminder.daysLeft}
+                        onSubmit={async () => {
+                            await remindMutation.mutateAsync(selectedReminder.subscription.id);
+                        }}
+                        isLoading={remindMutation.isPending}
+                    />,
+                )}
             <LayoutWrapper
                 title={t('dashboard.title')}
                 subTitle={t('dashboard.subtitle')}
                 mainSection={
                     <Div className="space-y-6">
-                        <Div className="grid gap-4 lg:grid-cols-3">
-                            <Div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-1">
-                                <Div className="flex items-center justify-between gap-3">
-                                    <Div className="flex items-center gap-3">
-                                        <Div className="flex size-10 items-center justify-center rounded-full bg-primary-50">
-                                            <Icon
-                                                name={IconComponentsEnum.shoppingCart}
-                                                size={ESize.sm}
-                                                color="text-primary-600"
-                                            />
-                                        </Div>
-                                        <Label variant={EVariantLabel.h5} color="text-gray-900">
-                                            {t('dashboard.shop')}
-                                        </Label>
-                                    </Div>
-                                    {!currentLoading && (
-                                        <Badge
-                                            id="pos-shop-status"
-                                            text={current ? t('session.statusOpen') : t('session.statusClosed')}
-                                            type={current ? EBadgeType.success : EBadgeType.warning}
-                                            size={EBadgeSize.small}
+                        <Div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                            <Div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                                <Div className="flex items-start gap-4">
+                                    <Div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary-50">
+                                        <Icon
+                                            name={IconComponentsEnum.shoppingCart}
+                                            size={ESize.md}
+                                            color="text-primary-600"
                                         />
-                                    )}
-                                </Div>
-
-                                <Div className="space-y-2">
-                                    {current ? (
-                                        <Div className="flex justify-between gap-3">
-                                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                                {t('dashboard.openedBy')}
+                                    </Div>
+                                    <Div className="flex flex-col gap-1.5">
+                                        <Div className="flex items-center gap-3">
+                                            <Label variant={EVariantLabel.h4} color="text-gray-900">
+                                                {t('dashboard.shop')}
                                             </Label>
-                                            <Label variant={EVariantLabel.bodySmall} color="text-gray-900">
-                                                {`${personName(current.openedBy)} · ${formatPosDateTime(current.openedAt)}`}
-                                            </Label>
+                                            {!currentLoading && (
+                                                <Badge
+                                                    id="pos-shop-status"
+                                                    text={current ? t('session.statusOpen') : t('session.statusClosed')}
+                                                    type={current ? EBadgeType.success : EBadgeType.warning}
+                                                    size={EBadgeSize.medium}
+                                                />
+                                            )}
                                         </Div>
-                                    ) : null}
-                                    <Div className="flex justify-between gap-3">
-                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                            {t('dashboard.lastClosingDate')}
-                                        </Label>
-                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-900">
-                                            {formatPosDateTime(lastClosed?.closedAt)}
-                                        </Label>
-                                    </Div>
-                                    <Div className="flex justify-between gap-3">
-                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                            {t('dashboard.lastClosingBalance')}
-                                        </Label>
-                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-900">
-                                            {lastClosed ? formatMoney(toAmount(lastClosed.countedCash)) : '—'}
-                                        </Label>
+                                        <Div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-gray-500">
+                                            {current ? (
+                                                <Div className="flex items-center gap-1.5">
+                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                                        {t('dashboard.openedBy')} :
+                                                    </Label>
+                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium">
+                                                        {`${personName(current.openedBy)} · ${formatPosDateTime(current.openedAt)}`}
+                                                    </Label>
+                                                </Div>
+                                            ) : null}
+                                            {lastClosed?.closedAt ? (
+                                                <Div className="flex items-center gap-1.5">
+                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                                        {t('dashboard.lastClosingDate')} :
+                                                    </Label>
+                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-700">
+                                                        {formatPosDateTime(lastClosed.closedAt)}
+                                                    </Label>
+                                                </Div>
+                                            ) : null}
+                                            {lastClosed ? (
+                                                <Div className="flex items-center gap-1.5">
+                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                                        {t('dashboard.lastClosingBalance')} :
+                                                    </Label>
+                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium">
+                                                        {formatMoney(toAmount(lastClosed.countedCash))}
+                                                    </Label>
+                                                </Div>
+                                            ) : null}
+                                        </Div>
                                     </Div>
                                 </Div>
 
-                                <Button
-                                    id="pos-shop-action"
-                                    type={EButtonType.primary}
-                                    size={EButtonSize.large}
-                                    text={current ? t('dashboard.continueSelling') : t('session.open')}
-                                    isLoading={currentLoading}
-                                    onClick={() => (current ? router.push(Routes.Pos.register) : openModal())}
-                                    className="mt-auto w-full font-bold shadow-md shadow-accent-500/25"
-                                />
-                            </Div>
-
-                            <Div className="grid gap-3 sm:grid-cols-2 lg:col-span-2">
-                                <StatCard
-                                    icon={IconComponentsEnum.filetext}
-                                    iconBg="bg-primary-50"
-                                    iconColor="text-primary-600"
-                                    label={t('dashboard.sessionOrders')}
-                                    value={summary ? String(summary.ordersCount) : '—'}
-                                />
-                                <StatCard
-                                    icon={IconComponentsEnum.layers}
-                                    iconBg="bg-success-50"
-                                    iconColor="text-success-700"
-                                    label={t('dashboard.sessionSales')}
-                                    value={summary ? formatMoney(summary.ordersTotal) : '—'}
-                                />
-                                <StatCard
-                                    icon={IconComponentsEnum.checkCircle}
-                                    iconBg="bg-warning-50"
-                                    iconColor="text-warning-700"
-                                    label={t('dashboard.expectedCash')}
-                                    value={summary ? formatMoney(summary.expectedCash) : '—'}
-                                />
-                                <StatCard
-                                    icon={IconComponentsEnum.users}
-                                    iconBg="bg-gray-100"
-                                    iconColor="text-gray-600"
-                                    label={t('dashboard.clientAccount')}
-                                    value={summary ? formatMoney(summary.clientAccountPayments) : '—'}
-                                />
+                                <Div className="shrink-0">
+                                    <Button
+                                        id="pos-shop-action"
+                                        type={EButtonType.primary}
+                                        size={EButtonSize.large}
+                                        text={current ? t('dashboard.continueSelling') : t('session.open')}
+                                        isLoading={currentLoading}
+                                        onClick={() => (current ? router.push(Routes.Pos.register) : openModal())}
+                                        className="w-full sm:w-auto font-bold shadow-md shadow-accent-500/25 px-6"
+                                    />
+                                </Div>
                             </Div>
                         </Div>
 
@@ -229,31 +234,62 @@ export default function PosDashboardPage() {
                                     {expiring.data.map((subscription) => {
                                         const daysLeft = daysUntil(subscription.endDate);
                                         return (
-                                            <button
+                                            <Div
                                                 key={subscription.id}
-                                                type="button"
-                                                onClick={() => router.push(Routes.Pos.subscription(subscription.id))}
-                                                className="flex w-full items-center justify-between gap-4 px-5 py-3 text-start transition-colors hover:bg-gray-50"
+                                                className="flex w-full items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-gray-50"
                                             >
-                                                <Div className="flex min-w-0 flex-col">
-                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-medium">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => router.push(Routes.Pos.subscription(subscription.id))}
+                                                    className="group flex min-w-0 flex-1 flex-col text-start"
+                                                >
+                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-medium transition-colors group-hover:text-primary-600">
                                                         {personName(subscription.client)}
                                                     </Label>
                                                     <Label variant={EVariantLabel.caption} color="text-gray-500" className="truncate">
                                                         {`${formatSubscriptionNumber(subscription.number)} · ${subscription.productName} · ${formatPosDate(subscription.endDate)}`}
                                                     </Label>
+                                                </button>
+                                                <Div className="flex items-center gap-2.5 shrink-0">
+                                                    <Badge
+                                                        id={`pos-expiring-${subscription.id}`}
+                                                        text={
+                                                            daysLeft === 0
+                                                                ? t('dashboard.endsToday')
+                                                                : t('dashboard.daysLeft', { count: daysLeft })
+                                                        }
+                                                        type={daysLeft <= 2 ? EBadgeType.error : EBadgeType.warning}
+                                                        size={EBadgeSize.small}
+                                                    />
+                                                    {subscription.remindedAt ? (
+                                                        <span
+                                                            id={`pos-reminded-${subscription.id}`}
+                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-500"
+                                                            title={`Rappel envoyé le ${formatPosDate(subscription.remindedAt)}`}
+                                                        >
+                                                            <Icon name={IconComponentsEnum.check} size={ESize.xs} color="text-success-600" />
+                                                            <span>Rappel envoyé</span>
+                                                        </span>
+                                                    ) : (
+                                                        <Button
+                                                            id={`pos-remind-${subscription.id}`}
+                                                            type={EButtonType.secondary}
+                                                            size={EButtonSize.small}
+                                                            icon={{
+                                                                name: IconComponentsEnum.bell,
+                                                                size: ESize.xs,
+                                                                color: 'text-primary-500',
+                                                            }}
+                                                            iconPosition="left"
+                                                            text="Rappeler"
+                                                            onClick={() => {
+                                                                setSelectedReminder({ subscription, daysLeft });
+                                                                openReminderModal();
+                                                            }}
+                                                        />
+                                                    )}
                                                 </Div>
-                                                <Badge
-                                                    id={`pos-expiring-${subscription.id}`}
-                                                    text={
-                                                        daysLeft === 0
-                                                            ? t('dashboard.endsToday')
-                                                            : t('dashboard.daysLeft', { count: daysLeft })
-                                                    }
-                                                    type={daysLeft <= 2 ? EBadgeType.error : EBadgeType.warning}
-                                                    size={EBadgeSize.small}
-                                                />
-                                            </button>
+                                            </Div>
                                         );
                                     })}
                                 </Div>

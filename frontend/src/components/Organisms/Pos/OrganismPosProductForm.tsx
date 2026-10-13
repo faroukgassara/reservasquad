@@ -192,6 +192,32 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
           value={t('units', { count: currentStock })}
           isLoading={statsLoading}
         />
+        <StatCard
+          icon={IconComponentsEnum.shoppingCart}
+          iconBg="bg-primary-50"
+          iconColor="text-primary-600"
+          label={t('sold')}
+          value={t('units', { count: stats?.sold ?? 0 })}
+          isLoading={statsLoading}
+          action={
+            stats?.soldOrdersCount && stats.soldOrdersCount > 0 ? (
+              <Badge
+                id="pos-product-sold-orders-badge"
+                text={`${stats.soldOrdersCount} cmd`}
+                type={EBadgeType.primary}
+                size={EBadgeSize.tiny}
+              />
+            ) : undefined
+          }
+        />
+        <StatCard
+          icon={IconComponentsEnum.layers}
+          iconBg="bg-accent-50"
+          iconColor="text-accent-600"
+          label={t('bought')}
+          value={t('units', { count: stats?.bought ?? 0 })}
+          isLoading={statsLoading}
+        />
       </Div>
 
       <Div className="grid items-start gap-4 lg:grid-cols-5">

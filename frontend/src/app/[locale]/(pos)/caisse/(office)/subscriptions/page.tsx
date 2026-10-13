@@ -24,11 +24,10 @@ import { EButtonSize, EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum
 
 const PER_PAGE = 20;
 
-type Filter = 'all' | 'DRAFT' | SubscriptionState | 'CANCELLED';
+type Filter = 'all' | SubscriptionState | 'CANCELLED';
 
 const FILTERS: { value: Filter; status?: SubscriptionStatus; state?: SubscriptionState }[] = [
     { value: 'all' },
-    { value: 'DRAFT', status: 'DRAFT' },
     { value: 'running', state: 'running' },
     { value: 'expiring', state: 'expiring' },
     { value: 'expired', state: 'expired' },
@@ -89,7 +88,7 @@ export default function PosSubscriptionsPage() {
                         >
                             <StatCard
                                 icon={IconComponentsEnum.layers}
-                                iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                iconBg="bg-primary-50"
                                 iconColor="text-primary-600"
                                 label={t('filter_all')}
                                 value={summary?.all != null ? String(summary.all) : data?.meta?.total != null && filter === 'all' ? String(data.meta.total) : '—'}
@@ -111,7 +110,7 @@ export default function PosSubscriptionsPage() {
                         >
                             <StatCard
                                 icon={IconComponentsEnum.checkCircle}
-                                iconBg="bg-success-50 dark:bg-success-950/40"
+                                iconBg="bg-success-50"
                                 iconColor="text-success-600"
                                 label={t('filter_running')}
                                 value={summary?.running != null ? String(summary.running) : data?.meta?.total != null && filter === 'running' ? String(data.meta.total) : '—'}
@@ -133,7 +132,7 @@ export default function PosSubscriptionsPage() {
                         >
                             <StatCard
                                 icon={IconComponentsEnum.alert}
-                                iconBg="bg-warning-50 dark:bg-warning-950/40"
+                                iconBg="bg-warning-50"
                                 iconColor="text-warning-600"
                                 label={t('filter_expiring')}
                                 value={summary?.expiring != null ? String(summary.expiring) : data?.meta?.total != null && filter === 'expiring' ? String(data.meta.total) : '—'}
@@ -155,7 +154,7 @@ export default function PosSubscriptionsPage() {
                         >
                             <StatCard
                                 icon={IconComponentsEnum.clock}
-                                iconBg="bg-danger-50 dark:bg-danger-950/40"
+                                iconBg="bg-danger-50"
                                 iconColor="text-danger-600"
                                 label={t('filter_expired')}
                                 value={summary?.expired != null ? String(summary.expired) : data?.meta?.total != null && filter === 'expired' ? String(data.meta.total) : '—'}

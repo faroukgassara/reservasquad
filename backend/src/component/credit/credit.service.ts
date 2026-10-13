@@ -10,6 +10,7 @@ import {
 } from 'src/dto/credit/creditClient.dto';
 import { CreateCreditDto, CreateCreditPaymentDto } from 'src/dto/credit/credit.dto';
 import { AuditService } from '../audit/audit.service';
+import { formatAuditDate, formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const ENTITY_TYPE = 'CREDIT';
 const CREDIT_ERROR_REGISTER_PAYMENT = 'Register payments must be refunded from the register';
@@ -20,7 +21,7 @@ const activePayments = {
 } satisfies Prisma.Credit$paymentsArgs;
 
 type CreditWithPayments = Prisma.CreditGetPayload<{
-  include: { payments: typeof activePayments };
+  include: { payments: typeof activePayments; client: true };
 }>;
 
 interface CreditTotals {
@@ -79,6 +80,7 @@ export class CreditService {
     action: 'CREATE' | 'UPDATE' | 'DELETE',
     summary: string,
     actorId?: string,
+    metadata?: Prisma.InputJsonValue,
   ) {
     await this.auditService.log({
       entityType: ENTITY_TYPE,
@@ -86,6 +88,7 @@ export class CreditService {
       action,
       userId: actorId,
       summary,
+      metadata,
     });
   }
 
@@ -101,11 +104,13 @@ export class CreditService {
         cin: dto.cin?.trim() || null,
       },
     });
+    const phonePart = client.phone ? ` (${client.phone})` : '';
     await this.log(
       client.id,
       'CREATE',
-      `Created credit client ${client.firstName} ${client.lastName}`,
+      `Client de crédit créé : ${client.firstName} ${client.lastName}${phonePart}`,
       actorId,
+      { clientId: client.id, name: `${client.firstName} ${client.lastName}`, phone: client.phone },
     );
     return client;
   }
@@ -129,8 +134,9 @@ export class CreditService {
     await this.log(
       client.id,
       'UPDATE',
-      `Updated credit client ${client.firstName} ${client.lastName}`,
+      `Client de crédit modifié : ${client.firstName} ${client.lastName}`,
       actorId,
+      { clientId: client.id, name: `${client.firstName} ${client.lastName}` },
     );
     return client;
   }
@@ -294,7 +300,7 @@ export class CreditService {
   private async getCreditWithPayments(id: string): Promise<CreditWithPayments> {
     const credit = await this.prismaService.credit.findFirst({
       where: { id, deletedAt: null, client: { deletedAt: null } },
-      include: { payments: activePayments },
+      include: { payments: activePayments, client: true },
     });
     if (!credit) throw new NotFoundException('Credit not found');
     return credit;
@@ -333,11 +339,19 @@ export class CreditService {
         },
       });
     });
+    const descPart = credit.description ? ` · Motif : "${credit.description}"` : '';
     await this.log(
       credit.id,
       'CREATE',
-      `Added credit of ${credit.amount.toString()} for ${client.firstName} ${client.lastName}`,
+      `Crédit accordé : ${client.firstName} ${client.lastName} · Montant : ${formatAuditMoney(credit.amount)}${descPart} · Date : ${formatAuditDate(credit.date)}`,
       actorId,
+      {
+        creditId: credit.id,
+        clientId: client.id,
+        clientName: `${client.firstName} ${client.lastName}`,
+        amount: Number(credit.amount),
+        date: credit.date,
+      },
     );
     return credit;
   }
@@ -360,8 +374,9 @@ export class CreditService {
     await this.log(
       credit.id,
       'DELETE',
-      `Deleted credit of ${credit.amount.toString()}`,
+      `Crédit supprimé · Montant : ${formatAuditMoney(credit.amount)}`,
       actorId,
+      { creditId: credit.id, amount: Number(credit.amount) },
     );
     return credit;
   }
@@ -380,11 +395,20 @@ export class CreditService {
         note: dto.note?.trim() || null,
       },
     });
+    const clientName = `${credit.client.firstName} ${credit.client.lastName}`.trim();
+    const remainingAfter = round2(remaining - Number(payment.amount));
     await this.log(
       creditId,
       'UPDATE',
-      `Recorded payment of ${payment.amount.toString()}`,
+      `Règlement de crédit enregistré : Client ${clientName} · Montant réglé : ${formatAuditMoney(payment.amount)} (Reste dû : ${formatAuditMoney(remainingAfter)}) · Date : ${formatAuditDate(payment.date)}`,
       actorId,
+      {
+        creditId,
+        paymentId: payment.id,
+        clientName,
+        amount: Number(payment.amount),
+        remainingAfter,
+      },
     );
     return payment;
   }
@@ -404,8 +428,9 @@ export class CreditService {
     await this.log(
       payment.creditId,
       'UPDATE',
-      `Deleted payment of ${payment.amount.toString()}`,
+      `Règlement de crédit supprimé · Montant : ${formatAuditMoney(payment.amount)}`,
       actorId,
+      { paymentId: payment.id, amount: Number(payment.amount) },
     );
     return deleted;
   }

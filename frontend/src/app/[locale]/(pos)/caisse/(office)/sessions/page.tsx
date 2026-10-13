@@ -137,7 +137,7 @@ export default function PosSessionsPage() {
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                             <StatCard
                                 icon={IconComponentsEnum.layers}
-                                iconBg="bg-primary-50 dark:bg-primary-950/40"
+                                iconBg="bg-primary-50"
                                 iconColor="text-primary-600"
                                 label={t('sessions.totalSessions')}
                                 value={isLoading ? '—' : String(stats.totalCount)}
@@ -145,7 +145,7 @@ export default function PosSessionsPage() {
                             />
                             <StatCard
                                 icon={IconComponentsEnum.checkCircle}
-                                iconBg="bg-success-50 dark:bg-success-950/40"
+                                iconBg="bg-success-50"
                                 iconColor="text-success-600"
                                 label={t('sessions.openSessions')}
                                 value={isLoading ? '—' : String(stats.openCount)}
@@ -153,7 +153,7 @@ export default function PosSessionsPage() {
                             />
                             <StatCard
                                 icon={IconComponentsEnum.star}
-                                iconBg="bg-accent-50 dark:bg-accent-950/40"
+                                iconBg="bg-accent-50"
                                 iconColor="text-accent-600"
                                 label={t('sessions.cashCollected')}
                                 value={isLoading ? '—' : formatMoney(stats.totalCash)}

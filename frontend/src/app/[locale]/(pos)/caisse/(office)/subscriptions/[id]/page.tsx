@@ -174,12 +174,13 @@ export default function PosSubscriptionPage() {
         setShowErrors(false);
     }, [subscription]);
 
-    const status = subscription?.status ?? 'DRAFT';
-    const displayStatus = subscription ? subscriptionDisplayStatus(subscription) : 'DRAFT';
-    const editable = isNew || status === 'DRAFT';
+    const status = subscription?.status ?? 'ACTIVE';
+    const displayStatus = subscription ? subscriptionDisplayStatus(subscription) : 'ACTIVE';
     const hasPostedInvoice = !!subscription?.invoices.some(
         (invoice) => invoice.type === 'INVOICE' && invoice.status === 'POSTED',
     );
+    const hasPayments = !!(subscription && toAmount(subscription.amountPaid) > 0);
+    const editable = isNew || (status !== 'CANCELLED' && !hasPostedInvoice && !hasPayments);
 
     const selectedProduct: PosProduct | undefined = productList.find((product) => product.id === form?.productId);
 
@@ -281,17 +282,6 @@ export default function PosSubscriptionPage() {
         onError,
     });
 
-    const activateMutation = useMutation({
-        mutationFn: async (payload: SubscriptionInput | null) => {
-            if (payload) await updateSubscription(subscriptionId, payload);
-            return activateSubscription(subscriptionId);
-        },
-        onSuccess: () => {
-            refresh();
-            openToast(tCommon('success'), t('activated'), { type: EToastType.SUCCESS });
-        },
-        onError,
-    });
 
     const cancelMutation = useMutation({
         mutationFn: () => cancelSubscription(subscriptionId),
@@ -330,14 +320,6 @@ export default function PosSubscriptionPage() {
         if (payload) saveMutation.mutate(payload);
     };
 
-    const handleActivate = () => {
-        let payload: SubscriptionInput | null = null;
-        if (dirty) {
-            payload = buildPayload();
-            if (!payload) return;
-        }
-        activateMutation.mutate(payload);
-    };
 
     const handlePrint = () => {
         if (!subscription) return;
@@ -420,24 +402,12 @@ export default function PosSubscriptionPage() {
 
     const busy =
         saveMutation.isPending ||
-        activateMutation.isPending ||
         renewMutation.isPending ||
         cancelMutation.isPending;
     const title = subscription ? formatSubscriptionNumber(subscription.number) : t('newTitle');
 
     const actionButtons = (
         <Div className="flex flex-wrap gap-2">
-            {!isNew && status === 'DRAFT' ? (
-                <Button
-                    id="subscription-activate"
-                    type={dirty ? EButtonType.secondary : EButtonType.primary}
-                    size={EButtonSize.small}
-                    text={t('activate')}
-                    isLoading={activateMutation.isPending}
-                    disabled={busy}
-                    onClick={handleActivate}
-                />
-            ) : null}
             {subscription ? (
                 <Button
                     id="subscription-print"
@@ -484,7 +454,7 @@ export default function PosSubscriptionPage() {
                     onClick={() => open('cancel')}
                 />
             ) : null}
-            {subscription && isAdmin && (status === 'DRAFT' || status === 'CANCELLED') ? (
+            {subscription && isAdmin && !hasPostedInvoice && !hasPayments ? (
                 <Button
                     id="subscription-delete"
                     type={EButtonType.secondary}
@@ -500,7 +470,6 @@ export default function PosSubscriptionPage() {
     );
 
     const pipelineSteps = [
-        { key: 'DRAFT', label: t('statusDRAFT') },
         { key: 'ACTIVE', label: t('statusACTIVE') },
         { key: 'EXPIRED', label: t('statusEXPIRED') },
     ];

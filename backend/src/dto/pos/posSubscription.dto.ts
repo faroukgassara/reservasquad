@@ -89,7 +89,7 @@ export class FetchSubscriptionsDto {
   @IsUUID()
   clientId?: string;
 
-  @ApiPropertyOptional({ enum: ['true'], description: 'Draft or active subscriptions with an amount still due' })
+  @ApiPropertyOptional({ enum: ['true'], description: 'Active subscriptions with an amount still due' })
   @IsOptional()
   @IsIn(['true'])
   payable?: string;

@@ -60,7 +60,9 @@ export const POS_TAX_RATES = [0, 7, 19] as const;
 export interface PosProductStats {
     bought: number;
     sold: number;
+    soldOrdersCount?: number;
     remaining: number;
+    stock?: number;
 }
 
 export interface PosStockEntry {
@@ -658,6 +660,7 @@ export interface Subscription {
     amountPaid: Money;
     note: string | null;
     activatedAt: string | null;
+    remindedAt?: string | null;
     client: DocumentClient;
 }
 
@@ -714,7 +717,7 @@ export function subscriptionEndDate(startDate: string, duration: number, unit: S
 export function subscriptionDisplayStatus(
     subscription: Pick<Subscription, 'status' | 'endDate'>,
 ): SubscriptionDisplayStatus {
-    if (subscription.status !== 'ACTIVE') return subscription.status;
+    if (subscription.status === 'CANCELLED') return 'CANCELLED';
     const today = todayInput();
     const end = toDateInput(subscription.endDate);
     if (end < today) return 'EXPIRED';
@@ -766,6 +769,13 @@ export const renewSubscription = (id: string, startDate: string) =>
 
 export const deleteSubscription = (id: string) =>
     posDelete(`subscriptions/${id}`, 'Failed to delete subscription');
+
+export const remindSubscription = (id: string) =>
+    posPost<{ success: boolean; email: string; clientName: string; remindedAt?: string }>(
+        `subscriptions/${id}/remind`,
+        {},
+        "Échec de l'envoi du rappel d'abonnement",
+    );
 
 export type SubscriptionCardState = 'DRAFT' | 'CANCELLED' | 'UPCOMING' | 'VALID' | 'EXPIRED';
 

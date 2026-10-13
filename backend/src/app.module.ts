@@ -16,6 +16,7 @@ import { DailyIncomeModule } from './component/dailyIncome/daily-income.module';
 import { AuditModule } from './component/audit/audit.module';
 import { CreditModule } from './component/credit/credit.module';
 import { PosModule } from './component/pos/pos.module';
+import { AnalyticsModule } from './component/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PosModule } from './component/pos/pos.module';
     AuditModule,
     CreditModule,
     PosModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

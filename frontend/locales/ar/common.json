@@ -250,7 +250,10 @@
                 "POS_PRODUCT": "منتج نقطة البيع",
                 "POS_CATEGORY": "فئة نقطة البيع",
                 "POS_SESSION": "جلسة نقطة البيع",
-                "POS_ORDER": "طلب نقطة البيع"
+                "POS_ORDER": "طلب نقطة البيع",
+                "POS_SUBSCRIPTION": "اشتراك",
+                "POS_SALE_ORDER": "طلب بيع",
+                "POS_INVOICE": "فاتورة"
             },
             "actions": {
                 "CREATE": "إنشاء",
@@ -258,7 +261,9 @@
                 "DELETE": "حذف",
                 "CANCEL": "إلغاء",
                 "BULK_PAID": "دفع جماعي",
-                "SERIES_CREATE": "إنشاء سلسلة"
+                "SERIES_CREATE": "إنشاء سلسلة",
+                "RESTORE": "استعادة",
+                "HARD_DELETE": "حذف نهائي"
             }
         },
         "rooms": {
@@ -635,7 +640,8 @@
             "billing": "الفوترة",
             "products": "المنتجات",
             "categories": "الفئات",
-            "clients": "العملاء"
+            "clients": "العملاء",
+            "analytics": "التحليلات"
         },
         "dashboard": {
             "title": "نقطة البيع",
@@ -776,7 +782,7 @@
             "exportInventoryTitle": "جرد المخزون",
             "exportInventorySubtitle": "تصدير قائمة المنتجات مع كميات المخزون للقيام بالجرد الفعلي أو المحاسبي.",
             "exportPdf": "استمارة الجرد (PDF)",
-            "exportPdfDesc": "وثيقة جاهزة للطباعة مع خانات للعد الفعلي على الرفوف.",
+            "exportPdfDesc": "وثيقة جاهزة للطباعة مع صورة المنتج واسمه والكمية المتوفرة.",
             "exportCsv": "جدول Excel / CSV (.csv)",
             "exportCsvDesc": "ملف جدول بيانات متوافق مع Microsoft Excel و Google Sheets.",
             "exportScope": "كل المنتجات",
@@ -819,7 +825,9 @@
             "sessionNumber": "الجلسة رقم {number}",
             "orders": "الطلبات",
             "backend": "لوحة القيادة",
-            "closeSession": "إغلاق الصندوق",
+            "goToDashboard": "الحجوزات",
+            "goToCaisse": "مكتب الصندوق",
+            "closeSession": "إغلاق الجلسة",
             "mobileProducts": "المنتجات",
             "mobileOrder": "الطلب · {count} · {total}",
             "saleOrderSettleLine": "تسوية {number}",
@@ -1170,7 +1178,8 @@
             "baseAmount": "المبلغ الأساسي",
             "noTax": "بدون أداء",
             "memberCard": "بطاقة الاشتراك",
-            "memberCardHint": "امسح هذا الرمز لتحصل على بطاقتك في هاتفك وقدّمها في الاستقبال."
+            "memberCardHint": "امسح هذا الرمز لتحصل على بطاقتك في هاتفك وقدّمها في الاستقبال.",
+            "address": "العنوان"
         },
         "billing": {
             "quotations": "العروض",
@@ -1266,6 +1275,62 @@
             "addToOrder": "إضافة إلى الطلب",
             "pickCredit": "الديون الجارية",
             "creditCaption": "{date} · المجموع {total}"
+        },
+        "analytics": {
+            "title": "تحليلات مبيعات المنتجات",
+            "subtitle": "أداء المبيعات، الاتجاهات الشهرية وترتيب المنتجات الأكثر مبيعاً.",
+            "timeframe": "الفترة",
+            "preset30d": "آخر 30 يوماً",
+            "presetYtd": "هذا العام",
+            "presetAll": "كل الأوقات",
+            "presetCompare": "مقارنة سنوية",
+            "customRange": "مخصص",
+            "annualComparisonTitle": "مقارنة سنوية (شهراً بشهر)",
+            "annualComparisonSubtitle": "عرض مقارن لنفس الشهر عبر جميع السنوات المتاحة.",
+            "metricRevenue": "الإيرادات",
+            "metricUnits": "الوحدات المباعة",
+            "metricOrders": "الطلبات",
+            "yoyGrowth": "النمو السنوي YoY",
+            "month": "الشهر",
+            "annualTotal": "المجموع السنوي",
+            "monthlyAverage": "المعدل الشهري",
+            "bestMonth": "أفضل شهر",
+            "highestGrowth": "أعلى نمو",
+            "vsPreviousYear": "مقارنة بالسنة السابقة",
+            "chartTypeLines": "خطوط",
+            "chartTypeBars": "أعمدة",
+            "tableView": "جدول",
+            "cardsView": "بطاقات",
+            "noDataAvailable": "لا توجد بيانات متاحة لهذا التحديد",
+            "startDate": "تاريخ البدء",
+            "endDate": "تاريخ الانتهاء",
+            "apply": "تطبيق",
+            "reset": "إعادة تعيين",
+            "totalRevenue": "إجمالي الإيرادات",
+            "totalUnitsSold": "الوحدات المباعة",
+            "totalOrders": "الطلبات",
+            "productsSold": "المنتجات المباعة",
+            "salesTrend": "اتجاهات المبيعات الشهرية",
+            "salesTrendDaily": "اتجاه المبيعات اليومي (آخر 30 يوماً)",
+            "allCategories": "جميع الفئات",
+            "revenueTrend": "تطور الإيرادات",
+            "unitsTrend": "تطور كميات البيع",
+            "topSellingProducts": "المنتجات الأكثر مبيعاً",
+            "byUnits": "حسب الكمية",
+            "byRevenue": "حسب الإيرادات",
+            "rank": "الترتيب",
+            "product": "المنتج",
+            "category": "الفئة",
+            "price": "السعر",
+            "unitsSold": "الوحدات",
+            "revenue": "الإيراد",
+            "percentOfCatalog": "% من المبيعات",
+            "productBreakdown": "تفاصيل المنتج",
+            "breakdownSubtitle": "أداء المبيعات الشهري للمنتج المحدد",
+            "clearFilter": "عرض كل المنتجات",
+            "stock": "المخزون",
+            "noData": "لا توجد مبيعات مسجلة في هذه الفترة",
+            "filterByProduct": "تصفية حسب المنتج..."
         }
     },
     "subscriptionCard": {

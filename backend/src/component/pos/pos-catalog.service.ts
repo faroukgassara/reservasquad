@@ -14,6 +14,7 @@ import {
 } from 'src/dto/pos/posCatalog.dto';
 import { AuditService } from '../audit/audit.service';
 import { POS_AUDIT, round3 } from './pos.utils';
+import { formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const CATEGORY_IMAGES_TYPE = 'pos-categories';
 const PRODUCT_IMAGES_TYPE = 'pos-products';
@@ -104,7 +105,7 @@ export class PosCatalogService {
         imageUrl: await this.resolveImage(CATEGORY_IMAGES_TYPE, dto.imageUrl),
       },
     });
-    await this.log(POS_AUDIT.category, category.id, 'CREATE', `Created POS category ${category.name}`, actorId);
+    await this.log(POS_AUDIT.category, category.id, 'CREATE', `Catégorie caisse "${category.name}" créée`, actorId);
     return category;
   }
 
@@ -118,7 +119,7 @@ export class PosCatalogService {
       data.imageUrl = await this.resolveImage(CATEGORY_IMAGES_TYPE, dto.imageUrl);
     }
     const category = await this.prismaService.posCategory.update({ where: { id }, data });
-    await this.log(POS_AUDIT.category, category.id, 'UPDATE', `Updated POS category ${category.name}`, actorId);
+    await this.log(POS_AUDIT.category, category.id, 'UPDATE', `Catégorie caisse "${category.name}" modifiée`, actorId);
     return category;
   }
 
@@ -134,7 +135,7 @@ export class PosCatalogService {
         data: { categoryId: null },
       }),
     ]);
-    await this.log(POS_AUDIT.category, category.id, 'DELETE', `Deleted POS category ${category.name}`, actorId);
+    await this.log(POS_AUDIT.category, category.id, 'DELETE', `Catégorie caisse "${category.name}" supprimée`, actorId);
     return category;
   }
 
@@ -224,7 +225,7 @@ export class PosCatalogService {
         ...period,
       },
     });
-    await this.log(POS_AUDIT.product, product.id, 'CREATE', `Created POS product ${product.name}`, actorId);
+    await this.log(POS_AUDIT.product, product.id, 'CREATE', `Produit caisse "${product.name}" créé · Prix : ${formatAuditMoney(product.price)}`, actorId);
     return product;
   }
 
@@ -250,7 +251,7 @@ export class PosCatalogService {
       data.imageUrl = await this.resolveImage(PRODUCT_IMAGES_TYPE, dto.imageUrl);
     }
     const product = await this.prismaService.posProduct.update({ where: { id }, data });
-    await this.log(POS_AUDIT.product, product.id, 'UPDATE', `Updated POS product ${product.name}`, actorId);
+    await this.log(POS_AUDIT.product, product.id, 'UPDATE', `Produit caisse "${product.name}" modifié · Prix : ${formatAuditMoney(product.price)}`, actorId);
     return product;
   }
 
@@ -260,16 +261,69 @@ export class PosCatalogService {
       where: { id },
       data: { deletedAt: new Date() },
     });
-    await this.log(POS_AUDIT.product, product.id, 'DELETE', `Deleted POS product ${product.name}`, actorId);
+    await this.log(POS_AUDIT.product, product.id, 'DELETE', `Produit caisse "${product.name}" supprimé`, actorId);
     return product;
   }
 
   async getProductStats(id: string) {
     const product = await this.getProductById(id);
     const stock = round3(Number(product.stockQty));
+
+    const [stockEntriesSum, posLines, creditSales, saleOrderSales] = await Promise.all([
+      this.prismaService.posStockEntry.aggregate({
+        where: { productId: id },
+        _sum: { quantity: true },
+      }),
+      this.prismaService.posOrderLine.findMany({
+        where: { productId: id },
+        select: {
+          quantity: true,
+          orderId: true,
+          order: { select: { id: true, status: true } },
+        },
+      }),
+      this.prismaService.credit.findMany({
+        where: { productId: id, deletedAt: null },
+        select: { id: true, quantity: true },
+      }),
+      this.prismaService.saleOrderLine.findMany({
+        where: { productId: id, saleOrder: { status: 'CONFIRMED' } },
+        select: { id: true, quantity: true, saleOrderId: true },
+      }),
+    ]);
+
+    const bought = round3(Number(stockEntriesSum._sum.quantity ?? 0));
+
+    let posSoldQty = 0;
+    const paidOrderIds = new Set<string>();
+    for (const line of posLines) {
+      posSoldQty += Number(line.quantity) || 0;
+      if (line.order?.status === 'PAID') {
+        paidOrderIds.add(line.orderId);
+      }
+    }
+
+    let creditSoldQty = 0;
+    for (const credit of creditSales) {
+      creditSoldQty += Number(credit.quantity) || 0;
+    }
+
+    let saleOrderSoldQty = 0;
+    const saleOrderIds = new Set<string>();
+    for (const line of saleOrderSales) {
+      saleOrderSoldQty += Number(line.quantity) || 0;
+      if (line.saleOrderId) {
+        saleOrderIds.add(line.saleOrderId);
+      }
+    }
+
+    const sold = Math.max(0, round3(posSoldQty + creditSoldQty + saleOrderSoldQty));
+    const soldOrdersCount = paidOrderIds.size + creditSales.length + saleOrderIds.size;
+
     return {
-      bought: 0,
-      sold: 0,
+      bought,
+      sold,
+      soldOrdersCount,
       remaining: stock,
       stock,
     };
@@ -306,7 +360,7 @@ export class PosCatalogService {
       POS_AUDIT.product,
       productId,
       'UPDATE',
-      `Added ${dto.quantity} units to stock of ${product.name}`,
+      `Ajout de ${dto.quantity} unité(s) au stock de "${product.name}"`,
       actorId,
     );
     return entry;

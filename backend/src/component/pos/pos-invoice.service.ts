@@ -19,6 +19,7 @@ import {
   sumBy,
   toDateOnly,
 } from './pos.utils';
+import { formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const userSelect = { id: true, firstName: true, lastName: true } satisfies Prisma.UserSelect;
 const clientSelect = {
@@ -189,7 +190,7 @@ export class PosInvoiceService {
     const invoice = await this.prismaService.invoice.create({
       data: { ...fields, lines: { create: lines } },
     });
-    await this.log(invoice.id, 'CREATE', 'Created draft invoice', actorId);
+    await this.log(invoice.id, 'CREATE', `Facture brouillon créée · Montant : ${formatAuditMoney(invoice.total)}`, actorId);
     return this.getById(invoice.id);
   }
 
@@ -208,7 +209,7 @@ export class PosInvoiceService {
         data: { ...fields, lines: { create: lines } },
       }),
     ]);
-    await this.log(id, 'UPDATE', 'Updated draft invoice', actorId);
+    await this.log(id, 'UPDATE', `Facture brouillon modifiée · Montant : ${formatAuditMoney(fields.total)}`, actorId);
     return this.getById(id);
   }
 
@@ -246,7 +247,7 @@ export class PosInvoiceService {
       throw new BadRequestException('Delete the payments before resetting to draft');
     }
     await this.prismaService.invoice.update({ where: { id }, data: { status: 'DRAFT' } });
-    await this.log(id, 'UPDATE', 'Invoice reset to draft', actorId);
+    await this.log(id, 'UPDATE', 'Facture remise en brouillon', actorId);
     return this.getById(id);
   }
 
@@ -257,7 +258,7 @@ export class PosInvoiceService {
       throw new BadRequestException('Delete the payments before cancelling');
     }
     await this.prismaService.invoice.update({ where: { id }, data: { status: 'CANCELLED' } });
-    await this.log(id, 'UPDATE', 'Invoice cancelled', actorId);
+    await this.log(id, 'UPDATE', 'Facture annulée', actorId);
     return this.getById(id);
   }
 
@@ -270,7 +271,7 @@ export class PosInvoiceService {
       throw new BadRequestException('Delete the payments first');
     }
     await this.prismaService.invoice.update({ where: { id }, data: { deletedAt: new Date() } });
-    await this.log(id, 'DELETE', 'Deleted invoice', actorId);
+    await this.log(id, 'DELETE', 'Facture supprimée', actorId);
     return { id };
   }
 
@@ -287,7 +288,7 @@ export class PosInvoiceService {
         data: { amountPaid: { decrement: payment.amount } },
       }),
     ]);
-    await this.log(payment.invoiceId, 'UPDATE', `Payment of ${payment.amount.toString()} deleted`, actorId);
+    await this.log(payment.invoiceId, 'UPDATE', `Paiement de ${formatAuditMoney(payment.amount)} supprimé`, actorId);
     return this.getById(payment.invoiceId);
   }
 
@@ -316,7 +317,7 @@ export class PosInvoiceService {
     await this.log(
       creditNote.id,
       'CREATE',
-      `Credit note created for ${formatInvoiceNumber(invoice.type, invoice.year, invoice.sequence)}`,
+      `Avoir créé pour ${formatInvoiceNumber(invoice.type, invoice.year, invoice.sequence)} · Montant : ${formatAuditMoney(creditNote.total)}`,
       actorId,
     );
     return this.getById(creditNote.id);

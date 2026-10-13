@@ -123,6 +123,7 @@ enum IconComponentsEnum {
     edit = 'edit',
     filter = 'filter',
     logOut = 'logOut',
+    lock = 'lock',
     trash = 'trash',
     userCheck = 'userCheck',
     clock = 'clock',
