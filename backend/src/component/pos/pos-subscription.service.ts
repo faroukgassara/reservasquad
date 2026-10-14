@@ -416,6 +416,204 @@ export class PosSubscriptionService {
   }
 
   /**
+   * Automatic background job: checks daily for active subscriptions expiring tomorrow (J-1).
+   * Only sends the reminder email if a reminder has NOT already been sent manually or previously (remindedAt is null).
+   * Includes database query with range filter, defensive condition checks (client & valid email),
+   * email rendering & dispatch, database status update (remindedAt = now), and audit logging.
+   */
+  async processAutomaticExpirationReminders() {
+    const today = todayDateOnly();
+    const tomorrow = addDays(today, 1);
+    const tomorrowEnd = new Date(
+      Date.UTC(
+        tomorrow.getUTCFullYear(),
+        tomorrow.getUTCMonth(),
+        tomorrow.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+
+    const targetDateStr = tomorrow.toISOString().split('T')[0];
+    this.logger.log(
+      `[CRON SUBSCRIPTION REMINDER] Checking active subscriptions expiring tomorrow (${targetDateStr} - J-1)...`,
+    );
+
+    // 1. Database query: ACTIVE, non-deleted subscriptions expiring tomorrow with remindedAt == null
+    const expiringSubscriptions = await this.prismaService.subscription.findMany({
+      where: {
+        status: 'ACTIVE',
+        deletedAt: null,
+        remindedAt: null,
+        endDate: {
+          gte: tomorrow,
+          lte: tomorrowEnd,
+        },
+      },
+      include: {
+        client: { select: clientSelect },
+      },
+      orderBy: {
+        number: 'asc',
+      },
+    });
+
+    const totalFound = expiringSubscriptions.length;
+    let sentCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
+
+    const details: Array<{
+      id: string;
+      subscriptionNumber: string;
+      clientName: string;
+      email?: string;
+      status: 'SENT' | 'SKIPPED' | 'FAILED';
+      reason?: string;
+    }> = [];
+
+    const frontUrl = (this.config?.FRONT_URL || process.env.FRONT_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const fromAddress = this.config?.SMTP_SEND || process.env.SMTP_SEND || 'coworking-space@bibliosquad.com';
+
+    for (const subscription of expiringSubscriptions) {
+      const subNumber = formatSubscriptionNumber(subscription.number);
+      const client = subscription.client;
+
+      // Condition Check 1: Client must exist
+      if (!client) {
+        this.logger.warn(`[CRON] Subscription ${subNumber} skipped: missing client association.`);
+        skippedCount++;
+        details.push({
+          id: subscription.id,
+          subscriptionNumber: subNumber,
+          clientName: 'Inconnu',
+          status: 'SKIPPED',
+          reason: 'Client association not found',
+        });
+        continue;
+      }
+
+      const clientName = `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'Client';
+      const email = client.email?.trim();
+
+      // Condition Check 2: Valid email check
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
+        this.logger.warn(
+          `[CRON] Subscription ${subNumber} for "${clientName}" skipped: invalid or missing email address (${email || 'none'}).`,
+        );
+        skippedCount++;
+        details.push({
+          id: subscription.id,
+          subscriptionNumber: subNumber,
+          clientName,
+          email,
+          status: 'SKIPPED',
+          reason: 'Missing or invalid email',
+        });
+        continue;
+      }
+
+      // Condition Check 3: Ensure not already reminded (defensive double-check)
+      if (subscription.remindedAt) {
+        skippedCount++;
+        details.push({
+          id: subscription.id,
+          subscriptionNumber: subNumber,
+          clientName,
+          email,
+          status: 'SKIPPED',
+          reason: 'Reminder already sent',
+        });
+        continue;
+      }
+
+      try {
+        const cardUrl = subscription.cardToken
+          ? `${frontUrl}/api/public/subscription-cards/${subscription.cardToken}`
+          : `${frontUrl}/caisse/subscriptions/${subscription.id}`;
+
+        const html = await this.fileUploadService.renderTemplate(
+          {
+            clientName,
+            subscriptionNumber: subNumber,
+            productName: subscription.productName,
+            startDate: formatAuditDate(subscription.startDate),
+            endDate: formatAuditDate(subscription.endDate),
+            daysLeftText: 'Expire demain (dans 1 jour)',
+            cardUrl,
+            frontUrl,
+          },
+          'subscriptionReminderClient.ejs',
+        );
+
+        await this.emailService.sendMail({
+          to: email,
+          from: fromAddress,
+          subject: `Rappel d'échéance : votre abonnement Biblio Squad expire demain (${subNumber})`,
+          template: html,
+          attachments: [this.emailService.getBiblioSquadLogoAttachment()],
+        });
+
+        // Update database: set remindedAt timestamp
+        const now = new Date();
+        await this.prismaService.subscription.update({
+          where: { id: subscription.id },
+          data: { remindedAt: now },
+        });
+
+        // Audit trail logging
+        await this.log(
+          subscription.id,
+          'UPDATE',
+          `[AUTOMATIQUE] Rappel J-1 envoyé avec succès à ${clientName} (${email}) pour l'abonnement N° ${subNumber}`,
+        );
+
+        sentCount++;
+        details.push({
+          id: subscription.id,
+          subscriptionNumber: subNumber,
+          clientName,
+          email,
+          status: 'SENT',
+        });
+
+        this.logger.log(`[CRON] Reminder sent to ${clientName} (${email}) for subscription ${subNumber}.`);
+      } catch (err: unknown) {
+        failedCount++;
+        const errMsg = err instanceof Error ? err.message : String(err);
+        this.logger.error(
+          `[CRON] Failed to send reminder email for subscription ${subNumber} (${email}): ${errMsg}`,
+        );
+        details.push({
+          id: subscription.id,
+          subscriptionNumber: subNumber,
+          clientName,
+          email,
+          status: 'FAILED',
+          reason: errMsg,
+        });
+      }
+    }
+
+    this.logger.log(
+      `[CRON SUBSCRIPTION REMINDER] Completed: ${totalFound} eligible subscription(s), ${sentCount} sent, ${skippedCount} skipped, ${failedCount} failed.`,
+    );
+
+    return {
+      executionDate: new Date(),
+      targetDate: tomorrow,
+      totalFound,
+      sentCount,
+      skippedCount,
+      failedCount,
+      details,
+    };
+  }
+
+  /**
    * Sends confirmation / renewal email to client if valid email is present.
    * If client has no email, logs warning and proceeds without error.
    * Never throws or blocks subscription lifecycle.

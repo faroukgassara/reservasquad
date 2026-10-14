@@ -19,6 +19,7 @@ import { PosReportService } from './pos-report.service';
 import { PosSubscriptionController } from './pos-subscription.controller';
 import { PosSubscriptionCardController } from './pos-subscription-card.controller';
 import { PosSubscriptionService } from './pos-subscription.service';
+import { SubscriptionReminderCronService } from './subscription-reminder.cron';
 
 @Module({
   imports: [PrismaModule, AuditModule, DailyIncomeModule, EmailModule],
@@ -40,6 +41,7 @@ import { PosSubscriptionService } from './pos-subscription.service';
     PosInvoiceService,
     PosReportService,
     PosSubscriptionService,
+    SubscriptionReminderCronService,
     FileUploadService,
   ],
 })

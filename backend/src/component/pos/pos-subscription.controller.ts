@@ -74,6 +74,18 @@ export class PosSubscriptionController {
     }
   }
 
+  @Post('reminders/run-cron')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Manually trigger automatic J-1 subscription expiration reminders' })
+  async triggerCron(@Res() res: Response) {
+    try {
+      const data = await this.subscriptionService.processAutomaticExpirationReminders();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get(':id')
   @swagger.ApiOperation({ summary: 'Subscription detail' })
   async getOne(@Res() res: Response, @Param('id') id: string) {
