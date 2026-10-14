@@ -178,8 +178,11 @@ export class PosSessionService {
 
   async close(id: string, dto: ClosePosSessionDto, actorId?: string) {
     await this.getOpenSessionOrThrow(id);
-    const { expectedCash, revenue } = await this.getSummary(id);
-    const difference = round3(dto.countedCash - expectedCash);
+    const { expectedCash, revenue, openingCash } = await this.getSummary(id);
+    const difference =
+      Math.abs(dto.countedCash - openingCash) <= Math.abs(dto.countedCash - expectedCash)
+        ? round3(dto.countedCash - openingCash)
+        : round3(dto.countedCash - expectedCash);
     const shouldSyncDailyIncome = Boolean(dto.syncDailyIncome);
     const { session, dailyIncome } = await this.prismaService.$transaction(async (tx) => {
       const session = await tx.posSession.update({

@@ -28,6 +28,9 @@ const Sidebar = ({
     className = "",
     ...props
 }: ISidebar) => {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     const sidebarValue = useMemo(
         () => ({ open, setOpen, isMobile }),
         [open, setOpen, isMobile],
@@ -39,9 +42,10 @@ const Sidebar = ({
                 {...props}
                 className={twMerge(
                     [
-                        "flex h-dvh shrink-0 flex-col overflow-x-hidden overflow-y-visible transition-all duration-200",
+                        "flex h-dvh max-h-dvh shrink-0 flex-col overflow-hidden",
+                        mounted && "transition-[width,background-color] duration-200 ease-in-out",
                         className,
-                        !open && !isMobile ? "bg-primary-900" : "bg-white",
+                        !open ? "bg-primary-900" : "bg-white",
                     ]
                         .filter((c): c is string => Boolean(c))
                         .join(" ")
@@ -57,15 +61,15 @@ const SidebarHeader = ({
     className = "",
     ...props
 }: ISidebarHeader) => {
-    const { open, isMobile } = useSidebar();
-    const isExpanded = isMobile ? true : open;
+    const { open } = useSidebar();
+    const isExpanded = open;
 
     return (
         <div
             id="sidebar-header"
             {...props}
             className={twMerge(
-                "sticky top-0 z-10 flex items-center",
+                "shrink-0 flex items-center",
                 isExpanded ? "justify-between" : "justify-center",
                 className,
             )}
@@ -80,7 +84,7 @@ const SidebarContent = ({
 }: ISidebarContent) => {
     const { open, setOpen, isMobile } = useSidebar();
     const pathname = usePathname();
-    const isExpanded = isMobile ? true : open;
+    const isExpanded = open;
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
     useEffect(() => {
@@ -142,7 +146,7 @@ const SidebarContent = ({
             id="sidebar-content"
             {...props}
             className={twMerge(
-                "flex-1 overflow-y-auto",
+                "min-h-0 flex-1 overflow-y-auto",
                 isExpanded ? "sidebar-scroll" : "sidebar-scroll-dark flex flex-col items-center",
                 className,
             )}
@@ -264,8 +268,8 @@ const SidebarContent = ({
 };
 
 const SidebarFooter = ({ className = "", ...props }: ISidebarFooter) => {
-    const { open, isMobile } = useSidebar();
-    const isExpanded = isMobile ? true : open;
+    const { open } = useSidebar();
+    const isExpanded = open;
 
     return (
         <div
@@ -273,7 +277,7 @@ const SidebarFooter = ({ className = "", ...props }: ISidebarFooter) => {
             {...props}
             className={twMerge(
                 [
-                    "sticky bottom-0 z-20 border-t transition-colors duration-200",
+                    "shrink-0 border-t transition-colors duration-200",
                     isExpanded
                         ? "border-gray-100 bg-white"
                         : "flex flex-col items-center gap-3 border-primary-800 bg-transparent",
@@ -288,7 +292,7 @@ const SidebarFooter = ({ className = "", ...props }: ISidebarFooter) => {
 
 const SidebarTrigger = ({ className, ...props }: ISidebarTrigger) => {
     const { open, setOpen, isMobile } = useSidebar();
-    const isCollapsedDesktop = !isMobile && !open;
+    const isCollapsedDesktop = !open;
 
     let triggerAriaLabel = "Ouvrir le menu";
     if (isMobile) {

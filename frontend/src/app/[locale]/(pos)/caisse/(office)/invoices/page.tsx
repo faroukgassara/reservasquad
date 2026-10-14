@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
@@ -13,6 +14,7 @@ import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Label from '@/components/Primitives/Label/Label';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { formatMoney } from '@/lib/daily-income-api';
 import {
     fetchInvoices,
@@ -38,6 +40,9 @@ export default function PosInvoicesPage() {
     const t = useTranslations('pos.invoices');
     const tCommon = useTranslations('common');
     const router = useRouter();
+    const { status: authStatus } = useSession();
+    const { isAllowed } = useAuthorization();
+    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [type, setType] = useState<'all' | InvoiceType>('all');
@@ -45,6 +50,12 @@ export default function PosInvoicesPage() {
     const [paymentState, setPaymentState] = useState<'all' | InvoicePaymentState>('all');
     const [filtersOpen, setFiltersOpen] = useState(false);
     const hasActiveFilters = type !== 'all' || status !== 'all' || paymentState !== 'all';
+
+    useEffect(() => {
+        if (authStatus !== 'loading' && !isAdmin) {
+            router.replace(Routes.Pos.index);
+        }
+    }, [authStatus, isAdmin, router]);
 
     const { data, isLoading } = useQuery({
         queryKey: ['invoices', page, search, type, status, paymentState],
@@ -57,6 +68,7 @@ export default function PosInvoicesPage() {
                 status: status === 'all' ? undefined : status,
                 paymentState: paymentState === 'all' ? undefined : paymentState,
             }),
+        enabled: isAdmin,
     });
 
     const columns = useMemo((): ITableColumn<Invoice>[] => {
@@ -176,6 +188,10 @@ export default function PosInvoicesPage() {
     const totalUntaxed = useMemo(() => rows.reduce((sum, r) => sum + toAmount(r.untaxed), 0), [rows]);
     const totalAmount = useMemo(() => rows.reduce((sum, r) => sum + toAmount(r.total), 0), [rows]);
     const resetPage = () => setPage(1);
+
+    if (authStatus === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <LayoutWrapper

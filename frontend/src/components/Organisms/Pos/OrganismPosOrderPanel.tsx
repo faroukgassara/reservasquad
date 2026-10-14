@@ -91,8 +91,8 @@ export default function OrganismPosOrderPanel({
             {
                 value: NUMPAD_BACKSPACE,
                 label: '⌫',
-                accent: true,
-                className: 'bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white border-0 font-bold shadow-2xs',
+                type: EButtonType.primary,
+                className: 'bg-accent-500 hover:bg-accent-600 active:bg-accent-700 focus:bg-accent-500 focus:text-white focus:border-0 focus:outline-none text-white border-0 font-bold shadow-2xs',
             },
         ],
     ];

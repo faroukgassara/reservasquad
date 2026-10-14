@@ -10,7 +10,7 @@ import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageS
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
-import { Routes } from '@/lib/routes';
+import { homePathForRole, Routes } from '@/lib/routes';
 
 interface IOrganismPosRegisterBar {
     sessionNumber: number;
@@ -37,75 +37,79 @@ export default function OrganismPosRegisterBar({
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 
     return (
-        <header className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-3 py-2 sm:px-4">
-            <Link href={Routes.Pos.index} className="hidden shrink-0 items-center min-[400px]:flex">
-                <BrandLogo
-                    alt={tCommon('brandLogoAlt')}
-                    height={26}
-                    className="w-auto object-contain"
-                    priority
-                />
-            </Link>
+        <header className="flex w-full shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-3 py-2 sm:px-4">
+            {/* Left section: Logo + Tabs */}
+            <Div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                <Link href={Routes.Pos.index} className="hidden shrink-0 items-center min-[400px]:flex">
+                    <BrandLogo
+                        alt={tCommon('brandLogoAlt')}
+                        height={26}
+                        className="w-auto object-contain"
+                        priority
+                    />
+                </Link>
 
-            <Div className="hidden h-6 w-px bg-gray-200 sm:block" />
+                <Div className="hidden h-6 w-px bg-gray-200 sm:block" />
 
-            <nav className="flex min-w-0 items-center gap-1 rounded-xl bg-gray-100 p-1">
-                <Div className={`${TAB_BASE} bg-white shadow-sm`}>
-                    <Icon name={IconComponentsEnum.shoppingCart} size={ESize.sm} color="text-primary-500" />
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="hidden font-semibold sm:inline">
-                        {t('registerTab')}
-                    </Label>
-                </Div>
-                <button
-                    id="pos-register-orders"
-                    type="button"
-                    onClick={onOrders}
-                    aria-label={t('orders')}
-                    className={`${TAB_BASE} hover:bg-white/70 cursor-pointer`}
-                >
-                    <Icon name={IconComponentsEnum.filetext} size={ESize.sm} color="text-gray-500" />
-                    <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="hidden font-medium sm:inline">
-                        {t('orders')}
-                    </Label>
-                    {ordersCount > 0 ? (
-                        <Label
-                            variant={EVariantLabel.caption}
-                            color="text-white"
-                            className="min-w-5 rounded-full bg-primary-500 px-1.5 text-center font-semibold"
-                        >
-                            {ordersCount}
+                <nav className="flex shrink-0 items-center gap-1 rounded-xl bg-gray-100 p-1">
+                    <Div className={`${TAB_BASE} bg-white shadow-sm`}>
+                        <Icon name={IconComponentsEnum.shoppingCart} size={ESize.sm} color="text-primary-500" />
+                        <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="hidden font-semibold sm:inline">
+                            {t('registerTab')}
                         </Label>
-                    ) : null}
-                </button>
-            </nav>
+                    </Div>
+                    <button
+                        id="pos-register-orders"
+                        type="button"
+                        onClick={onOrders}
+                        aria-label={t('orders')}
+                        className={`${TAB_BASE} hover:bg-white/70 cursor-pointer`}
+                    >
+                        <Icon name={IconComponentsEnum.filetext} size={ESize.sm} color="text-gray-500" />
+                        <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="hidden font-medium sm:inline">
+                            {t('orders')}
+                        </Label>
+                        {ordersCount > 0 ? (
+                            <Label
+                                variant={EVariantLabel.caption}
+                                color="text-white"
+                                className="min-w-5 rounded-full bg-primary-500 px-1.5 text-center font-semibold"
+                            >
+                                {ordersCount}
+                            </Label>
+                        ) : null}
+                    </button>
+                </nav>
+            </Div>
 
-            <Div className="ms-auto flex shrink-0 items-center gap-2">
-                <Div className="hidden items-center gap-2 rounded-full border border-success-200 bg-success-50 px-3 py-1 md:flex">
+            {/* Right section: Session info, Controls, Action buttons & Avatar */}
+            <Div className="flex shrink-0 items-center gap-2">
+                <Div className="hidden items-center gap-2 rounded-full border border-success-200 bg-success-50 px-3 py-1 lg:flex shrink-0">
                     <span className="size-2 rounded-full bg-success-500" />
-                    <Label variant={EVariantLabel.caption} color="text-success-700" className="font-medium">
+                    <Label variant={EVariantLabel.caption} color="text-success-700" className="font-medium whitespace-nowrap">
                         {t('sessionNumber', { number: sessionNumber })}
                     </Label>
                 </Div>
 
-                <Div className="hidden items-center gap-2 sm:flex">
+                <Div className="hidden items-center gap-2 md:flex shrink-0">
                     <LanguageSwitcher menuPlacement="top" className="w-auto" />
                     <ThemeToggle />
                 </Div>
 
-                <Div className="hidden h-5 w-px bg-gray-200 sm:block" />
+                <Div className="hidden h-5 w-px bg-gray-200 md:block" />
 
                 {/* Explicit action buttons: Réservations, Bureau caisse & Clôturer la session */}
-                <Div className="flex items-center gap-2">
-                    {/* Link to /dashboard (Reservations dashboard) */}
+                <Div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    {/* Link to /dashboard (Reservations dashboard for ADMIN) or /today (for USER) */}
                     <Link
                         id="pos-register-link-dashboard"
-                        href={Routes.Dashboard}
+                        href={homePathForRole(session?.user?.role)}
                         title={t('goToDashboard')}
                         aria-label={t('goToDashboard')}
-                        className="inline-flex h-9 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-2.5 sm:px-3 text-xs font-semibold text-gray-700 shadow-2xs transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
                     >
                         <Icon name={IconComponentsEnum.calendar} size={ESize.xs} color="text-gray-600" />
-                        <span className="hidden sm:inline">{t('goToDashboard')}</span>
+                        <span className="hidden xl:inline">{t('goToDashboard')}</span>
                     </Link>
 
                     {/* Neutral Link to /caisse */}
@@ -114,10 +118,10 @@ export default function OrganismPosRegisterBar({
                         href={Routes.Pos.index}
                         title={t('goToCaisse')}
                         aria-label={t('goToCaisse')}
-                        className="inline-flex h-9 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-2xs transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-2.5 sm:px-3 text-xs font-semibold text-gray-700 shadow-2xs transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
                     >
                         <Icon name={IconComponentsEnum.layers} size={ESize.xs} color="text-gray-600" />
-                        <span className="hidden sm:inline">{t('goToCaisse')}</span>
+                        <span className="hidden xl:inline">{t('goToCaisse')}</span>
                     </Link>
 
                     {/* Distinct Close session button */}
@@ -127,7 +131,7 @@ export default function OrganismPosRegisterBar({
                         onClick={onCloseSession}
                         title={t('closeSession')}
                         aria-label={t('closeSession')}
-                        className="inline-flex h-9 items-center gap-2 rounded-xl border border-danger-200 bg-danger-50 px-3 text-xs font-semibold text-danger-700 shadow-2xs transition-all hover:border-danger-300 hover:bg-danger-100 hover:text-danger-800 cursor-pointer"
+                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-danger-200 bg-danger-50 px-2.5 sm:px-3 text-xs font-semibold text-danger-700 shadow-2xs transition-all hover:border-danger-300 hover:bg-danger-100 hover:text-danger-800 cursor-pointer"
                     >
                         <Icon name={IconComponentsEnum.lock} size={ESize.xs} color="text-danger-600" />
                         <span className="hidden sm:inline">{t('closeSession')}</span>

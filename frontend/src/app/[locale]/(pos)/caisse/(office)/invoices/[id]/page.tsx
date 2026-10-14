@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -108,6 +109,7 @@ export default function PosInvoicePage() {
     const invoiceId = params.id;
     const isNew = invoiceId === 'new';
     const router = useRouter();
+    const { status: authStatus } = useSession();
     const queryClient = useQueryClient();
     const { openToast } = useToast();
     const pdfLabels = usePosPdfLabels();
@@ -130,15 +132,22 @@ export default function PosInvoicePage() {
     const [dirty, setDirty] = useState(false);
     const [showErrors, setShowErrors] = useState(false);
 
+    useEffect(() => {
+        if (authStatus !== 'loading' && !isAdmin) {
+            router.replace(Routes.Pos.index);
+        }
+    }, [authStatus, isAdmin, router]);
+
     const { data: invoice, isLoading } = useQuery({
         queryKey: ['invoice', invoiceId],
         queryFn: () => fetchInvoice(invoiceId),
-        enabled: !isNew,
+        enabled: isAdmin && !isNew,
     });
 
     const { data: products } = useQuery({
         queryKey: ['pos-products', 'documents'],
         queryFn: () => fetchPosProducts({ page: 1, perPage: 100 }),
+        enabled: isAdmin,
     });
 
     useEffect(() => {
@@ -418,6 +427,10 @@ export default function PosInvoicePage() {
     const loading = !form || (!isNew && (isLoading || !invoice));
 
     const creditNote = invoice?.creditNotes.find((note) => note.status !== 'CANCELLED') ?? invoice?.creditNotes[0];
+
+    if (authStatus === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <>

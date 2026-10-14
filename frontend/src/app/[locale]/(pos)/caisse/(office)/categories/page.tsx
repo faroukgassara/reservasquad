@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -14,6 +16,7 @@ import PosCategoryFormModal, {
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
+import { Routes } from '@/lib/routes';
 import {
     createPosCategory,
     deletePosCategory,
@@ -32,6 +35,8 @@ type ModalState =
 export default function PosCategoriesPage() {
     const t = useTranslations('pos.categories');
     const tCommon = useTranslations('common');
+    const router = useRouter();
+    const { status: authStatus } = useSession();
     const { isAllowed } = useAuthorization();
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const queryClient = useQueryClient();
@@ -42,9 +47,16 @@ export default function PosCategoriesPage() {
         closeCallBack: () => setModalState(null),
     });
 
+    useEffect(() => {
+        if (authStatus !== 'loading' && !isAdmin) {
+            router.replace(Routes.Pos.index);
+        }
+    }, [authStatus, isAdmin, router]);
+
     const { data: categories = [], isLoading } = useQuery({
         queryKey: ['pos-categories'],
         queryFn: fetchPosCategories,
+        enabled: isAdmin,
     });
 
     const invalidate = () => {
@@ -185,6 +197,10 @@ export default function PosCategoriesPage() {
         }
         return null;
     };
+
+    if (authStatus === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <>

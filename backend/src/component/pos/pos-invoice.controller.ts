@@ -20,7 +20,7 @@ import { validateBody } from './pos.utils';
 
 @swagger.ApiTags('pos-invoice-backoffice')
 @Controller('backoffice/pos/invoices')
-@Roles({ roles: ['ADMIN', 'USER'] })
+@Roles({ roles: ['ADMIN'] })
 @ApiBearerAuth('Authorization')
 @openApiResponse(
   { status: HttpStatus.OK, description: 'OK' },

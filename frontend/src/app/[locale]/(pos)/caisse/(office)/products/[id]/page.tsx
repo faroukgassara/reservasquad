@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -50,21 +52,29 @@ export default function PosProductPage() {
     const isNew = params.id === NEW_PRODUCT_ID;
     const productId = isNew ? null : params.id;
     const router = useRouter();
+    const { status: authStatus } = useSession();
     const queryClient = useQueryClient();
     const { openToast } = useToast();
     const { isAllowed } = useAuthorization();
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const { openModal, closeModal, modalPortal } = useModal();
 
+    useEffect(() => {
+        if (authStatus !== 'loading' && !isAdmin) {
+            router.replace(Routes.Pos.index);
+        }
+    }, [authStatus, isAdmin, router]);
+
     const { data: product, isLoading: productLoading } = useQuery({
         queryKey: ['pos-product', productId],
         queryFn: () => fetchPosProduct(productId!),
-        enabled: !!productId,
+        enabled: isAdmin && !!productId,
     });
 
     const { data: categories = [], isLoading: categoriesLoading } = useQuery({
         queryKey: ['pos-categories'],
         queryFn: fetchPosCategories,
+        enabled: isAdmin,
     });
 
     const invalidate = () => {
@@ -124,6 +134,10 @@ export default function PosProductPage() {
         ) : null;
 
     const isLoading = productLoading || categoriesLoading;
+
+    if (authStatus === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <>

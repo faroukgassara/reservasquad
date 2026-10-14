@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import PosOrderDetailModal from '@/components/Modals/PosOrderDetailModal/PosOrderDetailModal';
 import PosSalesDetailsModal from '@/components/Modals/PosSalesDetailsModal/PosSalesDetailsModal';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import PosInfoRow from '@/components/Organisms/Pos/PosInfoRow';
 import PosStatButton from '@/components/Organisms/Pos/PosStatButton';
 import PosStatusPipeline from '@/components/Organisms/Pos/PosStatusPipeline';
@@ -53,6 +55,9 @@ export default function PosSessionDetailPage() {
     const params = useParams<{ id: string }>();
     const sessionId = params.id;
     const router = useRouter();
+    const { status: authStatus } = useSession();
+    const { isAllowed } = useAuthorization();
+    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const [searchValue, setSearchValue] = useState('');
     const [page, setPage] = useState(1);
     const [status, setStatus] = useState<StatusFilter>('all');
@@ -60,14 +65,22 @@ export default function PosSessionDetailPage() {
     const { openModal, modalPortal } = useModal({ closeCallBack: () => setSelectedId(null) });
     const { openModal: openSalesDetails, modalPortal: salesDetailsPortal } = useModal();
 
+    useEffect(() => {
+        if (authStatus !== 'loading' && !isAdmin) {
+            router.replace(Routes.Pos.index);
+        }
+    }, [authStatus, isAdmin, router]);
+
     const { data: summary, isLoading: summaryLoading } = useQuery({
         queryKey: ['pos-session-summary', sessionId],
         queryFn: () => fetchPosSessionSummary(sessionId),
+        enabled: isAdmin,
     });
 
     const { data: currentSession } = useQuery({
         queryKey: ['pos-session-current'],
         queryFn: fetchCurrentPosSession,
+        enabled: isAdmin,
     });
 
     const { data, isLoading } = useQuery({
@@ -80,6 +93,7 @@ export default function PosSessionDetailPage() {
                 search: searchValue || undefined,
                 status: status === 'all' ? undefined : status,
             }),
+        enabled: isAdmin,
     });
 
     const session = summary?.session;
@@ -178,6 +192,10 @@ export default function PosSessionDetailPage() {
             className="mt-0.5 shrink-0 border-none bg-gray-100 hover:bg-gray-100 hover:opacity-70"
         />
     );
+
+    if (authStatus === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <>

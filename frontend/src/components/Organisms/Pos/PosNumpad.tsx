@@ -10,6 +10,7 @@ export interface PosNumpadKey {
     label: string;
     accent?: boolean;
     className?: string;
+    type?: EButtonType;
 }
 
 interface IPosNumpad {
@@ -30,15 +31,19 @@ export default function PosNumpad({ id, rows, activeValue, onKey, disabled = fal
         >
             {rows.flat().map((key, index) => {
                 const isActive = activeValue === key.value;
+                const buttonType = key.type ?? (isActive ? EButtonType.primary : EButtonType.secondary);
                 return (
                     <Button
                         key={`${key.value}-${index}`}
                         id={`${id}-key-${index}`}
-                        type={isActive ? EButtonType.primary : EButtonType.secondary}
+                        type={buttonType}
                         size={EButtonSize.large}
                         text={key.label}
                         disabled={disabled}
-                        onClick={() => onKey(key.value)}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                            e.currentTarget.blur();
+                            onKey(key.value);
+                        }}
                         className={twMerge(
                             'h-11 rounded-lg px-1 tabular-nums font-semibold transition-all',
                             key.accent && !isActive && 'bg-gray-100 hover:bg-gray-200 text-gray-800',

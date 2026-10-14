@@ -211,7 +211,9 @@
   color: oklch(0.7562 0.0575 274.5);
 }
 
-html {
+html,
+body {
+  height: 100%;
   overflow-x: clip;
 }
 

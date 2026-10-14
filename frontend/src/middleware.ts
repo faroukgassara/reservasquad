@@ -75,6 +75,11 @@ export default async function middleware(req: NextRequest) {
   const authContext = { role };
 
   if (token && !isRouteAllowed(pathWithoutLocale, authContext)) {
+    if (pathWithoutLocale.startsWith('/caisse')) {
+      const caisseHome = Routes.Pos.index;
+      const target = locale === routing.defaultLocale ? caisseHome : `/${locale}${caisseHome}`;
+      return NextResponse.redirect(new URL(target, req.url));
+    }
     return NextResponse.redirect(localizedHomeUrl(req, locale, role));
   }
 

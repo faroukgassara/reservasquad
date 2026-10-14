@@ -8,6 +8,12 @@ interface IRoutePolicy {
 /** Path-based access policies. Most admin pages use in-page `useAuthorization` instead. */
 export const ROUTE_POLICIES: IRoutePolicy[] = [
     { route: '/dashboard', policy: { anyRoles: ['ADMIN'] } },
+    { route: '/caisse/sessions', policy: { anyRoles: ['ADMIN'] } },
+    { route: '/caisse/sales', policy: { anyRoles: ['ADMIN'] } },
+    { route: '/caisse/invoices', policy: { anyRoles: ['ADMIN'] } },
+    { route: '/caisse/products', policy: { anyRoles: ['ADMIN'] } },
+    { route: '/caisse/categories', policy: { anyRoles: ['ADMIN'] } },
+    { route: '/caisse/analytics', policy: { anyRoles: ['ADMIN'] } },
 ];
 
 export const isRouteAllowed = (path: string, context: IAuthzContext): boolean => {

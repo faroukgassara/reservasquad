@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -11,6 +12,7 @@ import Badge from '@/components/Primitives/Badge/Badge';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { formatMoney } from '@/lib/daily-income-api';
 import {
     fetchSaleOrders,
@@ -34,9 +36,18 @@ type StatusFilter = 'all' | SaleOrderStatus;
 export default function PosSalesPage() {
     const t = useTranslations('pos.sales');
     const router = useRouter();
+    const { status: authStatus } = useSession();
+    const { isAllowed } = useAuthorization();
+    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState<StatusFilter>('all');
+
+    useEffect(() => {
+        if (authStatus !== 'loading' && !isAdmin) {
+            router.replace(Routes.Pos.index);
+        }
+    }, [authStatus, isAdmin, router]);
 
     const { data, isLoading } = useQuery({
         queryKey: ['sale-orders', page, search, status],
@@ -47,6 +58,7 @@ export default function PosSalesPage() {
                 search: search || undefined,
                 status: status === 'all' ? undefined : status,
             }),
+        enabled: isAdmin,
     });
 
     const columns = useMemo(
@@ -129,6 +141,10 @@ export default function PosSalesPage() {
         { value: 'all', label: t('allStatuses') },
         ...SALE_STATUSES.map((value) => ({ value, label: t(`status${value}`) })),
     ];
+
+    if (authStatus === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <LayoutWrapper

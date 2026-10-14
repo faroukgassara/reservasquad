@@ -10,7 +10,7 @@ import { ProductAnalyticsService } from './product-analytics.service';
 
 @swagger.ApiTags('analytics')
 @Controller(['analytics', 'backoffice/pos/analytics'])
-@Roles({ roles: ['ADMIN', 'USER'] })
+@Roles({ roles: ['ADMIN'] })
 @ApiBearerAuth('Authorization')
 @openApiResponse(
   { status: HttpStatus.OK, description: 'OK' },

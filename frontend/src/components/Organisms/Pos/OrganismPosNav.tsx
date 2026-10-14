@@ -19,14 +19,24 @@ export default function OrganismPosNav() {
     const tCommon = useTranslations('common');
     const pathname = usePathname();
     const { data: session } = useSession();
+    const isAdmin = session?.user?.role === 'ADMIN';
+
     const links: { href: string; label: string; exact?: boolean; alsoActive?: string[] }[] = [
         { href: Routes.Pos.index, label: t('nav.dashboard'), exact: true },
-        { href: Routes.Pos.sessions, label: t('nav.sessions') },
+        ...(isAdmin ? [{ href: Routes.Pos.sessions, label: t('nav.sessions') }] : []),
         { href: Routes.Pos.subscriptions, label: t('nav.subscriptions') },
-        { href: Routes.Pos.sales, label: t('nav.billing'), alsoActive: [Routes.Pos.invoices] },
-        { href: Routes.Pos.products, label: t('nav.products') },
-        { href: Routes.Pos.analytics, label: t('nav.analytics') },
-        { href: Routes.Pos.categories, label: t('nav.categories') },
+        ...(isAdmin
+            ? [
+                  {
+                      href: Routes.Pos.sales,
+                      label: t('nav.billing'),
+                      alsoActive: [Routes.Pos.invoices],
+                  },
+              ]
+            : []),
+        ...(isAdmin ? [{ href: Routes.Pos.products, label: t('nav.products') }] : []),
+        ...(isAdmin ? [{ href: Routes.Pos.categories, label: t('nav.categories') }] : []),
+        ...(isAdmin ? [{ href: Routes.Pos.analytics, label: t('nav.analytics') }] : []),
         { href: Routes.Pos.clients, label: t('nav.clients') },
     ];
 

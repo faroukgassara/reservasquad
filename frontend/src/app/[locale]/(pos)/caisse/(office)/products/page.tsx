@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper'
@@ -17,6 +18,7 @@ import Input from '@/components/Primitives/Input/Input'
 import Label from '@/components/Primitives/Label/Label'
 import Spinner from '@/components/Primitives/Spinner/Spinner'
 import { useModal } from '@/contexts/ModalContext'
+import { useAuthorization } from '@/hooks/useAuthorization'
 import { formatMoney } from '@/lib/daily-income-api'
 import { Routes } from '@/lib/routes'
 import {
@@ -98,12 +100,21 @@ export default function PosProductsPage() {
   const t = useTranslations('pos.products')
   const tCommon = useTranslations('common')
   const router = useRouter()
+  const { status: authStatus } = useSession()
+  const { isAllowed } = useAuthorization()
+  const isAdmin = isAllowed({ anyRoles: ['ADMIN'] })
   const { openModal: openExportModal, modalPortal: exportModalPortal } = useModal()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [categoryFilter, setCategoryFilter] = useState<string>(ALL)
   const [availability, setAvailability] = useState<AvailabilityFilter>('all')
+
+  useEffect(() => {
+    if (authStatus !== 'loading' && !isAdmin) {
+      router.replace(Routes.Pos.index)
+    }
+  }, [authStatus, isAdmin, router])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,6 +127,7 @@ export default function PosProductsPage() {
   const { data: categories = [] } = useQuery({
     queryKey: ['pos-categories'],
     queryFn: fetchPosCategories,
+    enabled: isAdmin,
   })
 
   const { data, isLoading } = useQuery({
@@ -135,6 +147,7 @@ export default function PosProductsPage() {
         availableInPos:
           availability === 'all' ? undefined : availability === 'available',
       }),
+    enabled: isAdmin,
   })
 
   const products = data?.data ?? []
@@ -153,6 +166,10 @@ export default function PosProductsPage() {
     { value: 'available', label: t('onlyAvailable') },
     { value: 'hidden', label: t('onlyHidden') },
   ]
+
+  if (authStatus === 'loading' || !isAdmin) {
+    return null
+  }
 
   return (
     <>

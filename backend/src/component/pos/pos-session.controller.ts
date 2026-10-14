@@ -52,6 +52,7 @@ export class PosSessionController {
   }
 
   @Get('list')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Session history' })
   @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
   async list(

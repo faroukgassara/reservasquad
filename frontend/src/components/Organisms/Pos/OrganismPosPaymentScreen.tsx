@@ -153,7 +153,7 @@ export default function OrganismPosPaymentScreen({
                 value: '+10',
                 label: '+10',
                 accent: true,
-                className: 'bg-success-50 hover:bg-success-100 text-success-800 border border-success-200/80 font-bold',
+                className: 'bg-success-50 hover:bg-success-100 focus:bg-success-100 text-success-800 focus:text-success-800 border border-success-200/80 font-bold',
             },
         ],
         [
@@ -164,7 +164,7 @@ export default function OrganismPosPaymentScreen({
                 value: '+20',
                 label: '+20',
                 accent: true,
-                className: 'bg-success-50 hover:bg-success-100 text-success-800 border border-success-200/80 font-bold',
+                className: 'bg-success-50 hover:bg-success-100 focus:bg-success-100 text-success-800 focus:text-success-800 border border-success-200/80 font-bold',
             },
         ],
         [
@@ -175,7 +175,7 @@ export default function OrganismPosPaymentScreen({
                 value: '+50',
                 label: '+50',
                 accent: true,
-                className: 'bg-success-50 hover:bg-success-100 text-success-800 border border-success-200/80 font-bold',
+                className: 'bg-success-50 hover:bg-success-100 focus:bg-success-100 text-success-800 focus:text-success-800 border border-success-200/80 font-bold',
             },
         ],
         [
@@ -183,15 +183,15 @@ export default function OrganismPosPaymentScreen({
                 value: CLEAR_KEY,
                 label: 'C',
                 accent: true,
-                className: 'bg-danger-50 hover:bg-danger-100 text-danger-700 border border-danger-200/80 font-bold',
+                className: 'bg-danger-50 hover:bg-danger-100 focus:bg-danger-100 text-danger-700 focus:text-danger-700 border border-danger-200/80 font-bold',
             },
             { value: '0', label: '0' },
             { value: NUMPAD_DECIMAL, label: ',' },
             {
                 value: NUMPAD_BACKSPACE,
                 label: '⌫',
-                accent: true,
-                className: 'bg-accent-500 hover:bg-accent-600 active:bg-accent-700 text-white border-0 font-bold shadow-2xs',
+                type: EButtonType.primary,
+                className: 'bg-accent-500 hover:bg-accent-600 active:bg-accent-700 focus:bg-accent-500 focus:text-white focus:border-0 focus:outline-none text-white border-0 font-bold shadow-2xs',
             },
         ],
     ];

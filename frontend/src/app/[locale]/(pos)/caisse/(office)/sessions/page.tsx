@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
@@ -11,6 +12,7 @@ import { useModal } from '@/contexts/ModalContext';
 import Badge from '@/components/Primitives/Badge/Badge';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
 import Button from '@/components/Primitives/Button/Button';
+import { useAuthorization } from '@/hooks/useAuthorization';
 import { formatMoney } from '@/lib/daily-income-api';
 import { Routes } from '@/lib/routes';
 import { fetchPosSessions, formatPosDateTime, getSessionCashPayments, personName, type PosSession } from '@/lib/pos-api';
@@ -20,12 +22,22 @@ import { ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTab
 export default function PosSessionsPage() {
     const t = useTranslations('pos');
     const router = useRouter();
+    const { status } = useSession();
+    const { isAllowed } = useAuthorization();
+    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
     const [page, setPage] = useState(1);
     const { openModal, modalPortal } = useModal();
+
+    useEffect(() => {
+        if (status !== 'loading' && !isAdmin) {
+            router.replace(Routes.Pos.index);
+        }
+    }, [status, isAdmin, router]);
 
     const { data, isLoading } = useQuery({
         queryKey: ['pos-sessions', page],
         queryFn: () => fetchPosSessions({ page, perPage: 10 }),
+        enabled: isAdmin,
     });
 
     const sessions = data?.data ?? [];
@@ -114,6 +126,10 @@ export default function PosSessionsPage() {
         ],
         [t],
     );
+
+    if (status === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <>

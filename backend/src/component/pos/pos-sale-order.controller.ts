@@ -17,7 +17,7 @@ import { validateBody } from './pos.utils';
 
 @swagger.ApiTags('pos-sale-order-backoffice')
 @Controller('backoffice/pos/sale-orders')
-@Roles({ roles: ['ADMIN', 'USER'] })
+@Roles({ roles: ['ADMIN'] })
 @ApiBearerAuth('Authorization')
 @openApiResponse(
   { status: HttpStatus.OK, description: 'OK' },

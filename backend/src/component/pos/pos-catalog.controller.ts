@@ -68,6 +68,7 @@ export class PosCatalogController {
   }
 
   @Post('categories')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Create a POS category' })
   async createCategory(
     @Res() res: Response,
@@ -85,6 +86,7 @@ export class PosCatalogController {
   }
 
   @Post('categories/:id')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Update a POS category' })
   async updateCategory(
     @Res() res: Response,
@@ -115,6 +117,7 @@ export class PosCatalogController {
   }
 
   @Get('products/list')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'List POS products (paginated)' })
   @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
   @ApiSortingQuery(PRODUCT_SORTING_OPTIONS)
@@ -145,6 +148,7 @@ export class PosCatalogController {
   }
 
   @Get('products/inventory')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'List all products for inventory export' })
   async listProductsForInventory(
     @Res() res: Response,
@@ -159,6 +163,7 @@ export class PosCatalogController {
   }
 
   @Post('products')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Create a POS product' })
   async createProduct(
     @Res() res: Response,
@@ -176,6 +181,7 @@ export class PosCatalogController {
   }
 
   @Get('products/:id/stats')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Bought / sold / remaining quantities' })
   async productStats(@Res() res: Response, @Param('id') id: string) {
     try {
@@ -187,6 +193,7 @@ export class PosCatalogController {
   }
 
   @Get('products/:id/stock-entries')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'List purchases of a product' })
   async listStockEntries(@Res() res: Response, @Param('id') id: string) {
     try {
@@ -198,6 +205,7 @@ export class PosCatalogController {
   }
 
   @Post('products/:id/stock-entries')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Record a purchase (adds stock)' })
   async createStockEntry(
     @Res() res: Response,
@@ -216,6 +224,7 @@ export class PosCatalogController {
   }
 
   @Get('products/:id')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'POS product detail' })
   async getProduct(@Res() res: Response, @Param('id') id: string) {
     try {
@@ -227,6 +236,7 @@ export class PosCatalogController {
   }
 
   @Post('products/:id')
+  @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Update a POS product' })
   async updateProduct(
     @Res() res: Response,

@@ -25,9 +25,10 @@ export default function PrivateLayout({
 }>) {
     const t = useTranslations('sidebar');
     const tCommon = useTranslations('common');
+    const tAuth = useTranslations('auth');
     const isDesktop = useMediaQuery(`(min-width: ${ui.breakPoints.md})`);
     const isMobile = !isDesktop;
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const { data: session } = useSession();
     const userName = [session?.user?.firstName, session?.user?.lastName]
         .filter(Boolean)
@@ -35,8 +36,15 @@ export default function PrivateLayout({
     const { isAllowed } = useAuthorization();
 
     useEffect(() => {
-        setSidebarOpen(isDesktop);
-    }, [isDesktop]);
+        const prevHtmlOverflow = document.documentElement.style.overflow;
+        const prevBodyOverflow = document.body.style.overflow;
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.documentElement.style.overflow = prevHtmlOverflow;
+            document.body.style.overflow = prevBodyOverflow;
+        };
+    }, []);
 
     const openSidebar = useCallback(() => setSidebarOpen(true), []);
     const closeSidebar = useCallback(() => setSidebarOpen(false), []);
@@ -128,16 +136,14 @@ export default function PrivateLayout({
         },
     ];
 
-    let sidebarLayoutClass =
-        'fixed inset-y-0 start-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl transition-transform duration-200 lg:static lg:z-auto lg:w-70 lg:translate-x-0 lg:shadow-none';
-    if (!isMobile) {
-        sidebarLayoutClass = sidebarOpen ? 'w-70' : 'w-20 bg-primary-900';
-    }
+    const sidebarLayoutClass = sidebarOpen
+        ? 'fixed inset-y-0 start-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl lg:static lg:z-auto lg:w-70 lg:translate-x-0 lg:shadow-none'
+        : 'fixed inset-y-0 start-0 z-50 w-20 -translate-x-full shadow-none lg:static lg:z-auto lg:w-20 lg:translate-x-0 lg:shadow-none';
 
     return (
         <ProtectedRoute>
             <MobileSidebarContext.Provider value={mobileSidebarValue}>
-                <div className="flex h-dvh overflow-x-clip overflow-y-hidden">
+                <div className="flex h-dvh max-h-dvh w-full overflow-hidden">
                     {isMobile && sidebarOpen && (
                         <button
                             type="button"
@@ -152,13 +158,14 @@ export default function PrivateLayout({
                         setOpen={setSidebarOpen}
                         isMobile={isMobile}
                         className={twMerge(
-                            'border-e border-gray-200 bg-white',
+                            'border-e border-gray-200',
                             sidebarLayoutClass,
+                            isMobile && sidebarOpen && 'ltr:translate-x-0 rtl:translate-x-0',
                             isMobile && !sidebarOpen && 'ltr:-translate-x-full rtl:translate-x-full',
                         )}
                     >
                         <SidebarHeader className="p-4">
-                            {(sidebarOpen || isMobile) && (
+                            {sidebarOpen && (
                                 <Link href={homeHref} className="flex shrink-0 items-center gap-2">
                                     <BrandLogo
                                         alt={tCommon('brandLogoAlt')}
@@ -173,18 +180,18 @@ export default function PrivateLayout({
 
                         <SidebarContent
                             data={navigationItems}
-                            className={twMerge('flex-1', sidebarOpen || isMobile ? 'p-4' : 'px-0 py-4')}
+                            className={twMerge('flex-1', sidebarOpen ? 'p-4' : 'px-0 py-4')}
                         />
 
-                        <SidebarFooter className={sidebarOpen || isMobile ? 'p-4' : 'px-0 py-4'}>
-                            {sidebarOpen || isMobile ? (
+                        <SidebarFooter className={sidebarOpen ? 'p-4' : 'px-0 py-4'}>
+                            {sidebarOpen ? (
                                 <LanguageSwitcher compact={false} className="w-full" />
                             ) : (
                                 <div className="flex justify-center">
                                     <LanguageSwitcher compact={true} />
                                 </div>
                             )}
-                            {sidebarOpen || isMobile ? (
+                            {sidebarOpen ? (
                                 <div className="mt-4 flex w-full items-center justify-between gap-2">
                                     <Avatar
                                         id="avatar"
@@ -197,27 +204,41 @@ export default function PrivateLayout({
                                         id="sidebar-disconnect-expanded"
                                         type={EButtonType.secondary}
                                         icon={{
-                                            name: IconComponentsEnum.logOut,
-                                            size: ESize.sm,
-                                            color: 'text-primary-400',
+                                             name: IconComponentsEnum.logOut,
+                                             size: ESize.sm,
+                                             color: 'text-primary-400',
                                         }}
                                         onClick={() => signOut()}
                                     />
                                 </div>
                             ) : (
-                                <Avatar
-                                    id="avatar"
-                                    name={userName}
-                                    size={ESize.lg}
-                                    className="cursor-pointer"
-                                />
+                                <>
+                                    <Avatar
+                                        id="avatar"
+                                        name={userName}
+                                        size={ESize.md}
+                                    />
+                                    <Button
+                                        id="sidebar-disconnect-collapsed"
+                                        type={EButtonType.tertiary}
+                                        iconPosition="only"
+                                        icon={{
+                                            name: IconComponentsEnum.logOut,
+                                            size: ESize.sm,
+                                            color: 'text-primary-200',
+                                        }}
+                                        onClick={() => signOut()}
+                                        aria-label={tAuth('logout')}
+                                        className="flex size-10 items-center justify-center rounded-full bg-primary-800 text-primary-200 hover:bg-danger-600 hover:text-white transition-colors cursor-pointer border-none"
+                                    />
+                                </>
                             )}
                         </SidebarFooter>
                     </Sidebar>
 
                     <main
                         className={twMerge(
-                            'min-w-0 flex-1 overflow-y-auto bg-gray-25',
+                            'min-h-0 min-w-0 flex-1 overflow-y-auto bg-gray-25',
                             isMobile && sidebarOpen && 'overflow-hidden touch-none',
                         )}
                     >
