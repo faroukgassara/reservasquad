@@ -928,7 +928,16 @@
             "dailyIncome": "Ajouté aux revenus journaliers",
             "syncDailyIncome": "Synchroniser avec les revenus journaliers",
             "syncDailyIncomeActive": "Les revenus de la session ({total}) seront ajoutés aux revenus journaliers.",
-            "syncDailyIncomeInactive": "Ne pas ajouter cette session aux revenus journaliers."
+            "syncDailyIncomeInactive": "Ne pas ajouter cette session aux revenus journaliers.",
+            "cashInDrawer": "Total espèces en caisse",
+            "differencePerfect": "Caisse juste",
+            "differenceSurplus": "Excédent",
+            "differenceDeficit": "Déficit",
+            "bills": "Billets",
+            "coins": "Pièces",
+            "decrease": "Diminuer {label}",
+            "increase": "Augmenter {label}",
+            "quantity": "Quantité {label}"
         },
         "orders": {
             "number": "Commande",

@@ -928,7 +928,16 @@
             "dailyIncome": "يُضاف إلى المداخيل اليومية",
             "syncDailyIncome": "المزامنة مع المداخيل اليومية",
             "syncDailyIncomeActive": "سيتم إضافة إيرادات الجلسة ({total}) إلى المداخيل اليومية.",
-            "syncDailyIncomeInactive": "عدم إضافة هذه الجلسة إلى المداخيل اليومية."
+            "syncDailyIncomeInactive": "عدم إضافة هذه الجلسة إلى المداخيل اليومية.",
+            "cashInDrawer": "مجموع النقد في الصندوق",
+            "differencePerfect": "الصندوق مطابق",
+            "differenceSurplus": "فائض",
+            "differenceDeficit": "عجز",
+            "bills": "الأوراق النقدية",
+            "coins": "القطع النقدية",
+            "decrease": "إنقاص {label}",
+            "increase": "زيادة {label}",
+            "quantity": "كمية {label}"
         },
         "orders": {
             "number": "الطلب",

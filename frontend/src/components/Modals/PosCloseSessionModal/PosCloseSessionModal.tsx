@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
@@ -44,33 +44,49 @@ const TUNISIAN_DENOMINATIONS: CashDenomination[] = [
     { id: 'c02', label: '200 millimes', millimes: 200, type: 'coin' },
     { id: 'c01', label: '100 millimes', millimes: 100, type: 'coin' },
     { id: 'c005', label: '50 millimes', millimes: 50, type: 'coin' },
-    { id: 'c002', label: '20 millimes', millimes: 20, type: 'coin' },
 ];
 
-function SummaryRow({
-    label,
-    value,
-    muted = false,
-}: Readonly<{ label: string; value: string; muted?: boolean }>) {
+const STEPPER_BUTTON =
+    'flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-lg font-semibold transition-colors active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 sm:size-9';
+
+function differenceColor(value: number): ELabelColor {
+    if (value === 0) return 'text-success-700';
+    return value > 0 ? 'text-primary-600' : 'text-danger-600';
+}
+
+function StepBadge({ step, className }: Readonly<{ step: number; className: string }>) {
     return (
-        <Div className="flex items-center justify-between gap-3 py-1">
-            <Label variant={EVariantLabel.bodySmall} color={muted ? 'text-gray-500' : 'text-gray-900'}>
-                {label}
-            </Label>
-            <Label
-                variant={EVariantLabel.bodySmall}
-                color={muted ? 'text-gray-500' : 'text-gray-900'}
-                className="tabular-nums"
-            >
-                {value}
+        <Div className={twMerge('flex size-6 shrink-0 items-center justify-center rounded-full', className)}>
+            <Label variant={EVariantLabel.caption} color="text-white" className="font-bold leading-none">
+                {step}
             </Label>
         </Div>
     );
 }
 
-function differenceColor(value: number): ELabelColor {
-    if (value === 0) return 'text-success-700';
-    return value > 0 ? 'text-primary-600' : 'text-danger-600';
+function StepHeader({
+    step,
+    badgeClassName,
+    title,
+    subtitle,
+    aside,
+}: Readonly<{ step: number; badgeClassName: string; title: string; subtitle: string; aside: ReactNode }>) {
+    return (
+        <Div className="flex items-start justify-between gap-3">
+            <Div className="flex min-w-0 items-start gap-2.5">
+                <StepBadge step={step} className={badgeClassName} />
+                <Div className="flex min-w-0 flex-col">
+                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-semibold">
+                        {title}
+                    </Label>
+                    <Label variant={EVariantLabel.caption} color="text-gray-500">
+                        {subtitle}
+                    </Label>
+                </Div>
+            </Div>
+            <Div className="shrink-0 text-end">{aside}</Div>
+        </Div>
+    );
 }
 
 export default function PosCloseSessionModal({
@@ -157,6 +173,107 @@ export default function PosCloseSessionModal({
         });
     };
 
+    const renderDifference = () => {
+        if (difference === null) return null;
+        let boxClassName = 'border-success-200 bg-success-50';
+        let status = t('differencePerfect');
+        if (difference > 0) {
+            boxClassName = 'border-primary-200 bg-primary-50';
+            status = t('differenceSurplus');
+        } else if (difference < 0) {
+            boxClassName = 'border-danger-200 bg-danger-50';
+            status = t('differenceDeficit');
+        }
+        const color = differenceColor(difference);
+        return (
+            <Div
+                role="status"
+                className={twMerge('flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5', boxClassName)}
+            >
+                <Div className="flex min-w-0 items-center gap-2">
+                    <Icon
+                        name={difference === 0 ? IconComponentsEnum.checkCircle : IconComponentsEnum.alert}
+                        size={ESize.sm}
+                        color={color}
+                        className="shrink-0"
+                    />
+                    <Div className="flex min-w-0 flex-col">
+                        <Label variant={EVariantLabel.caption} color="text-gray-600">
+                            {t('differenceOnFloat')}
+                        </Label>
+                        <Label variant={EVariantLabel.bodySmall} color={color} className="font-semibold">
+                            {status}
+                        </Label>
+                    </Div>
+                </Div>
+                <Label variant={EVariantLabel.subtitle} color={color} className="shrink-0 font-semibold tabular-nums">
+                    {difference > 0 ? `+${formatMoney(difference)}` : formatMoney(difference)}
+                </Label>
+            </Div>
+        );
+    };
+
+    const renderDenomination = (d: CashDenomination) => {
+        const count = counts[d.id] || 0;
+        const subtotal = (count * d.millimes) / 1000;
+        return (
+            <Div
+                key={d.id}
+                className={twMerge(
+                    'flex items-center gap-2 rounded-xl border bg-white p-2 transition-colors',
+                    count > 0 ? 'border-primary-300 bg-primary-50/40' : 'border-gray-200',
+                )}
+            >
+                <Div className="flex min-w-0 flex-1 flex-col">
+                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-semibold">
+                        {d.label}
+                    </Label>
+                    <Label
+                        variant={EVariantLabel.caption}
+                        color={count > 0 ? 'text-primary-700' : 'text-gray-400'}
+                        className="tabular-nums"
+                    >
+                        {formatMoney(subtotal)}
+                    </Label>
+                </Div>
+                <Div className="flex shrink-0 items-center gap-1">
+                    <button
+                        type="button"
+                        onClick={() => updateCount(d.id, -1)}
+                        disabled={count <= 0}
+                        aria-label={t('decrease', { label: d.label })}
+                        className={twMerge(STEPPER_BUTTON, 'border-gray-200 bg-gray-50 text-gray-700 enabled:hover:bg-gray-100')}
+                    >
+                        −
+                    </button>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={count === 0 ? '' : count}
+                        placeholder="0"
+                        onChange={(e) => setCountDirect(d.id, e.target.value)}
+                        aria-label={t('quantity', { label: d.label })}
+                        className="h-11 w-14 rounded-lg border border-gray-200 bg-white text-center text-base font-semibold tabular-nums text-gray-900 placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 sm:h-9 sm:w-12 sm:text-sm"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => updateCount(d.id, 1)}
+                        aria-label={t('increase', { label: d.label })}
+                        className={twMerge(STEPPER_BUTTON, 'border-primary-200 bg-primary-50 text-primary-700 hover:bg-primary-100')}
+                    >
+                        +
+                    </button>
+                </Div>
+            </Div>
+        );
+    };
+
+    const denominationGroups = [
+        { key: 'bills', title: t('bills'), items: TUNISIAN_DENOMINATIONS.filter((d) => d.type === 'bill') },
+        { key: 'coins', title: t('coins'), items: TUNISIAN_DENOMINATIONS.filter((d) => d.type === 'coin') },
+    ];
+
     return (
         <Modal
             title={t('title')}
@@ -164,307 +281,192 @@ export default function PosCloseSessionModal({
             canClose
             canCloseOnClickOutisde
             className="w-[min(94vw,620px)] max-h-[min(92dvh,820px)]"
+            bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden p-0 sm:p-0"
         >
-            <Div className="space-y-4">
+            <Div className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-6 sm:px-6 sm:pt-5 sm:pb-8 space-y-4">
                 {summaryLoading || !summary ? (
                     <Div className="flex justify-center py-10">
                         <Spinner size={ESize.lg} color="text-primary-500" />
                     </Div>
                 ) : (
                     <>
-                        {/* Top Session Stats Banner */}
-                        <Div className="flex items-center justify-between rounded-2xl border border-primary-100 bg-gradient-to-r from-primary-50/80 to-primary-100/60 p-4 shadow-2xs">
-                            <div className="flex items-center gap-3">
-                                <div className="flex size-11 items-center justify-center rounded-xl bg-primary-600 text-white shadow-md shadow-primary-600/25">
-                                    <Icon name={IconComponentsEnum.filetext} size={ESize.sm} color="text-white" />
-                                </div>
-                                <div>
-                                    <div className="text-sm font-bold text-gray-900">
-                                        {t('ordersTotal', {
-                                            count: summary.ordersCount,
-                                            total: formatMoney(summary.ordersTotal),
-                                        })}
-                                    </div>
-                                    {summary.refundsCount > 0 ? (
-                                        <div className="text-xs font-semibold text-danger-600">
-                                            {t('refundsCount', { count: summary.refundsCount })}
-                                        </div>
-                                    ) : (
-                                        <div className="text-xs text-gray-500">Activité de la session en cours</div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="rounded-xl bg-white px-3 py-1.5 shadow-2xs border border-primary-100">
-                                <span className="text-sm font-black text-primary-900 tabular-nums">
-                                    {formatMoney(summary.ordersTotal)}
-                                </span>
-                            </div>
+                        <Div className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5">
+                            <Div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+                                <Icon name={IconComponentsEnum.layers} size={ESize.sm} color="text-primary-600" />
+                            </Div>
+                            <Div className="flex min-w-0 flex-1 flex-col">
+                                <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-semibold">
+                                    {t('cashInDrawer')}
+                                </Label>
+                                <Label variant={EVariantLabel.caption} color="text-gray-500" className="tabular-nums">
+                                    {`${t('openingPlusCash')} : ${formatMoney(summary.openingCash)} + ${formatMoney(summary.cashPayments)}`}
+                                </Label>
+                            </Div>
+                            <Label variant={EVariantLabel.subtitle} color="text-gray-900" className="shrink-0 font-semibold tabular-nums">
+                                {formatMoney(summary.expectedCash)}
+                            </Label>
                         </Div>
 
-                        {/* Cash Drawer Reconciliation */}
-                        <Div className="space-y-3.5 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs">
-                            {/* Step 1: Cash to put aside */}
-                            <div className="flex items-center justify-between rounded-xl border border-warning-200 bg-warning-50/70 p-3">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-warning-600 text-white text-xs font-black shadow-2xs">
-                                        1
-                                    </span>
-                                    <div>
-                                        <span className="block text-xs font-bold text-gray-900">
-                                            {t('cashToSetAsideTitle')}
-                                        </span>
-                                        <span className="block text-[11px] text-gray-600">
-                                            {t('cashToSetAsideSubtitle')}
-                                        </span>
-                                    </div>
-                                </div>
-                                <span className="rounded-lg bg-white border border-warning-300 px-2.5 py-1 text-sm font-black text-warning-800 tabular-nums shadow-2xs shrink-0">
-                                    + {formatMoney(summary.cashPayments)}
-                                </span>
-                            </div>
+                        <Div className="rounded-xl border border-warning-200 bg-warning-50 p-3">
+                            <StepHeader
+                                step={1}
+                                badgeClassName="bg-warning-600"
+                                title={t('cashToSetAsideTitle')}
+                                subtitle={t('cashToSetAsideSubtitle')}
+                                aside={
+                                    <Label variant={EVariantLabel.subtitle} color="text-warning-800" className="font-semibold tabular-nums">
+                                        {`+ ${formatMoney(summary.cashPayments)}`}
+                                    </Label>
+                                }
+                            />
+                        </Div>
 
-                            {/* Step 2: Remaining float to count */}
-                            <div className="rounded-xl border border-primary-100 bg-primary-50/40 p-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white text-xs font-black shadow-2xs">
-                                            2
-                                        </span>
-                                        <div>
-                                            <span className="block text-xs font-bold text-gray-900">
-                                                {t('floatRemainingTitle')}
-                                            </span>
-                                            <span className="block text-[11px] text-gray-500">
-                                                {t('floatRemainingSubtitle')}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="text-end shrink-0">
-                                        <span className="block text-[10px] uppercase font-bold text-gray-500">
+                        <Div className="space-y-3 rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+                            <StepHeader
+                                step={2}
+                                badgeClassName="bg-primary-600"
+                                title={t('floatRemainingTitle')}
+                                subtitle={t('floatRemainingSubtitle')}
+                                aside={
+                                    <>
+                                        <Label variant={EVariantLabel.overline} color="text-gray-500" className="block">
                                             {t('expectedFloat')}
-                                        </span>
-                                        <span className="text-sm font-black text-primary-900 tabular-nums bg-white border border-primary-200 px-2.5 py-0.5 rounded-lg shadow-2xs inline-block">
+                                        </Label>
+                                        <Label variant={EVariantLabel.subtitle} color="text-gray-900" className="font-semibold tabular-nums">
                                             {formatMoney(summary.openingCash)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                                        </Label>
+                                    </>
+                                }
+                            />
 
-                            {/* Counted input header with Calculator Toggle */}
-                            <div className="flex items-center justify-between pt-1">
-                                <span className="text-xs font-bold text-gray-800">
-                                    {t('countedFloat')} *
-                                </span>
-                                <button
-                                    type="button"
-                                    id="pos-toggle-cash-calculator"
-                                    onClick={() => setShowCalculator((prev) => !prev)}
-                                    className="flex items-center gap-1.5 rounded-lg border border-primary-200 bg-primary-50/70 px-2.5 py-1 text-xs font-semibold text-primary-700 hover:bg-primary-100 hover:text-primary-800 transition-colors cursor-pointer shadow-2xs"
-                                >
-                                    <Icon
-                                        name={showCalculator ? IconComponentsEnum.chevronUp : IconComponentsEnum.chevronDown}
-                                        size={ESize.xs}
-                                        color="text-primary-700"
-                                    />
-                                    {showCalculator ? t('calculatorToggleClose') : t('calculatorToggleOpen')}
-                                </button>
-                            </div>
+                            <Input
+                                id="pos-close-counted"
+                                label={t('countedFloat')}
+                                value={counted}
+                                type={EInputType.number}
+                                onChange={(e) => {
+                                    setCounted(e.target.value);
+                                    if (error) setError(null);
+                                }}
+                                required
+                                error={!!error}
+                                hintText={error ?? undefined}
+                            />
 
-                            <Div className="grid grid-cols-1 items-end gap-3 min-[400px]:grid-cols-2">
-                                <Input
-                                    id="pos-close-counted"
-                                    value={counted}
-                                    type={EInputType.number}
-                                    onChange={(e) => {
-                                        setCounted(e.target.value);
-                                        if (error) setError(null);
-                                    }}
-                                    required
-                                    error={!!error}
-                                    hintText={error ?? undefined}
-                                />
-                                <Div className="flex flex-col items-start pb-2 min-[400px]:items-end min-[400px]:text-end">
-                                    <span className="text-xs font-semibold uppercase text-gray-500">{t('differenceOnFloat')}</span>
-                                    {difference === null ? (
-                                        <span className="mt-1 rounded-lg bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-400">
-                                            —
-                                        </span>
-                                    ) : difference === 0 ? (
-                                        <span className="mt-1 rounded-xl bg-success-100 border border-success-300 px-3 py-1 text-xs font-black text-success-800">
-                                            0,000 DT · Parfait ✓
-                                        </span>
-                                    ) : difference > 0 ? (
-                                        <span className="mt-1 rounded-xl bg-primary-100 border border-primary-300 px-3 py-1 text-xs font-black text-primary-800">
-                                            +{formatMoney(difference)} · Excédent
-                                        </span>
-                                    ) : (
-                                        <span className="mt-1 rounded-xl bg-danger-100 border border-danger-300 px-3 py-1 text-xs font-black text-danger-800">
-                                            {formatMoney(difference)} · Déficit
-                                        </span>
-                                    )}
+                            {renderDifference()}
+
+                            <button
+                                type="button"
+                                id="pos-toggle-cash-calculator"
+                                aria-expanded={showCalculator}
+                                aria-controls="pos-cash-calculator"
+                                onClick={() => setShowCalculator((prev) => !prev)}
+                                className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-dashed border-primary-300 px-3 py-2 text-start transition-colors hover:bg-primary-50 sm:min-h-10"
+                            >
+                                <Div className="flex items-center gap-2">
+                                    <Icon name={IconComponentsEnum.squaresFour} size={ESize.sm} color="text-primary-600" />
+                                    <Label variant={EVariantLabel.bodySmall} color="text-primary-700" className="font-semibold">
+                                        {showCalculator ? t('calculatorToggleClose') : t('calculatorToggleOpen')}
+                                    </Label>
                                 </Div>
-                            </Div>
+                                <Icon
+                                    name={showCalculator ? IconComponentsEnum.chevronUp : IconComponentsEnum.chevronDown}
+                                    size={ESize.sm}
+                                    color="text-primary-600"
+                                    className="shrink-0"
+                                />
+                            </button>
 
-                            {/* Denominations Calculator Panel */}
-                            {showCalculator && (
-                                <div className="space-y-3 rounded-xl border border-primary-200 bg-primary-50/20 p-3 sm:p-4 transition-all">
-                                    <div className="flex items-center justify-between gap-2 border-b border-primary-100 pb-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex size-7 items-center justify-center rounded-lg bg-primary-600 text-white shadow-2xs">
-                                                <Icon name={IconComponentsEnum.squaresFour} size={ESize.xs} color="text-white" />
-                                            </div>
-                                            <div>
-                                                <span className="block text-xs font-bold text-gray-900">{t('calculatorTitle')}</span>
-                                                <span className="block text-[11px] text-gray-500">{t('calculatorSubtitle')}</span>
-                                            </div>
-                                        </div>
-                                        {hasAnyCounts && (
+                            {showCalculator ? (
+                                <Div id="pos-cash-calculator" className="space-y-4 rounded-xl bg-gray-50 p-3">
+                                    <Div className="flex items-center justify-between gap-2">
+                                        <Label variant={EVariantLabel.caption} color="text-gray-500">
+                                            {t('calculatorSubtitle')}
+                                        </Label>
+                                        {hasAnyCounts ? (
                                             <button
                                                 type="button"
                                                 onClick={resetCounts}
-                                                className="text-xs font-semibold text-danger-600 hover:text-danger-800 hover:bg-danger-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                                                className="min-h-11 shrink-0 cursor-pointer rounded-md px-2 transition-colors hover:bg-danger-50 sm:min-h-0 sm:py-1"
                                             >
-                                                {t('reset')}
+                                                <Label variant={EVariantLabel.caption} color="text-danger-600" className="font-semibold">
+                                                    {t('reset')}
+                                                </Label>
                                             </button>
-                                        )}
-                                    </div>
+                                        ) : null}
+                                    </Div>
 
-                                    {/* Denominations List: 2-row layout per card prevents truncation and overlap */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pe-1">
-                                        {TUNISIAN_DENOMINATIONS.map((d) => {
-                                            const count = counts[d.id] || 0;
-                                            const subtotal = (count * d.millimes) / 1000;
-                                            const isBill = d.type === 'bill';
+                                    {denominationGroups.map((group) => (
+                                        <Div key={group.key} className="space-y-2">
+                                            <Label variant={EVariantLabel.overline} color="text-gray-500" className="block">
+                                                {group.title}
+                                            </Label>
+                                            <Div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                                {group.items.map(renderDenomination)}
+                                            </Div>
+                                        </Div>
+                                    ))}
 
-                                            return (
-                                                <div
-                                                    key={d.id}
-                                                    className={twMerge(
-                                                        'flex flex-col gap-2 rounded-xl border p-2.5 transition-all bg-white shadow-2xs',
-                                                        count > 0
-                                                            ? 'border-primary-400 bg-primary-50/40 ring-1 ring-primary-300'
-                                                            : 'border-gray-200 hover:border-gray-300',
-                                                    )}
-                                                >
-                                                    {/* Card Top: Denomination Badge & Subtotal */}
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <span
-                                                            className={twMerge(
-                                                                'inline-flex items-center font-bold text-xs px-2.5 py-1 rounded-lg shrink-0 shadow-2xs',
-                                                                isBill
-                                                                    ? 'bg-blue-50 text-blue-900 border border-blue-200'
-                                                                    : 'bg-amber-50 text-amber-900 border border-amber-200',
-                                                            )}
-                                                        >
-                                                            {d.label}
-                                                        </span>
-                                                        <span
-                                                            className={twMerge(
-                                                                'text-xs tabular-nums font-bold shrink-0',
-                                                                count > 0 ? 'text-primary-800 font-extrabold' : 'text-gray-400 font-medium',
-                                                            )}
-                                                        >
-                                                            {formatMoney(subtotal)}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Card Bottom: Stepper Controls */}
-                                                    <div className="flex items-center justify-center gap-1.5 pt-0.5">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => updateCount(d.id, -1)}
-                                                            disabled={count <= 0}
-                                                            aria-label={`Diminuer ${d.label}`}
-                                                            className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-base font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer transition-colors active:scale-95"
-                                                        >
-                                                            −
-                                                        </button>
-                                                        <input
-                                                            type="text"
-                                                            inputMode="numeric"
-                                                            pattern="[0-9]*"
-                                                            value={count === 0 ? '' : count}
-                                                            placeholder="0"
-                                                            onChange={(e) => setCountDirect(d.id, e.target.value)}
-                                                            aria-label={`Quantité ${d.label}`}
-                                                            className="h-8 flex-1 max-w-[80px] text-center font-black tabular-nums text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => updateCount(d.id, 1)}
-                                                            aria-label={`Augmenter ${d.label}`}
-                                                            className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary-200 bg-primary-50 text-base font-bold text-primary-700 hover:bg-primary-100 cursor-pointer transition-colors active:scale-95"
-                                                        >
-                                                            +
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Calculator Summary Footer */}
-                                    <div className="flex items-center justify-between border-t border-primary-100 pt-2 text-xs">
-                                        <span className="text-gray-600 font-medium">
-                                            {t('totalCalculated')} :{' '}
-                                            <span className="font-black text-primary-900 text-sm tabular-nums">
+                                    <Div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-3">
+                                        <Div className="flex items-baseline gap-2">
+                                            <Label variant={EVariantLabel.caption} color="text-gray-600">
+                                                {t('totalCalculated')}
+                                            </Label>
+                                            <Label variant={EVariantLabel.subtitle} color="text-gray-900" className="font-semibold tabular-nums">
                                                 {formatMoney(calculatedTotalDT)}
-                                            </span>
-                                        </span>
-                                        <button
-                                            type="button"
+                                            </Label>
+                                        </Div>
+                                        <Button
+                                            id="pos-close-apply-calculator"
+                                            type={EButtonType.secondary}
+                                            size={EButtonSize.small}
+                                            text={t('applyCounted')}
                                             onClick={() => {
                                                 setCounted(calculatedTotalDT.toFixed(3));
                                                 if (error) setError(null);
                                             }}
-                                            className="text-xs font-bold text-primary-700 hover:text-primary-800 hover:underline cursor-pointer"
-                                        >
-                                            {t('applyCounted')}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                                        />
+                                    </Div>
+                                </Div>
+                            ) : null}
                         </Div>
 
                         <Div
                             className={twMerge(
-                                'rounded-2xl border p-4 transition-colors',
-                                syncDailyIncome
-                                    ? 'border-primary-200 bg-primary-50/70'
-                                    : 'border-gray-200 bg-gray-50',
+                                'flex items-center justify-between gap-3 rounded-xl border p-3 transition-colors',
+                                syncDailyIncome ? 'border-primary-200 bg-primary-50' : 'border-gray-200 bg-white',
                             )}
                         >
-                            <Div className="flex items-center justify-between gap-3">
-                                <Div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                                    <Label
-                                        variant={EVariantLabel.subtitle}
-                                        color={syncDailyIncome ? 'text-primary-900' : 'text-gray-700'}
-                                    >
-                                        {t('syncDailyIncome')}
-                                    </Label>
-                                    <Label
-                                        variant={EVariantLabel.caption}
-                                        color={syncDailyIncome ? 'text-primary-700' : 'text-gray-500'}
-                                    >
-                                        {syncDailyIncome
-                                            ? t('syncDailyIncomeActive', { total: formatMoney(summary.revenue) })
-                                            : t('syncDailyIncomeInactive')}
-                                    </Label>
-                                </Div>
-                                <Div className="flex shrink-0 items-center gap-3">
-                                    <Label
-                                        variant={EVariantLabel.subtitle}
-                                        color={syncDailyIncome ? 'text-primary-700' : 'text-gray-400'}
-                                        className="tabular-nums font-semibold"
-                                    >
-                                        {formatMoney(summary.revenue)}
-                                    </Label>
-                                    <Toggle
-                                        id="pos-close-sync-daily-income"
-                                        checked={syncDailyIncome}
-                                        onChange={setSyncDailyIncome}
-                                    />
-                                </Div>
+                            <Div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                <Label
+                                    variant={EVariantLabel.bodySmall}
+                                    color={syncDailyIncome ? 'text-primary-900' : 'text-gray-900'}
+                                    className="font-semibold"
+                                >
+                                    {t('syncDailyIncome')}
+                                </Label>
+                                <Label
+                                    variant={EVariantLabel.caption}
+                                    color={syncDailyIncome ? 'text-primary-700' : 'text-gray-500'}
+                                >
+                                    {syncDailyIncome
+                                        ? t('syncDailyIncomeActive', { total: formatMoney(summary.revenue) })
+                                        : t('syncDailyIncomeInactive')}
+                                </Label>
+                            </Div>
+                            <Div className="flex shrink-0 items-center gap-3">
+                                <Label
+                                    variant={EVariantLabel.bodySmall}
+                                    color={syncDailyIncome ? 'text-primary-700' : 'text-gray-500'}
+                                    className="font-semibold tabular-nums"
+                                >
+                                    {formatMoney(summary.revenue)}
+                                </Label>
+                                <Toggle
+                                    id="pos-close-sync-daily-income"
+                                    checked={syncDailyIncome}
+                                    onChange={setSyncDailyIncome}
+                                />
                             </Div>
                         </Div>
 
@@ -474,31 +476,31 @@ export default function PosCloseSessionModal({
                             value={note}
                             onChange={(e) => setNote(e.target.value)}
                             isTextArea
-                            rows={3}
+                            rows={2}
                         />
                     </>
                 )}
+            </Div>
 
-                <Div className="flex gap-3 pt-2">
-                    <Button
-                        id="pos-close-cancel"
-                        type={EButtonType.secondary}
-                        size={EButtonSize.medium}
-                        text={tCommon('cancel')}
-                        onClick={closeModal}
-                        className="flex-1"
-                    />
-                    <Button
-                        id="pos-close-submit"
-                        type={EButtonType.primary}
-                        size={EButtonSize.medium}
-                        text={t('submit')}
-                        isLoading={isLoading}
-                        disabled={!summary}
-                        onClick={handleSubmit}
-                        className="flex-1 font-bold"
-                    />
-                </Div>
+            <Div className="shrink-0 flex gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+                <Button
+                    id="pos-close-cancel"
+                    type={EButtonType.secondary}
+                    size={EButtonSize.medium}
+                    text={tCommon('cancel')}
+                    onClick={closeModal}
+                    className="flex-1"
+                />
+                <Button
+                    id="pos-close-submit"
+                    type={EButtonType.primary}
+                    size={EButtonSize.medium}
+                    text={t('submit')}
+                    isLoading={isLoading}
+                    disabled={!summary}
+                    onClick={handleSubmit}
+                    className="flex-1 font-bold"
+                />
             </Div>
         </Modal>
     );

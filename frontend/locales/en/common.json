@@ -928,7 +928,16 @@
             "dailyIncome": "Added to daily income",
             "syncDailyIncome": "Synchronize with daily income",
             "syncDailyIncomeActive": "Session revenue ({total}) will be added to daily income.",
-            "syncDailyIncomeInactive": "Do not add this session to daily income."
+            "syncDailyIncomeInactive": "Do not add this session to daily income.",
+            "cashInDrawer": "Total cash in the register",
+            "differencePerfect": "Balanced",
+            "differenceSurplus": "Surplus",
+            "differenceDeficit": "Shortage",
+            "bills": "Bills",
+            "coins": "Coins",
+            "decrease": "Decrease {label}",
+            "increase": "Increase {label}",
+            "quantity": "Quantity {label}"
         },
         "orders": {
             "number": "Order",
