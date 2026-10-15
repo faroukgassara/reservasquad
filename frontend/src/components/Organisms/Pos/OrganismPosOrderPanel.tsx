@@ -136,15 +136,15 @@ export default function OrganismPosOrderPanel({
 
     return (
         <Div className="flex h-full min-h-0 flex-col bg-white">
-            {/* Phones scroll the lines and the controls together so the pinned pay bar never squeezes the cart. */}
-            <Div className="flex min-h-0 flex-1 flex-col overflow-y-auto tablet:overflow-hidden">
-                <div ref={listRef} className="min-h-[220px] tablet:min-h-[260px] tablet:flex-1 tablet:overflow-y-auto">
+            {/* Scrollable area containing cart lines and controls */}
+            <Div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                <div ref={listRef} className="min-h-[80px] tablet:min-h-[100px] flex-1 overflow-y-auto">
                     {cart.lines.length === 0 ? (
-                        <Div className="flex h-full min-h-[220px] tablet:min-h-[260px] flex-col items-center justify-center gap-3 px-6 py-12 tablet:py-10">
-                            <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/60 border border-primary-200/60 shadow-2xs">
-                                <Icon name={IconComponentsEnum.shoppingCart} size={ESize.lg} color="text-primary-500" />
+                        <Div className="flex h-full min-h-[80px] flex-col items-center justify-center gap-2 p-4 text-center">
+                            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/60 border border-primary-200/60 shadow-2xs">
+                                <Icon name={IconComponentsEnum.shoppingCart} size={ESize.sm} color="text-primary-500" />
                             </div>
-                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500" className="text-center font-semibold">
+                            <Label variant={EVariantLabel.caption} color="text-gray-500" className="text-center font-semibold">
                                 {t('emptyOrder')}
                             </Label>
                         </Div>
@@ -194,23 +194,23 @@ export default function OrganismPosOrderPanel({
                     )}
                 </div>
 
-                <Div className="shrink-0 space-y-2.5 border-t border-gray-200 bg-white p-3 tablet:space-y-2">
+                <Div className="shrink-0 space-y-2 border-t border-gray-200 bg-white p-2.5 tablet:p-3">
                     <Div className="hidden items-baseline justify-between gap-3 tablet:flex">
                         <Label variant={EVariantLabel.subtitle} color="text-gray-700">
                             {t('total')}
                         </Label>
-                        <span className="text-2xl font-black text-gray-900 tabular-nums">
+                        <span className="text-xl tablet:text-2xl font-black text-gray-900 tabular-nums">
                             {formatMoney(cart.total)}
                         </span>
                     </Div>
 
                     {/* Distinct colorful document buttons: Crédit, Facture, Abonnement */}
-                    <Div className="flex items-center gap-2">
+                    <Div className="flex items-center gap-1.5 sm:gap-2">
                         <button
                             id="pos-order-credit-payment"
                             type="button"
                             onClick={onPickCreditPayment}
-                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-2 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-1.5 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1 sm:gap-1.5 tablet:px-2 tablet:text-xs cursor-pointer"
                         >
                             <Icon name={IconComponentsEnum.userCheck} size={ESize.sm} color="text-primary-600" />
                             <span className="truncate">{t('creditPaymentButton')}</span>
@@ -219,7 +219,7 @@ export default function OrganismPosOrderPanel({
                             id="pos-order-invoice"
                             type="button"
                             onClick={onPickInvoice}
-                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-2 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-1.5 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1 sm:gap-1.5 tablet:px-2 tablet:text-xs cursor-pointer"
                         >
                             <Icon name={IconComponentsEnum.filetext} size={ESize.sm} color="text-primary-600" />
                             <span className="truncate">{t('invoiceButton')}</span>
@@ -228,7 +228,7 @@ export default function OrganismPosOrderPanel({
                             id="pos-order-subscription"
                             type="button"
                             onClick={onPickSubscription}
-                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-2 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1.5 tablet:px-2.5 tablet:text-sm cursor-pointer"
+                            className="min-w-0 flex-1 truncate rounded-xl border-2 border-primary-300 bg-primary-50/80 px-2 py-1.5 text-xs font-bold text-primary-900 shadow-2xs transition-colors hover:border-primary-400 hover:bg-primary-100 flex items-center justify-center gap-1 sm:gap-1.5 tablet:px-2 tablet:text-xs cursor-pointer"
                         >
                             <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-primary-600" />
                             <span className="truncate">{t('subscriptionButton')}</span>
@@ -239,7 +239,7 @@ export default function OrganismPosOrderPanel({
                                 type="button"
                                 aria-label={t('clearOrder')}
                                 onClick={cart.clear}
-                                className="shrink-0 rounded-xl border-2 border-danger-200 bg-danger-50 p-2 text-danger-600 transition-colors hover:border-danger-300 hover:bg-danger-100 cursor-pointer"
+                                className="shrink-0 rounded-xl border-2 border-danger-200 bg-danger-50 p-1.5 text-danger-600 transition-colors hover:border-danger-300 hover:bg-danger-100 cursor-pointer"
                             >
                                 <Icon name={IconComponentsEnum.trash} size={ESize.sm} color="text-danger-600" />
                             </button>
@@ -256,7 +256,7 @@ export default function OrganismPosOrderPanel({
             </Div>
 
             {/* Bottom Pay CTA */}
-            <Div className="flex shrink-0 items-center gap-3 border-t border-gray-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] tablet:border-t-0 tablet:pt-0 tablet:shadow-none">
+            <Div className="flex shrink-0 items-center gap-3 border-t border-gray-200 bg-white p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] tablet:border-t-0 tablet:pt-1 tablet:shadow-none">
                 <Div className="flex min-w-0 flex-col tablet:hidden">
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('total')}
@@ -270,14 +270,14 @@ export default function OrganismPosOrderPanel({
                         id="pos-order-pay"
                         type="button"
                         onClick={onPay}
-                        className="group relative flex h-13 min-w-0 flex-1 items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-accent-500 to-accent-600 px-5 text-white shadow-lg shadow-accent-500/25 transition-all hover:from-accent-600 hover:to-accent-700 active:scale-[0.99] cursor-pointer"
+                        className="group relative flex h-11 sm:h-12 min-w-0 flex-1 items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-accent-500 to-accent-600 px-4 sm:px-5 text-white shadow-md shadow-accent-500/25 transition-all hover:from-accent-600 hover:to-accent-700 active:scale-[0.99] cursor-pointer"
                     >
-                        <span className="text-base font-bold sm:text-lg">{t('payment')}</span>
-                        <div className="flex items-center gap-2.5">
-                            <span className="text-lg font-black tabular-nums sm:text-xl">
+                        <span className="text-sm font-bold sm:text-base">{t('payment')}</span>
+                        <div className="flex items-center gap-2 sm:gap-2.5">
+                            <span className="text-base sm:text-lg font-black tabular-nums">
                                 {formatMoney(cart.total)}
                             </span>
-                            <div className="flex size-7 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+                            <div className="flex size-6 sm:size-7 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
                                 <Icon name={IconComponentsEnum.arrowRight} size={ESize.xs} color="text-white" />
                             </div>
                         </div>
@@ -287,7 +287,7 @@ export default function OrganismPosOrderPanel({
                         id="pos-order-pay"
                         type="button"
                         disabled
-                        className="flex h-13 min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-100 px-4 text-sm font-semibold text-gray-400 cursor-not-allowed"
+                        className="flex h-11 sm:h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl sm:rounded-2xl border border-gray-200 bg-gray-100 px-4 text-sm font-semibold text-gray-400 cursor-not-allowed"
                     >
                         <span>{t('payment')}</span>
                         <Icon name={IconComponentsEnum.arrowRight} size={ESize.xs} color="text-gray-400" />

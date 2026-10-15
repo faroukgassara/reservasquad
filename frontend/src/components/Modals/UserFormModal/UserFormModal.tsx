@@ -122,12 +122,12 @@ const UserFormModal = ({
                         name="firstName"
                         validators={{
                             onSubmit: ({ value }) =>
-                                value?.trim() ? undefined : 'Le prénom est requis',
+                                value?.trim() ? undefined : t('errors.firstNameRequired'),
                         }}
                     >
                         {({ state, handleChange }) => (
                             <Input
-                                label="Prénom"
+                                label={t('placeholders.firstName')}
                                 placeholder={t('placeholders.firstName')}
                                 value={state.value}
                                 id="user-first-name"
@@ -143,12 +143,12 @@ const UserFormModal = ({
                         name="lastName"
                         validators={{
                             onSubmit: ({ value }) =>
-                                value?.trim() ? undefined : 'Le nom est requis',
+                                value?.trim() ? undefined : t('errors.lastNameRequired'),
                         }}
                     >
                         {({ state, handleChange }) => (
                             <Input
-                                label="Nom"
+                                label={tCommon('name')}
                                 placeholder={t('placeholders.lastName')}
                                 value={state.value}
                                 id="user-last-name"
@@ -164,12 +164,12 @@ const UserFormModal = ({
                         name="email"
                         validators={{
                             onSubmit: ({ value }) =>
-                                value?.trim() ? undefined : "L'e-mail est requis",
+                                value?.trim() ? undefined : t('errors.emailRequired'),
                         }}
                     >
                         {({ state, handleChange }) => (
                             <Input
-                                label="E-mail"
+                                label={tCommon('email')}
                                 type={EInputType.email}
                                 placeholder={t('placeholders.email')}
                                 value={state.value}
@@ -188,12 +188,12 @@ const UserFormModal = ({
                         name="phone"
                         validators={{
                             onSubmit: ({ value }) =>
-                                value?.trim() ? undefined : 'Le téléphone est requis',
+                                value?.trim() ? undefined : t('errors.phoneRequired'),
                         }}
                     >
                         {({ state, handleChange }) => (
                             <Input
-                                label="Téléphone"
+                                label={tCommon('phone')}
                                 placeholder={t('placeholders.phone')}
                                 value={state.value}
                                 id="user-phone"
@@ -210,10 +210,10 @@ const UserFormModal = ({
                         validators={{
                             onSubmit: ({ value }) => {
                                 if (!isEdit && !value?.trim()) {
-                                    return 'Le mot de passe est requis';
+                                    return t('errors.passwordRequired');
                                 }
                                 if (value && value.length < 6) {
-                                    return 'Le mot de passe doit contenir au moins 6 caractères';
+                                    return t('errors.passwordMinLength');
                                 }
                                 return undefined;
                             },
@@ -221,9 +221,9 @@ const UserFormModal = ({
                     >
                         {({ state, handleChange }) => (
                             <Input
-                                label={isEdit ? 'Nouveau mot de passe' : 'Mot de passe'}
+                                label={isEdit ? t('fields.newPassword') : t('fields.password')}
                                 isPassword
-                                placeholder={isEdit ? 'Laisser vide pour ne pas changer' : '••••••••'}
+                                placeholder={isEdit ? t('placeholders.passwordEdit') : '••••••••'}
                                 value={state.value}
                                 id="user-password"
                                 onChange={(e) => handleChange(e.target.value)}

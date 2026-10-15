@@ -15,6 +15,7 @@ import {
   FetchSubscriptionsDto,
   RenewSubscriptionDto,
   SaveSubscriptionDto,
+  SubscriptionAnalyticsQueryDto,
 } from 'src/dto/pos/posSubscription.dto';
 import { PosSubscriptionService } from './pos-subscription.service';
 import { validateBody } from './pos.utils';
@@ -61,6 +62,18 @@ export class PosSubscriptionController {
     }
   }
 
+  @Get('analytics')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Get subscription analytics, monthly trends, and plan breakdown' })
+  async analytics(@Res() res: Response, @Query() query: SubscriptionAnalyticsQueryDto) {
+    try {
+      const data = await this.subscriptionService.analytics(query);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Post()
   @swagger.ApiOperation({ summary: 'Create a draft subscription' })
   async create(@Res() res: Response, @Req() req: IRequest, @Body() body: SaveSubscriptionDto) {
@@ -80,6 +93,24 @@ export class PosSubscriptionController {
   async triggerCron(@Res() res: Response) {
     try {
       const data = await this.subscriptionService.processAutomaticExpirationReminders();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('deleted')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'List soft-deleted subscriptions' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  async listDeleted(
+    @Res() res: Response,
+    @Query() query: FetchSubscriptionsDto,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+  ) {
+    try {
+      const data = await this.subscriptionService.listDeletedSubscriptions(pagination, query);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -172,6 +203,30 @@ export class PosSubscriptionController {
   async remove(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
     try {
       const data = await this.subscriptionService.remove(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/restore')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted subscription' })
+  async restore(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.subscriptionService.restoreSubscription(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete(':id/hard')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Permanently delete a subscription' })
+  async hardDelete(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.subscriptionService.hardDeleteSubscription(id, req.user?.id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

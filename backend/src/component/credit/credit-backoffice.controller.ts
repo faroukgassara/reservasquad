@@ -137,11 +137,60 @@ export class CreditBackofficeController {
     }
   }
 
+  @Get('clients/deleted')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'List soft-deleted credit clients' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  @ApiSortingQuery(CLIENT_SORTING_OPTIONS)
+  @ApiSearchQuery({ fields: CLIENT_SEARCH_FIELDS })
+  async listDeletedClients(
+    @Res() res: Response,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+    @SortingQuery(CLIENT_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
+    @SearchQuery({ fields: CLIENT_SEARCH_FIELDS }) search: object,
+  ) {
+    try {
+      const data = await this.creditService.listDeletedClients(
+        pagination,
+        orderBy,
+        search as never,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get('clients/:id')
   @swagger.ApiOperation({ summary: 'Credit client detail with credits and payments' })
   async getClient(@Res() res: Response, @Param('id') id: string) {
     try {
       const data = await this.creditService.getClientDetail(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('clients/:id/restore')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted credit client' })
+  async restoreClient(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.creditService.restoreClient(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete('clients/:id/hard')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Permanently delete a soft-deleted credit client' })
+  async hardDeleteClient(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.creditService.hardDeleteClient(id, req.user?.id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

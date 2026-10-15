@@ -53,6 +53,7 @@ export interface PosProductFormValues {
   reference: string
   barcode: string
   availableInPos: boolean
+  minStock: string
   taxRate: string
   isSubscription: boolean
   subscriptionDuration: string
@@ -191,6 +192,20 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
           label={t('stock')}
           value={t('units', { count: currentStock })}
           isLoading={statsLoading}
+          action={
+            product.type === 'STOCKABLE' &&
+            currentStock <=
+              (product.minStock !== null && product.minStock !== undefined
+                ? toAmount(product.minStock)
+                : 10) ? (
+              <Badge
+                id="pos-product-stat-low-stock-badge"
+                text={currentStock <= 0 ? t('outOfStockBadge') : t('lowStock')}
+                type={currentStock <= 0 ? EBadgeType.error : EBadgeType.warning}
+                size={EBadgeSize.tiny}
+              />
+            ) : undefined
+          }
         />
         <StatCard
           icon={IconComponentsEnum.shoppingCart}
@@ -354,6 +369,7 @@ export default function OrganismPosProductForm({
       reference: product?.reference ?? '',
       barcode: product?.barcode ?? '',
       availableInPos: product?.availableInPos ?? true,
+      minStock: product?.minStock !== null && product?.minStock !== undefined ? String(toAmount(product.minStock)) : '10',
       taxRate: String(toAmount(product?.taxRate)),
       isSubscription: !!product?.subscriptionDuration,
       subscriptionDuration: String(subscriptionDays(product)),
@@ -430,6 +446,14 @@ export default function OrganismPosProductForm({
                   type={EBadgeType.revprimary}
                   size={EBadgeSize.tiny}
                 />
+                {product && product.type === 'STOCKABLE' && product.minStock !== null && product.minStock !== undefined && toAmount(product.stockQty) <= toAmount(product.minStock) ? (
+                  <Badge
+                    id="pos-product-header-low-stock-badge"
+                    text={toAmount(product.stockQty) <= 0 ? t('outOfStockBadge') : t('lowStock')}
+                    type={toAmount(product.stockQty) <= 0 ? EBadgeType.reverror : EBadgeType.revwarning}
+                    size={EBadgeSize.tiny}
+                  />
+                ) : null}
                 {isSubscription ? (
                   <Badge
                     id="pos-product-subscription-badge"
@@ -585,6 +609,33 @@ export default function OrganismPosProductForm({
                   />
                 )}
               </form.Field>
+              <form.Subscribe selector={(state) => state.values.type}>
+                {(productType) =>
+                  productType === 'STOCKABLE' ? (
+                    <form.Field
+                      name="minStock"
+                      validators={{
+                        onChange: ({ value }) =>
+                          value.trim() === '' || isValidAmount(value)
+                            ? undefined
+                            : t('invalidPrice'),
+                      }}
+                    >
+                      {({ state, handleChange }) => (
+                        <Input
+                          id="pos-product-min-stock"
+                          label={t('minStock')}
+                          placeholder={t('minStockPlaceholder')}
+                          value={state.value}
+                          type={EInputType.number}
+                          onChange={(e) => handleChange(e.target.value)}
+                          hintText={t('minStockHint')}
+                        />
+                      )}
+                    </form.Field>
+                  ) : null
+                }
+              </form.Subscribe>
               <form.Field name="reference">
                 {({ state, handleChange }) => (
                   <Input

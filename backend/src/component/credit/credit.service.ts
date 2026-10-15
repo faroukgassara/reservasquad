@@ -129,6 +129,7 @@ export class CreditService {
         ...(dto.address !== undefined && { address: dto.address?.trim() || null }),
         ...(dto.taxId !== undefined && { taxId: dto.taxId?.trim() || null }),
         ...(dto.cin !== undefined && { cin: dto.cin?.trim() || null }),
+        ...(dto.newsletterOptOut !== undefined && { newsletterOptOut: dto.newsletterOptOut }),
       },
     });
     await this.log(
@@ -162,6 +163,59 @@ export class CreditService {
       actorId,
     );
     return client;
+  }
+
+  async getDeletedClientById(id: string) {
+    const client = await this.prismaService.creditClient.findFirst({
+      where: { id, deletedAt: { not: null } },
+    });
+    if (!client) throw new NotFoundException('Deleted credit client not found');
+    return client;
+  }
+
+  async listDeletedClients(
+    pagination: PaginationData,
+    orderBy: Record<string, unknown>[],
+    search?: Prisma.CreditClientWhereInput,
+  ) {
+    const andWhere = buildAndFilters(search);
+    const proxied = ProxyPrismaModel(this.prismaService.creditClient as any);
+    return proxied.findManyPaginated(
+      {
+        where: composeWhere({ deletedAt: { not: null } }, andWhere),
+        orderBy,
+      },
+      pagination,
+    );
+  }
+
+  async restoreClient(id: string, actorId?: string) {
+    const existing = await this.getDeletedClientById(id);
+    const restored = await this.prismaService.creditClient.update({
+      where: { id },
+      data: { deletedAt: null },
+    });
+    await this.log(
+      restored.id,
+      'UPDATE',
+      `Client de crédit restauré : ${restored.firstName} ${restored.lastName}`,
+      actorId,
+    );
+    return restored;
+  }
+
+  async hardDeleteClient(id: string, actorId?: string) {
+    const existing = await this.getDeletedClientById(id);
+    const removed = await this.prismaService.creditClient.delete({
+      where: { id },
+    });
+    await this.log(
+      id,
+      'DELETE',
+      `Client de crédit supprimé définitivement : ${existing.firstName} ${existing.lastName}`,
+      actorId,
+    );
+    return removed;
   }
 
   async listClients(

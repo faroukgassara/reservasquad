@@ -322,4 +322,81 @@ export class PosInvoiceService {
     );
     return this.getById(creditNote.id);
   }
+
+  async getDeletedInvoiceById(id: string) {
+    const invoice = await this.prismaService.invoice.findFirst({
+      where: { id, deletedAt: { not: null } },
+      include: detailInclude,
+    });
+    if (!invoice) throw new NotFoundException('Deleted invoice not found');
+    return invoice;
+  }
+
+  async listDeletedInvoices(pagination: PaginationData, query?: FetchInvoicesDto) {
+    const take = pagination.perPage ?? 10;
+    const page = pagination.page ?? 1;
+    const skip = (page - 1) * take;
+
+    const where: Prisma.InvoiceWhereInput = {
+      deletedAt: { not: null },
+      ...(query?.type && { type: query.type }),
+      ...(query?.status && { status: query.status }),
+      ...(query?.clientId && { clientId: query.clientId }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prismaService.invoice.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { deletedAt: 'desc' },
+        include: listInclude,
+      }),
+      this.prismaService.invoice.count({ where }),
+    ]);
+
+    const lastPage = Math.ceil(total / take) || 1;
+    return {
+      data,
+      meta: {
+        total,
+        currentPage: page,
+        perPage: take,
+        lastPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+        hasMore: page < lastPage,
+      },
+    };
+  }
+
+  async restoreInvoice(id: string, actorId?: string) {
+    const existing = await this.getDeletedInvoiceById(id);
+    const restored = await this.prismaService.invoice.update({
+      where: { id },
+      data: { deletedAt: null },
+      include: detailInclude,
+    });
+    await this.log(
+      id,
+      'UPDATE',
+      `Facture/Avoir N° ${formatInvoiceNumber(existing.type, existing.year, existing.sequence)} restauré(e)`,
+      actorId,
+    );
+    return restored;
+  }
+
+  async hardDeleteInvoice(id: string, actorId?: string) {
+    const existing = await this.getDeletedInvoiceById(id);
+    const removed = await this.prismaService.invoice.delete({
+      where: { id },
+    });
+    await this.log(
+      id,
+      'DELETE',
+      `Facture/Avoir N° ${formatInvoiceNumber(existing.type, existing.year, existing.sequence)} supprimé(e) définitivement`,
+      actorId,
+    );
+    return removed;
+  }
 }

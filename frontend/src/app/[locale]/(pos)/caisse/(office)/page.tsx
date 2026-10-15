@@ -12,6 +12,7 @@ import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import PosOpenSessionModal from '@/components/Modals/PosOpenSessionModal/PosOpenSessionModal';
 import PosSubscriptionReminderModal from '@/components/Modals/PosSubscriptionReminderModal/PosSubscriptionReminderModal';
+import PosThumbnail from '@/components/Organisms/Pos/PosThumbnail';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { formatMoney } from '@/lib/daily-income-api';
@@ -19,6 +20,7 @@ import { Routes } from '@/lib/routes';
 import {
     fetchCurrentPosSession,
     fetchLastClosedPosSession,
+    fetchPosLowStockProducts,
     fetchSubscriptions,
     formatPosDate,
     formatPosDateTime,
@@ -78,6 +80,11 @@ export default function PosDashboardPage() {
         queryFn: () => fetchSubscriptions({ state: 'expiring', page: 1, perPage: 10 }),
     });
 
+    const { data: lowStockData, isLoading: lowStockLoading } = useQuery({
+        queryKey: ['pos-products-low-stock'],
+        queryFn: () => fetchPosLowStockProducts(6),
+    });
+
     const openMutation = useMutation({
         mutationFn: (openingCash: number) => openPosSession({ openingCash }),
         onSuccess: () => {
@@ -96,12 +103,12 @@ export default function PosDashboardPage() {
             void queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
             openToast(
                 tCommon('success'),
-                `E-mail de rappel envoyé avec succès à ${res.email} !`,
+                t('dashboard.remindSuccess', { email: res.email }),
                 { type: EToastType.SUCCESS },
             );
         },
         onError: (err: any) => {
-            const msg = err?.response?.data?.message || err?.message || "Échec de l'envoi du rappel";
+            const msg = err?.response?.data?.message || err?.message || t('dashboard.remindError');
             openToast(tCommon('error'), msg, { type: EToastType.ERROR });
         },
     });
@@ -206,100 +213,215 @@ export default function PosDashboardPage() {
                             </Div>
                         </Div>
 
-                        <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <Div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
-                                <Div className="flex items-center gap-3">
-                                    <Div className="flex size-10 items-center justify-center rounded-full bg-warning-50">
-                                        <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-warning-700" />
-                                    </Div>
-                                    <Div className="flex flex-col">
-                                        <Label variant={EVariantLabel.h5} color="text-gray-900">
-                                            {t('dashboard.expiringTitle')}
-                                        </Label>
-                                        <Label variant={EVariantLabel.caption} color="text-gray-500">
-                                            {t('dashboard.expiringSubtitle', { days: SUBSCRIPTION_EXPIRING_DAYS })}
-                                        </Label>
-                                    </Div>
-                                </Div>
-                                <Button
-                                    id="pos-expiring-all"
-                                    type={EButtonType.secondary}
-                                    size={EButtonSize.small}
-                                    text={t('dashboard.viewAll')}
-                                    onClick={() => router.push(Routes.Pos.subscriptions)}
-                                />
-                            </Div>
-                            {expiring?.data.length ? (
-                                <Div className="divide-y divide-gray-100">
-                                    {expiring.data.map((subscription) => {
-                                        const daysLeft = daysUntil(subscription.endDate);
-                                        return (
-                                            <Div
-                                                key={subscription.id}
-                                                className="flex w-full items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-gray-50"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    onClick={() => router.push(Routes.Pos.subscription(subscription.id))}
-                                                    className="group flex min-w-0 flex-1 flex-col text-start"
-                                                >
-                                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-medium transition-colors group-hover:text-primary-600">
-                                                        {personName(subscription.client)}
-                                                    </Label>
-                                                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="truncate">
-                                                        {`${formatSubscriptionNumber(subscription.number)} · ${subscription.productName} · ${formatPosDate(subscription.endDate)}`}
-                                                    </Label>
-                                                </button>
-                                                <Div className="flex items-center gap-2.5 shrink-0">
-                                                    <Badge
-                                                        id={`pos-expiring-${subscription.id}`}
-                                                        text={
-                                                            daysLeft === 0
-                                                                ? t('dashboard.endsToday')
-                                                                : t('dashboard.daysLeft', { count: daysLeft })
-                                                        }
-                                                        type={daysLeft <= 2 ? EBadgeType.error : EBadgeType.warning}
-                                                        size={EBadgeSize.small}
-                                                    />
-                                                    {subscription.remindedAt ? (
-                                                        <span
-                                                            id={`pos-reminded-${subscription.id}`}
-                                                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-500"
-                                                            title={`Rappel envoyé le ${formatPosDate(subscription.remindedAt)}`}
-                                                        >
-                                                            <Icon name={IconComponentsEnum.check} size={ESize.xs} color="text-success-600" />
-                                                            <span>Rappel envoyé</span>
-                                                        </span>
-                                                    ) : (
-                                                        <Button
-                                                            id={`pos-remind-${subscription.id}`}
-                                                            type={EButtonType.secondary}
-                                                            size={EButtonSize.small}
-                                                            icon={{
-                                                                name: IconComponentsEnum.bell,
-                                                                size: ESize.xs,
-                                                                color: 'text-primary-500',
-                                                            }}
-                                                            iconPosition="left"
-                                                            text="Rappeler"
-                                                            onClick={() => {
-                                                                setSelectedReminder({ subscription, daysLeft });
-                                                                openReminderModal();
-                                                            }}
+                        <Div className="grid gap-6 lg:grid-cols-2">
+                            {/* 1. Low-Stock Alert Card */}
+                            <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col">
+                                <Div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                                    <Div className="flex items-center gap-3 min-w-0">
+                                        <Div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-warning-50">
+                                            <Icon name={IconComponentsEnum.archive} size={ESize.sm} color="text-warning-600" />
+                                        </Div>
+                                        <Div className="flex flex-col min-w-0">
+                                            <Div className="flex items-center gap-2">
+                                                <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate">
+                                                    {t('dashboard.lowStockTitle')}
+                                                </Label>
+                                                {(() => {
+                                                    const validCount = (lowStockData?.items ?? []).filter((p) => {
+                                                        const s = toAmount(p.stockQty);
+                                                        const m = p.minStock !== null && p.minStock !== undefined ? toAmount(p.minStock) : 10;
+                                                        return p.availableInPos && s > 0 && s <= m;
+                                                    }).length;
+                                                    return validCount > 0 ? (
+                                                        <Badge
+                                                            id="pos-low-stock-count-badge"
+                                                            text={String(validCount)}
+                                                            type={EBadgeType.warning}
+                                                            size={EBadgeSize.tiny}
                                                         />
-                                                    )}
+                                                    ) : null;
+                                                })()}
+                                            </Div>
+                                            <Label variant={EVariantLabel.caption} color="text-gray-500" className="truncate">
+                                                {t('dashboard.lowStockSubtitle')}
+                                            </Label>
+                                        </Div>
+                                    </Div>
+                                    <Button
+                                        id="pos-low-stock-view-all"
+                                        type={EButtonType.secondary}
+                                        size={EButtonSize.small}
+                                        text={t('dashboard.viewAllAlerts')}
+                                        onClick={() => router.push(`${Routes.Pos.products}?filter=low-stock`)}
+                                    />
+                                </Div>
+                                {(() => {
+                                    const items = (lowStockData?.items ?? []).filter((prod) => {
+                                        const stock = toAmount(prod.stockQty);
+                                        const min = prod.minStock !== null && prod.minStock !== undefined ? toAmount(prod.minStock) : 10;
+                                        return prod.availableInPos && stock > 0 && stock <= min;
+                                    });
+                                    if (items.length === 0) {
+                                        return (
+                                            <Div className="flex items-center gap-3 px-5 py-6 flex-1">
+                                                <Div className="flex size-7 items-center justify-center rounded-full bg-success-50 text-success-600 shrink-0">
+                                                    <Icon name={IconComponentsEnum.check} size={ESize.xs} color="text-success-600" />
                                                 </Div>
+                                                <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                                    {t('dashboard.lowStockAllGood')}
+                                                </Label>
                                             </Div>
                                         );
-                                    })}
+                                    }
+                                    return (
+                                        <Div className="divide-y divide-gray-100 flex-1">
+                                            {items.map((prod) => {
+                                                const stock = toAmount(prod.stockQty);
+                                                const min = prod.minStock !== null && prod.minStock !== undefined ? toAmount(prod.minStock) : 10;
+                                                return (
+                                                    <Div
+                                                        key={prod.id}
+                                                        className="flex w-full items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-gray-50"
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => router.push(Routes.Pos.product(prod.id))}
+                                                            className="group flex min-w-0 flex-1 items-center gap-3 text-start"
+                                                        >
+                                                            <PosThumbnail
+                                                                imageUrl={prod.imageUrl}
+                                                                alt={prod.name}
+                                                                className="size-10 shrink-0 rounded-lg"
+                                                            />
+                                                            <Div className="flex min-w-0 flex-1 flex-col">
+                                                                <Label
+                                                                    variant={EVariantLabel.bodySmall}
+                                                                    color="text-gray-900"
+                                                                    className="truncate font-medium transition-colors group-hover:text-primary-600"
+                                                                >
+                                                                    {prod.name}
+                                                                </Label>
+                                                                <Label variant={EVariantLabel.caption} color="text-gray-500" className="truncate">
+                                                                    {prod.category?.name ? `${prod.category.name} · ` : ''}
+                                                                    {t('dashboard.minStockLabel', { min })}
+                                                                </Label>
+                                                            </Div>
+                                                        </button>
+                                                        <Div className="flex shrink-0 items-center gap-2">
+                                                            <Badge
+                                                                id={`pos-low-stock-item-${prod.id}`}
+                                                                text={t('products.lowStock')}
+                                                                type={EBadgeType.warning}
+                                                                size={EBadgeSize.small}
+                                                            />
+                                                            <span className="text-xs font-bold tabular-nums min-w-[3.5rem] text-end text-amber-700">
+                                                                {t('products.units', { count: stock })}
+                                                            </span>
+                                                        </Div>
+                                                    </Div>
+                                                );
+                                            })}
+                                        </Div>
+                                    );
+                                })()}
+                            </Div>
+
+                            {/* 2. Expiring Subscriptions Card */}
+                            <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col">
+                                <Div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                                    <Div className="flex items-center gap-3 min-w-0">
+                                        <Div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-warning-50">
+                                            <Icon name={IconComponentsEnum.calendar} size={ESize.sm} color="text-warning-700" />
+                                        </Div>
+                                        <Div className="flex flex-col min-w-0">
+                                            <Label variant={EVariantLabel.h5} color="text-gray-900" className="truncate">
+                                                {t('dashboard.expiringTitle')}
+                                            </Label>
+                                            <Label variant={EVariantLabel.caption} color="text-gray-500" className="truncate">
+                                                {t('dashboard.expiringSubtitle', { days: SUBSCRIPTION_EXPIRING_DAYS })}
+                                            </Label>
+                                        </Div>
+                                    </Div>
+                                    <Button
+                                        id="pos-expiring-all"
+                                        type={EButtonType.secondary}
+                                        size={EButtonSize.small}
+                                        text={t('dashboard.viewAll')}
+                                        onClick={() => router.push(Routes.Pos.subscriptions)}
+                                    />
                                 </Div>
-                            ) : (
-                                <Div className="px-5 py-6">
-                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                        {expiringLoading ? '…' : t('dashboard.noExpiring')}
-                                    </Label>
-                                </Div>
-                            )}
+                                {expiring?.data.length ? (
+                                    <Div className="divide-y divide-gray-100 flex-1">
+                                        {expiring.data.map((subscription) => {
+                                            const daysLeft = daysUntil(subscription.endDate);
+                                            return (
+                                                <Div
+                                                    key={subscription.id}
+                                                    className="flex w-full items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-gray-50"
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => router.push(Routes.Pos.subscription(subscription.id))}
+                                                        className="group flex min-w-0 flex-1 flex-col text-start"
+                                                    >
+                                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="truncate font-medium transition-colors group-hover:text-primary-600">
+                                                            {personName(subscription.client)}
+                                                        </Label>
+                                                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="truncate">
+                                                            {`${formatSubscriptionNumber(subscription.number)} · ${subscription.productName} · ${formatPosDate(subscription.endDate)}`}
+                                                        </Label>
+                                                    </button>
+                                                    <Div className="flex items-center gap-2.5 shrink-0">
+                                                        <Badge
+                                                            id={`pos-expiring-${subscription.id}`}
+                                                            text={
+                                                                daysLeft === 0
+                                                                    ? t('dashboard.endsToday')
+                                                                    : t('dashboard.daysLeft', { count: daysLeft })
+                                                            }
+                                                            type={daysLeft <= 2 ? EBadgeType.error : EBadgeType.warning}
+                                                            size={EBadgeSize.small}
+                                                        />
+                                                        {subscription.remindedAt ? (
+                                                            <span
+                                                                id={`pos-reminded-${subscription.id}`}
+                                                                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-500"
+                                                                title={t('dashboard.remindedOn', { date: formatPosDate(subscription.remindedAt) })}
+                                                            >
+                                                                <Icon name={IconComponentsEnum.check} size={ESize.xs} color="text-success-600" />
+                                                                <span>{t('dashboard.reminded')}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <Button
+                                                                id={`pos-remind-${subscription.id}`}
+                                                                type={EButtonType.secondary}
+                                                                size={EButtonSize.small}
+                                                                icon={{
+                                                                    name: IconComponentsEnum.bell,
+                                                                    size: ESize.xs,
+                                                                    color: 'text-primary-500',
+                                                                }}
+                                                                iconPosition="left"
+                                                                text={t('dashboard.remind')}
+                                                                onClick={() => {
+                                                                    setSelectedReminder({ subscription, daysLeft });
+                                                                    openReminderModal();
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Div>
+                                                </Div>
+                                            );
+                                        })}
+                                    </Div>
+                                ) : (
+                                    <Div className="px-5 py-6 flex-1">
+                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                            {expiringLoading ? '…' : t('dashboard.noExpiring')}
+                                        </Label>
+                                    </Div>
+                                )}
+                            </Div>
                         </Div>
                     </Div>
                 }

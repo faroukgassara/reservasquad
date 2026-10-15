@@ -14,6 +14,7 @@ export const ROUTE_POLICIES: IRoutePolicy[] = [
     { route: '/caisse/products', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/categories', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/analytics', policy: { anyRoles: ['ADMIN'] } },
+    { route: '/caisse/newsletters', policy: { anyRoles: ['ADMIN'] } },
 ];
 
 export const isRouteAllowed = (path: string, context: IAuthzContext): boolean => {

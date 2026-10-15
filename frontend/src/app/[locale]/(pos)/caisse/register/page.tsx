@@ -228,7 +228,7 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
                             {t('mobileProducts')}
                         </Label>
                     </button>
-                    <Div className="min-h-0 flex-1">
+                    <Div className="flex h-full min-h-0 flex-1 flex-col">
                         <OrganismPosOrderPanel
                             onPay={() => setScreen('payment')}
                             onPickInvoice={() => invoiceModal.openModal()}

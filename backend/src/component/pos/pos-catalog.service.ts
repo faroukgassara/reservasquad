@@ -151,7 +151,17 @@ export class PosCatalogService {
       deletedAt: null,
       ...(query.categoryId && { categoryId: query.categoryId }),
       ...(query.availableInPos !== undefined && { availableInPos: query.availableInPos }),
+      ...(query.stockableOnly && { type: 'STOCKABLE' }),
       ...(query.subscription && { subscriptionDuration: { not: null }, subscriptionUnit: { not: null } }),
+      ...(query.lowStockOnly && {
+        type: 'STOCKABLE',
+        availableInPos: true,
+        stockQty: { gt: 0 },
+      }),
+      ...(query.outOfStockOnly && {
+        type: 'STOCKABLE',
+        stockQty: { lte: 0 },
+      }),
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -160,11 +170,74 @@ export class PosCatalogService {
         ],
       }),
     };
+
+    if (query.lowStockOnly) {
+      const allMatching = await this.prismaService.posProduct.findMany({
+        where,
+        include: { category: { select: categorySelect } },
+        orderBy: orderBy?.length ? orderBy : [{ name: 'asc' }],
+      });
+      const filtered = allMatching.filter((p) => {
+        const min = p.minStock !== null && p.minStock !== undefined ? Number(p.minStock) : 10;
+        const stock = Number(p.stockQty);
+        return stock > 0 && stock <= min;
+      });
+      const total = filtered.length;
+      const page = pagination.page ?? 1;
+      const perPage = pagination.perPage ?? 10;
+      const start = (page - 1) * perPage;
+      const paginatedData = filtered.slice(start, start + perPage);
+      return {
+        data: paginatedData,
+        meta: {
+          total,
+          lastPage: Math.ceil(total / perPage) || 1,
+          currentPage: page,
+          perPage,
+          prev: page > 1 ? page - 1 : null,
+          next: start + perPage < total ? page + 1 : null,
+        },
+      };
+    }
+
     const proxied = ProxyPrismaModel(this.prismaService.posProduct as any);
     return proxied.findManyPaginated(
       { where, orderBy, include: { category: { select: categorySelect } } },
       pagination,
     );
+  }
+
+  async getLowStockProducts(limit = 10) {
+    const products = await this.prismaService.posProduct.findMany({
+      where: {
+        deletedAt: null,
+        type: 'STOCKABLE',
+        availableInPos: true,
+        stockQty: { gt: 0 },
+      },
+      include: { category: { select: categorySelect } },
+      orderBy: { name: 'asc' },
+    });
+
+    const lowStock = products
+      .filter((p) => {
+        const min = p.minStock !== null && p.minStock !== undefined ? Number(p.minStock) : 10;
+        const stock = Number(p.stockQty);
+        return stock > 0 && stock <= min;
+      })
+      .sort((a, b) => {
+        const minA = a.minStock !== null && a.minStock !== undefined ? Number(a.minStock) : 10;
+        const minB = b.minStock !== null && b.minStock !== undefined ? Number(b.minStock) : 10;
+        const diffA = Number(a.stockQty) - minA;
+        const diffB = Number(b.stockQty) - minB;
+        if (diffA !== diffB) return diffA - diffB;
+        return Number(a.stockQty) - Number(b.stockQty);
+      });
+
+    return {
+      total: lowStock.length,
+      items: limit > 0 ? lowStock.slice(0, limit) : lowStock,
+    };
   }
 
   async listAvailableProducts() {
@@ -218,6 +291,9 @@ export class PosCatalogService {
         cost: dto.cost ?? 0,
         ...(dto.type && { type: dto.type }),
         availableInPos: !period.subscriptionDuration && (dto.availableInPos ?? true),
+        ...(dto.minStock !== undefined && {
+          minStock: dto.minStock !== null ? dto.minStock : null,
+        }),
         barcode: trimOrNull(dto.barcode),
         reference: trimOrNull(dto.reference),
         imageUrl: await this.resolveImage(PRODUCT_IMAGES_TYPE, dto.imageUrl),
@@ -241,6 +317,9 @@ export class PosCatalogService {
       ...(dto.cost !== undefined && { cost: dto.cost }),
       ...(dto.type !== undefined && { type: dto.type }),
       ...(dto.availableInPos !== undefined && { availableInPos: dto.availableInPos }),
+      ...(dto.minStock !== undefined && {
+        minStock: dto.minStock !== null ? dto.minStock : null,
+      }),
       ...(dto.barcode !== undefined && { barcode: trimOrNull(dto.barcode) }),
       ...(dto.reference !== undefined && { reference: trimOrNull(dto.reference) }),
       ...(dto.taxRate !== undefined && { taxRate: dto.taxRate }),
@@ -263,6 +342,75 @@ export class PosCatalogService {
     });
     await this.log(POS_AUDIT.product, product.id, 'DELETE', `Produit caisse "${product.name}" supprimé`, actorId);
     return product;
+  }
+
+  async getDeletedProductById(id: string) {
+    const product = await this.prismaService.posProduct.findFirst({
+      where: { id, deletedAt: { not: null } },
+      include: { category: { select: categorySelect } },
+    });
+    if (!product) throw new NotFoundException('Deleted product not found');
+    return product;
+  }
+
+  async listDeletedProducts(
+    pagination: PaginationData,
+    orderBy: Record<string, unknown>[],
+    query?: FetchPosProductsDto,
+  ) {
+    const search = query?.search?.trim();
+    const where: Prisma.PosProductWhereInput = {
+      deletedAt: { not: null },
+      ...(query?.categoryId && { categoryId: query.categoryId }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { barcode: { contains: search, mode: 'insensitive' } },
+          { reference: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+    const proxied = ProxyPrismaModel(this.prismaService.posProduct as any);
+    return proxied.findManyPaginated(
+      {
+        where,
+        include: { category: { select: categorySelect } },
+        orderBy: orderBy?.length ? orderBy : [{ deletedAt: 'desc' }],
+      },
+      pagination,
+    );
+  }
+
+  async restoreProduct(id: string, actorId?: string) {
+    const existing = await this.getDeletedProductById(id);
+    const restored = await this.prismaService.posProduct.update({
+      where: { id },
+      data: { deletedAt: null },
+      include: { category: { select: categorySelect } },
+    });
+    await this.log(
+      POS_AUDIT.product,
+      restored.id,
+      'UPDATE',
+      `Produit caisse "${restored.name}" restauré`,
+      actorId,
+    );
+    return restored;
+  }
+
+  async hardDeleteProduct(id: string, actorId?: string) {
+    const existing = await this.getDeletedProductById(id);
+    const removed = await this.prismaService.posProduct.delete({
+      where: { id },
+    });
+    await this.log(
+      POS_AUDIT.product,
+      id,
+      'DELETE',
+      `Produit caisse "${existing.name}" supprimé définitivement`,
+      actorId,
+    );
+    return removed;
   }
 
   async getProductStats(id: string) {

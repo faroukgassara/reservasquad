@@ -50,8 +50,8 @@ export default function PosSubscriptionReminderModal({
 
     return (
         <Modal
-            title="Rappel d'échéance d'abonnement"
-            subTitle="Envoyer un e-mail de rappel au client"
+            title={t('subscriptionReminderModal.title')}
+            subTitle={t('subscriptionReminderModal.subTitle')}
             canClose
             canCloseOnClickOutisde
             className="w-[min(94vw,520px)] rounded-2xl bg-white p-6 shadow-xl"
@@ -61,20 +61,24 @@ export default function PosSubscriptionReminderModal({
                 <Div className="divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-25/80 p-4">
                     {/* Row 1: Client */}
                     <div className="grid grid-cols-[130px_1fr] items-center gap-3 pb-3">
-                        <span className="text-xs font-medium text-gray-500">Client</span>
+                        <span className="text-xs font-medium text-gray-500">
+                            {t('subscriptionReminderModal.client')}
+                        </span>
                         <div className="flex flex-col min-w-0">
                             <span className="text-sm font-semibold text-gray-900 truncate">
                                 {personName(subscription.client)}
                             </span>
                             <span className={hasEmail ? 'text-xs text-gray-500 truncate' : 'text-xs font-medium text-danger-600'}>
-                                {hasEmail ? clientEmail : 'Aucune adresse e-mail'}
+                                {hasEmail ? clientEmail : t('subscriptionReminderModal.noEmail')}
                             </span>
                         </div>
                     </div>
 
                     {/* Row 2: Abonnement */}
                     <div className="grid grid-cols-[130px_1fr] items-center gap-3 py-3">
-                        <span className="text-xs font-medium text-gray-500">Abonnement</span>
+                        <span className="text-xs font-medium text-gray-500">
+                            {t('subscriptionReminderModal.subscription')}
+                        </span>
                         <span className="text-sm font-medium text-gray-900">
                             <span className="font-semibold text-gray-700">{formatSubscriptionNumber(subscription.number)}</span>
                             {' · '}
@@ -84,7 +88,9 @@ export default function PosSubscriptionReminderModal({
 
                     {/* Row 3: Date d'échéance */}
                     <div className="grid grid-cols-[130px_1fr] items-center gap-3 pt-3">
-                        <span className="text-xs font-medium text-gray-500">Date d'échéance</span>
+                        <span className="text-xs font-medium text-gray-500">
+                            {t('subscriptionReminderModal.dueDate')}
+                        </span>
                         <div className="flex items-center gap-2.5 flex-nowrap min-w-0">
                             <span className="text-sm font-medium text-gray-900 tabular-nums shrink-0">
                                 {formatPosDate(subscription.endDate)}
@@ -107,22 +113,25 @@ export default function PosSubscriptionReminderModal({
                     <Div className="flex items-start gap-2.5 rounded-xl border border-warning-200 bg-warning-25 p-3 text-xs text-warning-800">
                         <Icon name={IconComponentsEnum.info} size={ESize.xs} color="text-warning-600" className="mt-0.5 shrink-0" />
                         <span>
-                            Un e-mail de rappel a déjà été envoyé à ce client le{' '}
-                            <strong>{formatPosDateTime(subscription.remindedAt)}</strong>. Chaque abonnement ne peut recevoir qu'un seul rappel.
+                            {t('subscriptionReminderModal.alreadyRemindedNotice', {
+                                date: formatPosDateTime(subscription.remindedAt),
+                            })}
                         </span>
                     </Div>
                 ) : hasEmail ? (
                     <Div className="flex items-start gap-2.5 rounded-xl border border-primary-100 bg-primary-10/40 p-3 text-xs text-gray-600">
                         <Icon name={IconComponentsEnum.info} size={ESize.xs} color="text-primary-500" className="mt-0.5 shrink-0" />
                         <span>
-                            Un e-mail officiel Biblio Squad sera envoyé à <strong>{clientEmail}</strong> pour l'informer de la fin prochaine de son abonnement et l'inviter à se réabonner.
+                            {t('subscriptionReminderModal.emailNotice', {
+                                email: clientEmail ?? '',
+                            })}
                         </span>
                     </Div>
                 ) : (
                     <Div className="flex items-start gap-2.5 rounded-xl border border-danger-200 bg-danger-25 p-3 text-xs text-danger-700">
                         <Icon name={IconComponentsEnum.alert} size={ESize.xs} color="text-danger-600" className="mt-0.5 shrink-0" />
                         <span>
-                            Ce client ne possède aucune adresse e-mail dans sa fiche. Vous devez d'abord lui associer un e-mail dans l'onglet Clients avant de pouvoir envoyer un rappel.
+                            {t('subscriptionReminderModal.noEmailNotice')}
                         </span>
                     </Div>
                 )}
@@ -149,10 +158,10 @@ export default function PosSubscriptionReminderModal({
                         iconPosition="left"
                         text={
                             alreadyReminded
-                                ? 'Rappel déjà envoyé'
+                                ? t('subscriptionReminderModal.alreadyRemindedBtn')
                                 : submitting || isLoading
                                   ? tCommon('loading')
-                                  : 'Envoyer le rappel'
+                                  : t('subscriptionReminderModal.sendReminderBtn')
                         }
                         disabled={!hasEmail || alreadyReminded || submitting || isLoading}
                         isLoading={submitting || isLoading}

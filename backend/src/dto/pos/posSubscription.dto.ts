@@ -100,3 +100,25 @@ export class FetchSubscriptionsDto {
   @MaxLength(100)
   search?: string;
 }
+
+export class SubscriptionAnalyticsQueryDto {
+  @ApiPropertyOptional({ example: '2026-01-01' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ example: '2026-12-31' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by specific product/plan UUID' })
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
+
+  @ApiPropertyOptional({ enum: ['day', 'month'], default: 'month' })
+  @IsOptional()
+  @IsIn(['day', 'month'])
+  interval?: 'day' | 'month';
+}

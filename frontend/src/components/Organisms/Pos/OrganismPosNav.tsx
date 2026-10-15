@@ -38,6 +38,7 @@ export default function OrganismPosNav() {
         ...(isAdmin ? [{ href: Routes.Pos.categories, label: t('nav.categories') }] : []),
         ...(isAdmin ? [{ href: Routes.Pos.analytics, label: t('nav.analytics') }] : []),
         { href: Routes.Pos.clients, label: t('nav.clients') },
+        ...(isAdmin ? [{ href: Routes.Pos.newsletters, label: t('nav.newsletters') }] : []),
     ];
 
     const matches = (href: string) => pathname === href || pathname.startsWith(`${href}/`);

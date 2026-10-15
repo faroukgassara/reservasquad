@@ -12,6 +12,7 @@ export interface RoomRecord {
     imageUrl: string | null;
     createdAt: string;
     updatedAt: string;
+    deletedAt?: string | null;
 }
 
 export interface PaginatedRooms {
@@ -88,3 +89,45 @@ export async function deleteRoom(id: string): Promise<void> {
     const res = await api.delete(`/api/rooms/${id}`, {}, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to delete room');
 }
+
+export async function fetchDeletedRooms(params: {
+    page?: number;
+    perPage?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+}): Promise<PaginatedRooms> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params.page) sp.set('page', String(params.page));
+    if (params.perPage) sp.set('perPage', String(params.perPage));
+    if (params.search) sp.set('search', params.search);
+    if (params.sortBy) sp.set('sortBy', params.sortBy);
+    if (params.sortOrder) sp.set('sortOrder', params.sortOrder);
+    const q = sp.toString();
+    const res = await api.get(`/api/rooms/deleted${q ? `?${q}` : ''}`, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch deleted rooms');
+    return unwrapData<PaginatedRooms>(res.data as { data?: PaginatedRooms });
+}
+
+export async function restoreRoom(id: string): Promise<RoomRecord> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/rooms/${id}/restore`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.message ||
+            (res.data as { error?: string })?.error ||
+            'Failed to restore room';
+        throw new Error(message);
+    }
+    return unwrapData<RoomRecord>(res.data as { data?: RoomRecord });
+}
+
+export async function hardDeleteRoom(id: string): Promise<void> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.delete(`/api/rooms/${id}/hard`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        throw new Error('Failed to permanently delete room');
+    }
+}
+

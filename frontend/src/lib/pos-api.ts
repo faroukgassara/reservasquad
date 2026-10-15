@@ -33,11 +33,13 @@ export interface PosProduct {
     type: PosProductType;
     availableInPos: boolean;
     stockQty: Money;
+    minStock?: Money | null;
     barcode: string | null;
     reference: string | null;
     taxRate: Money;
     subscriptionDuration: number | null;
     subscriptionUnit: SubscriptionUnit | null;
+    deletedAt?: string | null;
 }
 
 export interface PosProductInput {
@@ -48,6 +50,7 @@ export interface PosProductInput {
     cost: number;
     type: PosProductType;
     availableInPos: boolean;
+    minStock?: number | null;
     barcode: string | null;
     reference: string | null;
     taxRate: number;
@@ -301,10 +304,28 @@ export const fetchPosProducts = (params: {
     categoryId?: string;
     availableInPos?: boolean;
     subscription?: boolean;
+    lowStockOnly?: boolean;
+    outOfStockOnly?: boolean;
 }) =>
     posGet<Paginated<PosProduct>>(
-        withQuery('products/list', { ...params, subscription: params.subscription ? 'true' : undefined }),
+        withQuery('products/list', {
+            ...params,
+            subscription: params.subscription ? 'true' : undefined,
+            lowStockOnly: params.lowStockOnly ? 'true' : undefined,
+            outOfStockOnly: params.outOfStockOnly ? 'true' : undefined,
+        }),
         'Failed to fetch products',
+    );
+
+export interface PosLowStockResponse {
+    total: number;
+    items: PosProduct[];
+}
+
+export const fetchPosLowStockProducts = (limit = 10) =>
+    posGet<PosLowStockResponse>(
+        withQuery('products/low-stock', { limit }),
+        'Failed to fetch low stock products',
     );
 
 export const fetchAvailablePosProducts = () =>
@@ -337,6 +358,21 @@ export const updatePosProduct = (id: string, body: Partial<PosProductInput>) =>
 
 export const deletePosProduct = (id: string) =>
     posDelete(`products/${id}`, 'Failed to delete product');
+
+export const fetchDeletedPosProducts = (params: {
+    page?: number;
+    perPage?: number;
+    search?: string;
+    categoryId?: string;
+    sortBy?: string;
+    sortOrder?: string;
+}) => posGet<Paginated<PosProduct>>(withQuery('products/deleted', params), 'Failed to fetch deleted products');
+
+export const restorePosProduct = (id: string) =>
+    posPost<PosProduct>(`products/${id}/restore`, {}, 'Failed to restore product');
+
+export const hardDeletePosProduct = (id: string) =>
+    posDelete(`products/${id}/hard`, 'Failed to permanently delete product');
 
 export const fetchPosProductStats = (id: string) =>
     posGet<PosProductStats>(`products/${id}/stats`, 'Failed to fetch product stats');
@@ -466,6 +502,7 @@ export interface SaleOrder {
     amountPaid: Money;
     client: DocumentClient;
     salesperson: PosUserRef | null;
+    deletedAt?: string | null;
 }
 
 export interface SaleOrderDetail extends SaleOrder {
@@ -521,6 +558,19 @@ export const createInvoiceFromSaleOrder = (id: string) =>
 export const deleteSaleOrder = (id: string) =>
     posDelete(`sale-orders/${id}`, 'Failed to delete order');
 
+export const fetchDeletedSaleOrders = (params: {
+    page?: number;
+    perPage?: number;
+    status?: string;
+    clientId?: string;
+}) => posGet<Paginated<SaleOrder>>(withQuery('sale-orders/deleted', params), 'Failed to fetch deleted orders');
+
+export const restoreSaleOrder = (id: string) =>
+    posPost<SaleOrder>(`sale-orders/${id}/restore`, {}, 'Failed to restore order');
+
+export const hardDeleteSaleOrder = (id: string) =>
+    posDelete(`sale-orders/${id}/hard`, 'Failed to permanently delete order');
+
 // Invoices
 
 export type InvoiceType = 'INVOICE' | 'CREDIT_NOTE';
@@ -546,6 +596,7 @@ export interface Invoice {
     amountDue: number;
     paymentState: InvoicePaymentState;
     client: DocumentClient;
+    deletedAt?: string | null;
 }
 
 export interface InvoicePayment {
@@ -628,6 +679,20 @@ export const deleteInvoicePayment = (paymentId: string) =>
 
 export const deleteInvoice = (id: string) => posDelete(`invoices/${id}`, 'Failed to delete invoice');
 
+export const fetchDeletedInvoices = (params: {
+    page?: number;
+    perPage?: number;
+    type?: string;
+    status?: string;
+    clientId?: string;
+}) => posGet<Paginated<Invoice>>(withQuery('invoices/deleted', params), 'Failed to fetch deleted invoices');
+
+export const restoreInvoice = (id: string) =>
+    posPost<Invoice>(`invoices/${id}/restore`, {}, 'Failed to restore invoice');
+
+export const hardDeleteInvoice = (id: string) =>
+    posDelete(`invoices/${id}/hard`, 'Failed to permanently delete invoice');
+
 // Subscriptions (coworking)
 
 export type SubscriptionUnit = 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
@@ -662,6 +727,7 @@ export interface Subscription {
     activatedAt: string | null;
     remindedAt?: string | null;
     client: DocumentClient;
+    deletedAt?: string | null;
 }
 
 export interface SubscriptionDetail extends Subscription {
@@ -749,6 +815,78 @@ export interface SubscriptionSummary {
 export const fetchSubscriptionSummary = () =>
     posGet<SubscriptionSummary>('subscriptions/summary', 'Failed to fetch subscription summary');
 
+export interface SubscriptionAnalyticsQuery {
+    startDate?: string;
+    endDate?: string;
+    productId?: string;
+    interval?: 'day' | 'month';
+}
+
+export interface SubscriptionAnalyticsSummary {
+    totalSubscriptions: number;
+    activeSubscriptions: number;
+    expiringSubscriptions: number;
+    expiredSubscriptions: number;
+    cancelledSubscriptions: number;
+    totalRevenue: number;
+    totalPaid: number;
+    averageValue: number;
+    renewalsCount: number;
+    renewalRate: number;
+}
+
+export interface SubscriptionTrendItem {
+    date: string;
+    label: string;
+    newCount: number;
+    renewalsCount: number;
+    totalCount: number;
+    revenue: number;
+}
+
+export interface SubscriptionPlanBreakdown {
+    productId: string | null;
+    productName: string;
+    duration: number;
+    unit: string;
+    subscriptionsCount: number;
+    activeCount: number;
+    revenue: number;
+    percentageOfRevenue: number;
+    percentageOfCount: number;
+}
+
+export interface TopSubscriberItem {
+    clientId: string;
+    clientName: string;
+    clientEmail: string | null;
+    clientPhone: string | null;
+    subscriptionsCount: number;
+    activeCount: number;
+    totalSpent: number;
+    latestPlanName: string;
+    latestStatus: string;
+    latestEndDate: string;
+}
+
+export interface SubscriptionAnalyticsResponse {
+    timeframe: {
+        startDate: string | null;
+        endDate: string | null;
+        productId: string | null;
+    };
+    summary: SubscriptionAnalyticsSummary;
+    trends: SubscriptionTrendItem[];
+    planBreakdown: SubscriptionPlanBreakdown[];
+    topSubscribers: TopSubscriberItem[];
+}
+
+export const fetchSubscriptionAnalytics = (params?: SubscriptionAnalyticsQuery) =>
+    posGet<SubscriptionAnalyticsResponse>(
+        withQuery('subscriptions/analytics', (params ?? {}) as Record<string, string | number | boolean | undefined>),
+        'Failed to fetch subscription analytics',
+    );
+
 export const fetchSubscription = (id: string) =>
     posGet<SubscriptionDetail>(`subscriptions/${id}`, 'Failed to fetch subscription');
 
@@ -769,6 +907,19 @@ export const renewSubscription = (id: string, startDate: string) =>
 
 export const deleteSubscription = (id: string) =>
     posDelete(`subscriptions/${id}`, 'Failed to delete subscription');
+
+export const fetchDeletedSubscriptions = (params: {
+    page?: number;
+    perPage?: number;
+    status?: string;
+    clientId?: string;
+}) => posGet<Paginated<Subscription>>(withQuery('subscriptions/deleted', params), 'Failed to fetch deleted subscriptions');
+
+export const restoreSubscription = (id: string) =>
+    posPost<Subscription>(`subscriptions/${id}/restore`, {}, 'Failed to restore subscription');
+
+export const hardDeleteSubscription = (id: string) =>
+    posDelete(`subscriptions/${id}/hard`, 'Failed to permanently delete subscription');
 
 export const remindSubscription = (id: string) =>
     posPost<{ success: boolean; email: string; clientName: string; remindedAt?: string }>(

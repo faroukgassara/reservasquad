@@ -58,5 +58,5 @@ export const env = () => ({
     ADMIN_PHONE: process.env.ADMIN_PHONE,
 
     UPLOAD_DIR: process.env.UPLOAD_DIR,
-  }
+  },
 });

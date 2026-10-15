@@ -97,4 +97,43 @@ export class RoomService {
       where: { deletedAt: null },
     });
   }
+
+  async getDeletedRoomById(id: string): Promise<Room> {
+    const room = await this.prismaService.room.findFirst({
+      where: { id, deletedAt: { not: null } },
+    });
+    if (!room) throw new NotFoundException('Deleted room not found');
+    return room;
+  }
+
+  async listDeletedRooms(
+    pagination: PaginationData,
+    orderBy: Record<string, unknown>[],
+    search?: Prisma.RoomWhereInput,
+  ) {
+    const andWhere = buildAndFilters(search);
+    const proxied = ProxyPrismaModel(this.prismaService.room as any);
+    return proxied.findManyPaginated(
+      {
+        where: composeWhere({ deletedAt: { not: null } }, andWhere),
+        orderBy,
+      },
+      pagination,
+    );
+  }
+
+  async restoreRoom(id: string): Promise<Room> {
+    await this.getDeletedRoomById(id);
+    return this.prismaService.room.update({
+      where: { id },
+      data: { deletedAt: null },
+    });
+  }
+
+  async hardDeleteRoom(id: string): Promise<Room> {
+    await this.getDeletedRoomById(id);
+    return this.prismaService.room.delete({
+      where: { id },
+    });
+  }
 }

@@ -439,15 +439,16 @@ export default function OrganismPosPaymentScreen({
                                     </div>
                                     <div className="text-start">
                                         <div className="text-sm font-bold text-success-950">
-                                            Règlement complet
+                                            {t('fullPayment')}
                                         </div>
                                         <div className="text-xs text-success-700">
                                             {change > 0 ? (
                                                 <span>
-                                                    Monnaie à rendre : <strong className="font-extrabold tabular-nums">{formatMoney(change)}</strong>
+                                                    {t('changeToReturn')}{' '}
+                                                    <strong className="font-extrabold tabular-nums">{formatMoney(change)}</strong>
                                                 </span>
                                             ) : (
-                                                <span>Prêt à valider l&apos;encaissement</span>
+                                                <span>{t('readyToValidate')}</span>
                                             )}
                                         </div>
                                     </div>
@@ -464,17 +465,17 @@ export default function OrganismPosPaymentScreen({
                                     </div>
                                     <div className="text-start">
                                         <div className="text-sm font-bold text-gray-900">
-                                            {remaining > 0 ? 'Paiement en attente' : 'Validation désactivée'}
+                                            {remaining > 0 ? t('pendingPayment') : t('validationDisabled')}
                                         </div>
                                         <div className="text-xs text-gray-500">
                                             {remaining > 0 ? (
                                                 <span>
-                                                    Reste <strong className="text-danger-600 tabular-nums">{formatMoney(remaining)}</strong> à encaisser
+                                                    {t('remainingToCollect', { amount: formatMoney(remaining) })}
                                                 </span>
                                             ) : needsClient ? (
-                                                <span className="text-warning-700">Client requis pour le crédit</span>
+                                                <span className="text-warning-700">{t('clientRequiredForCredit')}</span>
                                             ) : (
-                                                <span>Sélectionnez un moyen de paiement</span>
+                                                <span>{t('selectPaymentMethod')}</span>
                                             )}
                                         </div>
                                     </div>

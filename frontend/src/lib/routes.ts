@@ -40,6 +40,8 @@ export const Routes = {
         subscription: (id: string) => `/caisse/subscriptions/${id}`,
         newSubscriptionFor: (clientId: string) => `/caisse/subscriptions/new?client=${clientId}`,
         analytics: '/caisse/analytics',
+        newsletters: '/caisse/newsletters',
+        newsletter: (id: string) => `/caisse/newsletters/${id}`,
     },
     Users: {
         index: '/users',
@@ -61,4 +63,5 @@ export const PublicRoutes = [
     Routes.Login,
     Routes.ForgotPassword,
     Routes.ResetPassword,
+    '/newsletter/unsubscribe',
 ] as const;

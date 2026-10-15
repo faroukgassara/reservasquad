@@ -11,6 +11,7 @@ import {
   FetchSubscriptionsDto,
   RenewSubscriptionDto,
   SaveSubscriptionDto,
+  SubscriptionAnalyticsQueryDto,
   SubscriptionState,
 } from 'src/dto/pos/posSubscription.dto';
 import { AuditService } from '../audit/audit.service';
@@ -175,6 +176,273 @@ export class PosSubscriptionService {
     return { all, running, expiring, expired };
   }
 
+  async analytics(query: SubscriptionAnalyticsQueryDto) {
+    const today = todayDateOnly();
+    const startDate = query.startDate ? toDateOnly(query.startDate) : undefined;
+    const endDate = query.endDate ? toDateOnly(query.endDate) : undefined;
+    const productId = query.productId?.trim() || undefined;
+
+    const where: Prisma.SubscriptionWhereInput = {
+      deletedAt: null,
+      ...(productId && { productId }),
+      ...(startDate && { startDate: { gte: startDate } }),
+      ...(endDate && { startDate: { lte: endDate } }),
+    };
+
+    const subscriptions = await this.prismaService.subscription.findMany({
+      where,
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: { startDate: 'asc' },
+    });
+
+    // Counts of overall active, expiring, expired
+    const activeWhere: Prisma.SubscriptionWhereInput = {
+      deletedAt: null,
+      status: 'ACTIVE',
+      startDate: { lte: today },
+      endDate: { gte: today },
+      ...(productId && { productId }),
+    };
+
+    const expiringWhere: Prisma.SubscriptionWhereInput = {
+      deletedAt: null,
+      status: 'ACTIVE',
+      endDate: { gte: today, lte: addDays(today, EXPIRING_DAYS) },
+      ...(productId && { productId }),
+    };
+
+    const expiredWhere: Prisma.SubscriptionWhereInput = {
+      deletedAt: null,
+      status: 'ACTIVE',
+      endDate: { lt: today },
+      ...(productId && { productId }),
+    };
+
+    const [activeCount, expiringCount, expiredCount] = await Promise.all([
+      this.prismaService.subscription.count({ where: activeWhere }),
+      this.prismaService.subscription.count({ where: expiringWhere }),
+      this.prismaService.subscription.count({ where: expiredWhere }),
+    ]);
+
+    let totalRevenue = 0;
+    let totalPaid = 0;
+    let renewalsCount = 0;
+    let cancelledCount = 0;
+
+    const planMap = new Map<
+      string,
+      {
+        productId: string | null;
+        productName: string;
+        duration: number;
+        unit: string;
+        subscriptionsCount: number;
+        activeCount: number;
+        revenue: number;
+      }
+    >();
+
+    const clientMap = new Map<
+      string,
+      {
+        clientId: string;
+        clientName: string;
+        clientEmail: string | null;
+        clientPhone: string | null;
+        subscriptionsCount: number;
+        activeCount: number;
+        totalSpent: number;
+        latestPlanName: string;
+        latestStatus: string;
+        latestEndDate: Date;
+      }
+    >();
+
+    const trendMap = new Map<
+      string,
+      {
+        date: string;
+        label: string;
+        newCount: number;
+        renewalsCount: number;
+        revenue: number;
+      }
+    >();
+
+    const isDayInterval = query.interval === 'day';
+
+    for (const sub of subscriptions) {
+      const rev = Number(sub.total);
+      const paid = Number(sub.amountPaid);
+      totalRevenue += rev;
+      totalPaid += rev > 0 ? Math.min(paid, rev) : 0;
+
+      const isRenewal = Boolean(sub.renewedFromId);
+      if (isRenewal) {
+        renewalsCount++;
+      }
+      if (sub.status === 'CANCELLED') {
+        cancelledCount++;
+      }
+
+      const isCurrentlyActive =
+        sub.status === 'ACTIVE' && sub.startDate <= today && sub.endDate >= today;
+
+      // Group by Plan
+      const planKey = sub.productId || sub.productName;
+      const existingPlan = planMap.get(planKey);
+      if (existingPlan) {
+        existingPlan.subscriptionsCount++;
+        existingPlan.revenue += rev;
+        if (isCurrentlyActive) existingPlan.activeCount++;
+      } else {
+        planMap.set(planKey, {
+          productId: sub.productId,
+          productName: sub.productName,
+          duration: sub.duration,
+          unit: sub.unit,
+          subscriptionsCount: 1,
+          activeCount: isCurrentlyActive ? 1 : 0,
+          revenue: rev,
+        });
+      }
+
+      // Group by Client
+      const clientKey = sub.clientId;
+      const clientName = `${sub.client?.firstName ?? ''} ${sub.client?.lastName ?? ''}`.trim() || 'Client';
+      const existingClient = clientMap.get(clientKey);
+      if (existingClient) {
+        existingClient.subscriptionsCount++;
+        existingClient.totalSpent += rev;
+        if (isCurrentlyActive) existingClient.activeCount++;
+        if (sub.endDate > existingClient.latestEndDate) {
+          existingClient.latestEndDate = sub.endDate;
+          existingClient.latestPlanName = sub.productName;
+          existingClient.latestStatus = sub.status;
+        }
+      } else {
+        clientMap.set(clientKey, {
+          clientId: sub.clientId,
+          clientName,
+          clientEmail: sub.client?.email || null,
+          clientPhone: sub.client?.phone || null,
+          subscriptionsCount: 1,
+          activeCount: isCurrentlyActive ? 1 : 0,
+          totalSpent: rev,
+          latestPlanName: sub.productName,
+          latestStatus: sub.status,
+          latestEndDate: sub.endDate,
+        });
+      }
+
+      // Group by trend date bucket
+      const subDate = new Date(sub.startDate);
+      const year = subDate.getUTCFullYear();
+      const month = String(subDate.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(subDate.getUTCDate()).padStart(2, '0');
+      const bucketKey = isDayInterval ? `${year}-${month}-${day}` : `${year}-${month}`;
+
+      let bucketLabel = bucketKey;
+      if (isDayInterval) {
+        bucketLabel = `${day}/${month}`;
+      } else {
+        const monthNames = [
+          'Jan',
+          'Fév',
+          'Mar',
+          'Avr',
+          'Mai',
+          'Juin',
+          'Juil',
+          'Août',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Déc',
+        ];
+        bucketLabel = `${monthNames[subDate.getUTCMonth()]} ${year}`;
+      }
+
+      const existingBucket = trendMap.get(bucketKey);
+      if (existingBucket) {
+        if (isRenewal) existingBucket.renewalsCount++;
+        else existingBucket.newCount++;
+        existingBucket.revenue += rev;
+      } else {
+        trendMap.set(bucketKey, {
+          date: bucketKey,
+          label: bucketLabel,
+          newCount: isRenewal ? 0 : 1,
+          renewalsCount: isRenewal ? 1 : 0,
+          revenue: rev,
+        });
+      }
+    }
+
+    const totalSubs = subscriptions.length;
+    const averageValue = totalSubs > 0 ? round3(totalRevenue / totalSubs) : 0;
+    const renewalRate = totalSubs > 0 ? round3((renewalsCount / totalSubs) * 100) : 0;
+
+    const planBreakdown = Array.from(planMap.values())
+      .map((p) => ({
+        ...p,
+        revenue: round3(p.revenue),
+        percentageOfRevenue: totalRevenue > 0 ? round3((p.revenue / totalRevenue) * 100) : 0,
+        percentageOfCount: totalSubs > 0 ? round3((p.subscriptionsCount / totalSubs) * 100) : 0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    const topSubscribers = Array.from(clientMap.values())
+      .map((c) => ({
+        ...c,
+        totalSpent: round3(c.totalSpent),
+        latestEndDate: c.latestEndDate.toISOString().split('T')[0],
+      }))
+      .sort((a, b) => b.totalSpent - a.totalSpent)
+      .slice(0, 10);
+
+    const trends = Array.from(trendMap.values())
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((t) => ({
+        ...t,
+        totalCount: t.newCount + t.renewalsCount,
+        revenue: round3(t.revenue),
+      }));
+
+    return {
+      timeframe: {
+        startDate: query.startDate || null,
+        endDate: query.endDate || null,
+        productId: productId || null,
+      },
+      summary: {
+        totalSubscriptions: totalSubs,
+        activeSubscriptions: activeCount,
+        expiringSubscriptions: expiringCount,
+        expiredSubscriptions: expiredCount,
+        cancelledSubscriptions: cancelledCount,
+        totalRevenue: round3(totalRevenue),
+        totalPaid: round3(totalPaid),
+        averageValue,
+        renewalsCount,
+        renewalRate,
+      },
+      trends,
+      planBreakdown,
+      topSubscribers,
+    };
+  }
+
   async getById(id: string) {
     return this.findOrThrow(id);
   }
@@ -326,6 +594,82 @@ export class PosSubscriptionService {
     });
     await this.log(id, 'DELETE', `Deleted subscription ${formatSubscriptionNumber(subscription.number)}`, actorId);
     return { id };
+  }
+
+  async getDeletedSubscriptionById(id: string) {
+    const subscription = await this.prismaService.subscription.findFirst({
+      where: { id, deletedAt: { not: null } },
+      include: detailInclude,
+    });
+    if (!subscription) throw new NotFoundException('Deleted subscription not found');
+    return subscription;
+  }
+
+  async listDeletedSubscriptions(pagination: PaginationData, query?: FetchSubscriptionsDto) {
+    const take = pagination.perPage ?? 10;
+    const page = pagination.page ?? 1;
+    const skip = (page - 1) * take;
+
+    const where: Prisma.SubscriptionWhereInput = {
+      deletedAt: { not: null },
+      ...(query?.status && { status: query.status }),
+      ...(query?.clientId && { clientId: query.clientId }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prismaService.subscription.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { deletedAt: 'desc' },
+        include: listInclude,
+      }),
+      this.prismaService.subscription.count({ where }),
+    ]);
+
+    const lastPage = Math.ceil(total / take) || 1;
+    return {
+      data,
+      meta: {
+        total,
+        currentPage: page,
+        perPage: take,
+        lastPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+        hasMore: page < lastPage,
+      },
+    };
+  }
+
+  async restoreSubscription(id: string, actorId?: string) {
+    const existing = await this.getDeletedSubscriptionById(id);
+    const restored = await this.prismaService.subscription.update({
+      where: { id },
+      data: { deletedAt: null },
+      include: detailInclude,
+    });
+    await this.log(
+      id,
+      'UPDATE',
+      `Abonnement N° ${formatSubscriptionNumber(existing.number)} restauré`,
+      actorId,
+    );
+    return restored;
+  }
+
+  async hardDeleteSubscription(id: string, actorId?: string) {
+    const existing = await this.getDeletedSubscriptionById(id);
+    const removed = await this.prismaService.subscription.delete({
+      where: { id },
+    });
+    await this.log(
+      id,
+      'DELETE',
+      `Abonnement N° ${formatSubscriptionNumber(existing.number)} supprimé définitivement`,
+      actorId,
+    );
+    return removed;
   }
 
   /**

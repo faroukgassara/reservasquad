@@ -47,9 +47,13 @@ export default async function middleware(req: NextRequest) {
   const isActivatePath =
     pathWithoutLocale === '/activate' ||
     pathWithoutLocale.startsWith('/activate/');
+  const isUnsubscribePath =
+    pathWithoutLocale === '/newsletter/unsubscribe' ||
+    pathWithoutLocale.startsWith('/newsletter/unsubscribe/');
   const isPublicPage =
     isHomePage ||
     isActivatePath ||
+    isUnsubscribePath ||
     PublicRoutes.some(
       (route) =>
         pathWithoutLocale === route || pathWithoutLocale.startsWith(route + '/'),
@@ -66,7 +70,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   if (isPublicPage) {
-    if (token && !isActivatePath) {
+    if (token && !isActivatePath && !isUnsubscribePath) {
       return NextResponse.redirect(localizedHomeUrl(req, locale, role));
     }
     return intlMiddleware(req);

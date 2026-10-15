@@ -38,7 +38,7 @@ import { PosCatalogService } from './pos-catalog.service';
 import { validateBody } from './pos.utils';
 
 const PRODUCT_SORTING_OPTIONS: SortingDecoratorOptions = {
-  allowedFields: ['name', 'price', 'stockQty', 'createdAt'],
+  allowedFields: ['name', 'price', 'stockQty', 'minStock', 'createdAt'],
   defaultSort: 'name',
 };
 
@@ -162,6 +162,23 @@ export class PosCatalogController {
     }
   }
 
+  @Get('products/low-stock')
+  @swagger.ApiOperation({ summary: 'List low-stock products for alerts' })
+  async getLowStockProducts(
+    @Res() res: Response,
+    @Query('limit') limit?: string,
+  ) {
+    try {
+      const parsedLimit = limit ? Number(limit) : 10;
+      const data = await this.catalogService.getLowStockProducts(
+        Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 10,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Post('products')
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Create a POS product' })
@@ -223,12 +240,55 @@ export class PosCatalogController {
     }
   }
 
+  @Get('products/deleted')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'List soft-deleted POS products' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  @ApiSortingQuery(PRODUCT_SORTING_OPTIONS)
+  async listDeletedProducts(
+    @Res() res: Response,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+    @SortingQuery(PRODUCT_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
+  ) {
+    try {
+      const data = await this.catalogService.listDeletedProducts(pagination, orderBy);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get('products/:id')
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'POS product detail' })
   async getProduct(@Res() res: Response, @Param('id') id: string) {
     try {
       const data = await this.catalogService.getProductById(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('products/:id/restore')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted POS product' })
+  async restoreProduct(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.catalogService.restoreProduct(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete('products/:id/hard')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Permanently delete a soft-deleted POS product' })
+  async hardDeleteProduct(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.catalogService.hardDeleteProduct(id, req.user?.id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

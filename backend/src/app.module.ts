@@ -18,6 +18,7 @@ import { AuditModule } from './component/audit/audit.module';
 import { CreditModule } from './component/credit/credit.module';
 import { PosModule } from './component/pos/pos.module';
 import { AnalyticsModule } from './component/analytics/analytics.module';
+import { NewsletterModule } from './component/newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AnalyticsModule } from './component/analytics/analytics.module';
     CreditModule,
     PosModule,
     AnalyticsModule,
+    NewsletterModule,
   ],
   controllers: [AppController],
   providers: [

@@ -31,6 +31,7 @@ model User {
   saleOrders            SaleOrder[]
   invoicePayments       InvoicePayment[]
   subscriptions         Subscription[]
+  newslettersCreated    Newsletter[]
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -87,7 +88,10 @@ model Professor {
   specialty    String?
   specialPrice Decimal? @db.Decimal(10, 2)
 
-  reservations Reservation[]
+  reservations         Reservation[]
+  newsletterOptOut     Boolean               @default(false)
+  newsletterToken      String?               @unique
+  newsletterRecipients NewsletterRecipient[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -247,8 +251,11 @@ model CreditClient {
   credits       Credit[]
   posOrders     PosOrder[]
   saleOrders    SaleOrder[]
-  invoices      Invoice[]
-  subscriptions Subscription[]
+  invoices             Invoice[]
+  subscriptions        Subscription[]
+  newsletterOptOut     Boolean               @default(false)
+  newsletterToken      String?               @unique
+  newsletterRecipients NewsletterRecipient[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -348,6 +355,7 @@ model PosProduct {
   type           EPosProductType @default(CONSUMABLE)
   availableInPos Boolean         @default(true)
   stockQty       Decimal         @default(0) @db.Decimal(12, 3)
+  minStock       Decimal?        @default(10) @db.Decimal(12, 3)
   barcode        String?
   reference      String?
   taxRate        Decimal         @default(0) @db.Decimal(5, 2)
@@ -718,4 +726,86 @@ model Subscription {
   @@index([status])
   @@index([endDate])
   @@index([deletedAt])
+}
+
+enum ENewsletterCategory {
+  UPDATE
+  PROMOTION
+  DIGEST
+  EDITORIAL
+}
+
+enum ENewsletterAudience {
+  ALL_CLIENTS
+  ALL_PROFESSORS
+  ACTIVE_SUBSCRIBERS
+  EXPIRED_SUBSCRIBERS
+  SPECIFIC_RECIPIENTS
+}
+
+enum ENewsletterStatus {
+  DRAFT
+  SENDING
+  SENT
+  FAILED
+}
+
+enum ENewsletterRecipientStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Newsletter {
+  id                   String              @id @default(uuid())
+  subject              String
+  preheader            String?
+  body                 String
+  ctaLabel             String?
+  ctaUrl               String?
+  category             ENewsletterCategory
+  audience             ENewsletterAudience
+  status               ENewsletterStatus   @default(DRAFT)
+  recipientsCount      Int                 @default(0)
+  sentCount            Int                 @default(0)
+  failedCount          Int                 @default(0)
+  sentAt               DateTime?
+  createdById          String?
+  createdBy            User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  specificClientIds    String[]            @default([])
+  specificProfessorIds String[]            @default([])
+  specificEmails       String[]            @default([])
+
+  recipients NewsletterRecipient[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model NewsletterRecipient {
+  id           String                     @id @default(uuid())
+  newsletterId String
+  newsletter   Newsletter                 @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  clientId     String?
+  client       CreditClient?              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  professorId  String?
+  professor    Professor?                 @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  email        String
+  status       ENewsletterRecipientStatus @default(PENDING)
+  error        String?
+  sentAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([newsletterId, email])
+  @@index([newsletterId, status])
+  @@index([clientId])
+  @@index([professorId])
 }

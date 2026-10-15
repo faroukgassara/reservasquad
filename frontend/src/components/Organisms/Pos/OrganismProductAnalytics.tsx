@@ -487,7 +487,7 @@ export default function OrganismProductAnalytics() {
                                             <td className="py-3.5 pl-3 text-right">
                                                 <Button
                                                     id={`inspect-product-${item.productId}`}
-                                                    text={isSelected ? 'Sélectionné' : 'Détail'}
+                                                    text={isSelected ? t('selected') : t('detail')}
                                                     size={EButtonSize.small}
                                                     type={isSelected ? EButtonType.primary : EButtonType.secondary}
                                                     className="rounded-lg px-2.5 py-1 text-xs"

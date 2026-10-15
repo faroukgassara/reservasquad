@@ -101,6 +101,14 @@ export class CreatePosProductDto {
   @IsBoolean()
   availableInPos?: boolean;
 
+  @ApiPropertyOptional({ example: 5, description: 'Minimum stock alert threshold' })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== '')
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  minStock?: number | null;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -178,6 +186,14 @@ export class UpdatePosProductDto {
   @IsBoolean()
   availableInPos?: boolean;
 
+  @ApiPropertyOptional({ example: 5, description: 'Minimum stock alert threshold' })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== '')
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  minStock?: number | null;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -244,6 +260,28 @@ export class FetchPosProductsDto {
   })
   @IsBoolean()
   stockableOnly?: boolean;
+
+  @ApiPropertyOptional({ enum: ['true', 'false'], description: 'Only products at or below minStock' })
+  @IsOptional()
+  @Transform(({ obj, key }) => {
+    const raw = (obj as Record<string, unknown>)[key];
+    if (raw === 'true' || raw === true) return true;
+    if (raw === 'false' || raw === false) return false;
+    return raw;
+  })
+  @IsBoolean()
+  lowStockOnly?: boolean;
+
+  @ApiPropertyOptional({ enum: ['true', 'false'], description: 'Only products with stockQty <= 0' })
+  @IsOptional()
+  @Transform(({ obj, key }) => {
+    const raw = (obj as Record<string, unknown>)[key];
+    if (raw === 'true' || raw === true) return true;
+    if (raw === 'false' || raw === false) return false;
+    return raw;
+  })
+  @IsBoolean()
+  outOfStockOnly?: boolean;
 
   @ApiPropertyOptional()
   @IsOptional()

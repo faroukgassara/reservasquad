@@ -26,7 +26,7 @@ export default function PrivateLayout({
     const t = useTranslations('sidebar');
     const tCommon = useTranslations('common');
     const tAuth = useTranslations('auth');
-    const isDesktop = useMediaQuery(`(min-width: ${ui.breakPoints.md})`);
+    const isDesktop = useMediaQuery(`(min-width: ${ui.breakPoints.lg})`);
     const isMobile = !isDesktop;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { data: session } = useSession();

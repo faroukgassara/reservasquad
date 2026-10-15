@@ -19,6 +19,7 @@ import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
+import Toggle from '@/components/Primitives/Toggle/Toggle';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
@@ -571,16 +572,31 @@ export default function PosClientPage() {
                                         </Label>
                                     ) : null}
                                 </Div>
-                                <Div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-col sm:items-end sm:gap-1">
-                                    <Label variant={EVariantLabel.caption} color="text-gray-500">
-                                        {t('remaining')}
-                                    </Label>
-                                    <Badge
-                                        id="pos-client-remaining"
-                                        text={client.remaining > 0 ? formatMoney(client.remaining) : t('settled')}
-                                        type={client.remaining > 0 ? EBadgeType.warning : EBadgeType.success}
-                                        size={EBadgeSize.medium}
-                                    />
+                                <Div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:flex-col sm:items-end sm:gap-2">
+                                    <Div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-1">
+                                        <Label variant={EVariantLabel.caption} color="text-gray-500">
+                                            {t('remaining')}
+                                        </Label>
+                                        <Badge
+                                            id="pos-client-remaining"
+                                            text={client.remaining > 0 ? formatMoney(client.remaining) : t('settled')}
+                                            type={client.remaining > 0 ? EBadgeType.warning : EBadgeType.success}
+                                            size={EBadgeSize.medium}
+                                        />
+                                    </Div>
+                                    <Div className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/80 px-2.5 py-1">
+                                        <Toggle
+                                            id="pos-client-newsletter-opt-out"
+                                            checked={!client.newsletterOptOut}
+                                            disabled={updateClientMutation.isPending}
+                                            onChange={(checked) => {
+                                                updateClientMutation.mutate({ newsletterOptOut: !checked });
+                                            }}
+                                        />
+                                        <Label variant={EVariantLabel.caption} color="text-gray-700" className="select-none font-medium">
+                                            {tClients('receivesNewsletters')}
+                                        </Label>
+                                    </Div>
                                 </Div>
                             </Div>
 

@@ -59,6 +59,23 @@ export class PosSaleOrderController {
     }
   }
 
+  @Get('deleted')
+  @swagger.ApiOperation({ summary: 'List soft-deleted quotations and sale orders' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  async listDeleted(
+    @Res() res: Response,
+    @Query() query: FetchSaleOrdersDto,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+  ) {
+    try {
+      const data = await this.saleOrderService.listDeletedSaleOrders(pagination, query);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get(':id')
   @swagger.ApiOperation({ summary: 'Quotation / sale order detail' })
   async getOne(@Res() res: Response, @Param('id') id: string) {
@@ -138,6 +155,28 @@ export class PosSaleOrderController {
   async remove(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
     try {
       const data = await this.saleOrderService.remove(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/restore')
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted quotation / sale order' })
+  async restore(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.saleOrderService.restoreSaleOrder(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete(':id/hard')
+  @swagger.ApiOperation({ summary: 'Permanently delete a quotation / sale order' })
+  async hardDelete(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.saleOrderService.hardDeleteSaleOrder(id, req.user?.id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

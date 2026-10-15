@@ -132,11 +132,60 @@ export class RoomBackofficeController {
     }
   }
 
+  @Get('deleted')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'List soft-deleted rooms' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  @ApiSortingQuery(ROOM_SORTING_OPTIONS)
+  @ApiSearchQuery({ fields: ['name'] })
+  async listDeleted(
+    @Res() res: Response,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+    @SortingQuery(ROOM_SORTING_OPTIONS) orderBy: Record<string, unknown>[],
+    @SearchQuery({ fields: ['name'] }) search: object,
+  ) {
+    try {
+      const data = await this.roomService.listDeletedRooms(
+        pagination,
+        orderBy,
+        search as never,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get(':id')
   @swagger.ApiOperation({ summary: 'Get room by id' })
   async getOne(@Res() res: Response, @Param('id') id: string) {
     try {
       const room = await this.roomService.getRoomById(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: room });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/restore')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted room' })
+  async restore(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const room = await this.roomService.restoreRoom(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: room });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete(':id/hard')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Permanently delete a soft-deleted room' })
+  async hardRemove(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const room = await this.roomService.hardDeleteRoom(id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: room });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

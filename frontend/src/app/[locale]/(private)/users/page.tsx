@@ -179,7 +179,7 @@ export default function UsersAdminPage() {
             {
                 headerElement: {
                     value: 'role',
-                    label: 'Rôle',
+                    label: t('fields.role'),
                     sortable: true,
                     width: '150px',
                     mobile: 'secondary',
@@ -208,7 +208,7 @@ export default function UsersAdminPage() {
             {
                 headerElement: {
                     value: 'createdAt',
-                    label: 'Créé le',
+                    label: t('fields.createdAt'),
                     sortable: true,
                     width: '160px',
                     mobile: 'secondary',
@@ -218,7 +218,7 @@ export default function UsersAdminPage() {
                 },
             },
         ],
-        [tCommon, roleLabel, statusLabel],
+        [t, tCommon, roleLabel, statusLabel],
     );
 
     const actions = useMemo(

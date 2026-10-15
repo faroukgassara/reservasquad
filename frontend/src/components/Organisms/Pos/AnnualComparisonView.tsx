@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import {
     Bar,
@@ -35,35 +35,7 @@ interface AnnualComparisonViewProps {
     categoryName?: string;
 }
 
-const MONTH_NAMES_FULL = [
-    'Janvier',
-    'Février',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Août',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Décembre',
-];
 
-const MONTH_NAMES_SHORT = [
-    'Jan',
-    'Fév',
-    'Mar',
-    'Avr',
-    'Mai',
-    'Juin',
-    'Juil',
-    'Août',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Déc',
-];
 
 const PALETTE = [
     { color: '#64748B', bg: 'bg-slate-500', text: 'text-slate-600 dark:text-slate-400' },
@@ -99,8 +71,24 @@ export default function AnnualComparisonView({
     categoryName,
 }: Readonly<AnnualComparisonViewProps>) {
     const t = useTranslations('pos.analytics');
+    const locale = useLocale();
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
+
+    const { monthNamesFull, monthNamesShort } = useMemo(() => {
+        const fullFormatter = new Intl.DateTimeFormat(locale, { month: 'long' });
+        const shortFormatter = new Intl.DateTimeFormat(locale, { month: 'short' });
+        const full: string[] = [];
+        const short: string[] = [];
+        for (let m = 0; m < 12; m++) {
+            const d = new Date(2024, m, 15);
+            const f = fullFormatter.format(d);
+            const s = shortFormatter.format(d);
+            full.push(f.charAt(0).toUpperCase() + f.slice(1));
+            short.push(s.charAt(0).toUpperCase() + s.slice(1));
+        }
+        return { monthNamesFull: full, monthNamesShort: short };
+    }, [locale]);
 
     const [metric, setMetric] = useState<ComparisonMetric>('revenue');
     const [chartType, setChartType] = useState<ComparisonChartType>('lines');
@@ -149,16 +137,16 @@ export default function AnnualComparisonView({
     const formatValue = (val: number | null, selectedMetric: ComparisonMetric): string => {
         if (val === null || val === undefined) return '—';
         if (selectedMetric === 'revenue') return formatMoney(val);
-        if (selectedMetric === 'units') return `${Math.round(val * 10) / 10} u.`;
-        return `${val} cmd`;
+        if (selectedMetric === 'units') return `${Math.round(val * 10) / 10} ${t('unitAbbr')}`;
+        return `${val} ${t('ordersAbbr')}`;
     };
 
     // 2. Chart Dataset preparation
     const chartData = useMemo(() => {
-        return MONTH_NAMES_SHORT.map((shortName, monthIdx) => {
+        return monthNamesShort.map((shortName, monthIdx) => {
             const row: Record<string, string | number | undefined> = {
                 month: shortName,
-                monthFull: MONTH_NAMES_FULL[monthIdx],
+                monthFull: monthNamesFull[monthIdx],
             };
 
             for (const yr of years) {
@@ -169,7 +157,7 @@ export default function AnnualComparisonView({
             }
             return row;
         });
-    }, [years, dataByYearMonth, metric]);
+    }, [years, dataByYearMonth, metric, monthNamesShort, monthNamesFull]);
 
     // 3. High-level KPI calculation
     const summaryStats = useMemo(() => {
@@ -187,7 +175,7 @@ export default function AnnualComparisonView({
                 latestTotal += latVal;
                 latestMonthsCount += 1;
                 if (latVal > bestMonth.val) {
-                    bestMonth = { name: MONTH_NAMES_FULL[m], val: latVal };
+                    bestMonth = { name: monthNamesFull[m], val: latVal };
                 }
             }
 
@@ -198,7 +186,7 @@ export default function AnnualComparisonView({
             if (latVal !== null && prvVal !== null && prvVal > 0) {
                 const growth = ((latVal - prvVal) / prvVal) * 100;
                 if (growth > highestGrowth.pct) {
-                    highestGrowth = { name: MONTH_NAMES_FULL[m], pct: growth };
+                    highestGrowth = { name: monthNamesFull[m], pct: growth };
                 }
             }
         }
@@ -217,7 +205,7 @@ export default function AnnualComparisonView({
             bestMonth,
             highestGrowth: highestGrowth.pct !== -Infinity ? highestGrowth : null,
         };
-    }, [years, latestYear, prevYear, metric, dataByYearMonth]);
+    }, [years, latestYear, prevYear, metric, dataByYearMonth, monthNamesFull]);
 
     // Custom Tooltip for Chart
     const CustomComparisonTooltip = ({ active, payload, label }: TooltipContentProps) => {
@@ -666,7 +654,7 @@ export default function AnnualComparisonView({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 text-gray-700 dark:divide-gray-800 dark:text-gray-300">
-                                {MONTH_NAMES_FULL.map((mName, mIdx) => {
+                                {monthNamesFull.map((mName, mIdx) => {
                                     const latestVal = getMetricValue(latestYear, mIdx, metric);
                                     const prevVal = prevYear ? getMetricValue(prevYear, mIdx, metric) : null;
 
@@ -696,7 +684,7 @@ export default function AnnualComparisonView({
                                                     <span>{mName}</span>
                                                     {isBestMonth && (
                                                         <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-2xs font-bold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
-                                                            ★ Record
+                                                            ★ {t('recordBadge')}
                                                         </span>
                                                     )}
                                                 </Div>
@@ -795,7 +783,7 @@ export default function AnnualComparisonView({
             ) : (
                 /* Cards Grid View */
                 <Div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {MONTH_NAMES_FULL.map((mName, mIdx) => {
+                    {monthNamesFull.map((mName, mIdx) => {
                         const latestVal = getMetricValue(latestYear, mIdx, metric);
                         const prevVal = prevYear ? getMetricValue(prevYear, mIdx, metric) : null;
 

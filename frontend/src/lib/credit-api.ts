@@ -19,8 +19,11 @@ export interface CreditClientRecord {
     address?: string | null;
     taxId?: string | null;
     cin?: string | null;
+    newsletterOptOut?: boolean;
+    newsletterToken?: string | null;
     createdAt: string;
     updatedAt: string;
+    deletedAt?: string | null;
 }
 
 export interface CreditClientListItem extends CreditClientRecord, CreditTotals {
@@ -137,6 +140,7 @@ export interface CreditClientInput {
     address?: string;
     taxId?: string;
     cin?: string;
+    newsletterOptOut?: boolean;
 }
 
 export async function createCreditClient(body: CreditClientInput): Promise<CreditClientRecord> {
@@ -148,7 +152,7 @@ export async function createCreditClient(body: CreditClientInput): Promise<Credi
 
 export async function updateCreditClient(
     id: string,
-    body: CreditClientInput,
+    body: Partial<CreditClientInput>,
 ): Promise<CreditClientRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.post(`/api/credits/clients/${id}`, body, headers);
@@ -160,6 +164,39 @@ export async function deleteCreditClient(id: string): Promise<void> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.delete(`/api/credits/clients/${id}`, {}, headers);
     if (res.status !== HttpStatus.SuccessOK) throw errorFrom(res.data, 'Failed to delete client');
+}
+
+export async function fetchDeletedCreditClients(params: {
+    page?: number;
+    perPage?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}): Promise<PaginatedCreditClients> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const sp = new URLSearchParams();
+    if (params.page) sp.set('page', String(params.page));
+    if (params.perPage) sp.set('perPage', String(params.perPage));
+    if (params.search) sp.set('search', params.search);
+    if (params.sortBy) sp.set('sortBy', params.sortBy);
+    if (params.sortOrder) sp.set('sortOrder', params.sortOrder);
+    const q = sp.toString();
+    const res = await api.get(`/api/credits/clients/deleted${q ? `?${q}` : ''}`, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw errorFrom(res.data, 'Failed to fetch deleted credit clients');
+    return unwrapData<PaginatedCreditClients>(res.data as { data?: PaginatedCreditClients });
+}
+
+export async function restoreCreditClient(id: string): Promise<CreditClientRecord> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/credits/clients/${id}/restore`, {}, headers);
+    if (!isSuccess(res.status)) throw errorFrom(res.data, 'Failed to restore client');
+    return unwrapData<CreditClientRecord>(res.data as { data?: CreditClientRecord });
+}
+
+export async function hardDeleteCreditClient(id: string): Promise<void> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.delete(`/api/credits/clients/${id}/hard`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw errorFrom(res.data, 'Failed to permanently delete client');
 }
 
 export async function createCredit(body: {

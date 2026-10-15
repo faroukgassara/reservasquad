@@ -78,6 +78,24 @@ export class PosInvoiceController {
     }
   }
 
+  @Get('deleted')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'List soft-deleted invoices' })
+  @ApiPaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+  async listDeleted(
+    @Res() res: Response,
+    @Query() query: FetchInvoicesDto,
+    @PaginationQuery({ defaultPage: 1, defaultPerPage: 10, maxPerPage: 100 })
+    pagination: PaginationData,
+  ) {
+    try {
+      const data = await this.invoiceService.listDeletedInvoices(pagination, query);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get(':id')
   @swagger.ApiOperation({ summary: 'Invoice detail' })
   async getOne(@Res() res: Response, @Param('id') id: string) {
@@ -146,6 +164,30 @@ export class PosInvoiceController {
     try {
       const data = await this.invoiceService.createCreditNote(id, req.user?.id);
       return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/restore')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Restore a soft-deleted invoice' })
+  async restore(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.invoiceService.restoreInvoice(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete(':id/hard')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Permanently delete a soft-deleted invoice' })
+  async hardRemove(@Res() res: Response, @Req() req: IRequest, @Param('id') id: string) {
+    try {
+      const data = await this.invoiceService.hardDeleteInvoice(id, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
     }

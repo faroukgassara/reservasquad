@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
@@ -37,7 +37,7 @@ import {
   IconComponentsEnum,
 } from '@/Enum/Enum'
 
-type AvailabilityFilter = 'all' | 'available' | 'hidden'
+type AvailabilityFilter = 'all' | 'available' | 'hidden' | 'low-stock' | 'out-of-stock'
 
 const ALL = 'all'
 const PER_PAGE = 30
@@ -45,6 +45,13 @@ const PER_PAGE = 30
 function ProductCard({ product }: Readonly<{ product: PosProduct }>) {
   const t = useTranslations('pos.products')
   const stock = toAmount(product.stockQty)
+  const minStock =
+    product.minStock !== null && product.minStock !== undefined
+      ? toAmount(product.minStock)
+      : 10
+  const isStockable = product.type === 'STOCKABLE'
+  const isLowStock = isStockable && stock > 0 && stock <= minStock
+  const isOut = isStockable && stock <= 0
 
   return (
     <Link
@@ -71,13 +78,28 @@ function ProductCard({ product }: Readonly<{ product: PosProduct }>) {
         >
           {t('priceValue', { value: formatMoney(toAmount(product.price)) })}
         </Label>
-        {product.type === 'STOCKABLE' || !product.availableInPos ? (
-          <Div className="flex flex-wrap gap-1">
-            {product.type === 'STOCKABLE' ? (
+        {isStockable || !product.availableInPos ? (
+          <Div className="flex flex-wrap items-center gap-1">
+            {isStockable ? (
               <Badge
                 id={`pos-product-stock-${product.id}`}
                 text={t('units', { count: stock })}
-                type={stock > 0 ? EBadgeType.success : EBadgeType.error}
+                type={isOut ? EBadgeType.error : isLowStock ? EBadgeType.warning : EBadgeType.success}
+                size={EBadgeSize.small}
+              />
+            ) : null}
+            {isOut ? (
+              <Badge
+                id={`pos-product-out-stock-${product.id}`}
+                text={t('outOfStockBadge')}
+                type={EBadgeType.error}
+                size={EBadgeSize.small}
+              />
+            ) : isLowStock ? (
+              <Badge
+                id={`pos-product-low-stock-${product.id}`}
+                text={t('lowStockBadge', { min: minStock })}
+                type={EBadgeType.warning}
                 size={EBadgeSize.small}
               />
             ) : null}
@@ -100,6 +122,14 @@ export default function PosProductsPage() {
   const t = useTranslations('pos.products')
   const tCommon = useTranslations('common')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const urlFilter = searchParams.get('filter')
+  const initialFilter: AvailabilityFilter =
+    urlFilter === 'low-stock'
+      ? 'low-stock'
+      : urlFilter === 'out-of-stock'
+        ? 'out-of-stock'
+        : 'all'
   const { status: authStatus } = useSession()
   const { isAllowed } = useAuthorization()
   const isAdmin = isAllowed({ anyRoles: ['ADMIN'] })
@@ -108,7 +138,7 @@ export default function PosProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [categoryFilter, setCategoryFilter] = useState<string>(ALL)
-  const [availability, setAvailability] = useState<AvailabilityFilter>('all')
+  const [availability, setAvailability] = useState<AvailabilityFilter>(initialFilter)
 
   useEffect(() => {
     if (authStatus !== 'loading' && !isAdmin) {
@@ -145,7 +175,13 @@ export default function PosProductsPage() {
         search: debouncedSearch || undefined,
         categoryId: categoryFilter === ALL ? undefined : categoryFilter,
         availableInPos:
-          availability === 'all' ? undefined : availability === 'available',
+          availability === 'available'
+            ? true
+            : availability === 'hidden'
+              ? false
+              : undefined,
+        lowStockOnly: availability === 'low-stock' ? true : undefined,
+        outOfStockOnly: availability === 'out-of-stock' ? true : undefined,
       }),
     enabled: isAdmin,
   })
@@ -165,6 +201,8 @@ export default function PosProductsPage() {
     { value: 'all', label: t('allProducts') },
     { value: 'available', label: t('onlyAvailable') },
     { value: 'hidden', label: t('onlyHidden') },
+    { value: 'low-stock', label: t('lowStockOnlyFilter') },
+    { value: 'out-of-stock', label: t('outOfStockOnlyFilter') },
   ]
 
   if (authStatus === 'loading' || !isAdmin) {
@@ -249,7 +287,9 @@ export default function PosProductsPage() {
                 if (
                   value === 'all' ||
                   value === 'available' ||
-                  value === 'hidden'
+                  value === 'hidden' ||
+                  value === 'low-stock' ||
+                  value === 'out-of-stock'
                 ) {
                   setAvailability(value)
                   setPage(1)

@@ -289,4 +289,80 @@ export class PosSaleOrderService {
     await this.log(id, 'DELETE', `Commande vente N° ${formatSaleNumber(order.number)} supprimée`, actorId);
     return { id };
   }
+
+  async getDeletedSaleOrderById(id: string) {
+    const order = await this.prismaService.saleOrder.findFirst({
+      where: { id, deletedAt: { not: null } },
+      include: detailInclude,
+    });
+    if (!order) throw new NotFoundException('Deleted sale order not found');
+    return order;
+  }
+
+  async listDeletedSaleOrders(pagination: PaginationData, query?: FetchSaleOrdersDto) {
+    const take = pagination.perPage ?? 10;
+    const page = pagination.page ?? 1;
+    const skip = (page - 1) * take;
+
+    const where: Prisma.SaleOrderWhereInput = {
+      deletedAt: { not: null },
+      ...(query?.status && { status: query.status }),
+      ...(query?.clientId && { clientId: query.clientId }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prismaService.saleOrder.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { deletedAt: 'desc' },
+        include: listInclude,
+      }),
+      this.prismaService.saleOrder.count({ where }),
+    ]);
+
+    const lastPage = Math.ceil(total / take) || 1;
+    return {
+      data,
+      meta: {
+        total,
+        currentPage: page,
+        perPage: take,
+        lastPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+        hasMore: page < lastPage,
+      },
+    };
+  }
+
+  async restoreSaleOrder(id: string, actorId?: string) {
+    const existing = await this.getDeletedSaleOrderById(id);
+    const restored = await this.prismaService.saleOrder.update({
+      where: { id },
+      data: { deletedAt: null },
+      include: detailInclude,
+    });
+    await this.log(
+      id,
+      'UPDATE',
+      `Commande vente / Devis N° ${formatSaleNumber(existing.number)} restauré(e)`,
+      actorId,
+    );
+    return restored;
+  }
+
+  async hardDeleteSaleOrder(id: string, actorId?: string) {
+    const existing = await this.getDeletedSaleOrderById(id);
+    const removed = await this.prismaService.saleOrder.delete({
+      where: { id },
+    });
+    await this.log(
+      id,
+      'DELETE',
+      `Commande vente / Devis N° ${formatSaleNumber(existing.number)} supprimé(e) définitivement`,
+      actorId,
+    );
+    return removed;
+  }
 }

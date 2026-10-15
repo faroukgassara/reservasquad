@@ -45,7 +45,7 @@ export default function PosNumpad({ id, rows, activeValue, onKey, disabled = fal
                             onKey(key.value);
                         }}
                         className={twMerge(
-                            'h-11 rounded-lg px-1 tabular-nums font-semibold transition-all',
+                            'h-10 xl:h-11 rounded-lg px-1 tabular-nums font-semibold transition-all',
                             key.accent && !isActive && 'bg-gray-100 hover:bg-gray-200 text-gray-800',
                             key.className,
                         )}

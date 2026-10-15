@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class CreateCreditClientDto {
   @ApiProperty({ example: 'Amine' })
@@ -45,4 +45,9 @@ export class CreateCreditClientDto {
   cin?: string;
 }
 
-export class UpdateCreditClientDto extends PartialType(CreateCreditClientDto) {}
+export class UpdateCreditClientDto extends PartialType(CreateCreditClientDto) {
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  newsletterOptOut?: boolean;
+}

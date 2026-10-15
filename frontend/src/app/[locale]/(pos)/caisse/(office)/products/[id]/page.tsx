@@ -35,6 +35,7 @@ function toInput(values: PosProductFormValues, keepImage: string | null): PosPro
         cost: Number(values.cost.replace(',', '.')) || 0,
         type: values.type,
         availableInPos: values.availableInPos && !values.isSubscription,
+        minStock: values.minStock?.trim() ? Number(values.minStock.replace(',', '.')) : null,
         barcode: values.barcode.trim() || null,
         reference: values.reference.trim() || null,
         taxRate: Number(values.taxRate) || 0,
