@@ -93,6 +93,7 @@ model Professor {
   specialPrice Decimal? @db.Decimal(10, 2)
 
   reservations         Reservation[]
+  user                 User?
   newsletterOptOut     Boolean               @default(false)
   newsletterToken      String?               @unique
   newsletterRecipients NewsletterRecipient[]
@@ -164,7 +165,6 @@ enum EStatus {
 enum ERole {
   ADMIN
   USER
-}
   PROFESSOR
 }
 
@@ -185,6 +185,7 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([createdAt])
+}
 
 enum EReservationStatus {
   CONFIRMED
