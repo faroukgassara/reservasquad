@@ -11,6 +11,7 @@ import Label from '@/components/Primitives/Label/Label';
 import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
+import NotificationBell from '@/components/Organisms/Notifications/NotificationBell';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { homePathForRole, Routes } from '@/lib/routes';
 
@@ -57,6 +58,7 @@ export default function OrganismPosNav() {
                     />
                 </Link>
                 <Div className="flex items-center gap-2 lg:hidden">
+                    <NotificationBell />
                     <LanguageSwitcher menuPlacement="top" className="w-auto" />
                     <ThemeToggle />
                     <Link
@@ -100,6 +102,7 @@ export default function OrganismPosNav() {
             </nav>
 
             <Div className="hidden items-center gap-3 lg:flex">
+                <NotificationBell />
                 <LanguageSwitcher menuPlacement="top" className="w-auto" />
                 <ThemeToggle />
                 <Link

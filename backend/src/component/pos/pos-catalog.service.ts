@@ -102,6 +102,7 @@ export class PosCatalogService {
       data: {
         name: dto.name.trim(),
         sortOrder: dto.sortOrder ?? 0,
+        showOnMenu: dto.showOnMenu ?? true,
         imageUrl: await this.resolveImage(CATEGORY_IMAGES_TYPE, dto.imageUrl),
       },
     });
@@ -114,6 +115,7 @@ export class PosCatalogService {
     const data: Prisma.PosCategoryUpdateInput = {
       ...(dto.name !== undefined && { name: dto.name.trim() }),
       ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+      ...(dto.showOnMenu !== undefined && { showOnMenu: dto.showOnMenu }),
     };
     if (dto.imageUrl !== undefined) {
       data.imageUrl = await this.resolveImage(CATEGORY_IMAGES_TYPE, dto.imageUrl);
@@ -246,6 +248,61 @@ export class PosCatalogService {
       orderBy: { name: 'asc' },
       include: { category: { select: categorySelect } },
     });
+  }
+
+  /**
+   * Public café menu: sellable, in-stock products grouped by category, without any internal data (cost, stock…).
+   * Categories switched off with `showOnMenu` (e.g. the library) are left out entirely.
+   */
+  async getPublicMenu() {
+    const [categories, products] = await Promise.all([
+      this.prismaService.posCategory.findMany({
+        where: { deletedAt: null, showOnMenu: true },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+        select: { id: true, name: true, imageUrl: true },
+      }),
+      this.prismaService.posProduct.findMany({
+        where: {
+          deletedAt: null,
+          availableInPos: true,
+          subscriptionDuration: null,
+          // Hidden categories stay off the menu; products without a category are listed under "Other".
+          OR: [
+            { categoryId: null },
+            { category: { is: { deletedAt: null, showOnMenu: true } } },
+            { category: { is: { deletedAt: { not: null } } } },
+          ],
+          // Out-of-stock items are not offered to customers.
+          NOT: { type: 'STOCKABLE', stockQty: { lte: 0 } },
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, price: true, imageUrl: true, categoryId: true },
+      }),
+    ]);
+
+    const toMenuItem = (product: (typeof products)[number]) => ({
+      id: product.id,
+      name: product.name,
+      price: Number(product.price),
+      imageUrl: product.imageUrl,
+    });
+
+    const sections = categories
+      .map((category) => ({
+        ...category,
+        products: products.filter((product) => product.categoryId === category.id).map(toMenuItem),
+      }))
+      .filter((section) => section.products.length > 0);
+
+    const knownCategoryIds = new Set(categories.map((category) => category.id));
+    const uncategorized = products
+      .filter((product) => !product.categoryId || !knownCategoryIds.has(product.categoryId))
+      .map(toMenuItem);
+    if (uncategorized.length > 0) {
+      sections.push({ id: 'other', name: null, imageUrl: null, products: uncategorized });
+    }
+
+    return { categories: sections, updatedAt: new Date().toISOString() };
   }
 
   async listAllProductsForInventory(query?: FetchPosProductsDto) {

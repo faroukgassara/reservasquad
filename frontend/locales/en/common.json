@@ -780,7 +780,12 @@
             "image": "Image",
             "productCount": "Products",
             "deleteConfirm": "Delete this category? Its products are kept, without a category.",
-            "empty": "No categories yet."
+            "empty": "No categories yet.",
+            "showOnMenu": "Show on the café menu",
+            "showOnMenuHint": "Products of this category appear on the public menu (QR code).",
+            "menuColumn": "Menu",
+            "onMenu": "On menu",
+            "notOnMenu": "Hidden"
         },
         "products": {
             "title": "Products",
@@ -881,7 +886,16 @@
             "outOfStockBadge": "Out of stock",
             "lowStockOnlyFilter": "Low stock only",
             "outOfStockOnlyFilter": "Out of stock only",
-            "minStockCard": "Alert threshold"
+            "minStockCard": "Alert threshold",
+            "menuQrButton": "Menu QR code",
+            "menuQrTitle": "Café menu QR code",
+            "menuQrSubtitle": "Print it and place it on the tables: scanning it opens the public menu.",
+            "menuQrAlt": "QR code of the café menu",
+            "menuQrFileName": "menu-qr-code",
+            "menuOpen": "Open the menu",
+            "menuCopyLink": "Copy link",
+            "menuDownload": "Download",
+            "menuLinkCopied": "Menu link copied."
         },
         "register": {
             "home": "Home",
@@ -1769,5 +1783,19 @@
         "empty": "No notifications yet.",
         "professorBookedTitle": "New booking by {professor}",
         "professorBookedBody": "{room} · {date} · {time}"
+    },
+    "menu": {
+        "metaTitle": "Menu — Biblio Squad café",
+        "title": "Our menu",
+        "subtitle": "Drinks and snacks available at the counter.",
+        "otherCategory": "Other",
+        "empty": "The menu is being prepared. Please come back soon.",
+        "loadError": "The menu could not be loaded. Please try again in a moment.",
+        "footer": "Prices in Tunisian dinars. Order and pay at the counter.",
+        "searchPlaceholder": "Search a drink or snack…",
+        "productCount": "{count, plural, one {# item} other {# items}}",
+        "resultsCount": "{count, plural, =0 {No result} one {# result} other {# results}}",
+        "noResults": "Nothing matches “{query}”.",
+        "summary": "{categories, plural, one {# category} other {# categories}} · {products, plural, one {# item} other {# items}}"
     }
 }

@@ -57,6 +57,8 @@ export const Routes = {
         book: '/portal/book',
         history: '/portal/history',
     },
+    /** Public café menu, opened from the QR code — no login needed. */
+    Menu: '/menu',
 } as const;
 
 /** Staff (USER) land on Today; admins land on Dashboard; professors land on their portal. */

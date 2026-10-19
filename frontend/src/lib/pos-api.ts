@@ -19,6 +19,7 @@ export interface PosCategory {
     name: string;
     imageUrl: string | null;
     sortOrder: number;
+    showOnMenu: boolean;
     productCount?: number;
 }
 
@@ -284,13 +285,13 @@ async function posDelete(path: string, fallback: string): Promise<void> {
 export const fetchPosCategories = () =>
     posGet<PosCategory[]>('categories', 'Failed to fetch categories');
 
-export const createPosCategory = (body: { name: string; sortOrder: number; imageUrl?: string | null }) =>
+type PosCategoryBody = { name: string; sortOrder: number; showOnMenu: boolean; imageUrl?: string | null };
+
+export const createPosCategory = (body: PosCategoryBody) =>
     posPost<PosCategory>('categories', body, 'Failed to create category');
 
-export const updatePosCategory = (
-    id: string,
-    body: { name: string; sortOrder: number; imageUrl?: string | null },
-) => posPost<PosCategory>(`categories/${id}`, body, 'Failed to update category');
+export const updatePosCategory = (id: string, body: PosCategoryBody) =>
+    posPost<PosCategory>(`categories/${id}`, body, 'Failed to update category');
 
 export const deletePosCategory = (id: string) =>
     posDelete(`categories/${id}`, 'Failed to delete category');

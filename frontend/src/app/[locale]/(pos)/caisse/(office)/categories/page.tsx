@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import PosThumbnail from '@/components/Organisms/Pos/PosThumbnail';
+import Badge from '@/components/Primitives/Badge/Badge';
 import Button from '@/components/Primitives/Button/Button';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
 import PosCategoryFormModal, {
@@ -24,7 +25,7 @@ import {
     updatePosCategory,
     type PosCategory,
 } from '@/lib/pos-api';
-import { EButtonSize, EButtonType, ESize, EToastType, IconComponentsEnum } from '@/Enum/Enum';
+import { EBadgeSize, EBadgeType, EButtonSize, EButtonType, ESize, EToastType, IconComponentsEnum } from '@/Enum/Enum';
 import { ITableAction, ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
 
 type ModalState =
@@ -97,6 +98,7 @@ export default function PosCategoriesPage() {
                 body: {
                     name: values.name.trim(),
                     sortOrder: Math.max(0, Math.trunc(Number(values.sortOrder) || 0)),
+                    showOnMenu: values.showOnMenu,
                     imageUrl: values.imageUrl || null,
                 },
             });
@@ -139,6 +141,20 @@ export default function PosCategoriesPage() {
                     label: t('sortOrder'),
                     render: (_: unknown, row: PosCategory) => (
                         <OrganismTable.Cell mainText={String(row.sortOrder)} />
+                    ),
+                },
+            },
+            {
+                headerElement: {
+                    value: 'showOnMenu',
+                    label: t('menuColumn'),
+                    render: (_: unknown, row: PosCategory) => (
+                        <Badge
+                            id={`pos-category-menu-${row.id}`}
+                            text={row.showOnMenu ? t('onMenu') : t('notOnMenu')}
+                            type={row.showOnMenu ? EBadgeType.success : EBadgeType.warning}
+                            size={EBadgeSize.small}
+                        />
                     ),
                 },
             },

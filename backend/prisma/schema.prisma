@@ -354,10 +354,11 @@ enum EPosPaymentMethod {
 }
 
 model PosCategory {
-  id        String  @id @default(uuid())
-  name      String
-  imageUrl  String?
-  sortOrder Int     @default(0)
+  id         String  @id @default(uuid())
+  name       String
+  imageUrl   String?
+  sortOrder  Int     @default(0)
+  showOnMenu Boolean @default(true)
 
   products PosProduct[]
 

@@ -50,10 +50,12 @@ export default async function middleware(req: NextRequest) {
   const isUnsubscribePath =
     pathWithoutLocale === '/newsletter/unsubscribe' ||
     pathWithoutLocale.startsWith('/newsletter/unsubscribe/');
+  const isMenuPath = pathWithoutLocale === Routes.Menu || pathWithoutLocale.startsWith(`${Routes.Menu}/`);
   const isPublicPage =
     isHomePage ||
     isActivatePath ||
     isUnsubscribePath ||
+    isMenuPath ||
     PublicRoutes.some(
       (route) =>
         pathWithoutLocale === route || pathWithoutLocale.startsWith(route + '/'),
@@ -70,7 +72,8 @@ export default async function middleware(req: NextRequest) {
   }
 
   if (isPublicPage) {
-    if (token && !isActivatePath && !isUnsubscribePath) {
+    // The menu stays visible to signed-in staff too (e.g. to check what customers see).
+    if (token && !isActivatePath && !isUnsubscribePath && !isMenuPath) {
       return NextResponse.redirect(localizedHomeUrl(req, locale, role));
     }
     return intlMiddleware(req);

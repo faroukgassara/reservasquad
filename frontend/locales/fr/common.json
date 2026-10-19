@@ -780,7 +780,12 @@
             "image": "Image",
             "productCount": "Produits",
             "deleteConfirm": "Supprimer cette catégorie ? Ses produits sont conservés, sans catégorie.",
-            "empty": "Aucune catégorie pour le moment."
+            "empty": "Aucune catégorie pour le moment.",
+            "showOnMenu": "Afficher sur la carte du café",
+            "showOnMenuHint": "Les produits de cette catégorie apparaissent sur la carte publique (QR code).",
+            "menuColumn": "Carte",
+            "onMenu": "Sur la carte",
+            "notOnMenu": "Masquée"
         },
         "products": {
             "title": "Produits",
@@ -881,7 +886,16 @@
             "outOfStockBadge": "Rupture de stock",
             "lowStockOnlyFilter": "Stock faible uniquement",
             "outOfStockOnlyFilter": "Rupture de stock uniquement",
-            "minStockCard": "Seuil d'alerte"
+            "minStockCard": "Seuil d'alerte",
+            "menuQrButton": "QR code de la carte",
+            "menuQrTitle": "QR code de la carte du café",
+            "menuQrSubtitle": "Imprimez-le et posez-le sur les tables : le scanner ouvre la carte publique.",
+            "menuQrAlt": "QR code de la carte du café",
+            "menuQrFileName": "qr-code-carte",
+            "menuOpen": "Ouvrir la carte",
+            "menuCopyLink": "Copier le lien",
+            "menuDownload": "Télécharger",
+            "menuLinkCopied": "Lien de la carte copié."
         },
         "register": {
             "home": "Accueil",
@@ -1769,5 +1783,19 @@
         "empty": "Aucune notification pour le moment.",
         "professorBookedTitle": "Nouvelle réservation de {professor}",
         "professorBookedBody": "{room} · {date} · {time}"
+    },
+    "menu": {
+        "metaTitle": "Carte — Café Biblio Squad",
+        "title": "Notre carte",
+        "subtitle": "Boissons et en-cas disponibles au comptoir.",
+        "otherCategory": "Autres",
+        "empty": "La carte est en préparation. Revenez bientôt.",
+        "loadError": "La carte n'a pas pu être chargée. Réessayez dans un instant.",
+        "footer": "Prix en dinars tunisiens. Commande et paiement au comptoir.",
+        "searchPlaceholder": "Rechercher une boisson, un en-cas…",
+        "productCount": "{count, plural, one {# produit} other {# produits}}",
+        "resultsCount": "{count, plural, =0 {Aucun résultat} one {# résultat} other {# résultats}}",
+        "noResults": "Aucun produit ne correspond à « {query} ».",
+        "summary": "{categories, plural, one {# catégorie} other {# catégories}} · {products, plural, one {# produit} other {# produits}}"
     }
 }

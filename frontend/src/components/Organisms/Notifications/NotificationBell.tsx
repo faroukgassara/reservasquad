@@ -75,8 +75,8 @@ export default function NotificationBell() {
                     type="button"
                     onClick={() => isUnread && readOne.mutate(notification.id)}
                     className={twMerge(
-                        'flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-gray-50',
-                        isUnread && 'bg-primary-25',
+                        'flex w-full cursor-default items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-gray-50',
+                        isUnread && 'cursor-pointer bg-primary-25',
                     )}
                 >
                     <span
@@ -109,7 +109,7 @@ export default function NotificationBell() {
                 aria-haspopup="dialog"
                 aria-expanded={open}
                 onClick={() => setOpen((value) => !value)}
-                className="relative flex size-11 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors hover:bg-gray-50 sm:size-10"
+                className="relative flex size-11 cursor-pointer items-center justify-center rounded-full border border-gray-200 bg-white transition-colors hover:bg-gray-50 sm:size-10"
             >
                 <Icon name={IconComponentsEnum.bell} size={ESize.sm} color="text-gray-700" />
                 {unread > 0 ? (
@@ -135,7 +135,7 @@ export default function NotificationBell() {
                             <button
                                 type="button"
                                 onClick={() => readAll.mutate()}
-                                className="min-h-11 rounded-md px-2 transition-colors hover:bg-gray-50 sm:min-h-0 sm:py-1"
+                                className="min-h-11 cursor-pointer rounded-md px-2 transition-colors hover:bg-gray-50 sm:min-h-0 sm:py-1"
                             >
                                 <Label variant={EVariantLabel.caption} color="text-primary-600" className="font-semibold">
                                     {t('markAllRead')}

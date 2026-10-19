@@ -9,6 +9,7 @@ import Label from '@/components/Primitives/Label/Label';
 import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
+import NotificationBell from '@/components/Organisms/Notifications/NotificationBell';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { homePathForRole, Routes } from '@/lib/routes';
 
@@ -90,6 +91,8 @@ export default function OrganismPosRegisterBar({
                         {t('sessionNumber', { number: sessionNumber })}
                     </Label>
                 </Div>
+
+                <NotificationBell />
 
                 <Div className="hidden items-center gap-2 md:flex shrink-0">
                     <LanguageSwitcher menuPlacement="top" className="w-auto" />

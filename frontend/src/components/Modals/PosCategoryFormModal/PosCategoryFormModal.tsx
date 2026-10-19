@@ -11,13 +11,17 @@ import {
 import Input from '@/components/Primitives/Input/Input';
 import ImageUpload from '@/components/Primitives/ImageUpload/ImageUpload';
 import Button from '@/components/Primitives/Button/Button';
+import Div from '@/components/Primitives/Div/Div';
+import Label from '@/components/Primitives/Label/Label';
+import Toggle from '@/components/Primitives/Toggle/Toggle';
 import { useCurrentModal } from '@/contexts/ModalContext';
-import { EButtonSize, EButtonType, EInputType } from '@/Enum/Enum';
+import { EButtonSize, EButtonType, EInputType, EVariantLabel } from '@/Enum/Enum';
 import type { PosCategory } from '@/lib/pos-api';
 
 export interface PosCategoryFormValues {
     name: string;
     sortOrder: string;
+    showOnMenu: boolean;
     imageUrl: string;
 }
 
@@ -40,6 +44,7 @@ export default function PosCategoryFormModal({
         defaultValues: {
             name: category?.name ?? '',
             sortOrder: String(category?.sortOrder ?? 0),
+            showOnMenu: category?.showOnMenu ?? true,
             imageUrl: category?.imageUrl ?? '',
         },
         onSubmit: async ({ value }) => {
@@ -90,6 +95,21 @@ export default function PosCategoryFormModal({
                                 type={EInputType.intNumber}
                                 onChange={(e) => handleChange(e.target.value)}
                             />
+                        )}
+                    </form.Field>
+                    <form.Field name="showOnMenu">
+                        {({ state, handleChange }) => (
+                            <Div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3">
+                                <Div className="flex min-w-0 flex-col">
+                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium">
+                                        {t('showOnMenu')}
+                                    </Label>
+                                    <Label variant={EVariantLabel.caption} color="text-gray-500">
+                                        {t('showOnMenuHint')}
+                                    </Label>
+                                </Div>
+                                <Toggle id="pos-category-show-on-menu" checked={state.value} onChange={handleChange} />
+                            </Div>
                         )}
                     </form.Field>
                     <form.Field name="imageUrl">

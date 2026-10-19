@@ -37,6 +37,11 @@ export class CreatePosCategoryDto {
   @IsInt()
   @Min(0)
   sortOrder?: number;
+
+  @ApiPropertyOptional({ default: true, description: 'Show this category on the public café menu' })
+  @IsOptional()
+  @IsBoolean()
+  showOnMenu?: boolean;
 }
 
 export class UpdatePosCategoryDto {
@@ -58,6 +63,11 @@ export class UpdatePosCategoryDto {
   @IsInt()
   @Min(0)
   sortOrder?: number;
+
+  @ApiPropertyOptional({ description: 'Show this category on the public café menu' })
+  @IsOptional()
+  @IsBoolean()
+  showOnMenu?: boolean;
 }
 
 export class CreatePosProductDto {

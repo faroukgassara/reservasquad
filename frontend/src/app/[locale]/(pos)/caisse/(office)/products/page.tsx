@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper'
 import PosExportInventoryModal from '@/components/Modals/PosExportInventoryModal/PosExportInventoryModal'
+import PosMenuQrModal from '@/components/Modals/PosMenuQrModal/PosMenuQrModal'
 import PosThumbnail from '@/components/Organisms/Pos/PosThumbnail'
 import Badge from '@/components/Primitives/Badge/Badge'
 import Button from '@/components/Primitives/Button/Button'
@@ -134,6 +135,7 @@ export default function PosProductsPage() {
   const { isAllowed } = useAuthorization()
   const isAdmin = isAllowed({ anyRoles: ['ADMIN'] })
   const { openModal: openExportModal, modalPortal: exportModalPortal } = useModal()
+  const { openModal: openMenuQrModal, modalPortal: menuQrModalPortal } = useModal()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -217,11 +219,25 @@ export default function PosProductsPage() {
           initialCategoryId={categoryFilter}
         />
       )}
+      {menuQrModalPortal(<PosMenuQrModal />)}
       <LayoutWrapper
         title={t('title')}
         subTitle={t('subtitle')}
         rightActions={
           <Div className="flex items-center gap-2">
+            <Button
+              id="pos-products-menu-qr-btn"
+              type={EButtonType.secondary}
+              size={EButtonSize.medium}
+              iconPosition="left"
+              icon={{
+                name: IconComponentsEnum.squaresFour,
+                size: ESize.sm,
+                color: 'text-primary-600',
+              }}
+              text={t('menuQrButton')}
+              onClick={openMenuQrModal}
+            />
             <Button
               id="pos-products-export-inventory-btn"
               type={EButtonType.secondary}
