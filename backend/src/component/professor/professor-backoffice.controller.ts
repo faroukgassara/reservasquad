@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ProfessorService } from './professor.service';
+import { AuthService } from '../auth/auth.service';
 import { openApiResponse } from 'src/common/decorator/open-api.decorator';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -19,6 +20,7 @@ import { CreateProfessorDto } from 'src/dto/professor/createProfessor.dto';
 import { UpdateProfessorDto } from 'src/dto/professor/updateProfessor.dto';
 import { FetchProfessorsDto } from 'src/dto/professor/fetchProfessors.dto';
 import { ProfessorRankingQueryDto } from 'src/dto/professor/professorRankingQuery.dto';
+import { SetProfessorPasswordDto } from 'src/dto/professor/setProfessorPassword.dto';
 import {
   ApiPaginationQuery,
   PaginationQuery,
@@ -53,7 +55,10 @@ const PROFESSOR_SORTING_OPTIONS: SortingDecoratorOptions = {
   { status: HttpStatus.INTERNAL_SERVER_ERROR, description: 'INTERNAL_SERVER_ERROR' },
 )
 export class ProfessorBackofficeController {
-  constructor(private readonly professorService: ProfessorService) {}
+  constructor(
+    private readonly professorService: ProfessorService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post()
   @Roles({ roles: ['ADMIN', 'USER'] })
@@ -188,6 +193,46 @@ export class ProfessorBackofficeController {
     try {
       const professor = await this.professorService.getProfessorDetail(id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: professor });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/invite')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Invite a professor to the self-service portal (or resend the invitation)' })
+  async invite(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const data = await this.authService.inviteProfessor(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post(':id/password')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: "Set the professor's portal password (admin only)" })
+  async setPassword(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Body() body: SetProfessorPasswordDto,
+  ) {
+    try {
+      const dto = plainToInstance(SetProfessorPasswordDto, body);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.professorService.setPortalPassword(id, dto.newPassword);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
     }

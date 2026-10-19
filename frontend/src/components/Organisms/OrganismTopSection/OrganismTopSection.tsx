@@ -8,6 +8,7 @@ import { IOrganismTopSection } from '@/interfaces';
 import { useMobileSidebar } from '@/contexts/MobileSidebarContext';
 import { useTranslations } from 'next-intl';
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
+import NotificationBell from '@/components/Organisms/Notifications/NotificationBell';
 import { createContext, useContext } from 'react';
 
 /** Layouts that already show a theme toggle in their own bar (e.g. the Caisse) set this to false. */
@@ -52,6 +53,7 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
                         </Label>
                     )}
                 </Div>
+                <NotificationBell />
                 {showThemeToggle ? <ThemeToggle /> : null}
             </Div>
 

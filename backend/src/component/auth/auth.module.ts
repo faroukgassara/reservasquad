@@ -28,7 +28,7 @@ import { CommonFunctionService } from 'src/common/common-services/common-functio
     FileUploadService,
     EmailService,
     CommonFunctionService,
-  ]
-
+  ],
+  exports: [AuthService],
 })
 export class AuthModule { }

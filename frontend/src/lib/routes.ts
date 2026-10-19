@@ -52,11 +52,18 @@ export const Routes = {
     RecycleBin: {
         index: '/recycle-bin',
     },
+    Portal: {
+        index: '/portal',
+        book: '/portal/book',
+        history: '/portal/history',
+    },
 } as const;
 
-/** Staff (USER) land on Today; admins land on Dashboard. */
+/** Staff (USER) land on Today; admins land on Dashboard; professors land on their portal. */
 export function homePathForRole(role?: string | null): string {
-    return role === 'ADMIN' ? Routes.Dashboard : Routes.Today;
+    if (role === 'ADMIN') return Routes.Dashboard;
+    if (role === 'PROFESSOR') return Routes.Portal.index;
+    return Routes.Today;
 }
 
 export const PublicRoutes = [

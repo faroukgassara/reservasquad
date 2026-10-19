@@ -123,7 +123,11 @@
             "passwordsDoNotMatch": "Les mots de passe ne correspondent pas"
         },
         "requestResetSent": "Un lien de réinitialisation a été envoyé si l’email existe.",
-        "requestResetFailed": "Échec de l’envoi de la demande. Veuillez réessayer."
+        "requestResetFailed": "Échec de l’envoi de la demande. Veuillez réessayer.",
+        "setPasswordTitle": "Créez votre mot de passe",
+        "setPasswordSubtitle": "Choisissez un mot de passe pour activer votre accès au portail Biblio Squad.",
+        "setPasswordCta": "Activer mon compte",
+        "setPasswordSuccess": "Votre compte est actif. Vous pouvez vous connecter avec votre e-mail et votre nouveau mot de passe."
     },
     "status": {
         "active": "Actif",
@@ -343,7 +347,20 @@
             "unpaidTotal": "Total impayé",
             "unpaidCount": "{count, plural, =0 {Aucune réservation impayée} one {# réservation impayée} other {# réservations impayées}}",
             "paidTotal": "Total payé",
-            "paidCount": "{count, plural, =0 {Aucune réservation payée} one {# réservation payée} other {# réservations payées}}"
+            "paidCount": "{count, plural, =0 {Aucune réservation payée} one {# réservation payée} other {# réservations payées}}",
+            "portalInvite": "Inviter au portail",
+            "portalResend": "Renvoyer l'invitation",
+            "portalActive": "Accès portail actif",
+            "portalNoEmail": "Ajoutez une adresse e-mail pour inviter ce professeur",
+            "portalInviteSent": "Invitation envoyée à {email}",
+            "portalInviteError": "L'invitation n'a pas pu être envoyée.",
+            "emailLockedHint": "Cet e-mail est l'identifiant portail du professeur et ne peut pas être modifié.",
+            "portalChangePassword": "Changer le mot de passe",
+            "portalPasswordTitle": "Changer le mot de passe du portail",
+            "portalLogin": "Identifiant portail",
+            "portalPasswordHint": "Le professeur sera déconnecté du portail et devra utiliser ce nouveau mot de passe. Une invitation en attente est activée.",
+            "portalPasswordUpdated": "Le mot de passe du portail a été mis à jour.",
+            "portalPasswordError": "Le mot de passe n'a pas pu être mis à jour."
         },
         "reservations": {
             "title": "Réservations",
@@ -1666,5 +1683,91 @@
         "confirmTitle": "Se désinscrire de la newsletter",
         "confirmQuestion": "Confirmez-vous que vous souhaitez désinscrire l'adresse {email} de notre liste de diffusion ?",
         "confirmAction": "Confirmer la désinscription"
+    },
+    "portal": {
+        "nav": {
+            "overview": "Accueil",
+            "book": "Réserver une salle",
+            "history": "Mes réservations"
+        },
+        "loadError": "Impossible de charger votre espace. Veuillez réessayer.",
+        "retry": "Réessayer",
+        "overview": {
+            "greeting": "Bonjour {name}",
+            "subtitle": "Vos réservations et votre solde en un coup d'œil.",
+            "bookCta": "Réserver une salle",
+            "unpaid": "Solde à régler",
+            "unpaidCount": "{count, plural, =0 {Aucune réservation impayée} one {# réservation impayée} other {# réservations impayées}}",
+            "paid": "Déjà réglé",
+            "paidCount": "{count, plural, =0 {Aucune réservation payée} one {# réservation payée} other {# réservations payées}}",
+            "upcoming": "Prochaines réservations",
+            "viewHistory": "Tout voir",
+            "noUpcoming": "Vous n'avez aucune réservation à venir.",
+            "cancelHint": "Pour annuler ou modifier une réservation, contactez l'équipe Biblio Squad."
+        },
+        "status": {
+            "paid": "Payée",
+            "unpaid": "Impayée",
+            "cancelled": "Annulée"
+        },
+        "book": {
+            "title": "Réserver une salle",
+            "subtitle": "Voyez quelles salles sont occupées, puis réservez un créneau libre depuis le calendrier.",
+            "date": "Date",
+            "availabilityError": "Impossible de vérifier les disponibilités. Veuillez réessayer.",
+            "booked": "Votre réservation est confirmée.",
+            "conflict": "Ce créneau vient d’être pris. Choisissez une autre salle ou un autre horaire.",
+            "bookError": "La réservation n'a pas pu être enregistrée. Veuillez réessayer.",
+            "legendBusy": "Réservé",
+            "legendMine": "Vos réservations",
+            "confirmTitle": "Réserver une salle",
+            "confirmSubtitle": "Choisissez la salle et le créneau.",
+            "room": "Salle",
+            "titleLabel": "Intitulé de la séance (facultatif)",
+            "titlePlaceholder": "ex. Cours de maths",
+            "notesLabel": "Note pour l'équipe (facultatif)",
+            "noCancelHint": "Les réservations sont confirmées immédiatement. Pour annuler, contactez l'équipe.",
+            "confirm": "Confirmer la réservation",
+            "today": "Aujourd'hui",
+            "retry": "Réessayer",
+            "prev": "Précédent",
+            "next": "Suivant",
+            "day": "Jour",
+            "week": "Semaine",
+            "month": "Mois",
+            "allRooms": "Toutes les salles",
+            "addBooking": "Réserver un créneau",
+            "emptyDay": "Aucune réservation",
+            "calendarHint": "Cliquez sur + pour réserver un jour. Les réservations des autres s'affichent sans nom.",
+            "moreEvents": "+{count} autres",
+            "start": "Début",
+            "end": "Fin",
+            "pickSlot": "Choisissez une date, une heure de début et une heure de fin.",
+            "endAfterStart": "L'heure de fin doit être après l'heure de début.",
+            "inPast": "Ce créneau a déjà commencé. Choisissez une heure plus tardive.",
+            "checking": "Vérification de la disponibilité…",
+            "roomBusy": "Cette salle est déjà réservée sur ce créneau.",
+            "roomFree": "Salle disponible"
+        },
+        "history": {
+            "title": "Mes réservations",
+            "subtitle": "Toutes vos réservations passées et à venir.",
+            "date": "Date",
+            "room": "Salle",
+            "price": "Prix",
+            "status": "Statut",
+            "upcoming": "À venir",
+            "past": "Passées",
+            "all": "Toutes"
+        }
+    },
+    "notifications": {
+        "title": "Notifications",
+        "bell": "Notifications",
+        "bellUnread": "{count, plural, one {# notification non lue} other {# notifications non lues}}",
+        "markAllRead": "Tout marquer comme lu",
+        "empty": "Aucune notification pour le moment.",
+        "professorBookedTitle": "Nouvelle réservation de {professor}",
+        "professorBookedBody": "{room} · {date} · {time}"
     }
 }

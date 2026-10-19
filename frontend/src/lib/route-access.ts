@@ -1,4 +1,5 @@
 import { IAccessPolicy, IAuthzContext, canAccess } from './authz';
+import { Routes } from './routes';
 
 interface IRoutePolicy {
     route: string;
@@ -15,12 +16,18 @@ export const ROUTE_POLICIES: IRoutePolicy[] = [
     { route: '/caisse/categories', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/analytics', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/newsletters', policy: { anyRoles: ['ADMIN'] } },
+    { route: Routes.Portal.index, policy: { anyRoles: ['PROFESSOR'] } },
 ];
 
+const isUnder = (path: string, route: string) => path === route || path.startsWith(`${route}/`);
+
 export const isRouteAllowed = (path: string, context: IAuthzContext): boolean => {
-    const matchedPolicy = ROUTE_POLICIES.find(
-        (entry) => path === entry.route || path.startsWith(`${entry.route}/`),
-    );
+    // Professors only ever see their portal.
+    if (context.role === 'PROFESSOR') {
+        return isUnder(path, Routes.Portal.index);
+    }
+
+    const matchedPolicy = ROUTE_POLICIES.find((entry) => isUnder(path, entry.route));
 
     if (!matchedPolicy) {
         return true;

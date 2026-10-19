@@ -11,7 +11,7 @@ model User {
   id           String  @id @default(uuid())
   firstName    String
   lastName     String
-  phone        String  @unique
+  phone        String? @unique
   email        String  @unique
   password     String
   tokenVersion Int     @default(0)
@@ -19,6 +19,10 @@ model User {
   imageUrl     String
 
   role ERole @default(USER)
+
+  professorId String?    @unique
+  professor   Professor? @relation(fields: [professorId], references: [id], onDelete: SetNull)
+  notifications Notification[]
 
   passwordResetTokens   PasswordResetToken[]
   emailActivationTokens EmailActivationToken[]
@@ -161,6 +165,26 @@ enum ERole {
   ADMIN
   USER
 }
+  PROFESSOR
+}
+
+enum ENotificationType {
+  PROFESSOR_RESERVATION_CREATED
+}
+
+model Notification {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ENotificationType
+  title     String
+  body      String?
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime          @default(now())
+
+  @@index([userId, readAt])
+  @@index([createdAt])
 
 enum EReservationStatus {
   CONFIRMED

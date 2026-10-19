@@ -77,7 +77,7 @@ export class CommonFunctionService {
         };
     }
 
-    public generateResetPasswordToken(user, jti?: string) {
+    public generateResetPasswordToken(user, jti?: string, expiresIn?: string) {
         const payload = {
             sub: user.id,
             email: user.email,
@@ -85,7 +85,7 @@ export class CommonFunctionService {
         };
         return this.jwtService.sign(payload, {
             secret: this.config.JWT_RESET_SECRET,
-            expiresIn: this.config.JWT_RESET_SECRET_EXPIRES_IN as any,
+            expiresIn: (expiresIn ?? this.config.JWT_RESET_SECRET_EXPIRES_IN) as any,
         });
     }
 

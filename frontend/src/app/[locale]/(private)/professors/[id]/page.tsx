@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
@@ -12,8 +12,11 @@ import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import UnpaidStatCard from '@/components/Primitives/UnpaidStatCard/UnpaidStatCard';
 import { useAuthorization } from '@/hooks/useAuthorization';
+import { useToast } from '@/contexts/ToastContext';
+import { useModal } from '@/contexts/ModalContext';
+import ProfessorPasswordModal from '@/components/Modals/ProfessorPasswordModal/ProfessorPasswordModal';
 import { Routes } from '@/lib/routes';
-import { fetchProfessorById } from '@/lib/professor-api';
+import { fetchProfessorById, inviteProfessorToPortal, setProfessorPortalPassword } from '@/lib/professor-api';
 import {
     fetchReservations,
     formatMoney,
@@ -25,6 +28,7 @@ import {
     EButtonSize,
     EButtonType,
     ESize,
+    EToastType,
     IconComponentsEnum,
 } from '@/Enum/Enum';
 import { ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
@@ -54,6 +58,10 @@ export default function ProfessorDetailPage() {
     const router = useRouter();
     const { isAllowed } = useAuthorization();
     const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
+    const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
+    const queryClient = useQueryClient();
+    const { openToast } = useToast();
+    const { openModal, closeModal, modalPortal } = useModal();
     const [page, setPage] = useState(1);
     const [paidFilter, setPaidFilter] = useState<PaidFilter>('all');
     const [statusFilter, setStatusFilter] = useState<'all' | 'CONFIRMED' | 'CANCELLED'>('all');
@@ -82,6 +90,29 @@ export default function ProfessorDetailPage() {
                 ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
             }),
         enabled: canManage && !!professorId,
+    });
+
+    const inviteMutation = useMutation({
+        mutationFn: () => inviteProfessorToPortal(professorId),
+        onSuccess: ({ email }) => {
+            void queryClient.invalidateQueries({ queryKey: ['professor', professorId] });
+            openToast(tCommon('success'), t('portalInviteSent', { email }), { type: EToastType.SUCCESS });
+        },
+        onError: (error: Error) => {
+            openToast(tCommon('error'), error.message || t('portalInviteError'), { type: EToastType.ERROR });
+        },
+    });
+
+    const passwordMutation = useMutation({
+        mutationFn: (newPassword: string) => setProfessorPortalPassword(professorId, newPassword),
+        onSuccess: () => {
+            closeModal();
+            void queryClient.invalidateQueries({ queryKey: ['professor', professorId] });
+            openToast(tCommon('success'), t('portalPasswordUpdated'), { type: EToastType.SUCCESS });
+        },
+        onError: (error: Error) => {
+            openToast(tCommon('error'), error.message || t('portalPasswordError'), { type: EToastType.ERROR });
+        },
     });
 
     const rows = reservationsData?.data ?? [];
@@ -217,11 +248,67 @@ export default function ProfessorDetailPage() {
         />
     );
 
+    let portalAction: ReactNode = null;
+    if (isAdmin && professor) {
+        const inviteOrStatus =
+            professor.portalAccess === 'ACTIVE' ? (
+                <Badge
+                    id="professor-portal-active"
+                    text={t('portalActive')}
+                    type={EBadgeType.success}
+                    size={EBadgeSize.medium}
+                />
+            ) : (
+                <span title={professor.email ? undefined : t('portalNoEmail')} className="inline-flex">
+                    <Button
+                        id="professor-portal-invite"
+                        type={EButtonType.secondary}
+                        size={EButtonSize.medium}
+                        iconPosition="left"
+                        icon={{ name: IconComponentsEnum.userCheck, size: ESize.sm, color: 'text-primary-600' }}
+                        text={professor.portalAccess === 'INVITED' ? t('portalResend') : t('portalInvite')}
+                        disabled={!professor.email}
+                        isLoading={inviteMutation.isPending}
+                        onClick={() => inviteMutation.mutate()}
+                        className="w-full"
+                    />
+                </span>
+            );
+        portalAction = (
+            <>
+                {inviteOrStatus}
+                {professor.portalAccess === 'NONE' ? null : (
+                    <Button
+                        id="professor-portal-password"
+                        type={EButtonType.secondary}
+                        size={EButtonSize.medium}
+                        iconPosition="left"
+                        icon={{ name: IconComponentsEnum.lock, size: ESize.sm, color: 'text-primary-600' }}
+                        text={t('portalChangePassword')}
+                        onClick={openModal}
+                    />
+                )}
+            </>
+        );
+    }
+
     return (
+        <>
+        {modalPortal(
+            professor ? (
+                <ProfessorPasswordModal
+                    professorName={`${professor.firstName} ${professor.lastName}`}
+                    email={professor.email}
+                    isLoading={passwordMutation.isPending}
+                    onSubmit={(newPassword) => passwordMutation.mutate(newPassword)}
+                />
+            ) : null,
+        )}
         <LayoutWrapper
             title={t('detailTitle')}
             subTitle={professorLoading ? '…' : subtitle}
             leftActions={backButton}
+            rightActions={portalAction}
             mainSection={
                 professorLoading ? (
                     <Div className="flex min-h-48 items-center justify-center py-16">
@@ -289,5 +376,6 @@ export default function ProfessorDetailPage() {
                 )
             }
         />
+        </>
     );
 }

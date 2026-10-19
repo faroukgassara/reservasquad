@@ -1,14 +1,23 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProfessorDto } from 'src/dto/professor/createProfessor.dto';
 import { UpdateProfessorDto } from 'src/dto/professor/updateProfessor.dto';
 import { FetchProfessorsDto } from 'src/dto/professor/fetchProfessors.dto';
 import { ProfessorRankingQueryDto } from 'src/dto/professor/professorRankingQuery.dto';
-import { EReservationStatus, Prisma, Professor } from 'src/generated/prisma/client';
+import { EReservationStatus, EStatus, Prisma, Professor } from 'src/generated/prisma/client';
 import { ProxyPrismaModel } from 'src/common/pagination/proxy';
 import { buildAndFilters, composeWhere } from 'src/common/pagination/prisma-query.builder';
 import { PaginationData } from 'src/common/pagination/types';
 import { normalizeEmail } from 'src/common/utils/email.util';
+import * as bcrypt from 'bcrypt';
+
+type PortalUserState = { status: EStatus; deletedAt: Date | null };
+export type ProfessorPortalAccess = 'NONE' | 'INVITED' | 'ACTIVE';
+
+function portalAccessOf(user: PortalUserState | null | undefined): ProfessorPortalAccess {
+  if (!user || user.deletedAt) return 'NONE';
+  return user.status === EStatus.ACTIVE ? 'ACTIVE' : 'INVITED';
+}
 
 @Injectable()
 export class ProfessorService {
@@ -52,6 +61,21 @@ export class ProfessorService {
       }
     }
 
+    const portalUser = await this.prismaService.user.findUnique({ where: { professorId: id } });
+    const nextEmail = dto.email !== undefined ? (dto.email ? normalizeEmail(dto.email) : null) : undefined;
+    if (portalUser && nextEmail !== undefined && nextEmail !== portalUser.email) {
+      if (portalAccessOf(portalUser) === 'ACTIVE') {
+        throw new BadRequestException('The email of a professor with active portal access cannot be changed');
+      }
+      if (!nextEmail) {
+        throw new BadRequestException('A professor with portal access must keep an email address');
+      }
+      const emailOwner = await this.prismaService.user.findUnique({ where: { email: nextEmail } });
+      if (emailOwner && emailOwner.id !== portalUser.id) {
+        throw new ConflictException('This email is already used by another account');
+      }
+    }
+
     const data: Prisma.ProfessorUpdateInput = {
       ...(dto.firstName !== undefined && { firstName: dto.firstName.trim() }),
       ...(dto.lastName !== undefined && { lastName: dto.lastName.trim() }),
@@ -72,7 +96,18 @@ export class ProfessorService {
       }),
     };
 
-    return this.prismaService.professor.update({ where: { id }, data });
+    const professor = await this.prismaService.professor.update({ where: { id }, data });
+    if (portalUser) {
+      await this.prismaService.user.update({
+        where: { id: portalUser.id },
+        data: {
+          firstName: professor.firstName,
+          lastName: professor.lastName,
+          ...(nextEmail && { email: nextEmail }),
+        },
+      });
+    }
+    return professor;
   }
 
   async getProfessorById(id: string): Promise<Professor> {
@@ -104,8 +139,14 @@ export class ProfessorService {
       }),
     ]);
 
+    const portalUser = await this.prismaService.user.findUnique({
+      where: { professorId: id },
+      select: { status: true, deletedAt: true },
+    });
+
     return {
       ...professor,
+      portalAccess: portalAccessOf(portalUser),
       unpaidTotal: Number(unpaid._sum.price ?? 0),
       unpaidCount: unpaid._count,
       paidTotal: Number(paid._sum.price ?? 0),
@@ -121,17 +162,58 @@ export class ProfessorService {
   ) {
     const andWhere = buildAndFilters(search);
     const proxied = ProxyPrismaModel(this.prismaService.professor as any);
-    return proxied.findManyPaginated(
+    const result = await proxied.findManyPaginated(
       {
         where: composeWhere({ deletedAt: null }, andWhere),
         orderBy,
+        include: { user: { select: { status: true, deletedAt: true } } },
       },
       pagination,
     );
+    return {
+      ...result,
+      data: (result.data as (Professor & { user: PortalUserState | null })[]).map(({ user, ...professor }) => ({
+        ...professor,
+        portalAccess: portalAccessOf(user),
+      })),
+    };
+  }
+
+  /** Admin sets (or resets) the portal password; this also activates a pending invitation. */
+  async setPortalPassword(id: string, newPassword: string): Promise<{ email: string }> {
+    await this.getProfessorById(id);
+    const portalUser = await this.prismaService.user.findUnique({ where: { professorId: id } });
+    if (!portalUser || portalUser.deletedAt) {
+      throw new BadRequestException('This professor has no portal account yet. Invite them first.');
+    }
+
+    const now = new Date();
+    const password = await bcrypt.hash(newPassword, 12);
+    await this.prismaService.$transaction([
+      this.prismaService.user.update({
+        where: { id: portalUser.id },
+        // Signs the professor out everywhere so the old password stops working immediately.
+        data: { password, status: EStatus.ACTIVE, tokenVersion: { increment: 1 } },
+      }),
+      this.prismaService.emailActivationToken.updateMany({
+        where: { userId: portalUser.id, usedAt: null, revokedAt: null },
+        data: { revokedAt: now },
+      }),
+      this.prismaService.passwordResetToken.updateMany({
+        where: { userId: portalUser.id, usedAt: null, revokedAt: null },
+        data: { revokedAt: now },
+      }),
+    ]);
+    return { email: portalUser.email };
   }
 
   async softDeleteProfessor(id: string): Promise<Professor> {
     await this.getProfessorById(id);
+    // Revoke portal access: deactivate the login and invalidate its tokens.
+    await this.prismaService.user.updateMany({
+      where: { professorId: id },
+      data: { status: EStatus.INACTIVE, tokenVersion: { increment: 1 } },
+    });
     return this.prismaService.professor.update({
       where: { id },
       data: { deletedAt: new Date() },

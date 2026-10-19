@@ -1,8 +1,15 @@
-import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User, EStatus } from 'src/generated/prisma/client';
+import { User, EStatus, ERole } from 'src/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { CommonFunctionService } from 'src/common/common-services/common-function';
 import { FileUploadService } from 'src/common/common-services/file-upload.service';
 import { EmailService } from 'src/common/email/email.service';
@@ -12,6 +19,8 @@ import { AuthUserPayloadDto } from 'src/dto/login/authUserPayload.dto';
 import { LoginDTO } from 'src/dto/login/login.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { normalizeEmail } from 'src/common/utils/email.util';
+
+const PROFESSOR_INVITE_VALID_DAYS = 7;
 
 @Injectable()
 export class AuthService {
@@ -275,8 +284,8 @@ export class AuthService {
     });
   }
 
-  private async issueActivationToken(user: User): Promise<string> {
-    const activationToken = this.commonFunction.generateResetPasswordToken(user, randomUUID());
+  private async issueActivationToken(user: User, expiresIn?: string): Promise<string> {
+    const activationToken = this.commonFunction.generateResetPasswordToken(user, randomUUID(), expiresIn);
 
     await this.prismaService.$transaction(async (tx) => {
       await tx.emailActivationToken.updateMany({
@@ -301,7 +310,77 @@ export class AuthService {
     return activationToken;
   }
 
-  async activateAccount(token: string): Promise<{ email: string }> {
+  async inviteProfessor(professorId: string): Promise<{ email: string; resent: boolean }> {
+    const professor = await this.prismaService.professor.findFirst({
+      where: { id: professorId, deletedAt: null },
+      include: { user: true },
+    });
+    if (!professor) throw new NotFoundException('Professor not found');
+    if (!professor.email) {
+      throw new BadRequestException('This professor has no email address');
+    }
+
+    const email = normalizeEmail(professor.email);
+    let user = professor.user;
+    const resent = Boolean(user);
+
+    if (user) {
+      if (user.status === EStatus.ACTIVE) {
+        throw new ConflictException('This professor already has portal access');
+      }
+    } else {
+      const emailOwner = await this.prismaService.user.findUnique({ where: { email } });
+      if (emailOwner) {
+        throw new ConflictException('This email is already used by another account');
+      }
+      const phone = professor.phone?.replaceAll(/\s+/g, '') || null;
+      const phoneTaken = phone
+        ? await this.prismaService.user.findUnique({ where: { phone } })
+        : null;
+
+      user = await this.prismaService.user.create({
+        data: {
+          firstName: professor.firstName,
+          lastName: professor.lastName,
+          email,
+          phone: phoneTaken ? null : phone,
+          // Unusable until the professor sets a password through the invitation link.
+          password: await bcrypt.hash(randomBytes(32).toString('hex'), 12),
+          status: EStatus.INACTIVE,
+          imageUrl: '',
+          role: ERole.PROFESSOR,
+          professorId: professor.id,
+        },
+      });
+    }
+
+    const activationToken = await this.issueActivationToken(user, `${PROFESSOR_INVITE_VALID_DAYS}d`);
+    const frontUrl = this.config.FRONT_URL?.replace(/\/$/, '') || 'http://localhost:3000';
+    const html = await this.fileUploadService.renderTemplate(
+      {
+        link: `${frontUrl}/fr/activate/${activationToken}`,
+        firstName: user.firstName,
+        email: user.email,
+        validDays: PROFESSOR_INVITE_VALID_DAYS,
+      },
+      'professorInvitation.ejs',
+    );
+
+    const sent = await this.emailService.sendMail({
+      to: user.email,
+      from: this.config.SMTP_SEND,
+      subject: 'Votre accès au portail professeur Biblio Squad',
+      template: html,
+      attachments: [this.emailService.getBiblioSquadLogoAttachment()],
+    });
+    if (!sent) {
+      throw new BadRequestException('The invitation email could not be sent');
+    }
+
+    return { email: user.email, resent };
+  }
+
+  async activateAccount(token: string, password?: string): Promise<{ email: string }> {
     const payload = this.commonFunction.verifyResetPasswordToken(token);
     if (!payload?.sub || !payload?.email) {
       throw new BadRequestException('Invalid or expired activation link');
@@ -316,6 +395,11 @@ export class AuthService {
       return { email: activeToken.user.email };
     }
 
+    if (activeToken.user.role === ERole.PROFESSOR && !password) {
+      throw new BadRequestException('A password is required to activate this account');
+    }
+
+    const passwordHash = password ? await bcrypt.hash(password, 12) : undefined;
     const now = new Date();
 
     const result = await this.prismaService.$transaction(async (tx) => {
@@ -344,7 +428,10 @@ export class AuthService {
 
       return tx.user.update({
         where: { id: activeToken.userId },
-        data: { status: EStatus.ACTIVE },
+        data: {
+          status: EStatus.ACTIVE,
+          ...(passwordHash && { password: passwordHash }),
+        },
       });
     });
 

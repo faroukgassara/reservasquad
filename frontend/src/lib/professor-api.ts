@@ -4,6 +4,8 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 
 const api = new Api();
 
+export type ProfessorPortalAccess = 'NONE' | 'INVITED' | 'ACTIVE';
+
 export interface ProfessorRecord {
     id: string;
     firstName: string;
@@ -12,11 +14,13 @@ export interface ProfessorRecord {
     phone: string | null;
     specialty: string | null;
     specialPrice: number | null;
+    portalAccess?: ProfessorPortalAccess;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface ProfessorDetailRecord extends ProfessorRecord {
+    portalAccess: ProfessorPortalAccess;
     unpaidTotal: number;
     unpaidCount: number;
     paidTotal: number;
@@ -177,6 +181,26 @@ export async function fetchProfessorRanking(params: { from?: string; to?: string
     const res = await api.get(`/api/professors/ranking${q ? `?${q}` : ''}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch professor ranking');
     return unwrapData<ProfessorRanking>(res.data as { data?: ProfessorRanking });
+}
+
+export async function inviteProfessorToPortal(id: string): Promise<{ email: string; resent: boolean }> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/professors/${id}/invite`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const body = res.data as { message?: string; error?: string } | undefined;
+        throw new Error(body?.message || body?.error || 'Failed to send the invitation');
+    }
+    return unwrapData<{ email: string; resent: boolean }>(res.data as { data?: { email: string; resent: boolean } });
+}
+
+export async function setProfessorPortalPassword(id: string, newPassword: string): Promise<{ email: string }> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/professors/${id}/password`, { newPassword }, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const body = res.data as { message?: string; error?: string } | undefined;
+        throw new Error(body?.message || body?.error || 'Failed to update the password');
+    }
+    return unwrapData<{ email: string }>(res.data as { data?: { email: string } });
 }
 
 export async function hardDeleteProfessor(id: string): Promise<void> {

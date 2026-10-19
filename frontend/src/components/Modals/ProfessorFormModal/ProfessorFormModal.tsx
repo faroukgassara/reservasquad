@@ -41,6 +41,8 @@ export default function ProfessorFormModal({
     const tCommon = useTranslations('common');
     const { closeModal } = useCurrentModal();
     const isEdit = mode === 'edit';
+    // The email is the professor's portal login once the account is active.
+    const emailLocked = isEdit && professor?.portalAccess === 'ACTIVE';
 
     const form = useForm({
         defaultValues: {
@@ -130,6 +132,8 @@ export default function ProfessorFormModal({
                                 type={EInputType.email}
                                 value={state.value}
                                 id="professor-email"
+                                disabled={emailLocked}
+                                hintText={emailLocked ? t('emailLockedHint') : undefined}
                                 onChange={(e) => handleChange(e.target.value)}
                             />
                         )}

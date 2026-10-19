@@ -123,7 +123,11 @@
             "passwordsDoNotMatch": "Passwords do not match"
         },
         "requestResetSent": "A reset link has been sent if the email exists.",
-        "requestResetFailed": "Failed to send reset password request. Please try again."
+        "requestResetFailed": "Failed to send reset password request. Please try again.",
+        "setPasswordTitle": "Create your password",
+        "setPasswordSubtitle": "Choose a password to activate your Biblio Squad portal access.",
+        "setPasswordCta": "Activate my account",
+        "setPasswordSuccess": "Your account is active. You can now sign in with your email and new password."
     },
     "status": {
         "active": "Active",
@@ -343,7 +347,20 @@
             "unpaidTotal": "Total unpaid",
             "unpaidCount": "{count, plural, =0 {No unpaid reservations} one {# unpaid reservation} other {# unpaid reservations}}",
             "paidTotal": "Total paid",
-            "paidCount": "{count, plural, =0 {No paid reservations} one {# paid reservation} other {# paid reservations}}"
+            "paidCount": "{count, plural, =0 {No paid reservations} one {# paid reservation} other {# paid reservations}}",
+            "portalInvite": "Invite to portal",
+            "portalResend": "Resend invitation",
+            "portalActive": "Portal access active",
+            "portalNoEmail": "Add an email address to invite this professor",
+            "portalInviteSent": "Invitation sent to {email}",
+            "portalInviteError": "The invitation could not be sent.",
+            "emailLockedHint": "This email is the professor's portal login and cannot be changed.",
+            "portalChangePassword": "Change password",
+            "portalPasswordTitle": "Change portal password",
+            "portalLogin": "Portal login",
+            "portalPasswordHint": "The professor will be signed out of the portal and must use this new password. A pending invitation is activated.",
+            "portalPasswordUpdated": "The portal password has been updated.",
+            "portalPasswordError": "The password could not be updated."
         },
         "reservations": {
             "title": "Reservations",
@@ -1666,5 +1683,91 @@
         "confirmTitle": "Unsubscribe from newsletter",
         "confirmQuestion": "Are you sure you want to unsubscribe {email} from our mailing list?",
         "confirmAction": "Confirm unsubscribe"
+    },
+    "portal": {
+        "nav": {
+            "overview": "Overview",
+            "book": "Book a room",
+            "history": "My bookings"
+        },
+        "loadError": "We could not load your portal. Please try again.",
+        "retry": "Retry",
+        "overview": {
+            "greeting": "Hello {name}",
+            "subtitle": "Your bookings and balance at a glance.",
+            "bookCta": "Book a room",
+            "unpaid": "Balance due",
+            "unpaidCount": "{count, plural, =0 {No unpaid booking} one {# unpaid booking} other {# unpaid bookings}}",
+            "paid": "Already paid",
+            "paidCount": "{count, plural, =0 {No paid booking} one {# paid booking} other {# paid bookings}}",
+            "upcoming": "Upcoming bookings",
+            "viewHistory": "See all",
+            "noUpcoming": "You have no upcoming booking.",
+            "cancelHint": "To cancel or change a booking, please contact the Biblio Squad team."
+        },
+        "status": {
+            "paid": "Paid",
+            "unpaid": "Unpaid",
+            "cancelled": "Cancelled"
+        },
+        "book": {
+            "title": "Book a room",
+            "subtitle": "See which rooms are taken, then book a free slot from the calendar.",
+            "date": "Date",
+            "availabilityError": "We could not check availability. Please try again.",
+            "booked": "Your booking is confirmed.",
+            "conflict": "This slot was just taken. Please choose another room or time.",
+            "bookError": "The booking could not be saved. Please try again.",
+            "legendBusy": "Booked",
+            "legendMine": "Your bookings",
+            "confirmTitle": "Book a room",
+            "confirmSubtitle": "Choose the room and the time slot.",
+            "room": "Room",
+            "titleLabel": "Session title (optional)",
+            "titlePlaceholder": "e.g. Maths class",
+            "notesLabel": "Note for the team (optional)",
+            "noCancelHint": "Bookings are confirmed immediately. To cancel, contact the team.",
+            "confirm": "Confirm booking",
+            "today": "Today",
+            "retry": "Retry",
+            "prev": "Previous",
+            "next": "Next",
+            "day": "Day",
+            "week": "Week",
+            "month": "Month",
+            "allRooms": "All rooms",
+            "addBooking": "Book a slot",
+            "emptyDay": "No booking",
+            "calendarHint": "Click + on a day to book. Bookings of others are shown without names.",
+            "moreEvents": "+{count} more",
+            "start": "Start",
+            "end": "End",
+            "pickSlot": "Choose a date, a start and an end time.",
+            "endAfterStart": "The end time must be after the start time.",
+            "inPast": "This slot has already started. Please pick a later time.",
+            "checking": "Checking availability…",
+            "roomBusy": "This room is already booked at that time.",
+            "roomFree": "Room available"
+        },
+        "history": {
+            "title": "My bookings",
+            "subtitle": "All your past and upcoming bookings.",
+            "date": "Date",
+            "room": "Room",
+            "price": "Price",
+            "status": "Status",
+            "upcoming": "Upcoming",
+            "past": "Past",
+            "all": "All"
+        }
+    },
+    "notifications": {
+        "title": "Notifications",
+        "bell": "Notifications",
+        "bellUnread": "{count, plural, one {# unread notification} other {# unread notifications}}",
+        "markAllRead": "Mark all as read",
+        "empty": "No notifications yet.",
+        "professorBookedTitle": "New booking by {professor}",
+        "professorBookedBody": "{room} · {date} · {time}"
     }
 }

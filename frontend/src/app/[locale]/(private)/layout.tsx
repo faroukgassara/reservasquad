@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl';
 import Avatar from '@/components/Primitives/Avatar/Avatar';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageSwitcher';
+import NotificationListener from '@/components/Organisms/Notifications/NotificationListener';
 import ui from '@/theme/ui';
 
 export default function PrivateLayout({
@@ -142,6 +143,7 @@ export default function PrivateLayout({
 
     return (
         <ProtectedRoute>
+            <NotificationListener />
             <MobileSidebarContext.Provider value={mobileSidebarValue}>
                 <div className="flex h-dvh max-h-dvh w-full overflow-hidden">
                     {isMobile && sidebarOpen && (

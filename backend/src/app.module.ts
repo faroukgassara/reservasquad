@@ -19,6 +19,8 @@ import { CreditModule } from './component/credit/credit.module';
 import { PosModule } from './component/pos/pos.module';
 import { AnalyticsModule } from './component/analytics/analytics.module';
 import { NewsletterModule } from './component/newsletter/newsletter.module';
+import { NotificationModule } from './component/notification/notification.module';
+import { PortalModule } from './component/portal/portal.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { NewsletterModule } from './component/newsletter/newsletter.module';
     PosModule,
     AnalyticsModule,
     NewsletterModule,
+    NotificationModule,
+    PortalModule,
   ],
   controllers: [AppController],
   providers: [

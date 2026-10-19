@@ -27,6 +27,9 @@ export class UserService {
   }
 
   async createUser(user: CreateUserDto, inviterName = 'Biblio Squad'): Promise<User> {
+    if (user.role === ERole.PROFESSOR) {
+      throw new BadRequestException('Professor accounts are created by inviting a professor to the portal');
+    }
     const hashedPassword = await bcrypt.hash(user.password, 12);
     const email = normalizeEmail(user.email);
     const status =
@@ -62,8 +65,9 @@ export class UserService {
       searchWhere,
     );
 
+    // Professor logins are managed from the professor profile (portal invitation), not as staff.
     const where: Prisma.UserWhereInput = composeWhere(
-      { deletedAt: null },
+      { deletedAt: null, role: { not: ERole.PROFESSOR } },
       andWhere,
     ) as Prisma.UserWhereInput;
 
@@ -95,6 +99,10 @@ export class UserService {
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<SafeUser> {
     const existing = await this.getById(id);
+
+    if (dto.role === ERole.PROFESSOR) {
+      throw new BadRequestException('Professor accounts are created by inviting a professor to the portal');
+    }
 
     if (existing.role === ERole.ADMIN && dto.status === EStatus.INACTIVE) {
       throw new BadRequestException('Cannot deactivate an administrator account');

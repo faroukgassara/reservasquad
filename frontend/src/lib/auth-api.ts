@@ -4,9 +4,9 @@ import { HttpStatus } from '@/common/StandardApi/interfaces/EHttpStatus';
 
 const api = new Api();
 
-export async function activateAccount(token: string): Promise<{ email: string }> {
+export async function activateAccount(token: string, password?: string): Promise<{ email: string }> {
     const headers = await CommonFunction.createHeaders({ withToken: false });
-    const res = await api.post('/api/auth/activate', { token }, headers);
+    const res = await api.post('/api/auth/activate', { token, ...(password && { password }) }, headers);
     if (res.status !== HttpStatus.SuccessOK) {
         const message =
             (res.data as { error?: string; message?: string })?.error ||

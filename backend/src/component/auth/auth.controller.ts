@@ -78,7 +78,7 @@ export class AuthController {
         @Res() res: Response,
     ) {
         try {
-            const data = await this.authService.activateAccount(dto.token);
+            const data = await this.authService.activateAccount(dto.token, dto.password);
             return res.status(HttpStatus.OK).json({
                 statusCode: HttpStatus.OK,
                 data,
