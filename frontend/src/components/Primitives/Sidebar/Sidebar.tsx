@@ -8,6 +8,7 @@ import { usePathname } from "@/i18n/navigation";
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import Button from "@/components/Primitives/Button/Button";
+import Tooltip from "@/components/Primitives/Tooltip/Tooltip";
 import { EButtonSize, EButtonType, ESize, EVariantLabel, IconComponentsEnum } from "@/Enum/Enum";
 import { twMerge } from "tailwind-merge";
 import { INavigationItem, ISidebar, ISidebarContent, ISidebarFooter, ISidebarHeader, ISidebarTrigger } from "@/interfaces/IPrimitives/ISidebar/ISidebar";
@@ -168,29 +169,30 @@ const SidebarContent = ({
                             : [item.href, ...(item.alsoActive ?? [])].some((href) => pathMatches(pathname, href));
 
                         return (
-                            <Link
-                                key={item.id}
-                                href={item.href}
-                                onClick={closeMobileSidebar}
-                                className={linkClassName(isItemActive)}
-                                title={!isExpanded ? item.label : undefined}
-                            >
-                                <Icon
-                                    name={item.iconName}
-                                    size={ESize.md}
-                                    className="m-0 block"
-                                    color={iconColor(isItemActive)}
-                                />
-                                {isExpanded && (
-                                    <Label
-                                        variant={EVariantLabel.bodySmall}
-                                        color={isItemActive ? "text-white" : "text-gray-800"}
-                                        className="ms-3 cursor-pointer truncate"
-                                    >
-                                        {item.label}
-                                    </Label>
-                                )}
-                            </Link>
+                            <Tooltip key={item.id} content={item.label} disabled={isExpanded} className="flex w-full justify-center">
+                                <Link
+                                    href={item.href}
+                                    onClick={closeMobileSidebar}
+                                    className={linkClassName(isItemActive)}
+                                    aria-label={!isExpanded ? item.label : undefined}
+                                >
+                                    <Icon
+                                        name={item.iconName}
+                                        size={ESize.md}
+                                        className="m-0 block"
+                                        color={iconColor(isItemActive)}
+                                    />
+                                    {isExpanded && (
+                                        <Label
+                                            variant={EVariantLabel.bodySmall}
+                                            color={isItemActive ? "text-white" : "text-gray-800"}
+                                            className="ms-3 cursor-pointer truncate"
+                                        >
+                                            {item.label}
+                                        </Label>
+                                    )}
+                                </Link>
+                            </Tooltip>
                         );
                     }
 

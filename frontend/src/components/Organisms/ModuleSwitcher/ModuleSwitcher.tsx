@@ -7,6 +7,7 @@ import { Link, usePathname } from '@/i18n/navigation';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
+import Tooltip from '@/components/Primitives/Tooltip/Tooltip';
 import { useSidebar } from '@/hooks/useSidebar';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { INavModule } from '@/lib/navigation';
@@ -31,15 +32,16 @@ const ModuleSwitcher = ({ current, modules }: IModuleSwitcher) => {
 
     if (!isExpanded) {
         return (
-            <Link
-                id="module-switcher-collapsed"
-                href={Routes.Launcher}
-                title={t('allModules')}
-                aria-label={t('allModules')}
-                className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary-800 transition-colors hover:bg-primary-700"
-            >
-                <Icon name={current.icon} size={ESize.md} color="text-primary-100" />
-            </Link>
+            <Tooltip content={t('allModules')}>
+                <Link
+                    id="module-switcher-collapsed"
+                    href={Routes.Launcher}
+                    aria-label={t('allModules')}
+                    className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary-800 transition-colors hover:bg-primary-700"
+                >
+                    <Icon name={current.icon} size={ESize.md} color="text-primary-100" />
+                </Link>
+            </Tooltip>
         );
     }
 
