@@ -1844,6 +1844,7 @@
         "productCount": "{count, plural, one {منتج واحد} other {# منتجات}}",
         "resultsCount": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} other {# نتائج}}",
         "noResults": "لا يوجد منتج يطابق «{query}».",
+        "showAll": "عرض كل الفئات",
         "summary": "{categories, plural, one {صنف واحد} other {# أصناف}} · {products, plural, one {منتج واحد} other {# منتجات}}"
     }
 }

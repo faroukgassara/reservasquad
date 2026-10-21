@@ -1844,6 +1844,7 @@
         "productCount": "{count, plural, one {# item} other {# items}}",
         "resultsCount": "{count, plural, =0 {No result} one {# result} other {# results}}",
         "noResults": "Nothing matches “{query}”.",
+        "showAll": "Show all categories",
         "summary": "{categories, plural, one {# category} other {# categories}} · {products, plural, one {# item} other {# items}}"
     }
 }
