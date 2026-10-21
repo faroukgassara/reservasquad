@@ -19,6 +19,7 @@ import { PosReportService } from './pos-report.service';
 import { PosSubscriptionController } from './pos-subscription.controller';
 import { PosSubscriptionCardController } from './pos-subscription-card.controller';
 import { PosMenuController } from './pos-menu.controller';
+import { PosSettingsController } from './pos-settings.controller';
 import { PosSubscriptionService } from './pos-subscription.service';
 import { SubscriptionReminderCronService } from './subscription-reminder.cron';
 
@@ -34,6 +35,7 @@ import { SubscriptionReminderCronService } from './subscription-reminder.cron';
     PosSubscriptionController,
     PosSubscriptionCardController,
     PosMenuController,
+    PosSettingsController,
   ],
   providers: [
     PosCatalogService,

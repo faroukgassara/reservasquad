@@ -13,6 +13,7 @@ export const ROUTE_POLICIES: IRoutePolicy[] = [
     { route: Routes.Users.index, policy: { anyRoles: ['ADMIN'] } },
     { route: Routes.AuditLog.index, policy: { anyRoles: ['ADMIN'] } },
     { route: Routes.RecycleBin.index, policy: { anyRoles: ['ADMIN'] } },
+    { route: Routes.Settings.index, policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/sessions', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/sales', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/invoices', policy: { anyRoles: ['ADMIN'] } },

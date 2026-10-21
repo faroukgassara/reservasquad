@@ -179,7 +179,20 @@
         "products": "Produits",
         "categories": "Catégories",
         "analytics": "Analytique",
-        "newsletters": "Newsletters"
+        "newsletters": "Newsletters",
+        "settings": "Paramètres"
+    },
+    "settings": {
+        "title": "Paramètres",
+        "subtitle": "Réglages généraux de l’application",
+        "caisseTitle": "Caisse",
+        "caisseSubtitle": "Montant utilisé à chaque ouverture de session",
+        "openingCash": "Fond de caisse (DT)",
+        "openingCashHint": "Ce montant est appliqué automatiquement à l’ouverture de la caisse.",
+        "invalidAmount": "Saisissez un montant valide.",
+        "allowOverride": "Autoriser le caissier à modifier le montant",
+        "allowOverrideHint": "Désactivé : le caissier ne peut pas changer le fond de caisse.",
+        "saved": "Paramètres enregistrés."
     },
     "launcher": {
         "greeting": "Bonjour {name}",
@@ -793,6 +806,8 @@
             "open": "Ouvrir la session",
             "openTitle": "Ouvrir la caisse",
             "openSubtitle": "Comptez les espèces du tiroir avant de commencer.",
+            "openSubtitleLocked": "Vérifiez que le tiroir contient bien ce fond de caisse.",
+            "openingCashLockedHint": "Montant défini par l’administrateur.",
             "openingCash": "Fond de caisse",
             "invalidAmount": "Saisissez un montant valide."
         },

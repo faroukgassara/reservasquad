@@ -416,8 +416,18 @@ export interface PosSessionsResponse extends Paginated<PosSession> {
 export const fetchPosSessions = (params: { page?: number; perPage?: number }) =>
     posGet<PosSessionsResponse>(withQuery('sessions/list', params), 'Failed to fetch sessions');
 
-export const openPosSession = (body: { openingCash: number }) =>
+export const openPosSession = (body: { openingCash?: number }) =>
     posPost<PosSession>('sessions/open', body, 'Failed to open session');
+
+export interface PosSettings {
+    defaultOpeningCash: number;
+    allowCashierOverride: boolean;
+}
+
+export const fetchPosSettings = () => posGet<PosSettings>('settings', 'Failed to fetch caisse settings');
+
+export const updatePosSettings = (body: PosSettings) =>
+    posPost<PosSettings>('settings', body, 'Failed to save caisse settings');
 
 export const fetchPosSessionSummary = (id: string) =>
     posGet<PosSessionSummary>(`sessions/${id}/summary`, 'Failed to fetch session summary');

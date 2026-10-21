@@ -21,6 +21,7 @@ import {
     fetchCurrentPosSession,
     fetchLastClosedPosSession,
     fetchPosLowStockProducts,
+    fetchPosSettings,
     fetchSubscriptions,
     formatPosDate,
     formatPosDateTime,
@@ -74,6 +75,10 @@ export default function PosDashboardPage() {
         queryFn: fetchLastClosedPosSession,
     });
 
+    const { data: posSettings, isLoading: posSettingsLoading } = useQuery({
+        queryKey: ['pos-settings'],
+        queryFn: fetchPosSettings,
+    });
 
     const { data: expiring, isLoading: expiringLoading } = useQuery({
         queryKey: ['subscriptions', 'expiring'],
@@ -86,7 +91,8 @@ export default function PosDashboardPage() {
     });
 
     const openMutation = useMutation({
-        mutationFn: (openingCash: number) => openPosSession({ openingCash }),
+        mutationFn: (openingCash: number) =>
+            openPosSession(posSettings?.allowCashierOverride ? { openingCash } : {}),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ['pos-session-current'] });
             void queryClient.invalidateQueries({ queryKey: ['pos-sessions'] });
@@ -117,7 +123,8 @@ export default function PosDashboardPage() {
         <>
             {modalPortal(
                 <PosOpenSessionModal
-                    defaultOpeningCash={toAmount(lastClosed?.countedCash)}
+                    defaultOpeningCash={posSettings?.defaultOpeningCash ?? 0}
+                    locked={!posSettings?.allowCashierOverride}
                     onSubmit={async (openingCash) => {
                         await openMutation.mutateAsync(openingCash);
                     }}
@@ -205,7 +212,7 @@ export default function PosDashboardPage() {
                                         type={EButtonType.primary}
                                         size={EButtonSize.large}
                                         text={current ? t('dashboard.continueSelling') : t('session.open')}
-                                        isLoading={currentLoading}
+                                        isLoading={currentLoading || posSettingsLoading}
                                         onClick={() => (current ? router.push(Routes.Pos.register) : openModal())}
                                         className="w-full sm:w-auto font-bold shadow-md shadow-accent-500/25 px-6"
                                     />

@@ -449,6 +449,15 @@ model PosSession {
   @@index([openedAt])
 }
 
+/// Single row (id = "default"). Sessions open with defaultOpeningCash unless allowCashierOverride lets the cashier change it.
+model PosSettings {
+  id                   String   @id @default("default")
+  defaultOpeningCash   Decimal  @default(0) @db.Decimal(12, 3)
+  allowCashierOverride Boolean  @default(false)
+  updatedAt            DateTime @default(now()) @updatedAt
+  updatedById          String?
+}
+
 model PosOrder {
   id             String          @id @default(uuid())
   number         Int             @unique @default(autoincrement())

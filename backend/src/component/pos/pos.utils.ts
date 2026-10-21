@@ -7,6 +7,7 @@ export const POS_AUDIT = {
   category: 'POS_CATEGORY',
   product: 'POS_PRODUCT',
   session: 'POS_SESSION',
+  settings: 'POS_SETTINGS',
   order: 'POS_ORDER',
   saleOrder: 'SALE_ORDER',
   invoice: 'INVOICE',

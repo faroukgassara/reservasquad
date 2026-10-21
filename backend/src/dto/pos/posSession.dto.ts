@@ -3,11 +3,25 @@ import { Type } from 'class-transformer';
 import { IsBoolean, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class OpenPosSessionDto {
-  @ApiProperty({ example: 199.1 })
+  @ApiPropertyOptional({ example: 199.1, description: 'Only used when the settings allow the cashier to override the amount' })
+  @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  openingCash: number;
+  openingCash?: number;
+}
+
+export class UpdatePosSettingsDto {
+  @ApiProperty({ example: 100 })
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  defaultOpeningCash: number;
+
+  @ApiProperty({ default: false, description: 'Let the cashier change the amount when opening a session' })
+  @Type(() => Boolean)
+  @IsBoolean()
+  allowCashierOverride: boolean;
 }
 
 export class ClosePosSessionDto {

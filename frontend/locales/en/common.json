@@ -179,7 +179,20 @@
         "products": "Products",
         "categories": "Categories",
         "analytics": "Analytics",
-        "newsletters": "Newsletters"
+        "newsletters": "Newsletters",
+        "settings": "Settings"
+    },
+    "settings": {
+        "title": "Settings",
+        "subtitle": "General application settings",
+        "caisseTitle": "Point of Sale",
+        "caisseSubtitle": "Amount used every time a session is opened",
+        "openingCash": "Opening cash (DT)",
+        "openingCashHint": "This amount is applied automatically when the register is opened.",
+        "invalidAmount": "Enter a valid amount.",
+        "allowOverride": "Let the cashier change the amount",
+        "allowOverrideHint": "Off: the cashier cannot change the opening cash.",
+        "saved": "Settings saved."
     },
     "launcher": {
         "greeting": "Hello {name}",
@@ -793,6 +806,8 @@
             "open": "Open session",
             "openTitle": "Open cash session",
             "openSubtitle": "Count the cash in the drawer before you start.",
+            "openSubtitleLocked": "Check that the drawer holds this opening cash.",
+            "openingCashLockedHint": "Amount set by the administrator.",
             "openingCash": "Opening cash",
             "invalidAmount": "Enter a valid amount."
         },

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
@@ -12,19 +11,21 @@ import { EButtonSize, EButtonType, EInputType } from '@/Enum/Enum';
 
 interface PosOpenSessionModalProps {
     defaultOpeningCash?: number;
+    /** The amount is set by an admin and cannot be changed by the cashier. */
+    locked?: boolean;
     onSubmit: (openingCash: number) => Promise<void>;
     isLoading?: boolean;
 }
 
 export default function PosOpenSessionModal({
     defaultOpeningCash = 0,
+    locked = false,
     onSubmit,
     isLoading = false,
 }: Readonly<PosOpenSessionModalProps>) {
     const t = useTranslations('pos.session');
     const tCommon = useTranslations('common');
     const { closeModal } = useCurrentModal();
-    const [edited, setEdited] = useState(false);
 
     const form = useForm({
         defaultValues: { openingCash: String(defaultOpeningCash) },
@@ -34,7 +35,12 @@ export default function PosOpenSessionModal({
     });
 
     return (
-        <Modal title={t('openTitle')} subTitle={t('openSubtitle')} canClose canCloseOnClickOutisde>
+        <Modal
+            title={t('openTitle')}
+            subTitle={locked ? t('openSubtitleLocked') : t('openSubtitle')}
+            canClose
+            canCloseOnClickOutisde
+        >
             <Div className="space-y-4">
                 <form.Field
                     name="openingCash"
@@ -51,12 +57,16 @@ export default function PosOpenSessionModal({
                             label={t('openingCash')}
                             value={state.value}
                             type={EInputType.number}
-                            onChange={(e) => {
-                                handleChange(e.target.value);
-                                setEdited(true);
-                            }}
+                            onChange={(e) => handleChange(e.target.value)}
+                            disabled={locked}
                             required
-                            hintText={state.meta.errors?.[0] ? String(state.meta.errors[0]) : undefined}
+                            hintText={
+                                state.meta.errors?.[0]
+                                    ? String(state.meta.errors[0])
+                                    : locked
+                                      ? t('openingCashLockedHint')
+                                      : undefined
+                            }
                             error={!!state.meta.errors?.length}
                         />
                     )}
@@ -76,7 +86,6 @@ export default function PosOpenSessionModal({
                         size={EButtonSize.medium}
                         text={t('open')}
                         isLoading={isLoading}
-                        disabled={!edited}
                         onClick={() => form.handleSubmit()}
                         className="flex-1"
                     />

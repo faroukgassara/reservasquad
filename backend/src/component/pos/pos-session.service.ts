@@ -3,11 +3,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { EPosPaymentMethod, Prisma } from 'src/generated/prisma/client';
 import { ProxyPrismaModel } from 'src/common/pagination/proxy';
 import { PaginationData } from 'src/common/pagination/types';
-import { ClosePosSessionDto, OpenPosSessionDto } from 'src/dto/pos/posSession.dto';
+import { ClosePosSessionDto, OpenPosSessionDto, UpdatePosSettingsDto } from 'src/dto/pos/posSession.dto';
 import { AuditService } from '../audit/audit.service';
 import { DailyIncomeService } from '../dailyIncome/daily-income.service';
 import { POS_AUDIT, round3, sumBy } from './pos.utils';
 import { formatAuditMoney } from 'src/common/utils/audit-format.util';
+
+const POS_SETTINGS_ID = 'default';
 
 const userSelect = { id: true, firstName: true, lastName: true } satisfies Prisma.UserSelect;
 
@@ -117,7 +119,43 @@ export class PosSessionService {
     };
   }
 
+  async getSettings(): Promise<{ defaultOpeningCash: number; allowCashierOverride: boolean }> {
+    const settings = await this.prismaService.posSettings.findUnique({ where: { id: POS_SETTINGS_ID } });
+    return {
+      defaultOpeningCash: settings ? Number(settings.defaultOpeningCash) : 0,
+      allowCashierOverride: settings?.allowCashierOverride ?? false,
+    };
+  }
+
+  async updateSettings(dto: UpdatePosSettingsDto, actorId?: string) {
+    const data = {
+      defaultOpeningCash: round3(dto.defaultOpeningCash),
+      allowCashierOverride: dto.allowCashierOverride,
+      updatedById: actorId || null,
+    };
+    await this.prismaService.posSettings.upsert({
+      where: { id: POS_SETTINGS_ID },
+      create: { id: POS_SETTINGS_ID, ...data },
+      update: data,
+    });
+    await this.auditService.log({
+      entityType: POS_AUDIT.settings,
+      entityId: POS_SETTINGS_ID,
+      action: 'UPDATE',
+      userId: actorId,
+      summary: `Fond de caisse fixé à ${formatAuditMoney(data.defaultOpeningCash)}${
+        data.allowCashierOverride ? ' · modifiable par le caissier' : ''
+      }`,
+      metadata: { defaultOpeningCash: data.defaultOpeningCash, allowCashierOverride: data.allowCashierOverride },
+    });
+    return this.getSettings();
+  }
+
   async open(dto: OpenPosSessionDto, actorId?: string) {
+    const settings = await this.getSettings();
+    const openingCash =
+      settings.allowCashierOverride && dto.openingCash !== undefined ? dto.openingCash : settings.defaultOpeningCash;
+
     const session = await this.prismaService.$transaction(async (tx) => {
       const existing = await tx.posSession.findFirst({
         where: { status: 'OPEN' },
@@ -125,7 +163,7 @@ export class PosSessionService {
       });
       if (existing) throw new BadRequestException('A session is already open');
       return tx.posSession.create({
-        data: { openingCash: dto.openingCash, openedById: actorId || null },
+        data: { openingCash, openedById: actorId || null },
         include: sessionInclude,
       });
     });
@@ -134,8 +172,8 @@ export class PosSessionService {
       entityId: session.id,
       action: 'CREATE',
       userId: actorId,
-      summary: `Ouverture de la session de caisse N° ${session.number} · Fond de caisse initial : ${formatAuditMoney(dto.openingCash)}`,
-      metadata: { sessionNumber: session.number, openingCash: Number(dto.openingCash) },
+      summary: `Ouverture de la session de caisse N° ${session.number} · Fond de caisse initial : ${formatAuditMoney(openingCash)}`,
+      metadata: { sessionNumber: session.number, openingCash: Number(openingCash) },
     });
     return session;
   }

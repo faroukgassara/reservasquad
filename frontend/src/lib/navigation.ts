@@ -24,7 +24,8 @@ type SidebarLabelKey =
     | 'dailyIncome'
     | 'users'
     | 'auditLog'
-    | 'recycleBin';
+    | 'recycleBin'
+    | 'settings';
 
 export interface INavModuleItem {
     id: string;
@@ -166,11 +167,12 @@ export const NAV_MODULES: INavModule[] = [
         icon: IconComponentsEnum.settings,
         homeHref: Routes.Users.index,
         roles: ADMIN_ONLY,
-        pathPrefixes: [Routes.Users.index, Routes.AuditLog.index, Routes.RecycleBin.index],
+        pathPrefixes: [Routes.Users.index, Routes.AuditLog.index, Routes.RecycleBin.index, Routes.Settings.index],
         items: [
             { id: 'users', icon: IconComponentsEnum.user, labelKey: 'users', href: Routes.Users.index },
             { id: 'audit-log', icon: IconComponentsEnum.clock, labelKey: 'auditLog', href: Routes.AuditLog.index },
             { id: 'recycle-bin', icon: IconComponentsEnum.archive, labelKey: 'recycleBin', href: Routes.RecycleBin.index },
+            { id: 'settings', icon: IconComponentsEnum.settings, labelKey: 'settings', href: Routes.Settings.index },
         ],
     },
 ];

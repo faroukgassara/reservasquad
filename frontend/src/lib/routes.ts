@@ -54,6 +54,9 @@ export const Routes = {
     RecycleBin: {
         index: '/recycle-bin',
     },
+    Settings: {
+        index: '/settings',
+    },
     Portal: {
         index: '/portal',
         book: '/portal/book',

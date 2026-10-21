@@ -179,7 +179,20 @@
         "products": "المنتجات",
         "categories": "الفئات",
         "analytics": "التحليلات",
-        "newsletters": "النشرات الإخبارية"
+        "newsletters": "النشرات الإخبارية",
+        "settings": "الإعدادات"
+    },
+    "settings": {
+        "title": "الإعدادات",
+        "subtitle": "الإعدادات العامة للتطبيق",
+        "caisseTitle": "نقطة البيع",
+        "caisseSubtitle": "المبلغ المستعمل عند كل فتح للجلسة",
+        "openingCash": "رصيد الصندوق الافتتاحي (د.ت)",
+        "openingCashHint": "يُطبَّق هذا المبلغ تلقائيًا عند فتح الصندوق.",
+        "invalidAmount": "أدخل مبلغًا صالحًا.",
+        "allowOverride": "السماح للكاشير بتعديل المبلغ",
+        "allowOverrideHint": "عند التعطيل: لا يمكن للكاشير تغيير رصيد الصندوق.",
+        "saved": "تم حفظ الإعدادات."
     },
     "launcher": {
         "greeting": "مرحبًا {name}",
@@ -793,6 +806,8 @@
             "open": "فتح الجلسة",
             "openTitle": "فتح الصندوق",
             "openSubtitle": "عُدّ النقود في الدرج قبل البدء.",
+            "openSubtitleLocked": "تأكّد أن الدرج يحتوي على هذا الرصيد الافتتاحي.",
+            "openingCashLockedHint": "مبلغ يحدّده المسؤول.",
             "openingCash": "رصيد الافتتاح",
             "invalidAmount": "أدخل مبلغًا صالحًا."
         },
