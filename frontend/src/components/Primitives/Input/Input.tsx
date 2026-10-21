@@ -52,6 +52,7 @@ function getFieldWrapperClassName({
         'relative flex w-full items-center rounded-xl border transition-colors duration-200',
         sizeConfig.field,
         INPUT_STATUS_FIELD[status],
+        'has-[:autofill]:border-gray-300 has-[:autofill]:bg-gray-50 has-[:autofill]:transition-none',
         hasValue && !disabled && 'border-gray-300 bg-gray-50',
         disabled && 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60 hover:border-gray-200',
         className,

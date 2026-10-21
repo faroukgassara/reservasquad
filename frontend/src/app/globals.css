@@ -337,8 +337,8 @@ body {
 .ds-input-field:-webkit-autofill:hover,
 .ds-input-field:-webkit-autofill:focus,
 .ds-input-field:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px oklch(0.9371 0.0042 271.37) inset !important;
-  box-shadow: 0 0 0 1000px oklch(0.9371 0.0042 271.37) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--ds-gray-50) inset !important;
+  box-shadow: 0 0 0 1000px var(--ds-gray-50) inset !important;
   -webkit-text-fill-color: #21252e !important;
   transition: background-color 99999s ease-out 0s;
 }
@@ -347,8 +347,8 @@ body {
 .dark .ds-input-field:-webkit-autofill:hover,
 .dark .ds-input-field:-webkit-autofill:focus,
 .dark .ds-input-field:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px oklch(0.2955 0.0262 270.55) inset !important;
-  box-shadow: 0 0 0 1000px oklch(0.2955 0.0262 270.55) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--ds-gray-50) inset !important;
+  box-shadow: 0 0 0 1000px var(--ds-gray-50) inset !important;
   -webkit-text-fill-color: oklch(0.9108 0.0102 264.9) !important;
   transition: background-color 99999s ease-out 0s;
 }
