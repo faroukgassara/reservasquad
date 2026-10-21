@@ -481,6 +481,7 @@ export default function OrganismPosProductForm({
                 label={t('image')}
                 previewClassName="h-24"
                 value={state.value}
+                uploadEndpoint="/api/pos/upload?type=product"
                 onChange={handleChange}
                 onClear={() => handleChange('')}
               />

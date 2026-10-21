@@ -163,24 +163,28 @@ const SidebarContent = ({
                     const isGroupOpen = expandedGroups.has(item.id);
 
                     if (!hasChildren) {
+                        const isItemActive = item.exact
+                            ? pathname === item.href
+                            : [item.href, ...(item.alsoActive ?? [])].some((href) => pathMatches(pathname, href));
+
                         return (
                             <Link
                                 key={item.id}
                                 href={item.href}
                                 onClick={closeMobileSidebar}
-                                className={linkClassName(pathMatches(pathname, item.href))}
+                                className={linkClassName(isItemActive)}
                                 title={!isExpanded ? item.label : undefined}
                             >
                                 <Icon
                                     name={item.iconName}
                                     size={ESize.md}
                                     className="m-0 block"
-                                    color={iconColor(pathMatches(pathname, item.href))}
+                                    color={iconColor(isItemActive)}
                                 />
                                 {isExpanded && (
                                     <Label
                                         variant={EVariantLabel.bodySmall}
-                                        color={pathMatches(pathname, item.href) ? "text-white" : "text-gray-800"}
+                                        color={isItemActive ? "text-white" : "text-gray-800"}
                                         className="ms-3 cursor-pointer truncate"
                                     >
                                         {item.label}

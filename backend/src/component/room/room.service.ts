@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRoomDto } from 'src/dto/room/createRoom.dto';
 import { UpdateRoomDto } from 'src/dto/room/updateRoom.dto';
@@ -26,10 +26,16 @@ export class RoomService {
     private readonly fileUploadService: FileUploadService,
   ) {}
 
+  async uploadRoomImage(file: Express.Multer.File): Promise<string> {
+    return this.fileUploadService.upload(ROOM_IMAGES_TYPE, file);
+  }
+
   private async resolveImage(value?: string | null): Promise<string | null> {
     if (!value?.trim()) return null;
     if (isBase64DataUrl(value)) {
-      return this.fileUploadService.convertBase64(ROOM_IMAGES_TYPE, value);
+      throw new BadRequestException(
+        'Sending base64 images inside JSON is disabled. Please upload images via multipart.',
+      );
     }
     return value.trim();
   }

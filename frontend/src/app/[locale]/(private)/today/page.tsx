@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import Div from '@/components/Primitives/Div/Div';
@@ -11,7 +11,6 @@ import Button from '@/components/Primitives/Button/Button';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import {
-    bulkMarkReservationsPaid,
     fetchTodaySnapshot,
     formatMoney,
     type TodayProfessor,
@@ -20,14 +19,12 @@ import {
 } from '@/lib/reservation-api';
 import { Link } from '@/i18n/navigation';
 import { Routes } from '@/lib/routes';
-import { useToast } from '@/contexts/ToastContext';
 import {
     EBadgeSize,
     EBadgeType,
     EButtonSize,
     EButtonType,
     ESize,
-    EToastType,
     EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
@@ -160,9 +157,6 @@ function timingBadgeType(timing: TodayUnpaidReservation['timing']): EBadgeType {
 export default function TodayPage() {
     const t = useTranslations('admin.today');
     const tCommon = useTranslations('common');
-    const tPay = useTranslations('admin.reservations');
-    const { openToast } = useToast();
-    const queryClient = useQueryClient();
 
     const { data, isLoading, isFetching, error, refetch, dataUpdatedAt } = useQuery({
         queryKey: ['today-snapshot'],
@@ -170,24 +164,6 @@ export default function TodayPage() {
         refetchInterval: 30_000,
         staleTime: 15_000,
     });
-
-    const markPaidMutation = useMutation({
-        mutationFn: bulkMarkReservationsPaid,
-        onSuccess: (result) => {
-            queryClient.invalidateQueries({ queryKey: ['today-snapshot'] });
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
-            openToast(tCommon('success'), tPay('bulkPaidSuccess', { count: result.updated }), {
-                type: EToastType.SUCCESS,
-            });
-        },
-        onError: (err: Error) =>
-            openToast(tCommon('error'), err.message, { type: EToastType.ERROR }),
-    });
-
-    const unpaidIds = useMemo(
-        () => data?.unpaidToday.map((row) => row.id) ?? [],
-        [data?.unpaidToday],
-    );
 
     const updatedLabel = dataUpdatedAt
         ? new Date(dataUpdatedAt).toLocaleTimeString(undefined, {
@@ -331,22 +307,7 @@ export default function TodayPage() {
                             </Div>
 
                             <Div>
-                                <SectionTitle
-                                    title={t('unpaidSection')}
-                                    icon={IconComponentsEnum.bell}
-                                    action={
-                                        unpaidIds.length > 0 ? (
-                                            <Button
-                                                id="today-mark-paid"
-                                                type={EButtonType.primary}
-                                                size={EButtonSize.small}
-                                                text={tPay('bulkPaidSelected', { count: unpaidIds.length })}
-                                                isLoading={markPaidMutation.isPending}
-                                                onClick={() => markPaidMutation.mutate(unpaidIds)}
-                                            />
-                                        ) : null
-                                    }
-                                />
+                                <SectionTitle title={t('unpaidSection')} icon={IconComponentsEnum.bell} />
                                 {data.unpaidToday.length === 0 ? (
                                     <Div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center">
                                         <Label variant={EVariantLabel.bodySmall} color="text-gray-500">

@@ -6,7 +6,7 @@ export const Routes = {
         show: (token: string) => `/activate/${token}`,
     },
     Home: '/',
-    Dashboard: '/dashboard',
+    Launcher: '/home',
     Today: '/today',
     Calendar: '/calendar',
     Rooms: {
@@ -18,9 +18,11 @@ export const Routes = {
     },
     Reservations: {
         index: '/reservations',
+        reports: '/reservations/reports',
     },
     DailyIncome: {
         index: '/daily-income',
+        reports: '/daily-income/reports',
     },
     Pos: {
         index: '/caisse',
@@ -61,11 +63,10 @@ export const Routes = {
     Menu: '/menu',
 } as const;
 
-/** Staff (USER) land on Today; admins land on Dashboard; professors land on their portal. */
+/** Staff land on the module launcher; professors land on their portal. */
 export function homePathForRole(role?: string | null): string {
-    if (role === 'ADMIN') return Routes.Dashboard;
     if (role === 'PROFESSOR') return Routes.Portal.index;
-    return Routes.Today;
+    return Routes.Launcher;
 }
 
 export const PublicRoutes = [

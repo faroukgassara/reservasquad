@@ -124,7 +124,7 @@ export default function ResetPasswordPage() {
             openToast('Success', t('auth.resetPasswordSuccess'), {
                 type: EToastType.SUCCESS,
             });
-            router.push('/dashboard');
+            router.push(Routes.Home);
         } catch {
             openToast('Error', t('auth.resetPasswordFailed'), {
                 type: EToastType.ERROR,

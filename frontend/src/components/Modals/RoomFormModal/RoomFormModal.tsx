@@ -11,6 +11,7 @@ import {
 } from '@/components/Primitives/DrawerLayout/DrawerLayout';
 import Input from '@/components/Primitives/Input/Input';
 import Button from '@/components/Primitives/Button/Button';
+import ImageUpload from '@/components/Primitives/ImageUpload/ImageUpload';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType } from '@/Enum/Enum';
 import type { RoomRecord } from '@/lib/room-api';
@@ -19,6 +20,7 @@ export interface RoomFormValues {
     name: string;
     capacity: string;
     pricePerHour: string;
+    imageUrl?: string;
 }
 
 interface RoomFormModalProps {
@@ -44,6 +46,7 @@ export default function RoomFormModal({
             name: room?.name ?? '',
             capacity: room ? String(room.capacity) : '1',
             pricePerHour: room ? String(room.pricePerHour) : '0',
+            imageUrl: room?.imageUrl ?? '',
         },
         onSubmit: async ({ value }) => {
             await onSubmit(value as RoomFormValues);
@@ -56,6 +59,7 @@ export default function RoomFormModal({
         form.setFieldValue('name', room.name);
         form.setFieldValue('capacity', String(room.capacity));
         form.setFieldValue('pricePerHour', String(room.pricePerHour));
+        form.setFieldValue('imageUrl', room.imageUrl ?? '');
     }, [room, form]);
 
     return (
@@ -129,6 +133,18 @@ export default function RoomFormModal({
                                 hintText={state.meta.errors?.[0]}
                                 error={!!state.meta.errors?.length}
                                 {...({ type: 'number', step: '0.01' } as object)}
+                            />
+                        )}
+                    </form.Field>
+                    <form.Field name="imageUrl">
+                        {({ state, handleChange }) => (
+                            <ImageUpload
+                                id="room-image"
+                                label={t('image')}
+                                value={state.value}
+                                uploadEndpoint="/api/rooms/upload"
+                                onChange={handleChange}
+                                onClear={() => handleChange('')}
                             />
                         )}
                     </form.Field>

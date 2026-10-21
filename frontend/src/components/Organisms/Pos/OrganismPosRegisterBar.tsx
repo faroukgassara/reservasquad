@@ -11,7 +11,7 @@ import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import NotificationBell from '@/components/Organisms/Notifications/NotificationBell';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
-import { homePathForRole, Routes } from '@/lib/routes';
+import { Routes } from '@/lib/routes';
 
 interface IOrganismPosRegisterBar {
     sessionNumber: number;
@@ -101,20 +101,8 @@ export default function OrganismPosRegisterBar({
 
                 <Div className="hidden h-5 w-px bg-gray-200 md:block" />
 
-                {/* Explicit action buttons: Réservations, Bureau caisse & Clôturer la session */}
+                {/* Explicit action buttons: Bureau caisse & Clôturer la session */}
                 <Div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    {/* Link to /dashboard (Reservations dashboard for ADMIN) or /today (for USER) */}
-                    <Link
-                        id="pos-register-link-dashboard"
-                        href={homePathForRole(session?.user?.role)}
-                        title={t('goToDashboard')}
-                        aria-label={t('goToDashboard')}
-                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-2.5 sm:px-3 text-xs font-semibold text-gray-700 shadow-2xs transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
-                    >
-                        <Icon name={IconComponentsEnum.calendar} size={ESize.xs} color="text-gray-600" />
-                        <span className="hidden xl:inline">{t('goToDashboard')}</span>
-                    </Link>
-
                     {/* Neutral Link to /caisse */}
                     <Link
                         id="pos-register-link-caisse"

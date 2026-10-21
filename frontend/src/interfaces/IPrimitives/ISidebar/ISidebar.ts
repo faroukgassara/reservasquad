@@ -15,6 +15,8 @@ interface INavigationItem {
     label: string;
     href: string;
     hidden?: boolean;
+    exact?: boolean;
+    alsoActive?: string[];
     children?: INavigationChildItem[];
 }
 

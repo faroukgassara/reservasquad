@@ -9,15 +9,10 @@ import { useMobileSidebar } from '@/contexts/MobileSidebarContext';
 import { useTranslations } from 'next-intl';
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 import NotificationBell from '@/components/Organisms/Notifications/NotificationBell';
-import { createContext, useContext } from 'react';
-
-/** Layouts that already show the theme toggle and notification bell in their own top bar (e.g. the Caisse) set this to false. */
-export const TopSectionGlobalControlsContext = createContext(true);
 
 const OrganismTopSection = (props: IOrganismTopSection) => {
     const mobileSidebar = useMobileSidebar();
     const t = useTranslations('sidebar');
-    const showGlobalControls = useContext(TopSectionGlobalControlsContext);
 
     return (
         <header className="sticky top-0 z-30 flex flex-col gap-4 border-b border-gray-100 bg-white px-4 py-4 sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between tablet:gap-6 lg:px-8 lg:py-5">
@@ -53,12 +48,8 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
                         </Label>
                     )}
                 </Div>
-                {showGlobalControls ? (
-                    <>
-                        <NotificationBell />
-                        <ThemeToggle />
-                    </>
-                ) : null}
+                <NotificationBell />
+                <ThemeToggle />
             </Div>
 
             {props?.rightActions && (

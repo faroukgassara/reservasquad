@@ -160,7 +160,55 @@
         "recycleBin": "سلة المحذوفات",
         "closeMenu": "إغلاق القائمة",
         "openMenu": "فتح القائمة",
-        "pos": "نقطة البيع"
+        "pos": "نقطة البيع",
+        "module": "الوحدة",
+        "switchModule": "تغيير الوحدة",
+        "allModules": "كل الوحدات",
+        "modules": {
+            "reservations": "الحجوزات",
+            "caisse": "نقطة البيع",
+            "recettes": "المداخيل",
+            "admin": "الإدارة"
+        },
+        "reports": "التقارير",
+        "caisseHome": "الرئيسية",
+        "sessions": "الجلسات",
+        "subscriptions": "الاشتراكات",
+        "billing": "المبيعات والفواتير",
+        "clients": "العملاء",
+        "products": "المنتجات",
+        "categories": "الفئات",
+        "analytics": "التحليلات",
+        "newsletters": "النشرات الإخبارية"
+    },
+    "launcher": {
+        "greeting": "مرحبًا {name}",
+        "greetingFallback": "مرحبًا",
+        "subtitle": "ماذا تريد أن تدير اليوم؟",
+        "open": "فتح",
+        "descriptions": {
+            "reservations": "جدول القاعات والحجوزات والأساتذة.",
+            "caisse": "مبيعات المقهى والاشتراكات والمنتجات والعملاء.",
+            "recettes": "المداخيل اليومية والمصاريف والحصيلة الشهرية.",
+            "admin": "المستخدمون وسجل التدقيق وسلة المحذوفات."
+        },
+        "stats": {
+            "reservationsToday": "حجوزات اليوم",
+            "roomsOccupied": "القاعات المشغولة",
+            "unpaidToday": "غير مدفوعة اليوم",
+            "session": "جلسة الصندوق",
+            "sessionOpen": "مفتوحة",
+            "sessionClosed": "مغلقة",
+            "lowStock": "منتجات بمخزون منخفض",
+            "incomeMonth": "مداخيل الشهر",
+            "netBalance": "الرصيد الصافي"
+        }
+    },
+    "reports": {
+        "reservationsTitle": "تقارير الحجوزات",
+        "reservationsSubtitle": "الإيرادات والاتجاهات وأداء القاعات",
+        "incomeTitle": "تقارير المداخيل",
+        "incomeSubtitle": "ملخص الشهر وتطور آخر 6 أشهر"
     },
     "dashboard": {
         "title": "لوحة التحكم",
@@ -290,6 +338,7 @@
             "name": "الاسم",
             "capacity": "السعة",
             "pricePerHour": "السعر / ساعة",
+            "image": "صورة",
             "deleteConfirm": "حذف هذه القاعة؟",
             "totalRooms": "إجمالي القاعات",
             "totalCapacity": "السعة الإجمالية",
@@ -919,7 +968,6 @@
             "sessionNumber": "الجلسة رقم {number}",
             "orders": "الطلبات",
             "backend": "لوحة القيادة",
-            "goToDashboard": "الحجوزات",
             "goToCaisse": "مكتب الصندوق",
             "closeSession": "إغلاق الجلسة",
             "mobileProducts": "المنتجات",

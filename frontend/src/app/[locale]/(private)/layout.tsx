@@ -4,12 +4,15 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger } from '@/components/Primitives/Sidebar/Sidebar';
 import { EButtonType, ESize, IconComponentsEnum } from '@/Enum/Enum';
 import { Routes } from '@/lib/routes';
+import { moduleForPath, moduleItemsForRole, modulesForRole } from '@/lib/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { signOut, useSession } from 'next-auth/react';
 import { twMerge } from 'tailwind-merge';
 import Button from '@/components/Primitives/Button/Button';
-import { useAuthorization } from '@/hooks/useAuthorization';
 import { MobileSidebarContext } from '@/contexts/MobileSidebarContext';
+import { usePathname } from '@/i18n/navigation';
+import { INavigationItem } from '@/interfaces/IPrimitives/ISidebar/ISidebar';
+import ModuleSwitcher from '@/components/Organisms/ModuleSwitcher/ModuleSwitcher';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -34,7 +37,8 @@ export default function PrivateLayout({
     const userName = [session?.user?.firstName, session?.user?.lastName]
         .filter(Boolean)
         .join(' ') || tCommon('userFallback');
-    const { isAllowed } = useAuthorization();
+    const role = session?.user?.role;
+    const pathname = usePathname();
 
     useEffect(() => {
         const prevHtmlOverflow = document.documentElement.style.overflow;
@@ -58,84 +62,19 @@ export default function PrivateLayout({
         [isMobile, openSidebar, closeSidebar],
     );
 
-    const homeHref = isAllowed({ anyRoles: ['ADMIN'] }) ? Routes.Dashboard : Routes.Today;
+    const availableModules = useMemo(() => modulesForRole(role), [role]);
+    const currentModule = moduleForPath(pathname) ?? availableModules[0];
 
-    const navigationItems = [
-        {
-            id: 'dashboard',
-            iconName: IconComponentsEnum.home,
-            label: t('dashboard'),
-            href: Routes.Dashboard,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'today',
-            iconName: IconComponentsEnum.clock,
-            label: t('today'),
-            href: Routes.Today,
-        },
-        {
-            id: 'calendar',
-            iconName: IconComponentsEnum.calendar,
-            label: t('calendar'),
-            href: Routes.Calendar,
-        },
-        {
-            id: 'reservations',
-            iconName: IconComponentsEnum.bookOpenText,
-            label: t('reservations'),
-            href: Routes.Reservations.index,
-        },
-        {
-            id: 'rooms',
-            iconName: IconComponentsEnum.home,
-            label: t('rooms'),
-            href: Routes.Rooms.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
-        },
-        {
-            id: 'professors',
-            iconName: IconComponentsEnum.users,
-            label: t('professors'),
-            href: Routes.Professors.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
-        },
-        {
-            id: 'pos',
-            iconName: IconComponentsEnum.shoppingCart,
-            label: t('pos'),
-            href: Routes.Pos.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN', 'USER'] }),
-        },
-        {
-            id: 'daily-income',
-            iconName: IconComponentsEnum.squaresFour,
-            label: t('dailyIncome'),
-            href: Routes.DailyIncome.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'users',
-            iconName: IconComponentsEnum.user,
-            label: t('users'),
-            href: Routes.Users.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'audit-log',
-            iconName: IconComponentsEnum.clock,
-            label: t('auditLog'),
-            href: Routes.AuditLog.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-        {
-            id: 'recycle-bin',
-            iconName: IconComponentsEnum.archive,
-            label: t('recycleBin'),
-            href: Routes.RecycleBin.index,
-            hidden: !isAllowed({ anyRoles: ['ADMIN'] }),
-        },
-    ];
+    const navigationItems: INavigationItem[] = currentModule
+        ? moduleItemsForRole(currentModule, role).map((item) => ({
+              id: item.id,
+              iconName: item.icon,
+              label: t(item.labelKey),
+              href: item.href,
+              exact: item.exact,
+              alsoActive: item.alsoActive,
+          }))
+        : [];
 
     const sidebarLayoutClass = sidebarOpen
         ? 'fixed inset-y-0 start-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl lg:static lg:z-auto lg:w-70 lg:translate-x-0 lg:shadow-none'
@@ -168,7 +107,7 @@ export default function PrivateLayout({
                     >
                         <SidebarHeader className="p-4">
                             {sidebarOpen && (
-                                <Link href={homeHref} className="flex shrink-0 items-center gap-2">
+                                <Link href={Routes.Launcher} className="flex shrink-0 items-center gap-2">
                                     <BrandLogo
                                         alt={tCommon('brandLogoAlt')}
                                         height={30}
@@ -179,6 +118,12 @@ export default function PrivateLayout({
                             )}
                             <SidebarTrigger id="sidebar-trigger" />
                         </SidebarHeader>
+
+                        {currentModule ? (
+                            <div className={sidebarOpen ? 'shrink-0 px-4 pb-2' : 'flex shrink-0 justify-center pb-2'}>
+                                <ModuleSwitcher current={currentModule} modules={availableModules} />
+                            </div>
+                        ) : null}
 
                         <SidebarContent
                             data={navigationItems}

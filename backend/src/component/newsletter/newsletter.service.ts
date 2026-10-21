@@ -4,6 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import * as sanitizeHtml from 'sanitize-html';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'node:crypto';
 import { IEnv } from 'src/common/env/env';
@@ -63,6 +64,165 @@ function parseBodyToParagraphs(body: string): string[] {
     });
 }
 
+const SAFE_CSS_VALUE_REGEX =
+  /^(?!.*(?:javascript|expression|url|\/\*))[\w\s#.,%()\-!]+$/i;
+
+const NEWSLETTER_ALLOWED_STYLES: Record<string, RegExp[]> = {
+  color: [SAFE_CSS_VALUE_REGEX],
+  'background-color': [SAFE_CSS_VALUE_REGEX],
+  background: [SAFE_CSS_VALUE_REGEX],
+  'font-size': [SAFE_CSS_VALUE_REGEX],
+  'font-weight': [SAFE_CSS_VALUE_REGEX],
+  'font-family': [SAFE_CSS_VALUE_REGEX],
+  'font-style': [SAFE_CSS_VALUE_REGEX],
+  'line-height': [SAFE_CSS_VALUE_REGEX],
+  'letter-spacing': [SAFE_CSS_VALUE_REGEX],
+  'text-align': [SAFE_CSS_VALUE_REGEX],
+  'text-decoration': [SAFE_CSS_VALUE_REGEX],
+  'text-transform': [SAFE_CSS_VALUE_REGEX],
+  'word-break': [SAFE_CSS_VALUE_REGEX],
+  'white-space': [SAFE_CSS_VALUE_REGEX],
+  margin: [SAFE_CSS_VALUE_REGEX],
+  'margin-top': [SAFE_CSS_VALUE_REGEX],
+  'margin-bottom': [SAFE_CSS_VALUE_REGEX],
+  'margin-left': [SAFE_CSS_VALUE_REGEX],
+  'margin-right': [SAFE_CSS_VALUE_REGEX],
+  padding: [SAFE_CSS_VALUE_REGEX],
+  'padding-top': [SAFE_CSS_VALUE_REGEX],
+  'padding-bottom': [SAFE_CSS_VALUE_REGEX],
+  'padding-left': [SAFE_CSS_VALUE_REGEX],
+  'padding-right': [SAFE_CSS_VALUE_REGEX],
+  border: [SAFE_CSS_VALUE_REGEX],
+  'border-top': [SAFE_CSS_VALUE_REGEX],
+  'border-bottom': [SAFE_CSS_VALUE_REGEX],
+  'border-left': [SAFE_CSS_VALUE_REGEX],
+  'border-right': [SAFE_CSS_VALUE_REGEX],
+  'border-width': [SAFE_CSS_VALUE_REGEX],
+  'border-style': [SAFE_CSS_VALUE_REGEX],
+  'border-color': [SAFE_CSS_VALUE_REGEX],
+  'border-radius': [SAFE_CSS_VALUE_REGEX],
+  'border-collapse': [SAFE_CSS_VALUE_REGEX],
+  width: [SAFE_CSS_VALUE_REGEX],
+  'min-width': [SAFE_CSS_VALUE_REGEX],
+  'max-width': [SAFE_CSS_VALUE_REGEX],
+  height: [SAFE_CSS_VALUE_REGEX],
+  'min-height': [SAFE_CSS_VALUE_REGEX],
+  'max-height': [SAFE_CSS_VALUE_REGEX],
+  display: [SAFE_CSS_VALUE_REGEX],
+  'flex-direction': [SAFE_CSS_VALUE_REGEX],
+  'align-items': [SAFE_CSS_VALUE_REGEX],
+  'justify-content': [SAFE_CSS_VALUE_REGEX],
+  gap: [SAFE_CSS_VALUE_REGEX],
+  'box-shadow': [SAFE_CSS_VALUE_REGEX],
+  'box-sizing': [SAFE_CSS_VALUE_REGEX],
+  'vertical-align': [SAFE_CSS_VALUE_REGEX],
+  opacity: [SAFE_CSS_VALUE_REGEX],
+  outline: [SAFE_CSS_VALUE_REGEX],
+};
+
+export function sanitizeNewsletterBody(body: string): string {
+  if (!body) return '';
+
+  const sanitizeFn: typeof sanitizeHtml =
+    typeof sanitizeHtml === 'function'
+      ? sanitizeHtml
+      : (sanitizeHtml as any)?.default;
+
+  const defaultNonBoolean =
+    (sanitizeFn as any)?.defaults?.nonBooleanAttributes ||
+    (sanitizeHtml as any)?.defaults?.nonBooleanAttributes ||
+    (sanitizeHtml as any)?.default?.defaults?.nonBooleanAttributes ||
+    [];
+
+  return sanitizeFn(body, {
+    allowedTags: [
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'blockquote',
+      'p',
+      'div',
+      'span',
+      'pre',
+      'code',
+      'center',
+      'strong',
+      'b',
+      'em',
+      'i',
+      'u',
+      's',
+      'strike',
+      'sub',
+      'sup',
+      'ul',
+      'ol',
+      'li',
+      'table',
+      'thead',
+      'tbody',
+      'tfoot',
+      'tr',
+      'th',
+      'td',
+      'a',
+      'img',
+      'br',
+      'hr',
+    ],
+    allowedAttributes: {
+      '*': ['style', 'class', 'dir', 'lang', 'title'],
+      a: ['href', 'name', 'target', 'rel', 'download', 'title'],
+      img: ['src', 'srcset', 'alt', 'title', 'width', 'height', 'loading'],
+      table: [
+        'width',
+        'height',
+        'align',
+        'valign',
+        'border',
+        'cellpadding',
+        'cellspacing',
+        'bgcolor',
+      ],
+      tr: ['align', 'valign', 'bgcolor'],
+      th: [
+        'align',
+        'valign',
+        'bgcolor',
+        'colspan',
+        'rowspan',
+        'width',
+        'height',
+        'scope',
+      ],
+      td: ['align', 'valign', 'bgcolor', 'colspan', 'rowspan', 'width', 'height'],
+      div: ['align'],
+      p: ['align'],
+      h1: ['align'],
+      h2: ['align'],
+      h3: ['align'],
+      h4: ['align'],
+      h5: ['align'],
+      h6: ['align'],
+    },
+    allowedStyles: {
+      '*': NEWSLETTER_ALLOWED_STYLES,
+    },
+    allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+    allowedSchemesByTag: {
+      a: ['http', 'https', 'mailto', 'tel'],
+      img: ['http', 'https', 'data', 'cid'],
+    },
+    allowProtocolRelative: false,
+    nonBooleanAttributes: defaultNonBoolean.filter(
+      (attr: string) => attr !== 'download',
+    ),
+  });
+}
+
 function formatNewsletterBody(
   body: string,
   baseUrl?: string,
@@ -89,7 +249,7 @@ function formatNewsletterBody(
     );
 
     return {
-      bodyHtml: processedHtml,
+      bodyHtml: sanitizeNewsletterBody(processedHtml),
       paragraphs: [],
     };
   }
@@ -98,7 +258,7 @@ function formatNewsletterBody(
   const bodyHtml = paragraphs.map((p) => `<p style="margin:0 0 16px 0;">${p}</p>`).join('');
 
   return {
-    bodyHtml,
+    bodyHtml: sanitizeNewsletterBody(bodyHtml),
     paragraphs,
   };
 }
@@ -380,7 +540,7 @@ export class NewsletterService {
       data: {
         subject: dto.subject.trim(),
         preheader: dto.preheader?.trim() || null,
-        body: dto.body.trim(),
+        body: sanitizeNewsletterBody(dto.body.trim()),
         ctaLabel: dto.ctaLabel?.trim() || null,
         ctaUrl: dto.ctaUrl?.trim() || null,
         category: dto.category,
@@ -425,7 +585,9 @@ export class NewsletterService {
         ...(dto.preheader !== undefined && {
           preheader: dto.preheader?.trim() || null,
         }),
-        ...(dto.body !== undefined && { body: dto.body.trim() }),
+        ...(dto.body !== undefined && {
+          body: sanitizeNewsletterBody(dto.body.trim()),
+        }),
         ...(dto.ctaLabel !== undefined && {
           ctaLabel: dto.ctaLabel?.trim() || null,
         }),

@@ -43,12 +43,30 @@ import {
 import { fetchRooms } from '@/lib/room-api';
 import { fetchProfessors } from '@/lib/professor-api';
 import {
-    exportWeeklyCalendarPdf,
-    startOfWeek as weekStartOf,
-    addDays as weekAddDays,
-    startOfDay as weekStartOfDay,
-} from '@/lib/export-weekly-calendar-pdf';
-import { exportDailyCalendarPdf } from '@/lib/export-daily-calendar-pdf';
+    addDays,
+    addMonths,
+    endOfDay,
+    formatDayLabel,
+    formatDayMonth,
+    formatMonthLabel,
+    formatTime,
+    formatWeekdayShort,
+    isSameDay,
+    monthNames,
+    startOfDay,
+    startOfMonth,
+    startOfWeek,
+    toIsoDateKey,
+} from '@/lib/date-utils';
+import {
+    AddDayButton,
+    EmptySlot,
+    EventCard,
+    MonthView,
+    MonthYearPicker,
+    SkeletonSlot,
+    WeekView,
+} from '@/components/Calendar';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
@@ -82,88 +100,11 @@ function formatExportDate(date: Date): string {
     return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
 }
 
-function startOfDay(date: Date): Date {
-    return weekStartOfDay(date);
-}
-
-function endOfDay(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(23, 59, 59, 999);
-    return d;
-}
-
-function startOfWeek(date: Date): Date {
-    return weekStartOf(date);
-}
-
-function startOfMonth(date: Date): Date {
-    const d = startOfDay(date);
-    d.setDate(1);
-    return d;
-}
-
-function addDays(date: Date, days: number): Date {
-    return weekAddDays(date, days);
-}
-
-function addMonths(date: Date, months: number): Date {
-    const d = new Date(date);
-    d.setMonth(d.getMonth() + months);
-    return d;
-}
-
-function isSameDay(a: Date, b: Date): boolean {
-    return a.toDateString() === b.toDateString();
-}
-
 function toLocalDateTimeInput(date: Date, hours: number, minutes = 0): string {
     const d = new Date(date);
     d.setHours(hours, minutes, 0, 0);
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-// All calendar date formatting is locale-aware: the app ships en/fr/ar (see i18n/routing.ts).
-function formatDayLabel(date: Date, locale: string): string {
-    return date.toLocaleDateString(locale, {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-    });
-}
-
-function formatWeekdayShort(date: Date, locale: string): string {
-    return date.toLocaleDateString(locale, { weekday: 'short' });
-}
-
-function formatDayMonth(date: Date, locale: string): string {
-    return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-}
-
-function formatMonthLabel(date: Date, locale: string): string {
-    return date.toLocaleDateString(locale, {
-        month: 'long',
-        year: 'numeric',
-    });
-}
-
-function formatTime(iso: string, locale: string): string {
-    return new Date(iso).toLocaleTimeString(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
-function monthNames(locale: string): string[] {
-    return Array.from({ length: 12 }, (_, monthIndex) =>
-        new Date(2024, monthIndex, 1).toLocaleDateString(locale, { month: 'short' }),
-    );
-}
-
-// yyyy-mm-dd in local time — used for deep-linkable URL state.
-function toIsoDateKey(date: Date): string {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function parseDateParam(raw: string | null): Date | null {
@@ -207,316 +148,6 @@ async function fetchAllPages<T>(
         if (!result.meta?.hasMore) break;
     }
     return { data: all, meta: { hasMore: false } };
-}
-
-function AddDayButton({
-    onClick,
-    ariaLabel,
-    className = '',
-}: Readonly<{ onClick: () => void; ariaLabel: string; className?: string }>) {
-    return (
-        <Button
-            id="cal-add-day"
-            type={EButtonType.tertiary}
-            size={EButtonSize.small}
-            iconPosition="only"
-            icon={{ name: IconComponentsEnum.plus, size: ESize.xs, color: 'text-primary-500' }}
-            aria-label={ariaLabel}
-            className={`h-6 w-6 shrink-0 bg-white/80 shadow-xs opacity-100 after:absolute after:-inset-2.5 after:content-[''] md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 ${className}`}
-            onClick={(e: MouseEvent) => {
-                e.stopPropagation();
-                onClick();
-            }}
-        />
-    );
-}
-
-function EmptySlot({
-    label,
-    actionable = false,
-    droppable = false,
-    onClick,
-}: Readonly<{
-    label: string;
-    actionable?: boolean;
-    droppable?: boolean;
-    onClick?: () => void;
-}>) {
-    const interactive = actionable && Boolean(onClick);
-    return (
-        <Div
-            role={interactive ? 'button' : undefined}
-            tabIndex={interactive ? 0 : undefined}
-            aria-label={interactive ? label : undefined}
-            onClick={
-                interactive
-                    ? (e: MouseEvent) => {
-                        e.stopPropagation();
-                        onClick?.();
-                    }
-                    : undefined
-            }
-            onKeyDown={
-                interactive
-                    ? (e: KeyboardEvent<HTMLDivElement>) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onClick?.();
-                        }
-                    }
-                    : undefined
-            }
-            className={`flex flex-col items-center gap-2 rounded-lg py-6 text-center outline-none transition-colors ${droppable
-                ? 'border-2 border-dashed border-primary-400 bg-primary-25/80'
-                : actionable
-                    ? 'border border-dashed border-gray-200 group-hover:border-primary-300 group-hover:bg-primary-25/60 focus-visible:border-primary-400 focus-visible:bg-primary-25/60'
-                    : ''
-                }`}
-        >
-            <Div
-                className={`flex size-9 items-center justify-center rounded-full ${droppable ? 'bg-primary-100' : actionable ? 'bg-primary-50' : 'bg-gray-100'
-                    }`}
-            >
-                <Icon
-                    name={
-                        droppable
-                            ? IconComponentsEnum.arrowDown
-                            : actionable
-                                ? IconComponentsEnum.plus
-                                : IconComponentsEnum.calendar
-                    }
-                    size={ESize.sm}
-                    color={droppable || actionable ? 'text-primary-500' : 'text-gray-400'}
-                />
-            </Div>
-            <Label
-                variant={EVariantLabel.caption}
-                color={droppable || actionable ? 'text-primary-600' : 'text-gray-400'}
-            >
-                {label}
-            </Label>
-        </Div>
-    );
-}
-
-// Placeholder shimmering cards shown while the calendar query loads its first page —
-// keeps users from mistaking "loading" for "the rooms are free".
-function SkeletonSlot({
-    variant,
-    count = 2,
-}: Readonly<{ variant: 'chip' | 'card'; count?: number }>) {
-    return (
-        <Div className="space-y-2" aria-hidden="true">
-            {Array.from({ length: count }, (_, index) => (
-                <Div
-                    key={index}
-                    className={`animate-pulse rounded-lg border border-gray-100 bg-gray-50 ${variant === 'card' ? 'p-3' : 'px-1.5 py-1.5'}`}
-                >
-                    {variant === 'card' ? (
-                        <>
-                            <Div className="h-3 w-14 rounded bg-gray-200" />
-                            <Div className="mt-2 h-3 w-3/4 rounded bg-gray-200/70" />
-                            <Div className="mt-1.5 h-2.5 w-1/2 rounded bg-gray-200/60" />
-                        </>
-                    ) : (
-                        <Div className="h-2.5 w-full rounded bg-gray-200/80" />
-                    )}
-                </Div>
-            ))}
-        </Div>
-    );
-}
-
-// Memoized so page-level re-renders (drag state, picker, etc.) don't re-render every event card.
-const EventCard = memo(function EventCard({
-    event,
-    paidLabel,
-    unpaidLabel,
-    colorBy,
-    noProfessorLabel,
-    locale,
-    draggable,
-    onEdit,
-    onDragStart,
-    onDragEnd,
-}: Readonly<{
-    event: ReservationRecord;
-    paidLabel: string;
-    unpaidLabel: string;
-    colorBy: CalendarColorBy;
-    noProfessorLabel: string;
-    locale: string;
-    draggable?: boolean;
-    onEdit?: (event: ReservationRecord) => void;
-    onDragStart?: (event: ReservationRecord, e: DragEvent) => void;
-    onDragEnd?: () => void;
-}>) {
-    const accent = getEventAccent(event, colorBy, {
-        paid: paidLabel,
-        unpaid: unpaidLabel,
-        noProfessor: noProfessorLabel,
-    });
-
-    return (
-        <Div
-            draggable={draggable}
-            className={`rounded-lg border border-gray-100 border-s-2 bg-white ps-3 pe-2.5 py-2 shadow-xs transition-shadow duration-150 hover:shadow-sm ${accent.borderClass} ${onEdit ? 'cursor-pointer' : ''} ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
-            onClick={(e: MouseEvent) => {
-                e.stopPropagation();
-                onEdit?.(event);
-            }}
-            onDragStart={(e: DragEvent) => {
-                e.stopPropagation();
-                onDragStart?.(event, e);
-            }}
-            onDragEnd={onDragEnd}
-        >
-            <Div className="flex flex-col gap-1.5">
-                <Div className="flex flex-col tabular-nums">
-                    <Label variant={EVariantLabel.bodySmall} color="text-primary-700">
-                        {formatTime(event.startAt, locale)}
-                    </Label>
-                    <Label variant={EVariantLabel.caption} color="text-gray-500">
-                        {formatTime(event.endAt, locale)}
-                    </Label>
-                </Div>
-                <Badge
-                    id={`cal-paid-${event.id}`}
-                    text={event.isPaid ? paidLabel : unpaidLabel}
-                    type={event.isPaid ? EBadgeType.success : EBadgeType.warning}
-                    size={EBadgeSize.tiny}
-                    className="h-auto min-h-6 w-fit max-w-full shrink-0 whitespace-nowrap px-2 py-0.5 leading-none"
-                />
-            </Div>
-            <Div className="mt-1.5 flex flex-col gap-1">
-                <Label
-                    variant={EVariantLabel.bodySmall}
-                    color="text-gray-900"
-                    className="block truncate"
-                >
-                    {event.room?.name || event.title || '—'}
-                </Label>
-                {event.professor ? (
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block truncate">
-                        {event.professor.firstName} {event.professor.lastName}
-                    </Label>
-                ) : null}
-                <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-0.5 block">
-                    {formatMoney(event.price)}
-                </Label>
-            </Div>
-        </Div>
-    );
-});
-
-// Month/year popover opened from the period label — jump to any date instead of
-// clicking prev/next repeatedly. Keeps the anchor's day-of-month (clamped).
-function MonthYearPicker({
-    locale,
-    anchor,
-    dialogLabel,
-    prevLabel,
-    nextLabel,
-    onSelect,
-    onClose,
-}: Readonly<{
-    locale: string;
-    anchor: Date;
-    dialogLabel: string;
-    prevLabel: string;
-    nextLabel: string;
-    onSelect: (date: Date) => void;
-    onClose: () => void;
-}>) {
-    const popoverRef = useRef<HTMLDivElement | null>(null);
-    const [year, setYear] = useState(() => anchor.getFullYear());
-    const months = useMemo(() => monthNames(locale), [locale]);
-
-    useEffect(() => {
-        popoverRef.current?.focus();
-    }, []);
-
-    const selectMonth = (monthIndex: number) => {
-        const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-        const day = Math.min(anchor.getDate(), daysInMonth);
-        onSelect(new Date(year, monthIndex, day));
-    };
-
-    return (
-        <>
-            <Div className="fixed inset-0 z-30" onClick={onClose} aria-hidden="true" />
-            <div
-                ref={popoverRef}
-                tabIndex={-1}
-                role="dialog"
-                aria-label={dialogLabel}
-                onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                        e.stopPropagation();
-                        onClose();
-                    }
-                }}
-                className="absolute start-0 top-full z-40 mt-2 w-64 rounded-xl border border-gray-100 bg-white p-3 shadow-lg outline-none"
-            >
-                <Div className="flex items-center justify-between">
-                    <Button
-                        id="cal-picker-prev-year"
-                        type={EButtonType.tertiary}
-                        size={EButtonSize.small}
-                        iconPosition="only"
-                        icon={{
-                            name: IconComponentsEnum.chevronLeft,
-                            size: ESize.xs,
-                            color: 'text-gray-600',
-                        }}
-                        aria-label={prevLabel}
-                        onClick={() => setYear((y) => y - 1)}
-                    />
-                    <Label
-                        variant={EVariantLabel.bodySmall}
-                        color="text-gray-900"
-                        className="font-semibold tabular-nums"
-                    >
-                        {year}
-                    </Label>
-                    <Button
-                        id="cal-picker-next-year"
-                        type={EButtonType.tertiary}
-                        size={EButtonSize.small}
-                        iconPosition="only"
-                        icon={{
-                            name: IconComponentsEnum.chevronRight,
-                            size: ESize.xs,
-                            color: 'text-gray-600',
-                        }}
-                        aria-label={nextLabel}
-                        onClick={() => setYear((y) => y + 1)}
-                    />
-                </Div>
-                <Div className="mt-2 grid grid-cols-4 gap-1">
-                    {months.map((name, monthIndex) => {
-                        const isCurrent =
-                            year === anchor.getFullYear() && monthIndex === anchor.getMonth();
-                        return (
-                            <button
-                                key={monthIndex}
-                                type="button"
-                                onClick={() => selectMonth(monthIndex)}
-                                aria-current={isCurrent ? 'date' : undefined}
-                                className={`rounded-lg px-1 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${isCurrent
-                                    ? 'bg-primary-500 font-semibold text-white'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                            >
-                                {name}
-                            </button>
-                        );
-                    })}
-                </Div>
-            </div>
-        </>
-    );
 }
 
 export default function CalendarPage() {
@@ -1064,6 +695,7 @@ export default function CalendarPage() {
                     roomId: roomId || undefined,
                     professorId: professorId || undefined,
                 });
+                const { exportDailyCalendarPdf } = await import('@/lib/export-daily-calendar-pdf');
                 exportDailyCalendarPdf({
                     day,
                     rooms: roomsToExport,
@@ -1086,6 +718,7 @@ export default function CalendarPage() {
                     roomId: roomId || undefined,
                     professorId: professorId || undefined,
                 });
+                const { exportWeeklyCalendarPdf } = await import('@/lib/export-weekly-calendar-pdf');
                 exportWeeklyCalendarPdf({
                     anchor,
                     rooms: roomsToExport,
@@ -1463,228 +1096,62 @@ export default function CalendarPage() {
                             ) : null}
 
                             {view === 'week' ? (
-                                <Div className="grid grid-cols-1 divide-y divide-gray-100 md:grid-cols-7 md:divide-x md:divide-y-0">
-                                    {range.days.map((day) => {
-                                        const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
-                                        const isToday = isSameDay(day, today);
-                                        return (
-                                            <Div
-                                                key={day.toISOString()}
-                                                data-cal-day={day.toDateString()}
-                                                tabIndex={isSameDay(day, anchor) ? 0 : -1}
-                                                aria-label={`${formatDayLabel(day, locale)} · ${t('eventsCount', { count: dayEvents.length })}`}
-                                                aria-current={isToday ? 'date' : undefined}
-                                                onDragOver={(e: DragEvent) => handleDayDragOver(day, e)}
-                                                onDragLeave={(e: DragEvent) => handleDayDragLeave(day, e)}
-                                                onDrop={(e: DragEvent) => handleDayDrop(day, e)}
-                                                className={`group flex flex-col outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400 ${canManage ? 'cursor-pointer' : ''} ${dragOverKey === day.toDateString() ? 'bg-primary-25/80 ring-2 ring-inset ring-primary-400' : ''}`}
-                                                onClick={() => handleCellClick(day)}
-                                            >
-                                                <Div
-                                                    className={`flex items-center justify-between border-b px-3 py-2.5 ${isToday
-                                                        ? 'border-b-2 border-b-accent-400 bg-accent-50/60'
-                                                        : 'border-gray-100 bg-gray-25'
-                                                        }`}
-                                                >
-                                                    <Div>
-                                                        <Label
-                                                            variant={EVariantLabel.caption}
-                                                            color={isToday ? 'text-accent-700' : 'text-gray-500'}
-                                                            className="block uppercase tracking-wide"
-                                                        >
-                                                            {formatWeekdayShort(day, locale)}
-                                                        </Label>
-                                                        <Label
-                                                            variant={EVariantLabel.bodySmall}
-                                                            color={isToday ? 'text-accent-700' : 'text-gray-700'}
-                                                            className="block font-semibold"
-                                                        >
-                                                            {formatDayMonth(day, locale)}
-                                                        </Label>
-                                                    </Div>
-                                                    {canManage ? (
-                                                        <AddDayButton
-                                                            onClick={() => openCreateForDay(day)}
-                                                            ariaLabel={t('addReservation')}
-                                                        />
-                                                    ) : null}
-                                                </Div>
-                                                <Div className="min-h-48 flex-1 p-3">
-                                                    {isLoading ? (
-                                                        <SkeletonSlot variant="card" count={2} />
-                                                    ) : dayEvents.length === 0 ? (
-                                                        <EmptySlot
-                                                            label={
-                                                                dragOverKey === day.toDateString() && canManage
-                                                                    ? t('dropHere')
-                                                                    : canManage
-                                                                        ? t('addReservation')
-                                                                        : t('empty')
-                                                            }
-                                                            actionable={canManage}
-                                                            droppable={canManage && dragOverKey === day.toDateString()}
-                                                            onClick={canManage ? () => openCreateForDay(day) : undefined}
-                                                        />
-                                                    ) : (
-                                                        <Div
-                                                            className="space-y-2"
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            {dayEvents.map((event) => (
-                                                                <EventCard
-                                                                    key={event.id}
-                                                                    event={event}
-                                                                    paidLabel={tPay('paid')}
-                                                                    unpaidLabel={tPay('unpaid')}
-                                                                    colorBy={colorBy}
-                                                                    noProfessorLabel={tPay('noProfessor')}
-                                                                    locale={locale}
-                                                                    draggable={canManage}
-                                                                    onDragStart={handleEventDragStart}
-                                                                    onDragEnd={clearDragOver}
-                                                                    onEdit={canManage ? openEditReservation : undefined}
-                                                                />
-                                                            ))}
-                                                        </Div>
-                                                    )}
-                                                </Div>
-                                            </Div>
-                                        );
-                                    })}
-                                </Div>
+                                <WeekView
+                                    days={range.days}
+                                    eventsByDay={eventsByDay}
+                                    today={today}
+                                    anchor={anchor}
+                                    locale={locale}
+                                    isLoading={isLoading}
+                                    canManage={canManage}
+                                    addDayLabel={t('addReservation')}
+                                    dropHereLabel={t('dropHere')}
+                                    emptyLabel={t('empty')}
+                                    eventsCountLabel={(count) => t('eventsCount', { count })}
+                                    onAddDay={openCreateForDay}
+                                    onCellClick={handleCellClick}
+                                    dragOverKey={dragOverKey}
+                                    onDayDragOver={handleDayDragOver}
+                                    onDayDragLeave={handleDayDragLeave}
+                                    onDayDrop={handleDayDrop}
+                                    onEventDragStart={handleEventDragStart}
+                                    onEventDragEnd={clearDragOver}
+                                    paidLabel={tPay('paid')}
+                                    unpaidLabel={tPay('unpaid')}
+                                    colorBy={colorBy}
+                                    noProfessorLabel={tPay('noProfessor')}
+                                    onEditEvent={canManage ? openEditReservation : undefined}
+                                />
                             ) : null}
 
                             {view === 'month' ? (
-                                <Div>
-                                    <Div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50 sm:sticky sm:top-[4.5rem] sm:z-10 lg:top-[4.75rem]">
-                                        {weekdayHeaders.map((label) => (
-                                            <Div key={label} className="px-2 py-2.5 text-center">
-                                                <Label
-                                                    variant={EVariantLabel.caption}
-                                                    color="text-gray-500"
-                                                    className="uppercase tracking-wide"
-                                                >
-                                                    {label}
-                                                </Label>
-                                            </Div>
-                                        ))}
-                                    </Div>
-                                    <Div className="grid grid-cols-7">
-                                        {range.days.map((day) => {
-                                            const inMonth =
-                                                range.monthStart &&
-                                                range.nextMonth &&
-                                                day >= range.monthStart &&
-                                                day < range.nextMonth;
-                                            const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
-                                            const isToday = isSameDay(day, today);
-                                            return (
-                                                <Div
-                                                    key={day.toISOString()}
-                                                    data-cal-day={day.toDateString()}
-                                                    tabIndex={isSameDay(day, anchor) ? 0 : -1}
-                                                    aria-label={`${formatDayLabel(day, locale)} · ${t('eventsCount', { count: dayEvents.length })}`}
-                                                    aria-current={isToday ? 'date' : undefined}
-                                                    onDragOver={(e: DragEvent) => handleDayDragOver(day, e)}
-                                                    onDragLeave={(e: DragEvent) => handleDayDragLeave(day, e)}
-                                                    onDrop={(e: DragEvent) => handleDayDrop(day, e)}
-                                                    className={`group min-h-28 border-b border-e border-gray-100 p-2 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400 ${canManage ? 'cursor-pointer' : ''
-                                                        } ${dragOverKey === day.toDateString() ? 'bg-primary-25/80 ring-2 ring-inset ring-primary-400' : inMonth ? 'bg-white hover:bg-primary-25/60' : 'bg-gray-25/70'}`}
-                                                    onClick={() => handleCellClick(day)}
-                                                >
-                                                    <Div className="mb-1.5 flex items-center justify-between">
-                                                        {isToday ? (
-                                                            <Div className="flex size-6 items-center justify-center rounded-full bg-accent-500">
-                                                                <Label
-                                                                    variant={EVariantLabel.caption}
-                                                                    color="text-white"
-                                                                    className="font-semibold"
-                                                                >
-                                                                    {day.getDate()}
-                                                                </Label>
-                                                            </Div>
-                                                        ) : (
-                                                            <Label
-                                                                variant={EVariantLabel.caption}
-                                                                color={inMonth ? 'text-gray-700' : 'text-gray-300'}
-                                                                className="font-semibold"
-                                                            >
-                                                                {day.getDate()}
-                                                            </Label>
-                                                        )}
-                                                        {canManage ? (
-                                                            <AddDayButton
-                                                                onClick={() => openCreateForDay(day)}
-                                                                ariaLabel={t('addReservation')}
-                                                            />
-                                                        ) : null}
-                                                    </Div>
-                                                    <Div
-                                                        className="space-y-1"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        {isLoading ? (
-                                                            <SkeletonSlot variant="chip" count={2} />
-                                                        ) : (
-                                                            <>
-                                                                {dayEvents.slice(0, 3).map((event) => {
-                                                                    const accent = getEventAccent(
-                                                                        event,
-                                                                        colorBy,
-                                                                        colorLabels,
-                                                                    );
-                                                                    return (
-                                                                        <Div
-                                                                            key={event.id}
-                                                                            draggable={canManage}
-                                                                            className={`flex items-center gap-1.5 rounded px-1 py-0.5 transition-colors hover:bg-gray-50 ${canManage ? 'cursor-grab active:cursor-grabbing' : ''
-                                                                                }`}
-                                                                            onDragStart={(e: DragEvent) =>
-                                                                                handleEventDragStart(event, e)
-                                                                            }
-                                                                            onDragEnd={clearDragOver}
-                                                                            onClick={(e: MouseEvent) => {
-                                                                                e.stopPropagation();
-                                                                                openEditReservation(event);
-                                                                            }}
-                                                                        >
-                                                                            <Div
-                                                                                className={`size-1.5 shrink-0 rounded-full ${accent.dotClass}`}
-                                                                            />
-                                                                            <Label
-                                                                                variant={EVariantLabel.caption}
-                                                                                color="text-gray-700"
-                                                                                className="block truncate"
-                                                                            >
-                                                                                {formatTime(event.startAt, locale)} –{' '}
-                                                                                {formatTime(event.endAt, locale)}{' '}
-                                                                                {event.room?.name || event.title || ''}
-                                                                            </Label>
-                                                                        </Div>
-                                                                    );
-                                                                })}
-                                                                {dayEvents.length > 3 ? (
-                                                                    <Button
-                                                                        id={`cal-more-${toIsoDateKey(day)}`}
-                                                                        type={EButtonType.tertiary}
-                                                                        size={EButtonSize.small}
-                                                                        text={t('moreEvents', { count: dayEvents.length - 3 })}
-                                                                        aria-label={`${t('moreEvents', { count: dayEvents.length - 3 })} — ${formatDayLabel(day, locale)}`}
-                                                                        className="h-auto w-fit px-1 py-0.5 text-xs text-gray-500 hover:text-primary-600"
-                                                                        onClick={(e: MouseEvent) => {
-                                                                            e.stopPropagation();
-                                                                            goToDay(day);
-                                                                        }}
-                                                                    />
-                                                                ) : null}
-                                                            </>
-                                                        )}
-                                                    </Div>
-                                                </Div>
-                                            );
-                                        })}
-                                    </Div>
-                                </Div>
+                                <MonthView
+                                    days={range.days}
+                                    monthStart={range.monthStart}
+                                    nextMonth={range.nextMonth}
+                                    eventsByDay={eventsByDay}
+                                    today={today}
+                                    anchor={anchor}
+                                    locale={locale}
+                                    isLoading={isLoading}
+                                    canManage={canManage}
+                                    weekdayHeaders={weekdayHeaders}
+                                    addDayLabel={t('addReservation')}
+                                    eventsCountLabel={(count) => t('eventsCount', { count })}
+                                    moreEventsLabel={(count) => t('moreEvents', { count })}
+                                    onAddDay={openCreateForDay}
+                                    onCellClick={handleCellClick}
+                                    onSelectDay={goToDay}
+                                    dragOverKey={dragOverKey}
+                                    onDayDragOver={handleDayDragOver}
+                                    onDayDragLeave={handleDayDragLeave}
+                                    onDayDrop={handleDayDrop}
+                                    onEventDragStart={handleEventDragStart}
+                                    onEventDragEnd={clearDragOver}
+                                    colorBy={colorBy}
+                                    colorLabels={colorLabels}
+                                    onEditEvent={canManage ? openEditReservation : undefined}
+                                />
                             ) : null}
                         </Div>
                     </Div>

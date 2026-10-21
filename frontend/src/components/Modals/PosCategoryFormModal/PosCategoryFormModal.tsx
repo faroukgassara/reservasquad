@@ -118,6 +118,7 @@ export default function PosCategoryFormModal({
                                 id="pos-category-image"
                                 label={t('image')}
                                 value={state.value}
+                                uploadEndpoint="/api/pos/upload?type=category"
                                 onChange={handleChange}
                                 onClear={() => handleChange('')}
                             />

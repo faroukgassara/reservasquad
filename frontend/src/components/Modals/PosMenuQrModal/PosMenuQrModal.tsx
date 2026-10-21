@@ -1,7 +1,7 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import QRCode from 'qrcode';
 import { useTranslations } from 'next-intl';
 import Modal from '@/components/Primitives/Modal/Modal';
 import Button from '@/components/Primitives/Button/Button';
@@ -27,11 +27,17 @@ export default function PosMenuQrModal() {
     useEffect(() => {
         let cancelled = false;
         // High error correction keeps the code readable when printed small or partly covered.
-        QRCode.toDataURL(url, { width: 1024, margin: 2, errorCorrectionLevel: 'H' })
+        import('qrcode')
+            .then((QRCodeModule) => {
+                const QRCode = QRCodeModule.default || QRCodeModule;
+                return QRCode.toDataURL(url, { width: 1024, margin: 2, errorCorrectionLevel: 'H' });
+            })
             .then((data) => {
                 if (!cancelled) setQrCode(data);
             })
-            .catch((error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }));
+            .catch((error: Error) => {
+                if (!cancelled) openToast(tCommon('error'), error.message, { type: EToastType.ERROR });
+            });
         return () => {
             cancelled = true;
         };
@@ -55,10 +61,16 @@ export default function PosMenuQrModal() {
     return (
         <Modal title={t('menuQrTitle')} subTitle={t('menuQrSubtitle')} canClose canCloseOnClickOutisde>
             <Div className="flex flex-col items-center gap-4">
-                <Div className="flex aspect-square w-full max-w-64 items-center justify-center rounded-2xl border border-gray-100 bg-white p-2">
+                <Div className="relative flex aspect-square w-full max-w-64 items-center justify-center rounded-2xl border border-gray-100 bg-white p-2">
                     {qrCode ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={qrCode} alt={t('menuQrAlt')} className="size-full" />
+                        <Image
+                            src={qrCode}
+                            alt={t('menuQrAlt')}
+                            width={256}
+                            height={256}
+                            unoptimized
+                            className="size-full object-contain"
+                        />
                     ) : (
                         <Spinner color="text-primary-500" size={ESize.lg} />
                     )}

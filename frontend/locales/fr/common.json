@@ -160,7 +160,55 @@
         "recycleBin": "Corbeille",
         "closeMenu": "Fermer le menu",
         "openMenu": "Ouvrir le menu",
-        "pos": "Caisse"
+        "pos": "Caisse",
+        "module": "Module",
+        "switchModule": "Changer de module",
+        "allModules": "Tous les modules",
+        "modules": {
+            "reservations": "Réservations",
+            "caisse": "Caisse",
+            "recettes": "Recettes",
+            "admin": "Administration"
+        },
+        "reports": "Rapports",
+        "caisseHome": "Accueil caisse",
+        "sessions": "Sessions",
+        "subscriptions": "Abonnements",
+        "billing": "Ventes & factures",
+        "clients": "Clients",
+        "products": "Produits",
+        "categories": "Catégories",
+        "analytics": "Analytique",
+        "newsletters": "Newsletters"
+    },
+    "launcher": {
+        "greeting": "Bonjour {name}",
+        "greetingFallback": "Bonjour",
+        "subtitle": "Que voulez-vous gérer aujourd'hui ?",
+        "open": "Ouvrir",
+        "descriptions": {
+            "reservations": "Planning des salles, réservations et professeurs.",
+            "caisse": "Ventes, abonnements, produits et clients de la buvette.",
+            "recettes": "Revenus journaliers, charges et bilans mensuels.",
+            "admin": "Utilisateurs, journal d'audit et corbeille."
+        },
+        "stats": {
+            "reservationsToday": "Réservations aujourd'hui",
+            "roomsOccupied": "Salles occupées",
+            "unpaidToday": "Impayées aujourd'hui",
+            "session": "Session de caisse",
+            "sessionOpen": "Ouverte",
+            "sessionClosed": "Fermée",
+            "lowStock": "Produits en stock bas",
+            "incomeMonth": "Revenus du mois",
+            "netBalance": "Solde net"
+        }
+    },
+    "reports": {
+        "reservationsTitle": "Rapports des réservations",
+        "reservationsSubtitle": "Chiffre d'affaires, tendances et performance des salles",
+        "incomeTitle": "Rapports des recettes",
+        "incomeSubtitle": "Résumé du mois et évolution sur 6 mois"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -290,6 +338,7 @@
             "name": "Nom",
             "capacity": "Capacité",
             "pricePerHour": "Prix / heure",
+            "image": "Image",
             "deleteConfirm": "Supprimer cette salle ?",
             "totalRooms": "Total des salles",
             "totalCapacity": "Capacité totale",
@@ -919,7 +968,6 @@
             "sessionNumber": "Session n°{number}",
             "orders": "Commandes",
             "backend": "Tableau de bord",
-            "goToDashboard": "Réservations",
             "goToCaisse": "Bureau caisse",
             "closeSession": "Clôturer la session",
             "mobileProducts": "Produits",

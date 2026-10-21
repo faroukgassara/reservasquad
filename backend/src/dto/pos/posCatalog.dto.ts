@@ -26,7 +26,7 @@ export class CreatePosCategoryDto {
   @MaxLength(100)
   name: string;
 
-  @ApiPropertyOptional({ description: 'Image URL or base64 data URL' })
+  @ApiPropertyOptional({ description: 'Image URL or relative path' })
   @IsOptional()
   @IsString()
   imageUrl?: string | null;
@@ -52,7 +52,7 @@ export class UpdatePosCategoryDto {
   @MaxLength(100)
   name?: string;
 
-  @ApiPropertyOptional({ description: 'Image URL or base64 data URL' })
+  @ApiPropertyOptional({ description: 'Image URL or relative path' })
   @IsOptional()
   @IsString()
   imageUrl?: string | null;
@@ -83,7 +83,7 @@ export class CreatePosProductDto {
   @IsUUID()
   categoryId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Image URL or base64 data URL' })
+  @ApiPropertyOptional({ description: 'Image URL or relative path' })
   @IsOptional()
   @IsString()
   imageUrl?: string | null;
@@ -167,7 +167,7 @@ export class UpdatePosProductDto {
   @IsUUID()
   categoryId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Image URL or base64 data URL' })
+  @ApiPropertyOptional({ description: 'Image URL or relative path' })
   @IsOptional()
   @IsString()
   imageUrl?: string | null;

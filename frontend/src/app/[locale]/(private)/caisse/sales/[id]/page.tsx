@@ -51,7 +51,6 @@ import {
     newDraftLine,
     type DocumentLineDraft,
 } from '@/lib/pos-documents';
-import { printSaleOrderPdf } from '@/lib/pos-documents-pdf';
 import { Routes } from '@/lib/routes';
 import {
     EBadgeSize,
@@ -233,9 +232,14 @@ export default function PosSaleOrderPage() {
         actionMutation.mutate({ action, payload });
     };
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         if (!order) return;
-        void printSaleOrderPdf(order, pdfLabels).catch(onError);
+        try {
+            const { printSaleOrderPdf } = await import('@/lib/pos-documents-pdf');
+            await printSaleOrderPdf(order, pdfLabels);
+        } catch (err) {
+            onError(err instanceof Error ? err : new Error(String(err)));
+        }
     };
 
     const renderModal = () => {

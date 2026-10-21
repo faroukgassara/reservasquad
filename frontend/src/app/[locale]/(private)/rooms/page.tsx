@@ -21,6 +21,7 @@ import {
     updateRoom,
     type RoomRecord,
 } from '@/lib/room-api';
+import PosThumbnail from '@/components/Organisms/Pos/PosThumbnail';
 import {
     EButtonSize,
     EButtonType,
@@ -126,6 +127,7 @@ export default function RoomsAdminPage() {
                 name: values.name.trim(),
                 capacity: Number(values.capacity),
                 pricePerHour: Number(values.pricePerHour),
+                imageUrl: values.imageUrl !== undefined ? values.imageUrl.trim() : undefined,
             };
             if (modalState?.type === 'form' && modalState.room) {
                 await updateMutation.mutateAsync({ id: modalState.room.id, body: payload });
@@ -144,7 +146,10 @@ export default function RoomsAdminPage() {
                     label: t('name'),
                     mobile: 'primary',
                     render: (_: unknown, row: RoomRecord) => (
-                        <OrganismTable.Cell mainText={row.name} />
+                        <OrganismTable.Cell
+                            leftChildren={<PosThumbnail imageUrl={row.imageUrl} alt={row.name} />}
+                            mainText={row.name}
+                        />
                     ),
                 },
             },

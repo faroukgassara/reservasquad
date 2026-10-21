@@ -12,7 +12,7 @@ import Label from '@/components/Primitives/Label/Label';
 import Toggle from '@/components/Primitives/Toggle/Toggle';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
-import { exportInventoryCsv, exportInventoryPdf, type InventoryExportLabels } from '@/lib/export-inventory';
+import type { InventoryExportLabels } from '@/lib/export-inventory';
 import {
     fetchPosCategories,
     fetchPosProductsInventory,
@@ -117,6 +117,7 @@ export default function PosExportInventoryModal({
         }
         setIsExportingPdf(true);
         try {
+            const { exportInventoryPdf } = await import('@/lib/export-inventory');
             await exportInventoryPdf({
                 products,
                 categoryFilterName: selectedCategoryName,
@@ -131,13 +132,14 @@ export default function PosExportInventoryModal({
         }
     };
 
-    const handleExportCsv = () => {
+    const handleExportCsv = async () => {
         if (products.length === 0) {
             openToast(tCommon('warning'), t('exportEmpty'), { type: EToastType.WARNING });
             return;
         }
         setIsExportingCsv(true);
         try {
+            const { exportInventoryCsv } = await import('@/lib/export-inventory');
             exportInventoryCsv({
                 products,
                 categoryFilterName: selectedCategoryName,

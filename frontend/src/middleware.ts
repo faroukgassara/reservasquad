@@ -79,6 +79,10 @@ export default async function middleware(req: NextRequest) {
     return intlMiddleware(req);
   }
 
+  if (token && (pathWithoutLocale === '/dashboard' || pathWithoutLocale.startsWith('/dashboard/'))) {
+    return NextResponse.redirect(localizedHomeUrl(req, locale, role));
+  }
+
   const authContext = { role };
 
   if (token && !isRouteAllowed(pathWithoutLocale, authContext)) {

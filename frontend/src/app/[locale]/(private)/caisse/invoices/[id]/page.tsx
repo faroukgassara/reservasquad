@@ -61,7 +61,6 @@ import {
     newDraftLine,
     type DocumentLineDraft,
 } from '@/lib/pos-documents';
-import { printInvoicePdf } from '@/lib/pos-documents-pdf';
 import { Routes } from '@/lib/routes';
 import {
     EBadgeSize,
@@ -272,9 +271,14 @@ export default function PosInvoicePage() {
         actionMutation.mutate({ action, payload });
     };
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         if (!invoice) return;
-        void printInvoicePdf(invoice, pdfLabels).catch(onError);
+        try {
+            const { printInvoicePdf } = await import('@/lib/pos-documents-pdf');
+            await printInvoicePdf(invoice, pdfLabels);
+        } catch (err) {
+            onError(err instanceof Error ? err : new Error(String(err)));
+        }
     };
 
     const confirmation = (title: string, description: string, onSubmit: () => void, loading: boolean) => (

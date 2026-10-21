@@ -27,7 +27,7 @@ export class CreateRoomDto {
   @Min(0)
   pricePerHour: number;
 
-  @ApiPropertyOptional({ description: 'Image URL or base64 data URL' })
+  @ApiPropertyOptional({ description: 'Image URL or relative path' })
   @IsOptional()
   @IsString()
   imageUrl?: string;

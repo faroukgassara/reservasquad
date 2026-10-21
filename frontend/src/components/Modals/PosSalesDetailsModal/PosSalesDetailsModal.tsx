@@ -12,7 +12,6 @@ import { useCurrentModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { usePosPdfLabels } from '@/hooks/usePosPdfLabels';
 import { fetchSalesDetails } from '@/lib/pos-api';
-import { printSalesDetailsPdf } from '@/lib/pos-documents-pdf';
 import { EButtonSize, EButtonType, EInputType, ESize, EToastType, IconComponentsEnum } from '@/Enum/Enum';
 
 interface PosSalesDetailsModalProps {
@@ -50,6 +49,7 @@ export default function PosSalesDetailsModal({ session }: Readonly<PosSalesDetai
                     ? { sessionId: session.id }
                     : { from: new Date(from).toISOString(), to: new Date(to).toISOString() },
             );
+            const { printSalesDetailsPdf } = await import('@/lib/pos-documents-pdf');
             await printSalesDetailsPdf(report, pdfLabels);
         },
         onSuccess: closeModal,

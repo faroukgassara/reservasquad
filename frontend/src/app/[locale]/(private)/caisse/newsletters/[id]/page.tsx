@@ -38,6 +38,7 @@ import {
     type NewsletterStatus,
 } from '@/lib/newsletter-api';
 import { Routes } from '@/lib/routes';
+import { sanitizeNewsletterHtml } from '@/lib/sanitize';
 import {
     EBadgeSize,
     EBadgeType,
@@ -607,7 +608,7 @@ export default function PosNewsletterDetailPage() {
                                             {/<(?:p|div|h[1-6]|ul|ol|li|img|a|strong|b|em|i|u|s|table|thead|tbody|tr|th|td|blockquote|br|hr|span)[^>]*>/i.test(newsletter.body) ? (
                                                 <div
                                                     className="space-y-3 break-words [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-primary-950 [&_h1]:my-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-primary-900 [&_h2]:my-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:my-2 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-2 [&_a]:text-primary-600 [&_a]:underline [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:my-3 [&_img]:mx-auto [&_img]:block [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-gray-200 [&_th]:p-2 [&_th]:text-left [&_th]:bg-gray-50 [&_td]:border [&_td]:border-gray-200 [&_td]:p-2"
-                                                    dangerouslySetInnerHTML={{ __html: newsletter.body }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeNewsletterHtml(newsletter.body) }}
                                                 />
                                             ) : (
                                                 newsletter.body
@@ -912,7 +913,7 @@ export default function PosNewsletterDetailPage() {
                                                             isHtml ? (
                                                                 <div
                                                                     className="space-y-3 break-words [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-primary-950 [&_h1]:my-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-primary-900 [&_h2]:my-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:my-2 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-2 [&_a]:text-primary-600 [&_a]:underline [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_img]:my-3 [&_img]:mx-auto [&_img]:block [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-gray-200 [&_th]:p-2 [&_th]:text-left [&_th]:bg-gray-50 [&_td]:border [&_td]:border-gray-200 [&_td]:p-2"
-                                                                    dangerouslySetInnerHTML={{ __html: values.body }}
+                                                                    dangerouslySetInnerHTML={{ __html: sanitizeNewsletterHtml(values.body) }}
                                                                 />
                                                             ) : (
                                                                 paragraphs.map((para, idx) => (

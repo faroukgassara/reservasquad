@@ -10,14 +10,14 @@ import { getUploadTypeDir } from '../upload/upload-paths';
 export class FileUploadService {
   async upload(type: string, file: any): Promise<string> {
     const directoryPath = getUploadTypeDir(type);
-    const url = `${type}/`;
-
-    const fileSplit = file.originalname.split('.');
-    const extension = fileSplit[fileSplit.length - 1];
+    const rawExt = path.extname(file.originalname || '').replace(/^\./, '').toLowerCase();
+    const mimeExt = file.mimetype?.split('/')[1]?.toLowerCase();
+    const extension = rawExt || (mimeExt === 'jpeg' ? 'jpg' : mimeExt) || 'jpg';
     const name = uuidv4();
-    const filePath = path.join(directoryPath, `${name}.${extension}`);
+    const fileName = `${name}.${extension}`;
+    const filePath = path.join(directoryPath, fileName);
     await fs.promises.writeFile(filePath, file.buffer);
-    return url + name + '.' + extension;
+    return `${type}/${fileName}`;
   }
 
   async validateImageFile(file: any) {

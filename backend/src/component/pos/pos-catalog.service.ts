@@ -46,10 +46,16 @@ export class PosCatalogService {
     private readonly auditService: AuditService,
   ) {}
 
+  async uploadImage(type: string, file: Express.Multer.File): Promise<string> {
+    return this.fileUploadService.upload(type, file);
+  }
+
   private async resolveImage(type: string, value?: string | null): Promise<string | null> {
     if (!value?.trim()) return null;
     if (isBase64DataUrl(value)) {
-      return this.fileUploadService.convertBase64(type, value);
+      throw new BadRequestException(
+        'Sending base64 images inside JSON is disabled. Please upload images via multipart.',
+      );
     }
     return value.trim();
   }

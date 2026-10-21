@@ -9,7 +9,10 @@ import {
   Query,
   Req,
   Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import * as swagger from '@nestjs/swagger';
@@ -36,6 +39,7 @@ import {
 } from 'src/dto/pos/posCatalog.dto';
 import { PosCatalogService } from './pos-catalog.service';
 import { validateBody } from './pos.utils';
+import { validateImgOnly, assertValidImageFile } from 'src/common/validators/file.validator';
 
 const PRODUCT_SORTING_OPTIONS: SortingDecoratorOptions = {
   allowedFields: ['name', 'price', 'stockQty', 'minStock', 'createdAt'],
@@ -174,6 +178,50 @@ export class PosCatalogController {
         Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 10,
       );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('products/upload')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Upload a POS product image' })
+  @swagger.ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', validateImgOnly))
+  async uploadProductImage(
+    @Res() res: Response,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    try {
+      assertValidImageFile(file);
+      const relativePath = await this.catalogService.uploadImage('pos-products', file);
+      return res.status(HttpStatus.CREATED).json({
+        statusCode: HttpStatus.CREATED,
+        data: { url: relativePath, filename: file.originalname },
+      });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('upload')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Upload a POS product or category image' })
+  @swagger.ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', validateImgOnly))
+  async uploadPosImage(
+    @Res() res: Response,
+    @UploadedFile() file: Express.Multer.File,
+    @Query('type') type?: string,
+  ) {
+    try {
+      assertValidImageFile(file);
+      const categoryType = type === 'category' ? 'pos-categories' : 'pos-products';
+      const relativePath = await this.catalogService.uploadImage(categoryType, file);
+      return res.status(HttpStatus.CREATED).json({
+        statusCode: HttpStatus.CREATED,
+        data: { url: relativePath, filename: file.originalname },
+      });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
     }

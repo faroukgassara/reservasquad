@@ -8,7 +8,10 @@ import {
   Post,
   Query,
   Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { RoomService } from './room.service';
 import { openApiResponse } from 'src/common/decorator/open-api.decorator';
@@ -34,6 +37,7 @@ import { PaginationData, SortingDecoratorOptions } from 'src/common/pagination/t
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { sendCaughtError } from 'src/common/utils/caught-error.util';
+import { validateImgOnly, assertValidImageFile } from 'src/common/validators/file.validator';
 
 const ROOM_SORTING_OPTIONS: SortingDecoratorOptions = {
   allowedFields: ['createdAt', 'updatedAt', 'name', 'capacity', 'pricePerHour'],
@@ -53,6 +57,27 @@ const ROOM_SORTING_OPTIONS: SortingDecoratorOptions = {
 )
 export class RoomBackofficeController {
   constructor(private readonly roomService: RoomService) {}
+
+  @Post('upload')
+  @Roles({ roles: ['ADMIN', 'USER'] })
+  @swagger.ApiOperation({ summary: 'Upload a room image' })
+  @swagger.ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file', validateImgOnly))
+  async uploadImage(
+    @Res() res: Response,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    try {
+      assertValidImageFile(file);
+      const relativePath = await this.roomService.uploadRoomImage(file);
+      return res.status(HttpStatus.CREATED).json({
+        statusCode: HttpStatus.CREATED,
+        data: { url: relativePath, filename: file.originalname },
+      });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
 
   @Post()
   @Roles({ roles: ['ADMIN', 'USER'] })

@@ -4,20 +4,25 @@ import { useMemo, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
-import Badge from '@/components/Primitives/Badge/Badge';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
-import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
 import PortalBookingModal, { type PortalBookingValues } from '@/components/Modals/PortalBookingModal/PortalBookingModal';
+import {
+    AddDayButton,
+    EmptySlot,
+    EventCard,
+    MonthView,
+    MonthYearPicker,
+    SkeletonSlot,
+    WeekView,
+} from '@/components/Calendar';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import {
-    EBadgeSize,
-    EBadgeType,
     EButtonSize,
     EButtonType,
     ESize,
@@ -25,8 +30,19 @@ import {
     EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
-import { formatMoney } from '@/lib/daily-income-api';
-import { addDays, startOfDay, startOfWeek } from '@/lib/export-weekly-calendar-pdf';
+import {
+    addDays,
+    addMonths,
+    endOfDay,
+    formatDayLabel,
+    formatDayMonth,
+    formatMonthLabel,
+    formatTime,
+    formatWeekdayShort,
+    isSameDay,
+    startOfDay,
+    startOfWeek,
+} from '@/lib/date-utils';
 import { bookPortalReservation, fetchPortalSchedule, PortalApiError, toDateInput } from '@/lib/portal-api';
 
 type CalendarView = 'day' | 'week' | 'month';
@@ -43,24 +59,6 @@ interface CalendarEvent {
     isPaid?: boolean;
 }
 
-const MONTH_PREVIEW = 3;
-
-function endOfDay(date: Date): Date {
-    const day = new Date(date);
-    day.setHours(23, 59, 59, 999);
-    return day;
-}
-
-function addMonths(date: Date, months: number): Date {
-    const next = new Date(date);
-    next.setMonth(next.getMonth() + months);
-    return next;
-}
-
-function isSameDay(a: Date, b: Date): boolean {
-    return a.toDateString() === b.toDateString();
-}
-
 const pad = (value: number) => String(value).padStart(2, '0');
 
 /** Next full hour when booking for today (from 08:00), otherwise 09:00–10:00. */
@@ -71,114 +69,9 @@ function defaultTimes(day: Date): { start: string; end: string } {
     return { start: `${pad(hour)}:00`, end: `${pad(hour + 1)}:00` };
 }
 
-function EventItem({ event, locale }: Readonly<{ event: CalendarEvent; locale: string }>) {
-    const t = useTranslations('portal');
-    const time = (iso: string) =>
-        new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
-
-    if (!event.mine) {
-        return (
-            <Div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-2.5 py-1.5">
-                <Label variant={EVariantLabel.caption} color="text-gray-500" className="block tabular-nums">
-                    {`${time(event.startAt)} – ${time(event.endAt)}`}
-                </Label>
-                <Label variant={EVariantLabel.caption} color="text-gray-500" className="block truncate">
-                    {`${event.roomName} · ${t('book.legendBusy')}`}
-                </Label>
-            </Div>
-        );
-    }
-
-    return (
-        <Div className="rounded-lg border border-gray-100 border-s-2 border-s-primary-500 bg-white py-2 ps-3 pe-2.5 shadow-xs">
-            <Div className="flex flex-col gap-1.5">
-                <Div className="flex flex-col tabular-nums">
-                    <Label variant={EVariantLabel.bodySmall} color="text-primary-700">
-                        {time(event.startAt)}
-                    </Label>
-                    <Label variant={EVariantLabel.caption} color="text-gray-500">
-                        {time(event.endAt)}
-                    </Label>
-                </Div>
-                <Badge
-                    id={`portal-cal-paid-${event.key}`}
-                    text={event.isPaid ? t('status.paid') : t('status.unpaid')}
-                    type={event.isPaid ? EBadgeType.success : EBadgeType.warning}
-                    size={EBadgeSize.tiny}
-                    className="h-auto min-h-6 w-fit max-w-full shrink-0 whitespace-nowrap px-2 py-0.5 leading-none"
-                />
-            </Div>
-            <Div className="mt-1.5 flex flex-col gap-1">
-                <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="block truncate">
-                    {event.roomName}
-                </Label>
-                {event.title ? (
-                    <Label variant={EVariantLabel.caption} color="text-gray-500" className="block truncate">
-                        {event.title}
-                    </Label>
-                ) : null}
-                {event.price !== undefined ? (
-                    <Label variant={EVariantLabel.caption} color="text-gray-600" className="mt-0.5 block">
-                        {formatMoney(event.price)}
-                    </Label>
-                ) : null}
-            </Div>
-        </Div>
-    );
-}
-
-function AddButton({ onClick, label }: Readonly<{ onClick: () => void; label: string }>) {
-    return (
-        <Button
-            id="portal-cal-add"
-            type={EButtonType.tertiary}
-            size={EButtonSize.small}
-            iconPosition="only"
-            icon={{ name: IconComponentsEnum.plus, size: ESize.xs, color: 'text-primary-500' }}
-            aria-label={label}
-            className="h-7 w-7 shrink-0 bg-white/80 shadow-xs"
-            onClick={onClick}
-        />
-    );
-}
-
-function EmptyDay({ label, onClick }: Readonly<{ label: string; onClick?: () => void }>) {
-    const content = (
-        <>
-            <Div
-                className={twMerge(
-                    'flex size-9 items-center justify-center rounded-full',
-                    onClick ? 'bg-primary-50' : 'bg-gray-100',
-                )}
-            >
-                <Icon
-                    name={onClick ? IconComponentsEnum.plus : IconComponentsEnum.calendar}
-                    size={ESize.sm}
-                    color={onClick ? 'text-primary-500' : 'text-gray-400'}
-                />
-            </Div>
-            <Label variant={EVariantLabel.caption} color={onClick ? 'text-primary-600' : 'text-gray-400'}>
-                {label}
-            </Label>
-        </>
-    );
-
-    if (!onClick) {
-        return <Div className="flex flex-col items-center gap-2 py-6 text-center">{content}</Div>;
-    }
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="flex w-full cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-gray-200 py-6 text-center transition-colors hover:border-primary-300 hover:bg-primary-25/60 focus-visible:border-primary-400 focus-visible:outline-none"
-        >
-            {content}
-        </button>
-    );
-}
-
 export default function PortalBookPage() {
     const t = useTranslations('portal.book');
+    const tPortal = useTranslations('portal');
     const tCommon = useTranslations('common');
     const locale = useLocale();
     const queryClient = useQueryClient();
@@ -186,6 +79,7 @@ export default function PortalBookPage() {
     const [view, setView] = useState<CalendarView>('week');
     const [anchor, setAnchor] = useState(() => startOfDay(new Date()));
     const [roomFilter, setRoomFilter] = useState('');
+    const [isDatePickerOpen, setDatePickerOpen] = useState(false);
     const [bookingDay, setBookingDay] = useState<Date | null>(null);
     const { openModal, closeModal, modalPortal } = useModal({ closeCallBack: () => setBookingDay(null) });
     const today = startOfDay(new Date());
@@ -269,20 +163,14 @@ export default function PortalBookPage() {
         openModal();
     };
 
-    const time = (iso: string) =>
-        new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
-    const weekday = (day: Date) => day.toLocaleDateString(locale, { weekday: 'short' });
-    const dayMonth = (day: Date) => day.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
-    const dayLabel = (day: Date) => day.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
-
-    const periodLabel = (() => {
-        if (view === 'day') return dayLabel(anchor);
+    const periodLabel = useMemo(() => {
+        if (view === 'day') return formatDayLabel(anchor, locale);
         if (view === 'week') {
             const start = startOfWeek(anchor);
-            return `${dayLabel(start)} – ${dayLabel(addDays(start, 6))}`;
+            return `${formatDayLabel(start, locale)} – ${formatDayLabel(addDays(start, 6), locale)}`;
         }
-        return anchor.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-    })();
+        return formatMonthLabel(anchor, locale);
+    }, [anchor, locale, view]);
 
     const step = (direction: -1 | 1) => {
         if (view === 'day') setAnchor((d) => addDays(d, direction));
@@ -290,30 +178,29 @@ export default function PortalBookPage() {
         else setAnchor((d) => addMonths(d, direction));
     };
 
-    const weekdayHeaders = Array.from({ length: 7 }, (_, i) => weekday(addDays(startOfWeek(new Date()), i)));
-
     const renderDayList = (day: Date, compact = false) => {
         const events = eventsByDay.get(day.toDateString()) ?? [];
         if (isLoading) {
-            return (
-                <Div className="space-y-2" aria-hidden="true">
-                    {[0, 1].map((index) => (
-                        <Div key={index} className="h-16 animate-pulse rounded-lg border border-gray-100 bg-gray-50" />
-                    ))}
-                </Div>
-            );
+            return <SkeletonSlot variant="card" count={2} />;
         }
         if (events.length === 0) {
             return canBook(day) ? (
-                <EmptyDay label={t('addBooking')} onClick={() => openBooking(day)} />
+                <EmptySlot label={t('addBooking')} actionable onClick={() => openBooking(day)} />
             ) : (
-                <EmptyDay label={t('emptyDay')} />
+                <EmptySlot label={t('emptyDay')} />
             );
         }
         return (
             <Div className={twMerge('space-y-2', !compact && 'max-w-md')}>
                 {events.map((event) => (
-                    <EventItem key={event.key} event={event} locale={locale} />
+                    <EventCard<CalendarEvent>
+                        key={event.key}
+                        event={event}
+                        paidLabel={tPortal('status.paid')}
+                        unpaidLabel={tPortal('status.unpaid')}
+                        busyLabel={t('legendBusy')}
+                        locale={locale}
+                    />
                 ))}
             </Div>
         );
@@ -378,10 +265,37 @@ export default function PortalBookPage() {
                                 onClick={() => step(1)}
                             />
                         </Div>
-                        <Div className="flex min-w-0 items-center gap-2">
-                            <Label variant={EVariantLabel.h6} color="text-primary-700" className="truncate capitalize">
-                                {periodLabel}
-                            </Label>
+                        <Div className="relative flex min-w-0 items-center gap-2">
+                            <Button
+                                id="portal-cal-period"
+                                type={EButtonType.tertiary}
+                                size={EButtonSize.small}
+                                text={periodLabel}
+                                iconPosition="right"
+                                icon={{
+                                    name: IconComponentsEnum.chevronDown,
+                                    size: ESize.xs,
+                                    color: 'text-primary-700',
+                                }}
+                                aria-label={t('date')}
+                                aria-expanded={isDatePickerOpen}
+                                onClick={() => setDatePickerOpen((open) => !open)}
+                                className="font-semibold capitalize text-primary-700"
+                            />
+                            {isDatePickerOpen ? (
+                                <MonthYearPicker
+                                    locale={locale}
+                                    anchor={anchor}
+                                    dialogLabel={t('date')}
+                                    prevLabel={t('prev')}
+                                    nextLabel={t('next')}
+                                    onSelect={(date) => {
+                                        setAnchor(date);
+                                        setDatePickerOpen(false);
+                                    }}
+                                    onClose={() => setDatePickerOpen(false)}
+                                />
+                            ) : null}
                             {isFetching ? <Spinner size={ESize.sm} color="text-gray-400" /> : null}
                         </Div>
                         <Tabs
@@ -462,15 +376,26 @@ export default function PortalBookPage() {
                             <Div>
                                 <Div className="flex items-center justify-between border-b border-gray-100 bg-gray-25 px-5 py-3.5">
                                     <Div>
-                                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="uppercase tracking-wide">
-                                            {weekday(range.days[0])}
+                                        <Label
+                                            variant={EVariantLabel.caption}
+                                            color="text-gray-500"
+                                            className="uppercase tracking-wide"
+                                        >
+                                            {formatWeekdayShort(range.days[0], locale)}
                                         </Label>
-                                        <Label variant={EVariantLabel.subtitle} color="text-gray-900" className="block font-semibold">
-                                            {dayMonth(range.days[0])}
+                                        <Label
+                                            variant={EVariantLabel.subtitle}
+                                            color="text-gray-900"
+                                            className="block font-semibold"
+                                        >
+                                            {formatDayMonth(range.days[0], locale)}
                                         </Label>
                                     </Div>
                                     {canBook(range.days[0]) ? (
-                                        <AddButton label={t('addBooking')} onClick={() => openBooking(range.days[0])} />
+                                        <AddDayButton
+                                            ariaLabel={t('addBooking')}
+                                            onClick={() => openBooking(range.days[0])}
+                                        />
                                     ) : null}
                                 </Div>
                                 <Div className="p-4 sm:p-5">{renderDayList(range.days[0])}</Div>
@@ -478,132 +403,59 @@ export default function PortalBookPage() {
                         ) : null}
 
                         {view === 'week' ? (
-                            <Div className="grid grid-cols-1 divide-y divide-gray-100 md:grid-cols-7 md:divide-x md:divide-y-0 rtl:md:divide-x-reverse">
-                                {range.days.map((day) => {
-                                    const isToday = isSameDay(day, today);
-                                    return (
-                                        <Div key={day.toISOString()} className="flex flex-col" aria-current={isToday ? 'date' : undefined}>
-                                            <Div
-                                                className={twMerge(
-                                                    'flex items-center justify-between border-b px-3 py-2.5',
-                                                    isToday ? 'border-b-2 border-b-accent-400 bg-accent-50/60' : 'border-gray-100 bg-gray-25',
-                                                )}
-                                            >
-                                                <Div>
-                                                    <Label
-                                                        variant={EVariantLabel.caption}
-                                                        color={isToday ? 'text-accent-700' : 'text-gray-500'}
-                                                        className="block uppercase tracking-wide"
-                                                    >
-                                                        {weekday(day)}
-                                                    </Label>
-                                                    <Label
-                                                        variant={EVariantLabel.bodySmall}
-                                                        color={isToday ? 'text-accent-700' : 'text-gray-700'}
-                                                        className="block font-semibold"
-                                                    >
-                                                        {dayMonth(day)}
-                                                    </Label>
-                                                </Div>
-                                                {canBook(day) ? (
-                                                    <AddButton label={t('addBooking')} onClick={() => openBooking(day)} />
-                                                ) : null}
-                                            </Div>
-                                            <Div className="min-h-48 flex-1 p-3">{renderDayList(day, true)}</Div>
-                                        </Div>
-                                    );
-                                })}
-                            </Div>
+                            <WeekView<CalendarEvent>
+                                days={range.days}
+                                eventsByDay={eventsByDay}
+                                today={today}
+                                anchor={anchor}
+                                locale={locale}
+                                isLoading={isLoading}
+                                canManage={canBook}
+                                addDayLabel={t('addBooking')}
+                                emptyLabel={t('emptyDay')}
+                                paidLabel={tPortal('status.paid')}
+                                unpaidLabel={tPortal('status.unpaid')}
+                                busyLabel={t('legendBusy')}
+                                onAddDay={openBooking}
+                            />
                         ) : null}
 
                         {view === 'month' && range.monthStart && range.nextMonth ? (
-                            <Div>
-                                <Div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
-                                    {weekdayHeaders.map((label) => (
-                                        <Div key={label} className="px-2 py-2.5 text-center">
-                                            <Label variant={EVariantLabel.caption} color="text-gray-500" className="uppercase tracking-wide">
-                                                {label}
-                                            </Label>
-                                        </Div>
-                                    ))}
-                                </Div>
-                                <Div className="grid grid-cols-7">
-                                    {range.days.map((day) => {
-                                        const inMonth = day >= range.monthStart && day < range.nextMonth;
-                                        const events = eventsByDay.get(day.toDateString()) ?? [];
-                                        const isToday = isSameDay(day, today);
-                                        const bookable = canBook(day);
-                                        return (
-                                            <Div
-                                                key={day.toISOString()}
-                                                className={twMerge(
-                                                    'min-h-28 border-b border-e border-gray-100 p-1.5 sm:p-2',
-                                                    inMonth ? 'bg-white' : 'bg-gray-25/70',
-                                                )}
-                                            >
-                                                <Div className="mb-1.5 flex items-center justify-between gap-1">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setAnchor(day);
-                                                            setView('day');
-                                                        }}
-                                                        aria-label={dayLabel(day)}
-                                                        className={twMerge(
-                                                            'flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors',
-                                                            isToday ? 'bg-accent-500' : 'hover:bg-gray-100',
-                                                        )}
-                                                    >
-                                                        <Label
-                                                            variant={EVariantLabel.caption}
-                                                            color={isToday ? 'text-white' : inMonth ? 'text-gray-700' : 'text-gray-300'}
-                                                            className="font-semibold"
-                                                        >
-                                                            {day.getDate()}
-                                                        </Label>
-                                                    </button>
-                                                    {bookable && inMonth ? (
-                                                        <AddButton label={t('addBooking')} onClick={() => openBooking(day)} />
-                                                    ) : null}
-                                                </Div>
-                                                <Div className="space-y-1">
-                                                    {events.slice(0, MONTH_PREVIEW).map((event) => (
-                                                        <Div key={event.key} className="flex items-center gap-1.5 rounded px-1 py-0.5">
-                                                            <Div
-                                                                className={twMerge(
-                                                                    'size-1.5 shrink-0 rounded-full',
-                                                                    event.mine ? 'bg-primary-500' : 'bg-gray-300',
-                                                                )}
-                                                            />
-                                                            <Label
-                                                                variant={EVariantLabel.caption}
-                                                                color={event.mine ? 'text-gray-800' : 'text-gray-400'}
-                                                                className="block truncate"
-                                                            >
-                                                                {`${time(event.startAt)} ${event.roomName}`}
-                                                            </Label>
-                                                        </Div>
-                                                    ))}
-                                                    {events.length > MONTH_PREVIEW ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setAnchor(day);
-                                                                setView('day');
-                                                            }}
-                                                            className="cursor-pointer px-1 text-start"
-                                                        >
-                                                            <Label variant={EVariantLabel.caption} color="text-gray-500" className="hover:underline">
-                                                                {t('moreEvents', { count: events.length - MONTH_PREVIEW })}
-                                                            </Label>
-                                                        </button>
-                                                    ) : null}
-                                                </Div>
-                                            </Div>
-                                        );
-                                    })}
-                                </Div>
-                            </Div>
+                            <MonthView<CalendarEvent>
+                                days={range.days}
+                                monthStart={range.monthStart}
+                                nextMonth={range.nextMonth}
+                                eventsByDay={eventsByDay}
+                                today={today}
+                                anchor={anchor}
+                                locale={locale}
+                                isLoading={isLoading}
+                                canManage={canBook}
+                                addDayLabel={t('addBooking')}
+                                moreEventsLabel={(count) => t('moreEvents', { count })}
+                                onAddDay={openBooking}
+                                onSelectDay={(day) => {
+                                    setAnchor(day);
+                                    setView('day');
+                                }}
+                                renderEventChip={(event) => (
+                                    <Div className="flex items-center gap-1.5 rounded px-1 py-0.5">
+                                        <Div
+                                            className={twMerge(
+                                                'size-1.5 shrink-0 rounded-full',
+                                                event.mine ? 'bg-primary-500' : 'bg-gray-300',
+                                            )}
+                                        />
+                                        <Label
+                                            variant={EVariantLabel.caption}
+                                            color={event.mine ? 'text-gray-800' : 'text-gray-400'}
+                                            className="block truncate"
+                                        >
+                                            {`${formatTime(event.startAt, locale)} ${event.roomName}`}
+                                        </Label>
+                                    </Div>
+                                )}
+                            />
                         ) : null}
                     </Div>
                 )}

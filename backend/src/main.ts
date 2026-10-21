@@ -20,8 +20,8 @@ async function bootstrap() {
     cors: true,
   });
 
-  app.useBodyParser('json', { limit: '15mb' });
-  app.useBodyParser('urlencoded', { limit: '15mb', extended: true });
+  app.useBodyParser('json', { limit: '1mb' });
+  app.useBodyParser('urlencoded', { limit: '1mb', extended: true });
 
   app.use('/assets', express.static(join(__dirname, '..', 'public/assets')));
   app.use(express.static(getUploadRoot()));

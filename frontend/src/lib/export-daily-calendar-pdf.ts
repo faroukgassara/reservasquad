@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { ReservationRecord } from '@/lib/reservation-api';
 import type { RoomRecord } from '@/lib/room-api';
+import { startOfDay } from '@/lib/date-utils';
 
 export interface DailyCalendarPdfLabels {
     title: string;
@@ -28,12 +29,6 @@ const MORNING_HOURS = [8, 9, 10, 11, 12, 13, 14, 15] as const;
 const EVENING_HOURS = [16, 17, 18, 19, 20, 21, 22, 23] as const;
 
 type DocWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } };
-
-function startOfDay(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
-}
 
 function formatDateDdMmYyyy(date: Date): string {
     const pad = (n: number) => String(n).padStart(2, '0');

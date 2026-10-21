@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
@@ -59,7 +60,8 @@ const CATEGORY_THEMES = [
 ];
 
 function TileImage({ imageUrl, alt, fallbackLetter }: Readonly<{ imageUrl: string | null; alt: string; fallbackLetter?: string }>) {
-    if (!imageUrl) {
+    const src = imageUrl ? getMediaUrl(imageUrl) : '';
+    if (!src) {
         return (
             <Div className="flex size-full items-center justify-center bg-gradient-to-br from-gray-50 via-gray-100 to-primary-50/30">
                 {fallbackLetter ? (
@@ -72,8 +74,16 @@ function TileImage({ imageUrl, alt, fallbackLetter }: Readonly<{ imageUrl: strin
             </Div>
         );
     }
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={getMediaUrl(imageUrl)} alt={alt} className="size-full object-cover" />;
+    return (
+        <Image
+            src={src}
+            alt={alt}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+            unoptimized={src.startsWith('data:') || src.startsWith('blob:')}
+            className="object-cover"
+        />
+    );
 }
 
 export default function OrganismPosProductGrid({
@@ -180,7 +190,7 @@ export default function OrganismPosProductGrid({
                                         theme.card,
                                     )}
                                 >
-                                    <Div className="size-11 shrink-0 overflow-hidden rounded-xl shadow-2xs">
+                                    <Div className="relative size-11 shrink-0 overflow-hidden rounded-xl shadow-2xs">
                                         {category.imageUrl ? (
                                             <TileImage imageUrl={category.imageUrl} alt={category.name} />
                                         ) : (

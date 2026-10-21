@@ -160,7 +160,55 @@
         "recycleBin": "Recycle bin",
         "closeMenu": "Close menu",
         "openMenu": "Open menu",
-        "pos": "Point of Sale"
+        "pos": "Point of Sale",
+        "module": "Module",
+        "switchModule": "Switch module",
+        "allModules": "All modules",
+        "modules": {
+            "reservations": "Reservations",
+            "caisse": "Point of Sale",
+            "recettes": "Income",
+            "admin": "Administration"
+        },
+        "reports": "Reports",
+        "caisseHome": "POS home",
+        "sessions": "Sessions",
+        "subscriptions": "Subscriptions",
+        "billing": "Sales & invoices",
+        "clients": "Clients",
+        "products": "Products",
+        "categories": "Categories",
+        "analytics": "Analytics",
+        "newsletters": "Newsletters"
+    },
+    "launcher": {
+        "greeting": "Hello {name}",
+        "greetingFallback": "Hello",
+        "subtitle": "What would you like to manage today?",
+        "open": "Open",
+        "descriptions": {
+            "reservations": "Room schedule, reservations and professors.",
+            "caisse": "Café sales, subscriptions, products and clients.",
+            "recettes": "Daily income, charges and monthly balances.",
+            "admin": "Users, audit log and recycle bin."
+        },
+        "stats": {
+            "reservationsToday": "Reservations today",
+            "roomsOccupied": "Rooms occupied",
+            "unpaidToday": "Unpaid today",
+            "session": "Register session",
+            "sessionOpen": "Open",
+            "sessionClosed": "Closed",
+            "lowStock": "Low-stock products",
+            "incomeMonth": "Income this month",
+            "netBalance": "Net balance"
+        }
+    },
+    "reports": {
+        "reservationsTitle": "Reservation reports",
+        "reservationsSubtitle": "Revenue, trends and room performance",
+        "incomeTitle": "Income reports",
+        "incomeSubtitle": "This month's summary and 6-month trend"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -290,6 +338,7 @@
             "name": "Name",
             "capacity": "Capacity",
             "pricePerHour": "Price / hour",
+            "image": "Image",
             "deleteConfirm": "Delete this room?",
             "totalRooms": "Total rooms",
             "totalCapacity": "Total capacity",
@@ -919,7 +968,6 @@
             "sessionNumber": "Session #{number}",
             "orders": "Orders",
             "backend": "Dashboard",
-            "goToDashboard": "Reservations",
             "goToCaisse": "Back office",
             "closeSession": "Close session",
             "mobileProducts": "Products",

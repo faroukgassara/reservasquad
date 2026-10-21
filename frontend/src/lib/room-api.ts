@@ -55,6 +55,20 @@ export async function fetchRooms(params: {
     return unwrapData<PaginatedRooms>(res.data as { data?: PaginatedRooms });
 }
 
+export async function uploadRoomImage(file: File): Promise<string> {
+    const headers = await CommonFunction.createHeaders({ withToken: true, contentType: null });
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await api.post('/api/rooms/upload', formData, headers);
+    if (res.status !== HttpStatus.SuccessCreated && res.status !== HttpStatus.SuccessOK) {
+        const errorData = res.data as { message?: string; error?: string };
+        throw new Error(errorData?.message || errorData?.error || 'Échec du téléversement de l\'image');
+    }
+    const data = unwrapData<{ url: string }>(res.data as { data?: { url: string } });
+    return data.url;
+}
+
 export async function createRoom(body: {
     name: string;
     capacity: number;

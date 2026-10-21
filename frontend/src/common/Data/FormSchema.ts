@@ -1,5 +1,12 @@
 import type { useTranslations } from 'next-intl';
 import { z } from "zod";
+import {
+    PASSWORD_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_LOWERCASE_REGEX,
+    PASSWORD_UPPERCASE_REGEX,
+    PASSWORD_SPECIAL_CHAR_REGEX,
+} from '@/lib/password-rules';
 
 type AuthTranslateFn = ReturnType<typeof useTranslations<'auth'>>;
 
@@ -42,10 +49,11 @@ class FormSchema {
         return z.object({
             newPassword: z
                 .string()
-                .min(8, this.t('validation.passwordMinLength'))
-                .regex(/[a-z]/, this.t('validation.passwordLowercase'))
-                .regex(/[A-Z]/, this.t('validation.passwordUppercase'))
-                .regex(/[^A-Za-z0-9]/, this.t('validation.passwordSpecialChar')),
+                .min(PASSWORD_MIN_LENGTH, this.t('validation.passwordMinLength'))
+                .max(PASSWORD_MAX_LENGTH, this.t('validation.passwordTooLong'))
+                .regex(PASSWORD_LOWERCASE_REGEX, this.t('validation.passwordLowercase'))
+                .regex(PASSWORD_UPPERCASE_REGEX, this.t('validation.passwordUppercase'))
+                .regex(PASSWORD_SPECIAL_CHAR_REGEX, this.t('validation.passwordSpecialChar')),
             confirmPassword: z
                 .string()
                 .min(1, this.t('validation.confirmPasswordRequired')),

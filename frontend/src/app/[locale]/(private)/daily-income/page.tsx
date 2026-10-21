@@ -43,7 +43,6 @@ import {
     isIncomeLineType,
 } from '@/lib/daily-income-api';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
-import { exportDailyIncomePdf } from '@/lib/export-daily-income-pdf';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
 import {
     EBadgeSize,
@@ -582,9 +581,10 @@ export default function DailyIncomePage() {
         ? allSummaryCards.filter((card) => card.key !== 'previousMonthRest')
         : allSummaryCards;
 
-    const handleExportPdf = useCallback(() => {
+    const handleExportPdf = useCallback(async () => {
         setIsExporting(true);
         try {
+            const { exportDailyIncomePdf } = await import('@/lib/export-daily-income-pdf');
             exportDailyIncomePdf({
                 fileStamp: isGlobal ? 'all' : `${year}-${String(month).padStart(2, '0')}`,
                 days,

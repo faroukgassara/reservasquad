@@ -43,9 +43,25 @@ export async function POST(req: NextRequest, context: RouteContext) {
     try {
         const backendPath = await resolveBackendPath(req, context);
         if (!backendPath) return invalidPath();
+        const authorization = req.headers.get('authorization') ?? undefined;
+        const contentType = req.headers.get('content-type') || '';
+
+        if (contentType.includes('multipart/form-data')) {
+            const formData = await req.formData();
+            const backendUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
+            const backendRes = await fetch(`${backendUrl}${backendPath}`, {
+                method: 'POST',
+                headers: {
+                    ...(authorization ? { Authorization: authorization } : {}),
+                },
+                body: formData,
+            });
+            const data = await backendRes.json();
+            return NextResponse.json(data, { status: backendRes.status });
+        }
+
         const api = new Api(process.env.NEXT_PUBLIC_API_URL);
         const body = await req.json();
-        const authorization = req.headers.get('authorization') ?? undefined;
         const apiRes = await api.post(
             backendPath,
             body,

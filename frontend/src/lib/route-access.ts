@@ -8,7 +8,11 @@ interface IRoutePolicy {
 
 /** Path-based access policies. Most admin pages use in-page `useAuthorization` instead. */
 export const ROUTE_POLICIES: IRoutePolicy[] = [
-    { route: '/dashboard', policy: { anyRoles: ['ADMIN'] } },
+    { route: Routes.Reservations.reports, policy: { anyRoles: ['ADMIN'] } },
+    { route: Routes.DailyIncome.index, policy: { anyRoles: ['ADMIN'] } },
+    { route: Routes.Users.index, policy: { anyRoles: ['ADMIN'] } },
+    { route: Routes.AuditLog.index, policy: { anyRoles: ['ADMIN'] } },
+    { route: Routes.RecycleBin.index, policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/sessions', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/sales', policy: { anyRoles: ['ADMIN'] } },
     { route: '/caisse/invoices', policy: { anyRoles: ['ADMIN'] } },

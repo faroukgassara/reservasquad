@@ -181,16 +181,13 @@ export class AuthController {
                     error: 'User not found.',
                 });
             }
-            await this.authService.generateResetToken(normalizedEmail)
+            await this.authService.generateResetToken(normalizedEmail);
             return res.status(HttpStatus.OK).json({
                 statusCode: HttpStatus.OK,
-                message: 'Password reset request sent successfully.'
+                message: 'Password reset request sent successfully.',
             });
-        } catch (error) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                error,
-            });
+        } catch (error: unknown) {
+            return sendCaughtError(res, error);
         }
     }
 
@@ -208,7 +205,7 @@ export class AuthController {
         @Req() req: IRequest
     ) {
         try {
-            const { token } = body
+            const { token } = body;
             const user = await this.authService.validateResetToken(token);
             if (!user) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
@@ -219,13 +216,10 @@ export class AuthController {
 
             return res.status(HttpStatus.OK).json({
                 statusCode: HttpStatus.OK,
-                message: 'Valid token.'
+                message: 'Valid token.',
             });
-        } catch (error) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                error,
-            });
+        } catch (error: unknown) {
+            return sendCaughtError(res, error);
         }
     }
 
@@ -243,7 +237,7 @@ export class AuthController {
         @Req() req: IRequest
     ) {
         try {
-            const { token, newPassword } = body
+            const { token, newPassword } = body;
             const userUpdated = await this.authService.resetPasswordWithToken(token, newPassword);
             if (!userUpdated) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
@@ -258,11 +252,8 @@ export class AuthController {
                     email: userUpdated.email,
                 },
             });
-        } catch (error) {
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-                error,
-            });
+        } catch (error: unknown) {
+            return sendCaughtError(res, error);
         }
     }
 }

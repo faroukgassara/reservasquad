@@ -280,6 +280,18 @@ async function posDelete(path: string, fallback: string): Promise<void> {
     if (res.status !== HttpStatus.SuccessOK) throw errorFrom(res.data, fallback);
 }
 
+export async function uploadPosImage(file: File, type: 'product' | 'category' = 'product'): Promise<string> {
+    const headers = await CommonFunction.createHeaders({ withToken: true, contentType: null });
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const path = type === 'category' ? 'upload?type=category' : 'upload?type=product';
+    const res = await api.post(`/api/pos/${path}`, formData, headers);
+    if (!isSuccess(res.status)) throw errorFrom(res.data, "Échec du téléversement de l'image");
+    const data = unwrapData<{ url: string }>(res.data as { data?: { url: string } });
+    return data.url;
+}
+
 // Categories
 
 export const fetchPosCategories = () =>

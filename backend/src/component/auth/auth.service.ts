@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -24,14 +25,14 @@ const PROFESSOR_INVITE_VALID_DAYS = 7;
 
 @Injectable()
 export class AuthService {
-  readonly config: IEnv
+  private readonly logger = new Logger(AuthService.name);
+  readonly config: IEnv;
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
     private readonly fileUploadService: FileUploadService,
     private readonly emailService: EmailService,
     private readonly commonFunction: CommonFunctionService,
-
   ) {
     this.config = this.configService.get<IEnv>('env');
   }
@@ -169,13 +170,30 @@ export class AuthService {
       'resetPasswordClient.ejs',
     );
     if (resetToken) {
-      this.emailService.sendMail({
-        to: normalizedEmail,
-        from: this.config.SMTP_SEND,
-        subject: 'Demande de réinitialisation de mot de passe',
-        template: resetPasswordClientTemplate,
-        attachments: [this.emailService.getBiblioSquadLogoAttachment()],
-      });
+      let sent: unknown = null;
+      try {
+        sent = await this.emailService.sendMail({
+          to: normalizedEmail,
+          from: this.config.SMTP_SEND,
+          subject: 'Demande de réinitialisation de mot de passe',
+          template: resetPasswordClientTemplate,
+          attachments: [this.emailService.getBiblioSquadLogoAttachment()],
+        });
+      } catch (err: unknown) {
+        const detail = err instanceof Error ? err.stack ?? err.message : String(err);
+        this.logger.error(
+          `Failed to send password reset email to ${normalizedEmail}`,
+          detail,
+        );
+        throw new BadRequestException('The password reset email could not be sent');
+      }
+
+      if (!sent) {
+        this.logger.error(
+          `Failed to send password reset email to ${normalizedEmail}`,
+        );
+        throw new BadRequestException('The password reset email could not be sent');
+      }
     }
     return user;
   }
@@ -275,13 +293,25 @@ export class AuthService {
       'activateAccountClient.ejs',
     );
 
-    await this.emailService.sendMail({
-      to: user.email,
-      from: this.config.SMTP_SEND,
-      subject: 'Activate your Biblio Squad account',
-      template: html,
-      attachments: [this.emailService.getBiblioSquadLogoAttachment()],
-    });
+    let sent: unknown = null;
+    try {
+      sent = await this.emailService.sendMail({
+        to: user.email,
+        from: this.config.SMTP_SEND,
+        subject: 'Activate your Biblio Squad account',
+        template: html,
+        attachments: [this.emailService.getBiblioSquadLogoAttachment()],
+      });
+    } catch (err: unknown) {
+      const detail = err instanceof Error ? err.stack ?? err.message : String(err);
+      this.logger.error(`Failed to send activation email to ${user.email}`, detail);
+      throw new BadRequestException('The activation email could not be sent');
+    }
+
+    if (!sent) {
+      this.logger.error(`Failed to send activation email to ${user.email}`);
+      throw new BadRequestException('The activation email could not be sent');
+    }
   }
 
   private async issueActivationToken(user: User, expiresIn?: string): Promise<string> {
@@ -366,14 +396,28 @@ export class AuthService {
       'professorInvitation.ejs',
     );
 
-    const sent = await this.emailService.sendMail({
-      to: user.email,
-      from: this.config.SMTP_SEND,
-      subject: 'Votre accès au portail professeur Biblio Squad',
-      template: html,
-      attachments: [this.emailService.getBiblioSquadLogoAttachment()],
-    });
+    let sent: unknown = null;
+    try {
+      sent = await this.emailService.sendMail({
+        to: user.email,
+        from: this.config.SMTP_SEND,
+        subject: 'Votre accès au portail professeur Biblio Squad',
+        template: html,
+        attachments: [this.emailService.getBiblioSquadLogoAttachment()],
+      });
+    } catch (err: unknown) {
+      const detail = err instanceof Error ? err.stack ?? err.message : String(err);
+      this.logger.error(
+        `Failed to send professor invitation email to ${user.email} (professorId=${professorId})`,
+        detail,
+      );
+      throw new BadRequestException('The invitation email could not be sent');
+    }
+
     if (!sent) {
+      this.logger.error(
+        `Failed to send professor invitation email to ${user.email} (professorId=${professorId})`,
+      );
       throw new BadRequestException('The invitation email could not be sent');
     }
 

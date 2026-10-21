@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
@@ -44,11 +45,18 @@ const normalize = (value: string) =>
         .trim();
 
 function Picture({ imageUrl, name, className }: Readonly<{ imageUrl: string | null; name: string; className?: string }>) {
+    const src = imageUrl ? getMediaUrl(imageUrl) : '';
     return (
-        <div className={twMerge('flex items-center justify-center overflow-hidden bg-primary-50', className)}>
-            {imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={getMediaUrl(imageUrl)} alt={name} loading="lazy" className="size-full object-cover" />
+        <div className={twMerge('relative flex items-center justify-center overflow-hidden bg-primary-50', className)}>
+            {src ? (
+                <Image
+                    src={src}
+                    alt={name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 250px"
+                    unoptimized={src.startsWith('data:') || src.startsWith('blob:')}
+                    className="object-cover"
+                />
             ) : (
                 <Label variant={EVariantLabel.h5} color="text-primary-600" className="uppercase select-none">
                     {name.trim().charAt(0)}

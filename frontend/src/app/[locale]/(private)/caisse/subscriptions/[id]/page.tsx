@@ -52,7 +52,6 @@ import {
     type SubscriptionInput,
 } from '@/lib/pos-api';
 import { SUBSCRIPTION_STATUS_BADGE } from '@/lib/pos-documents';
-import { printSubscriptionPdf } from '@/lib/pos-documents-pdf';
 import { Routes } from '@/lib/routes';
 import {
     EBadgeSize,
@@ -321,9 +320,14 @@ export default function PosSubscriptionPage() {
     };
 
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         if (!subscription) return;
-        void printSubscriptionPdf(subscription, pdfLabels).catch(onError);
+        try {
+            const { printSubscriptionPdf } = await import('@/lib/pos-documents-pdf');
+            await printSubscriptionPdf(subscription, pdfLabels);
+        } catch (err) {
+            onError(err instanceof Error ? err : new Error(String(err)));
+        }
     };
 
     const handleProductChange = (productId: string) => {
