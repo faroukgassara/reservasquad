@@ -30,7 +30,7 @@ export default function PrivateLayout({
     const t = useTranslations('sidebar');
     const tCommon = useTranslations('common');
     const tAuth = useTranslations('auth');
-    const isDesktop = useMediaQuery(`(min-width: ${ui.breakPoints.lg})`);
+    const isDesktop = useMediaQuery(`(min-width: ${ui.breakPoints.tablet})`);
     const isMobile = !isDesktop;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { data: session } = useSession();
@@ -77,8 +77,8 @@ export default function PrivateLayout({
         : [];
 
     const sidebarLayoutClass = sidebarOpen
-        ? 'fixed inset-y-0 start-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl lg:static lg:z-auto lg:w-70 lg:translate-x-0 lg:shadow-none'
-        : 'fixed inset-y-0 start-0 z-50 w-20 -translate-x-full shadow-none lg:static lg:z-auto lg:w-20 lg:translate-x-0 lg:shadow-none';
+        ? 'fixed inset-y-0 start-0 z-50 w-[min(100vw-3rem,280px)] shadow-xl tablet:static tablet:z-auto tablet:w-70 tablet:translate-x-0 tablet:shadow-none'
+        : 'fixed inset-y-0 start-0 z-50 w-20 -translate-x-full shadow-none tablet:static tablet:z-auto tablet:w-20 tablet:translate-x-0 tablet:shadow-none';
 
     return (
         <ProtectedRoute>
@@ -89,7 +89,7 @@ export default function PrivateLayout({
                         <button
                             type="button"
                             aria-label={t('closeMenu')}
-                            className="fixed inset-0 z-40 touch-none overscroll-none bg-black/50 lg:hidden"
+                            className="fixed inset-0 z-40 touch-none overscroll-none bg-black/50 tablet:hidden"
                             onClick={() => setSidebarOpen(false)}
                         />
                     )}

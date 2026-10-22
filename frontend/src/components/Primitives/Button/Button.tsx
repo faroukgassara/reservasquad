@@ -19,7 +19,7 @@ const Button = memo(function Button({
   onClick,
   className = '',
   id,
-  spinnerColor = 'text-white',
+  spinnerColor,
   spinnerSize = ESize.md,
   'aria-label': ariaLabel,
   'aria-expanded': ariaExpanded,

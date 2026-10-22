@@ -30,7 +30,7 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
                         }}
                         onClick={mobileSidebar.openSidebar}
                         aria-label={t('openMenu')}
-                        className="mt-0.5 shrink-0 border-none bg-gray-100 hover:bg-gray-100 hover:opacity-70 lg:hidden"
+                        className="mt-0.5 shrink-0 border-none bg-gray-100 hover:bg-gray-100 hover:opacity-70 tablet:hidden"
                     />
                 )}
                 {props?.leftActions}
