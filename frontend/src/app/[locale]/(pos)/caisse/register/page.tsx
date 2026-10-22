@@ -120,7 +120,7 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
     });
 
     const closeMutation = useMutation({
-        mutationFn: (body: { countedCash: number; note?: string; syncDailyIncome?: boolean }) =>
+        mutationFn: (body: { countedCash: number; note?: string }) =>
             closePosSession(session.id, body),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ['pos-session-current'] });

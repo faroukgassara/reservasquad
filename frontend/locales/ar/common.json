@@ -192,6 +192,8 @@
         "invalidAmount": "أدخل مبلغًا صالحًا.",
         "allowOverride": "السماح للكاشير بتعديل المبلغ",
         "allowOverrideHint": "عند التعطيل: لا يمكن للكاشير تغيير رصيد الصندوق.",
+        "syncDailyIncome": "المزامنة مع المداخيل اليومية",
+        "syncDailyIncomeHint": "إضافة إيرادات جلسة الصندوق تلقائياً إلى المداخيل اليومية عند إغلاق الجلسة.",
         "saved": "تم حفظ الإعدادات."
     },
     "launcher": {
@@ -1091,9 +1093,6 @@
             "note": "ملاحظة الإغلاق",
             "submit": "إغلاق الجلسة",
             "dailyIncome": "يُضاف إلى المداخيل اليومية",
-            "syncDailyIncome": "المزامنة مع المداخيل اليومية",
-            "syncDailyIncomeActive": "سيتم إضافة إيرادات الجلسة ({total}) إلى المداخيل اليومية.",
-            "syncDailyIncomeInactive": "عدم إضافة هذه الجلسة إلى المداخيل اليومية.",
             "cashInDrawer": "مجموع النقد في الصندوق",
             "differencePerfect": "الصندوق مطابق",
             "differenceSurplus": "فائض",

@@ -192,6 +192,8 @@
         "invalidAmount": "Enter a valid amount.",
         "allowOverride": "Let the cashier change the amount",
         "allowOverrideHint": "Off: the cashier cannot change the opening cash.",
+        "syncDailyIncome": "Synchronize with daily income",
+        "syncDailyIncomeHint": "Automatically add POS session revenue to daily income when closing the session.",
         "saved": "Settings saved."
     },
     "launcher": {
@@ -1091,9 +1093,6 @@
             "note": "Closing note",
             "submit": "Close session",
             "dailyIncome": "Added to daily income",
-            "syncDailyIncome": "Synchronize with daily income",
-            "syncDailyIncomeActive": "Session revenue ({total}) will be added to daily income.",
-            "syncDailyIncomeInactive": "Do not add this session to daily income.",
             "cashInDrawer": "Total cash in the register",
             "differencePerfect": "Balanced",
             "differenceSurplus": "Surplus",

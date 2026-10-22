@@ -454,6 +454,7 @@ model PosSettings {
   id                   String   @id @default("default")
   defaultOpeningCash   Decimal  @default(0) @db.Decimal(12, 3)
   allowCashierOverride Boolean  @default(false)
+  syncDailyIncome      Boolean  @default(false)
   updatedAt            DateTime @default(now()) @updatedAt
   updatedById          String?
 }

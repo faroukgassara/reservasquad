@@ -22,6 +22,11 @@ export class UpdatePosSettingsDto {
   @Type(() => Boolean)
   @IsBoolean()
   allowCashierOverride: boolean;
+
+  @ApiProperty({ default: false, description: 'Synchronize POS session revenue with daily income on close' })
+  @Type(() => Boolean)
+  @IsBoolean()
+  syncDailyIncome: boolean;
 }
 
 export class ClosePosSessionDto {
@@ -36,10 +41,4 @@ export class ClosePosSessionDto {
   @IsString()
   @MaxLength(1000)
   note?: string;
-
-  @ApiPropertyOptional({ default: false })
-  @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
-  syncDailyIncome?: boolean;
 }

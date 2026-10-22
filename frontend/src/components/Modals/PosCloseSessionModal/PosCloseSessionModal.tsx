@@ -11,7 +11,6 @@ import Icon from '@/components/Primitives/Icon/Icon';
 import Input from '@/components/Primitives/Input/Input';
 import Label from '@/components/Primitives/Label/Label';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
-import Toggle from '@/components/Primitives/Toggle/Toggle';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, EInputType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { formatMoney } from '@/lib/daily-income-api';
@@ -20,7 +19,7 @@ import type { ELabelColor } from '@/theme/labelColors';
 
 interface PosCloseSessionModalProps {
     sessionId: string;
-    onSubmit: (values: { countedCash: number; note?: string; syncDailyIncome: boolean }) => void;
+    onSubmit: (values: { countedCash: number; note?: string }) => void;
     isLoading?: boolean;
 }
 
@@ -99,7 +98,6 @@ export default function PosCloseSessionModal({
     const { closeModal } = useCurrentModal();
     const [counted, setCounted] = useState('');
     const [note, setNote] = useState('');
-    const [syncDailyIncome, setSyncDailyIncome] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [counts, setCounts] = useState<Record<string, number>>({});
     const [showCalculator, setShowCalculator] = useState(false);
@@ -169,7 +167,6 @@ export default function PosCloseSessionModal({
         onSubmit({
             countedCash: countedValue,
             note: note.trim() || undefined,
-            syncDailyIncome,
         });
     };
 
@@ -431,44 +428,6 @@ export default function PosCloseSessionModal({
                             ) : null}
                         </Div>
 
-                        <Div
-                            className={twMerge(
-                                'flex items-center justify-between gap-3 rounded-xl border p-3 transition-colors',
-                                syncDailyIncome ? 'border-primary-200 bg-primary-50' : 'border-gray-200 bg-white',
-                            )}
-                        >
-                            <Div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                                <Label
-                                    variant={EVariantLabel.bodySmall}
-                                    color={syncDailyIncome ? 'text-primary-900' : 'text-gray-900'}
-                                    className="font-semibold"
-                                >
-                                    {t('syncDailyIncome')}
-                                </Label>
-                                <Label
-                                    variant={EVariantLabel.caption}
-                                    color={syncDailyIncome ? 'text-primary-700' : 'text-gray-500'}
-                                >
-                                    {syncDailyIncome
-                                        ? t('syncDailyIncomeActive', { total: formatMoney(summary.revenue) })
-                                        : t('syncDailyIncomeInactive')}
-                                </Label>
-                            </Div>
-                            <Div className="flex shrink-0 items-center gap-3">
-                                <Label
-                                    variant={EVariantLabel.bodySmall}
-                                    color={syncDailyIncome ? 'text-primary-700' : 'text-gray-500'}
-                                    className="font-semibold tabular-nums"
-                                >
-                                    {formatMoney(summary.revenue)}
-                                </Label>
-                                <Toggle
-                                    id="pos-close-sync-daily-income"
-                                    checked={syncDailyIncome}
-                                    onChange={setSyncDailyIncome}
-                                />
-                            </Div>
-                        </Div>
 
                         <Input
                             id="pos-close-note"

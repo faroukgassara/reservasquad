@@ -119,11 +119,12 @@ export class PosSessionService {
     };
   }
 
-  async getSettings(): Promise<{ defaultOpeningCash: number; allowCashierOverride: boolean }> {
+  async getSettings(): Promise<{ defaultOpeningCash: number; allowCashierOverride: boolean; syncDailyIncome: boolean }> {
     const settings = await this.prismaService.posSettings.findUnique({ where: { id: POS_SETTINGS_ID } });
     return {
       defaultOpeningCash: settings ? Number(settings.defaultOpeningCash) : 0,
       allowCashierOverride: settings?.allowCashierOverride ?? false,
+      syncDailyIncome: settings?.syncDailyIncome ?? false,
     };
   }
 
@@ -131,6 +132,7 @@ export class PosSessionService {
     const data = {
       defaultOpeningCash: round3(dto.defaultOpeningCash),
       allowCashierOverride: dto.allowCashierOverride,
+      syncDailyIncome: dto.syncDailyIncome,
       updatedById: actorId || null,
     };
     await this.prismaService.posSettings.upsert({
@@ -145,8 +147,12 @@ export class PosSessionService {
       userId: actorId,
       summary: `Fond de caisse fixé à ${formatAuditMoney(data.defaultOpeningCash)}${
         data.allowCashierOverride ? ' · modifiable par le caissier' : ''
-      }`,
-      metadata: { defaultOpeningCash: data.defaultOpeningCash, allowCashierOverride: data.allowCashierOverride },
+      }${data.syncDailyIncome ? ' · synchronisation des revenus activée' : ' · synchronisation des revenus désactivée'}`,
+      metadata: {
+        defaultOpeningCash: data.defaultOpeningCash,
+        allowCashierOverride: data.allowCashierOverride,
+        syncDailyIncome: data.syncDailyIncome,
+      },
     });
     return this.getSettings();
   }
@@ -216,12 +222,13 @@ export class PosSessionService {
 
   async close(id: string, dto: ClosePosSessionDto, actorId?: string) {
     await this.getOpenSessionOrThrow(id);
+    const settings = await this.getSettings();
     const { expectedCash, revenue, openingCash } = await this.getSummary(id);
     const difference =
       Math.abs(dto.countedCash - openingCash) <= Math.abs(dto.countedCash - expectedCash)
         ? round3(dto.countedCash - openingCash)
         : round3(dto.countedCash - expectedCash);
-    const shouldSyncDailyIncome = Boolean(dto.syncDailyIncome);
+    const shouldSyncDailyIncome = settings.syncDailyIncome;
     const { session, dailyIncome } = await this.prismaService.$transaction(async (tx) => {
       const session = await tx.posSession.update({
         where: { id },

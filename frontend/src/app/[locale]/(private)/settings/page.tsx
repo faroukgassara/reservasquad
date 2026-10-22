@@ -38,11 +38,13 @@ function CaisseSettingsForm({ settings }: Readonly<{ settings: PosSettings }>) {
         defaultValues: {
             defaultOpeningCash: String(settings.defaultOpeningCash),
             allowCashierOverride: settings.allowCashierOverride,
+            syncDailyIncome: settings.syncDailyIncome,
         },
         onSubmit: async ({ value }) => {
             await mutation.mutateAsync({
                 defaultOpeningCash: Number(value.defaultOpeningCash.replace(',', '.')),
                 allowCashierOverride: value.allowCashierOverride,
+                syncDailyIncome: value.syncDailyIncome,
             });
         },
     });
@@ -99,6 +101,22 @@ function CaisseSettingsForm({ settings }: Readonly<{ settings: PosSettings }>) {
                                 </Label>
                             </Div>
                             <Toggle id="settings-allow-override" checked={state.value} onChange={handleChange} />
+                        </Div>
+                    )}
+                </form.Field>
+
+                <form.Field name="syncDailyIncome">
+                    {({ state, handleChange }) => (
+                        <Div className="flex items-center justify-between gap-4 rounded-xl border border-gray-100 bg-gray-25 px-4 py-3">
+                            <Div className="flex min-w-0 flex-col">
+                                <Label variant={EVariantLabel.bodySmall} color="text-gray-900" className="font-medium">
+                                    {t('syncDailyIncome')}
+                                </Label>
+                                <Label variant={EVariantLabel.caption} color="text-gray-500">
+                                    {t('syncDailyIncomeHint')}
+                                </Label>
+                            </Div>
+                            <Toggle id="settings-sync-daily-income" checked={state.value} onChange={handleChange} />
                         </Div>
                     )}
                 </form.Field>

@@ -422,6 +422,7 @@ export const openPosSession = (body: { openingCash?: number }) =>
 export interface PosSettings {
     defaultOpeningCash: number;
     allowCashierOverride: boolean;
+    syncDailyIncome: boolean;
 }
 
 export const fetchPosSettings = () => posGet<PosSettings>('settings', 'Failed to fetch caisse settings');
@@ -434,7 +435,7 @@ export const fetchPosSessionSummary = (id: string) =>
 
 export const closePosSession = (
     id: string,
-    body: { countedCash: number; note?: string; syncDailyIncome?: boolean },
+    body: { countedCash: number; note?: string },
 ) => posPost<PosSession>(`sessions/${id}/close`, body, 'Failed to close session');
 // Orders
 
