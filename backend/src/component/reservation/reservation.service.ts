@@ -721,42 +721,51 @@ export class ReservationService {
   async getReservationTrend(months: number) {
     const now = new Date();
     const count = Math.min(Math.max(Math.trunc(months) || 6, 1), 24);
-    const periods = Array.from({ length: count }, (_, i) => {
-      const start = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
-      const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
-      return {
-        year: start.getFullYear(),
-        month: start.getMonth() + 1,
-        start,
-        end,
-      };
+    const earliestStart = new Date(now.getFullYear(), now.getMonth() - (count - 1), 1);
+    const latestEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const bucketMap = new Map<
+      string,
+      { year: number; month: number; count: number; revenue: number; paidRevenue: number }
+    >();
+    for (let i = 0; i < count; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const key = `${y}-${String(m).padStart(2, '0')}`;
+      bucketMap.set(key, { year: y, month: m, count: 0, revenue: 0, paidRevenue: 0 });
+    }
+
+    const reservations = await this.prismaService.reservation.findMany({
+      where: {
+        deletedAt: null,
+        status: EReservationStatus.CONFIRMED,
+        startAt: { gte: earliestStart, lt: latestEnd },
+      },
+      select: { startAt: true, price: true, isPaid: true },
     });
 
-    return Promise.all(
-      periods.map(async (period) => {
-        const reservations = await this.prismaService.reservation.findMany({
-          where: {
-            deletedAt: null,
-            status: EReservationStatus.CONFIRMED,
-            startAt: { gte: period.start, lt: period.end },
-          },
-          select: { price: true, isPaid: true },
-        });
+    for (const r of reservations) {
+      const d = new Date(r.startAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const bucket = bucketMap.get(key);
+      if (bucket) {
+        bucket.count += 1;
+        const priceNum = Number(r.price);
+        bucket.revenue += priceNum;
+        if (r.isPaid) {
+          bucket.paidRevenue += priceNum;
+        }
+      }
+    }
 
-        const revenue = reservations.reduce((sum, row) => sum + Number(row.price), 0);
-        const paidRevenue = reservations
-          .filter((row) => row.isPaid)
-          .reduce((sum, row) => sum + Number(row.price), 0);
-
-        return {
-          year: period.year,
-          month: period.month,
-          count: reservations.length,
-          revenue: Math.round(revenue * 100) / 100,
-          paidRevenue: Math.round(paidRevenue * 100) / 100,
-        };
-      }),
-    );
+    return Array.from(bucketMap.values()).map((b) => ({
+      year: b.year,
+      month: b.month,
+      count: b.count,
+      revenue: Math.round(b.revenue * 100) / 100,
+      paidRevenue: Math.round(b.paidRevenue * 100) / 100,
+    }));
   }
 
   async calendar(query: CalendarQueryDto) {
@@ -1191,14 +1200,24 @@ export class ReservationService {
     };
   }
 
-  async dashboardStats() {
+  async dashboardStats(query?: { year?: number; month?: number; scope?: 'month' | 'all' }) {
     const now = new Date();
+    const isGlobal = query?.scope === 'all';
+    const year =
+      query?.year != null && !Number.isNaN(Number(query.year))
+        ? Number(query.year)
+        : now.getFullYear();
+    const targetMonth =
+      query?.month != null && !Number.isNaN(Number(query.month))
+        ? Number(query.month)
+        : now.getMonth() + 1;
+
     const startOfDay = new Date(now);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const startOfMonth = new Date(year, targetMonth - 1, 1);
+    const startOfNextMonth = new Date(year, targetMonth, 1);
     const trendFrom = new Date(startOfDay);
     trendFrom.setDate(trendFrom.getDate() - 13);
 
@@ -1219,7 +1238,10 @@ export class ReservationService {
           },
         }),
         this.prismaService.reservation.findMany({
-          where: { deletedAt: null, startAt: { gte: startOfMonth, lt: startOfNextMonth } },
+          where: {
+            deletedAt: null,
+            ...(isGlobal ? {} : { startAt: { gte: startOfMonth, lt: startOfNextMonth } }),
+          },
           select: {
             status: true,
             isPaid: true,

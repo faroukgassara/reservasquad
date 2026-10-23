@@ -267,7 +267,7 @@ export default function OrganismProductAnalytics() {
                     icon={IconComponentsEnum.layers}
                     iconBg="bg-primary-50 dark:bg-primary-950/60"
                     iconColor="text-primary-600"
-                    label={t('totalRevenue')}
+                    label={selectedProductId || selectedCategoryId !== 'ALL' ? t('totalRevenue') : t('collectedRevenue')}
                     value={data ? formatMoney(data.summary.totalRevenue) : '—'}
                     isLoading={isLoading}
                 />
@@ -288,11 +288,11 @@ export default function OrganismProductAnalytics() {
                     isLoading={isLoading}
                 />
                 <StatCard
-                    icon={IconComponentsEnum.archive}
+                    icon={IconComponentsEnum.lock}
                     iconBg="bg-accent-50 dark:bg-accent-950/60"
                     iconColor="text-accent-600"
-                    label={t('productsSold')}
-                    value={data ? String(data.summary.productsCount) : '—'}
+                    label={t('closedSessions')}
+                    value={data ? String(data.summary.sessionsCount) : '—'}
                     isLoading={isLoading}
                 />
             </Div>
@@ -361,9 +361,10 @@ export default function OrganismProductAnalytics() {
             <Div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
                 <ProductSalesTrendChart
                     data={data?.monthlyTrends ?? []}
-                    title={preset === '30d' ? t('salesTrendDaily') : t('salesTrend')}
+                    title={data?.timeframe.granularity === 'session' ? t('salesTrendSessions') : t('salesTrend')}
                     revenueLabel={t('revenue')}
                     unitsLabel={t('unitsSold')}
+                    ordersLabel={t('totalOrders')}
                     noDataLabel={t('noData')}
                 />
             </Div>

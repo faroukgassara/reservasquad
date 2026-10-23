@@ -65,9 +65,18 @@ export class ReservationBackofficeController {
   @Get('stats')
   @Roles({ roles: ['ADMIN'] })
   @swagger.ApiOperation({ summary: 'Dashboard stats' })
-  async stats(@Res() res: Response) {
+  async stats(
+    @Res() res: Response,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+    @Query('scope') scope?: 'month' | 'all',
+  ) {
     try {
-      const data = await this.reservationService.dashboardStats();
+      const data = await this.reservationService.dashboardStats({
+        year: year ? parseInt(year, 10) : undefined,
+        month: month ? parseInt(month, 10) : undefined,
+        scope,
+      });
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

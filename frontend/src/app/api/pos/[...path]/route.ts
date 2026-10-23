@@ -73,6 +73,24 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
 }
 
+export async function PUT(req: NextRequest, context: RouteContext) {
+    try {
+        const backendPath = await resolveBackendPath(req, context);
+        if (!backendPath) return invalidPath();
+        const authorization = req.headers.get('authorization') ?? undefined;
+        const api = new Api(process.env.NEXT_PUBLIC_API_URL);
+        const body = await req.json();
+        const apiRes = await api.put(
+            backendPath,
+            body,
+            await CommonFunction.createHeaders({ customToken: authorization }),
+        );
+        return NextResponse.json(apiRes.data, { status: apiRes.status });
+    } catch (error: unknown) {
+        return internalError(error);
+    }
+}
+
 export async function DELETE(req: NextRequest, context: RouteContext) {
     try {
         const backendPath = await resolveBackendPath(req, context);

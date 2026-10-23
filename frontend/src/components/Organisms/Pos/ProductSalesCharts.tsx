@@ -46,8 +46,17 @@ function useChartColors() {
     return resolvedTheme === 'dark' ? DARK_CHART_COLORS : LIGHT_CHART_COLORS;
 }
 
-function AnalyticsChartTooltip({ active, payload, label }: Readonly<TooltipContentProps>) {
+const formatSessionTime = (iso: string) =>
+    new Date(iso).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+function AnalyticsChartTooltip({
+    active,
+    payload,
+    label,
+    ordersLabel,
+}: Readonly<TooltipContentProps & { ordersLabel?: string }>) {
     if (!active || !payload?.length) return null;
+    const item = payload[0]?.payload as MonthlySalesTrendItem | undefined;
     return (
         <Div className="rounded-xl border border-gray-200/80 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
             {label ? (
@@ -57,6 +66,11 @@ function AnalyticsChartTooltip({ active, payload, label }: Readonly<TooltipConte
                     className="mb-1.5 block font-bold dark:text-gray-100"
                 >
                     {label}
+                </Label>
+            ) : null}
+            {item?.openedAt && item.closedAt ? (
+                <Label variant={EVariantLabel.caption} color="text-gray-500" className="mb-1.5 block tabular-nums">
+                    {`${formatSessionTime(item.openedAt)} → ${formatSessionTime(item.closedAt)}`}
                 </Label>
             ) : null}
             <Div className="space-y-1">
@@ -78,6 +92,14 @@ function AnalyticsChartTooltip({ active, payload, label }: Readonly<TooltipConte
                         </Div>
                     );
                 })}
+                {ordersLabel && item ? (
+                    <Div className="flex items-center gap-2">
+                        <Div className="size-2 shrink-0 rounded-full bg-gray-400" />
+                        <Label variant={EVariantLabel.caption} color="text-gray-600" className="dark:text-gray-300">
+                            {ordersLabel}: <span className="font-semibold text-gray-900 dark:text-gray-100">{item.ordersCount}</span>
+                        </Label>
+                    </Div>
+                ) : null}
             </Div>
         </Div>
     );
@@ -90,6 +112,7 @@ export interface ProductSalesTrendChartProps {
     title: string;
     revenueLabel: string;
     unitsLabel: string;
+    ordersLabel?: string;
     noDataLabel: string;
     metricView?: ChartMetricView;
     onMetricViewChange?: (view: ChartMetricView) => void;
@@ -100,6 +123,7 @@ export function ProductSalesTrendChart({
     title,
     revenueLabel,
     unitsLabel,
+    ordersLabel,
     noDataLabel,
     metricView: controlledView,
     onMetricViewChange,
@@ -200,7 +224,7 @@ export function ProductSalesTrendChart({
                             />
                         )}
                         <Tooltip
-                            content={AnalyticsChartTooltip}
+                            content={(props) => <AnalyticsChartTooltip {...props} ordersLabel={ordersLabel} />}
                             cursor={{ fill: chartColors.cursor }}
                         />
                         {showRevenue && (

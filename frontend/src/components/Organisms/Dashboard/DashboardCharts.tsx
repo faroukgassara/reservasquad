@@ -318,3 +318,92 @@ export function IncomeTrendChart({
         </Div>
     );
 }
+
+export interface IncomeFinancialBreakdownPoint {
+    label: string;
+    income: number;
+    expenses: number;
+    savings: number;
+    benefits: number;
+    netBalance: number;
+}
+
+export function IncomeBreakdownChart({
+    data,
+    title,
+    periodLabel,
+    incomeLabel,
+    expensesLabel,
+    netBalanceLabel,
+}: Readonly<{
+    data: IncomeFinancialBreakdownPoint[];
+    title: string;
+    periodLabel: string;
+    incomeLabel: string;
+    expensesLabel: string;
+    netBalanceLabel: string;
+}>) {
+    const chartColors = useChartColors();
+
+    return (
+        <Div>
+            <Div role="img" aria-label={title}>
+                <ResponsiveContainer width="100%" height={260}>
+                    <ComposedChart data={data} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                        <CartesianGrid vertical={false} stroke={chartColors.grid} />
+                        <XAxis
+                            dataKey="label"
+                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <YAxis
+                            tick={{ fontSize: 12, fill: chartColors.tick }}
+                            axisLine={false}
+                            tickLine={false}
+                            width={40}
+                        />
+                        <Tooltip
+                            content={ChartTooltip}
+                            cursor={{ fill: chartColors.cursor }}
+                            formatter={(value) => formatMoney(value as number)}
+                        />
+                        <Bar
+                            dataKey="income"
+                            name={incomeLabel}
+                            fill="#10b981"
+                            radius={[4, 4, 0, 0]}
+                            maxBarSize={28}
+                        />
+                        <Bar
+                            dataKey="expenses"
+                            name={expensesLabel}
+                            fill="#f59e0b"
+                            radius={[4, 4, 0, 0]}
+                            maxBarSize={28}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="netBalance"
+                            name={netBalanceLabel}
+                            stroke="#3b82f6"
+                            strokeWidth={2.5}
+                            dot={{ r: 3.5, fill: '#3b82f6', strokeWidth: 0 }}
+                        />
+                    </ComposedChart>
+                </ResponsiveContainer>
+            </Div>
+            <ChartDataTable
+                caption={title}
+                columns={[periodLabel, incomeLabel, expensesLabel, netBalanceLabel]}
+                rows={data.map((point) => [
+                    point.label,
+                    formatMoney(point.income),
+                    formatMoney(point.expenses),
+                    formatMoney(point.netBalance),
+                ])}
+            />
+        </Div>
+    );
+}
+

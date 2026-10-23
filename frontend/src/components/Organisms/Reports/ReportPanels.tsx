@@ -18,11 +18,45 @@ export interface IReportStatCard {
     value: string;
 }
 
-export function formatMonthLabel(year: number, month: number): string {
-    return new Date(year, month - 1, 1).toLocaleDateString('fr-FR', {
-        month: 'long',
+export function formatMonthLabel(year: number, month: number, locale = 'fr'): string {
+    const localeMap: Record<string, string> = {
+        fr: 'fr-FR',
+        en: 'en-US',
+        ar: 'ar-TN',
+    };
+    return new Date(year, month - 1, 1).toLocaleDateString(localeMap[locale] || 'fr-FR', {
+        month: 'short',
         year: 'numeric',
     });
+}
+
+export function exportToCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+    const csvContent =
+        'data:text/csv;charset=utf-8,\uFEFF' +
+        [
+            headers.join(';'),
+            ...rows.map((row) =>
+                row
+                    .map((cell) => {
+                        const str = String(cell ?? '').replace(/"/g, '""');
+                        return `"${str}"`;
+                    })
+                    .join(';'),
+            ),
+        ].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${filename}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+export function printReport() {
+    if (typeof window !== 'undefined') {
+        window.print();
+    }
 }
 
 export function ChartLoader() {
@@ -31,14 +65,18 @@ export function ChartLoader() {
 
 export function ChartPanel({
     title,
+    action,
     className = '',
     children,
-}: Readonly<{ title: string; className?: string; children: ReactNode }>) {
+}: Readonly<{ title: string; action?: ReactNode; className?: string; children: ReactNode }>) {
     return (
         <Div className={`rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 ${className}`}>
-            <Label variant={EVariantLabel.body} color="text-gray-900" className="mb-4 block">
-                {title}
-            </Label>
+            <Div className="mb-4 flex items-center justify-between gap-2">
+                <Label variant={EVariantLabel.body} color="text-gray-900" className="block font-semibold">
+                    {title}
+                </Label>
+                {action}
+            </Div>
             {children}
         </Div>
     );
@@ -90,3 +128,4 @@ export function StatCardGrid({
         </Div>
     );
 }
+

@@ -380,7 +380,125 @@ export class DailyIncomeService {
       const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
       return { year: d.getFullYear(), month: d.getMonth() + 1 };
     });
-    return Promise.all(periods.map((period) => this.getSummary(period)));
+
+    const earliest = new Date(Date.UTC(periods[0].year, periods[0].month - 1, 1));
+    const latest = new Date(Date.UTC(periods[count - 1].year, periods[count - 1].month, 1));
+
+    const [dailyIncomes, incomeLines, carryovers] = await Promise.all([
+      this.prismaService.dailyIncome.findMany({
+        where: {
+          deletedAt: null,
+          date: { gte: earliest, lt: latest },
+        },
+        select: {
+          date: true,
+          totalIncome: true,
+          savings: true,
+          benefits: true,
+          savingsForCharges: true,
+        },
+      }),
+      this.prismaService.incomeLine.findMany({
+        where: {
+          deletedAt: null,
+          date: { gte: earliest, lt: latest },
+        },
+        select: {
+          date: true,
+          type: true,
+          amount: true,
+        },
+      }),
+      this.prismaService.monthlyCarryover.findMany({
+        where: {
+          OR: periods.map((p) => ({ year: p.year, month: p.month })),
+        },
+      }),
+    ]);
+
+    const carryoverMap = new Map<string, number>();
+    for (const c of carryovers) {
+      carryoverMap.set(`${c.year}-${c.month}`, Number(c.amount));
+    }
+
+    return periods.map((period) => {
+      const { from, to } = this.monthRange(period.year, period.month);
+      const fromTime = from.getTime();
+      const toTime = to.getTime();
+
+      let totalIncome = 0;
+      let totalSavings = 0;
+      let totalBenefits = 0;
+      let totalSavingsForCharges = 0;
+
+      for (const d of dailyIncomes) {
+        const t = d.date.getTime();
+        if (t >= fromTime && t < toTime) {
+          totalIncome += Number(d.totalIncome);
+          totalSavings += Number(d.savings);
+          totalBenefits += Number(d.benefits);
+          totalSavingsForCharges += Number(d.savingsForCharges);
+        }
+      }
+
+      let totalCharges = 0;
+      let totalInvestments = 0;
+      let totalEcofactureExpenses = 0;
+      let totalFarouk = 0;
+      let totalMajdi = 0;
+
+      for (const l of incomeLines) {
+        const t = l.date.getTime();
+        if (t >= fromTime && t < toTime) {
+          const amount = Number(l.amount);
+          switch (l.type) {
+            case EIncomeLineType.CHARGE:
+              totalCharges += amount;
+              break;
+            case EIncomeLineType.INVESTMENT:
+              totalInvestments += amount;
+              break;
+            case EIncomeLineType.ECOFACTURE:
+              totalEcofactureExpenses += amount;
+              break;
+            case EIncomeLineType.FAROUK:
+              totalFarouk += amount;
+              break;
+            case EIncomeLineType.MAJDI:
+              totalMajdi += amount;
+              break;
+          }
+        }
+      }
+
+      const totalBenefitWithdrawals = totalFarouk + totalMajdi;
+      const netBalance =
+        Math.round(
+          (totalIncome -
+            totalCharges -
+            totalInvestments -
+            totalSavings -
+            totalBenefits -
+            totalSavingsForCharges) *
+            100,
+        ) / 100;
+
+      return {
+        year: period.year,
+        month: period.month,
+        totalIncome: Math.round(totalIncome * 100) / 100,
+        totalCharges: Math.round(totalCharges * 100) / 100,
+        totalInvestments: Math.round(totalInvestments * 100) / 100,
+        totalSavings: Math.round(totalSavings * 100) / 100,
+        totalBenefits: Math.round((totalBenefits - totalBenefitWithdrawals) * 100) / 100,
+        totalFarouk: Math.round(totalFarouk * 100) / 100,
+        totalMajdi: Math.round(totalMajdi * 100) / 100,
+        totalSavingsForCharges:
+          Math.round((totalSavingsForCharges - totalEcofactureExpenses) * 100) / 100,
+        netBalance,
+        previousMonthRest: carryoverMap.get(`${period.year}-${period.month}`) ?? 0,
+      };
+    });
   }
 
   async createIncomeLine(dto: CreateIncomeLineDto, actorId?: string) {

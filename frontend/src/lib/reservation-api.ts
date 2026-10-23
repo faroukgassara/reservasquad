@@ -277,9 +277,24 @@ export async function fetchCalendar(params: {
     return unwrapData<ReservationRecord[]>(res.data as { data?: ReservationRecord[] });
 }
 
-export async function fetchDashboardStats(): Promise<DashboardStats> {
+export type ReservationStatsScope = 'month' | 'all';
+
+export interface FetchDashboardStatsParams {
+    year?: number;
+    month?: number;
+    scope?: ReservationStatsScope;
+}
+
+export async function fetchDashboardStats(
+    params?: FetchDashboardStatsParams,
+): Promise<DashboardStats> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
-    const res = await api.get('/api/reservations/stats', headers);
+    const sp = new URLSearchParams();
+    if (params?.year) sp.set('year', String(params.year));
+    if (params?.month) sp.set('month', String(params.month));
+    if (params?.scope) sp.set('scope', params.scope);
+    const q = sp.toString();
+    const res = await api.get(`/api/reservations/stats${q ? `?${q}` : ''}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch stats');
     return unwrapData<DashboardStats>(res.data as { data?: DashboardStats });
 }

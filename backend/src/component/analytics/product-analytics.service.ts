@@ -17,11 +17,14 @@ export interface ProductLeaderboardItem {
 }
 
 export interface MonthlySalesTrendItem {
-  month: string; // '2026-01'
-  label: string; // 'Jan 2026'
+  month: string; // '2026-01', or the session id when grouped per session
+  label: string; // 'Jan 2026' or '#569 · 1 Oct'
   unitsSold: number;
   totalRevenue: number;
   ordersCount: number;
+  sessionNumber?: number;
+  openedAt?: string;
+  closedAt?: string;
 }
 
 export interface ProductAnalyticsSummary {
@@ -29,6 +32,7 @@ export interface ProductAnalyticsSummary {
   totalRevenue: number;
   totalOrdersCount: number;
   productsCount: number;
+  sessionsCount: number;
 }
 
 export interface ProductBreakdownDetails {
@@ -52,6 +56,7 @@ export interface ProductAnalyticsResponse {
     startDate: string | null;
     endDate: string | null;
     limit: number | null;
+    granularity: 'session' | 'month';
   };
   summary: ProductAnalyticsSummary;
   topSellingByQuantity: ProductLeaderboardItem[];
@@ -152,38 +157,22 @@ export class ProductAnalyticsService {
       }
     }
 
-    // Build SQL WHERE conditions safely with Prisma.sql
-    const posWhereClauses: Prisma.Sql[] = [
+    // Every figure comes from closed Caisse sessions and is dated by the session's closing time.
+    const sessionWhereClauses: Prisma.Sql[] = [Prisma.sql`ps."status" = 'CLOSED'`];
+    if (startDate) sessionWhereClauses.push(Prisma.sql`ps."closedAt" >= ${startDate}`);
+    if (endDate) sessionWhereClauses.push(Prisma.sql`ps."closedAt" <= ${endDate}`);
+
+    const lineWhereClauses: Prisma.Sql[] = [
+      ...sessionWhereClauses,
       Prisma.sql`pol."productId" IS NOT NULL`,
       Prisma.sql`po."status" IN ('PAID', 'REFUND')`,
     ];
-    const saleWhereClauses: Prisma.Sql[] = [
-      Prisma.sql`sol."productId" IS NOT NULL`,
-      Prisma.sql`so."status" = 'CONFIRMED'`,
-      Prisma.sql`so."deletedAt" IS NULL`,
-    ];
+    if (productId) lineWhereClauses.push(Prisma.sql`pol."productId" = ${productId}`);
+    if (categoryId) lineWhereClauses.push(Prisma.sql`p."categoryId" = ${categoryId}`);
 
-    if (startDate) {
-      posWhereClauses.push(Prisma.sql`po."createdAt" >= ${startDate}`);
-      saleWhereClauses.push(Prisma.sql`so."orderDate" >= ${startDate}`);
-    }
-    if (endDate) {
-      posWhereClauses.push(Prisma.sql`po."createdAt" <= ${endDate}`);
-      saleWhereClauses.push(Prisma.sql`so."orderDate" <= ${endDate}`);
-    }
-    if (productId) {
-      posWhereClauses.push(Prisma.sql`pol."productId" = ${productId}`);
-      saleWhereClauses.push(Prisma.sql`sol."productId" = ${productId}`);
-    }
-    if (categoryId) {
-      posWhereClauses.push(Prisma.sql`p."categoryId" = ${categoryId}`);
-      saleWhereClauses.push(Prisma.sql`p."categoryId" = ${categoryId}`);
-    }
+    // Collected cash cannot be split per product, so a product/category filter falls back to line totals.
+    const useLineRevenue = Boolean(productId || categoryId);
 
-    const posWhere = Prisma.join(posWhereClauses, ' AND ');
-    const saleWhere = Prisma.join(saleWhereClauses, ' AND ');
-
-    // Optimized Common Table Expression uniting POS and Confirmed Sale Orders
     const salesCte = Prisma.sql`
       WITH product_sales AS (
         SELECT
@@ -194,31 +183,37 @@ export class ProductAnalyticsService {
           c."name" AS "categoryName",
           pol."quantity"::numeric AS "quantity",
           pol."total"::numeric AS "revenue",
-          po."createdAt" AS "orderDate",
+          ps."closedAt" AS "saleDate",
+          ps."id" AS "sessionId",
           po."id" AS "orderId"
         FROM "PosOrderLine" pol
         JOIN "PosOrder" po ON po."id" = pol."orderId"
+        JOIN "PosSession" ps ON ps."id" = po."sessionId"
         LEFT JOIN "PosProduct" p ON p."id" = pol."productId"
         LEFT JOIN "PosCategory" c ON c."id" = p."categoryId"
-        WHERE ${posWhere}
+        WHERE ${Prisma.join(lineWhereClauses, ' AND ')}
+      )
+    `;
 
-        UNION ALL
-
+    // Same formula as the session closing summary: cash (minus change given) + bank payments.
+    const sessionRevenueCte = Prisma.sql`
+      WITH session_revenue AS (
         SELECT
-          sol."productId" AS "productId",
-          COALESCE(p."name", sol."productName") AS "productName",
-          p."imageUrl" AS "imageUrl",
-          COALESCE(p."price", sol."unitPrice")::numeric AS "currentPrice",
-          c."name" AS "categoryName",
-          sol."quantity"::numeric AS "quantity",
-          sol."total"::numeric AS "revenue",
-          so."orderDate" AS "orderDate",
-          so."id" AS "orderId"
-        FROM "SaleOrderLine" sol
-        JOIN "SaleOrder" so ON so."id" = sol."saleOrderId"
-        LEFT JOIN "PosProduct" p ON p."id" = sol."productId"
-        LEFT JOIN "PosCategory" c ON c."id" = p."categoryId"
-        WHERE ${saleWhere}
+          ps."id" AS "sessionId",
+          ps."number" AS "sessionNumber",
+          ps."openedAt" AS "openedAt",
+          ps."closedAt" AS "saleDate",
+          (
+            COALESCE((
+              SELECT SUM(pp."amount")
+              FROM "PosPayment" pp
+              JOIN "PosOrder" o ON o."id" = pp."orderId"
+              WHERE o."sessionId" = ps."id" AND pp."method" IN ('CASH', 'BANK')
+            ), 0)
+            - COALESCE((SELECT SUM(o."change") FROM "PosOrder" o WHERE o."sessionId" = ps."id"), 0)
+          )::numeric AS "revenue"
+        FROM "PosSession" ps
+        WHERE ${Prisma.join(sessionWhereClauses, ' AND ')}
       )
     `;
 
@@ -231,6 +226,14 @@ export class ProductAnalyticsService {
         COUNT(DISTINCT "orderId")::int AS "totalOrdersCount",
         COUNT(DISTINCT "productId")::int AS "productsCount"
       FROM product_sales
+    `;
+
+    const sessionSummaryQuery = Prisma.sql`
+      ${sessionRevenueCte}
+      SELECT
+        COALESCE(SUM("revenue"), 0)::numeric AS "totalRevenue",
+        COUNT(*)::int AS "sessionsCount"
+      FROM session_revenue
     `;
 
     // 2. Aggregated Products for Ranked Leaderboard
@@ -250,42 +253,44 @@ export class ProductAnalyticsService {
       HAVING SUM("quantity") > 0
     `;
 
-    // 3. Trends Query (Day or Month)
-    const isDaily =
+    // 3. Trends: one point per closed session for short ranges, one point per closing month otherwise
+    const perSession =
       query.interval === 'day' ||
       (query.interval !== 'month' &&
         !!startDate &&
         !!endDate &&
         endDate.getTime() - startDate.getTime() <= 35 * 86400 * 1000);
 
-    const trendsQuery = isDaily
-      ? Prisma.sql`
-          ${salesCte}
-          SELECT
-            TO_CHAR(DATE_TRUNC('day', "orderDate"), 'YYYY-MM-DD') AS "period",
-            DATE_TRUNC('day', "orderDate") AS "periodDate",
-            COALESCE(SUM("quantity"), 0)::numeric AS "unitsSold",
-            COALESCE(SUM("revenue"), 0)::numeric AS "totalRevenue",
-            COUNT(DISTINCT "orderId")::int AS "ordersCount"
-          FROM product_sales
-          GROUP BY DATE_TRUNC('day', "orderDate"), TO_CHAR(DATE_TRUNC('day', "orderDate"), 'YYYY-MM-DD')
-          ORDER BY "periodDate" ASC
-        `
-      : Prisma.sql`
-          ${salesCte}
-          SELECT
-            TO_CHAR(DATE_TRUNC('month', "orderDate"), 'YYYY-MM') AS "period",
-            DATE_TRUNC('month', "orderDate") AS "periodDate",
-            COALESCE(SUM("quantity"), 0)::numeric AS "unitsSold",
-            COALESCE(SUM("revenue"), 0)::numeric AS "totalRevenue",
-            COUNT(DISTINCT "orderId")::int AS "ordersCount"
-          FROM product_sales
-          GROUP BY DATE_TRUNC('month', "orderDate"), TO_CHAR(DATE_TRUNC('month', "orderDate"), 'YYYY-MM')
-          ORDER BY "periodDate" ASC
-        `;
+    const periodKey = perSession
+      ? Prisma.sql`"sessionId"`
+      : Prisma.sql`TO_CHAR(DATE_TRUNC('month', "saleDate"), 'YYYY-MM')`;
+
+    const trendsQuery = Prisma.sql`
+      ${salesCte}
+      SELECT
+        ${periodKey} AS "period",
+        COALESCE(SUM("quantity"), 0)::numeric AS "unitsSold",
+        COALESCE(SUM("revenue"), 0)::numeric AS "totalRevenue",
+        COUNT(DISTINCT "orderId")::int AS "ordersCount"
+      FROM product_sales
+      GROUP BY 1
+    `;
+
+    const sessionTrendsQuery = Prisma.sql`
+      ${sessionRevenueCte}
+      SELECT
+        ${periodKey} AS "period",
+        MIN("sessionNumber")::int AS "sessionNumber",
+        MIN("openedAt") AS "openedAt",
+        MAX("saleDate") AS "closedAt",
+        COALESCE(SUM("revenue"), 0)::numeric AS "totalRevenue"
+      FROM session_revenue
+      GROUP BY 1
+      ORDER BY MAX("saleDate") ASC
+    `;
 
     // Execute queries in parallel
-    const [summaryRows, productRows, trendRows] = await Promise.all([
+    const [summaryRows, sessionSummaryRows, productRows, trendRows, sessionTrendRows] = await Promise.all([
       this.prismaService.$queryRaw<
         Array<{
           totalUnitsSold: number | string | null;
@@ -294,6 +299,9 @@ export class ProductAnalyticsService {
           productsCount: number | null;
         }>
       >(summaryQuery),
+      this.prismaService.$queryRaw<
+        Array<{ totalRevenue: number | string | null; sessionsCount: number | null }>
+      >(sessionSummaryQuery),
       this.prismaService.$queryRaw<
         Array<{
           productId: string;
@@ -309,32 +317,44 @@ export class ProductAnalyticsService {
       this.prismaService.$queryRaw<
         Array<{
           period: string;
-          periodDate: Date;
           unitsSold: number | string | null;
           totalRevenue: number | string | null;
           ordersCount: number | null;
         }>
       >(trendsQuery),
+      this.prismaService.$queryRaw<
+        Array<{
+          period: string;
+          sessionNumber: number;
+          openedAt: Date;
+          closedAt: Date;
+          totalRevenue: number | string | null;
+        }>
+      >(sessionTrendsQuery),
     ]);
 
     const rawSummary = summaryRows[0];
     const totalUnitsSold = round3(Number(rawSummary?.totalUnitsSold ?? 0));
-    const totalRevenue = round3(Number(rawSummary?.totalRevenue ?? 0));
+    const lineRevenue = round3(Number(rawSummary?.totalRevenue ?? 0));
     const totalOrdersCount = Number(rawSummary?.totalOrdersCount ?? 0);
     const productsCount = Number(rawSummary?.productsCount ?? 0);
+    const sessionRevenue = round3(Number(sessionSummaryRows[0]?.totalRevenue ?? 0));
+    const sessionsCount = Number(sessionSummaryRows[0]?.sessionsCount ?? 0);
+    const totalRevenue = useLineRevenue ? lineRevenue : sessionRevenue;
 
     const summary: ProductAnalyticsSummary = {
       totalUnitsSold,
       totalRevenue,
       totalOrdersCount,
       productsCount,
+      sessionsCount,
     };
 
     // Parse and normalize product rows
     const normalizedProducts = productRows.map((row) => {
       const units = round3(Number(row.unitsSold ?? 0));
       const rev = round3(Number(row.totalRevenue ?? 0));
-      const pct = totalRevenue > 0 ? round2((rev / totalRevenue) * 100) : 0;
+      const pct = lineRevenue > 0 ? round2((rev / lineRevenue) * 100) : 0;
       return {
         productId: row.productId,
         productName: row.productName,
@@ -366,55 +386,44 @@ export class ProductAnalyticsService {
       limit ? sortedByRevenue.slice(0, limit) : sortedByRevenue
     ).map((item, idx) => ({ ...item, rank: idx + 1 }));
 
-    // Parse Trends (Day or Month)
-    let monthlyTrends: MonthlySalesTrendItem[] = [];
-
-    if (isDaily) {
-      const periodMap = new Map<
-        string,
-        { unitsSold: number; totalRevenue: number; ordersCount: number }
-      >();
-      for (const row of trendRows) {
-        periodMap.set(row.period, {
+    // Parse Trends: units/orders from product lines, amounts from collected session revenue
+    const linePeriods = new Map(
+      trendRows.map((row) => [
+        row.period,
+        {
           unitsSold: round3(Number(row.unitsSold ?? 0)),
-          totalRevenue: round3(Number(row.totalRevenue ?? 0)),
+          lineRevenue: round3(Number(row.totalRevenue ?? 0)),
           ordersCount: Number(row.ordersCount ?? 0),
-        });
-      }
+        },
+      ]),
+    );
+    const sessionPeriods = new Map(sessionTrendRows.map((row) => [row.period, row]));
 
-      // Generate all consecutive days for the date range
-      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 86400 * 1000);
-      const end = endDate ? new Date(endDate) : new Date();
+    const trendItem = (key: string, label: string): MonthlySalesTrendItem => {
+      const line = linePeriods.get(key);
+      const session = sessionPeriods.get(key);
+      return {
+        month: key,
+        label,
+        unitsSold: line?.unitsSold ?? 0,
+        totalRevenue: useLineRevenue ? (line?.lineRevenue ?? 0) : round3(Number(session?.totalRevenue ?? 0)),
+        ordersCount: line?.ordersCount ?? 0,
+      };
+    };
 
-      const cur = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
-      const endUtc = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
-
-      while (cur <= endUtc) {
-        const yyyy = cur.getUTCFullYear();
-        const mm = String(cur.getUTCMonth() + 1).padStart(2, '0');
-        const dd = String(cur.getUTCDate()).padStart(2, '0');
-        const key = `${yyyy}-${mm}-${dd}`;
-        const existing = periodMap.get(key);
-
-        monthlyTrends.push({
-          month: key,
-          label: formatDayLabelFromKey(key),
-          unitsSold: existing ? existing.unitsSold : 0,
-          totalRevenue: existing ? existing.totalRevenue : 0,
-          ordersCount: existing ? existing.ordersCount : 0,
-        });
-
-        cur.setUTCDate(cur.getUTCDate() + 1);
-      }
-    } else {
-      monthlyTrends = trendRows.map((row) => ({
-        month: row.period,
-        label: formatMonthLabelFromKey(row.period),
-        unitsSold: round3(Number(row.unitsSold ?? 0)),
-        totalRevenue: round3(Number(row.totalRevenue ?? 0)),
-        ordersCount: Number(row.ordersCount ?? 0),
-      }));
-    }
+    const monthlyTrends: MonthlySalesTrendItem[] = perSession
+      ? sessionTrendRows.map((row) => ({
+          ...trendItem(
+            row.period,
+            `#${row.sessionNumber} · ${formatDayLabelFromKey(new Date(row.closedAt).toISOString().slice(0, 10))}`,
+          ),
+          sessionNumber: row.sessionNumber,
+          openedAt: new Date(row.openedAt).toISOString(),
+          closedAt: new Date(row.closedAt).toISOString(),
+        }))
+      : [...new Set([...linePeriods.keys(), ...sessionPeriods.keys()])]
+          .sort()
+          .map((key) => trendItem(key, formatMonthLabelFromKey(key)));
 
     // Product Breakdown if targetProduct is selected
     let productBreakdown: ProductBreakdownDetails | null = null;
@@ -441,6 +450,7 @@ export class ProductAnalyticsService {
         startDate: startDate ? startDate.toISOString() : null,
         endDate: endDate ? endDate.toISOString() : null,
         limit: limit ?? normalizedProducts.length,
+        granularity: perSession ? 'session' : 'month',
       },
       summary,
       topSellingByQuantity,

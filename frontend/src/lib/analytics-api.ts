@@ -32,6 +32,9 @@ export interface MonthlySalesTrendItem {
     unitsSold: number;
     totalRevenue: number;
     ordersCount: number;
+    sessionNumber?: number;
+    openedAt?: string;
+    closedAt?: string;
 }
 
 export interface ProductAnalyticsSummary {
@@ -39,6 +42,7 @@ export interface ProductAnalyticsSummary {
     totalRevenue: number;
     totalOrdersCount: number;
     productsCount: number;
+    sessionsCount: number;
 }
 
 export interface ProductBreakdownDetails {
@@ -62,6 +66,7 @@ export interface ProductAnalyticsResponse {
         startDate: string | null;
         endDate: string | null;
         limit: number | null;
+        granularity: 'session' | 'month';
     };
     summary: ProductAnalyticsSummary;
     topSellingByQuantity: ProductLeaderboardItem[];

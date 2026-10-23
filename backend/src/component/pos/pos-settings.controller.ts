@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Put, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import * as swagger from '@nestjs/swagger';
@@ -12,7 +12,6 @@ import { validateBody } from './pos.utils';
 
 @swagger.ApiTags('pos-settings-backoffice')
 @Controller('backoffice/pos/settings')
-@Roles({ roles: ['ADMIN', 'USER'] })
 @ApiBearerAuth('Authorization')
 @openApiResponse(
   { status: HttpStatus.OK, description: 'OK' },
@@ -23,8 +22,9 @@ export class PosSettingsController {
   constructor(private readonly sessionService: PosSessionService) {}
 
   @Get()
-  @swagger.ApiOperation({ summary: 'Caisse settings (default opening cash and whether cashiers may change it)' })
-  async get(@Res() res: Response) {
+  @Roles({ roles: ['ADMIN', 'USER'] })
+  @swagger.ApiOperation({ summary: 'Get current POS settings (cash float, permissions)' })
+  async getSettings(@Res() res: Response) {
     try {
       const data = await this.sessionService.getSettings();
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
@@ -33,10 +33,29 @@ export class PosSettingsController {
     }
   }
 
+  @Put()
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Update POS settings (admin only)' })
+  async updateSettingsPut(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: UpdatePosSettingsDto,
+  ) {
+    return this.handleUpdate(res, req, body);
+  }
+
   @Post()
   @Roles({ roles: ['ADMIN'] })
-  @swagger.ApiOperation({ summary: 'Set the opening cash used for every new session' })
-  async update(@Res() res: Response, @Req() req: IRequest, @Body() body: UpdatePosSettingsDto) {
+  @swagger.ApiOperation({ summary: 'Update POS settings via POST (admin only)' })
+  async updateSettingsPost(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: UpdatePosSettingsDto,
+  ) {
+    return this.handleUpdate(res, req, body);
+  }
+
+  private async handleUpdate(res: Response, req: IRequest, body: UpdatePosSettingsDto) {
     try {
       const dto = await validateBody(UpdatePosSettingsDto, body, res);
       if (!dto) return;
