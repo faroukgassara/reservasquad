@@ -83,11 +83,8 @@ Under `src/component/`:
 | `reservation` | Bookings; price = hours × room rate; `isPaid` |
 | `dailyIncome` | Day totals + charge/investment lines; auto savings/benefits (20%); ADMIN |
 
-## Adminer
-
-DB UI via Docker on port **8080** — see [../README.md](../README.md#adminer-db-ui) and root `docker-compose.yml`.
-
 ## Further reading
+
 
 - [../README.md](../README.md)
 - [../frontend/README.md](../frontend/README.md)

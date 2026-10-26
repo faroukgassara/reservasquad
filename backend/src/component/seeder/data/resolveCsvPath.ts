@@ -6,7 +6,7 @@ import * as path from 'path';
  * Searches in multiple locations to ensure compatibility across:
  * - Local development (ts-node / src/)
  * - NestJS compiled output (dist/)
- * - Cloud/CI/CD deployment environments (Docker, Render, etc.)
+ * - Cloud/CI/CD deployment environments (Render, etc.)
  */
 export function resolveCsvPath(fileName: string): string {
   const candidates = [
