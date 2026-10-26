@@ -33,7 +33,7 @@ const authMiddleware = withAuth(
   },
 );
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const localeMatch = pathname.match(`^/(${routing.locales.join('|')})(/.*)?$`);

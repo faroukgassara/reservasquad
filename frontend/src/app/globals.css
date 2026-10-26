@@ -1,11 +1,11 @@
-@config "../tailwind.config.ts";
+@config "../tailwind.config.mts";
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ---------------------------------------------------------------------------
  * Design tokens — single source of truth for theming.
- * Light values mirror src/theme/colors.ts exactly; tailwind.config.ts maps
+ * Light values mirror src/theme/colors.ts exactly; tailwind.config.mts maps
  * every shade to var(--ds-*), so flipping .dark on <html> re-skins the app.
  * ------------------------------------------------------------------------- */
 :root {
