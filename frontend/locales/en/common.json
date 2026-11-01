@@ -251,7 +251,13 @@
         "breakdownTitle": "Monthly income breakdown",
         "summaryFor": "Summary for {period}",
         "global": "Global",
-        "summaryGlobal": "Global Summary (All time)"
+        "globalAllTime": "Global (all time)",
+        "monthly": "Monthly",
+        "year": "Year",
+        "month": "Month",
+        "summaryGlobal": "Global Summary (All time)",
+        "dailyChartTitle": "Daily Revenue — {period}",
+        "dailyChartSubtitle": "Day-by-day revenue and collection breakdown"
     },
     "dashboard": {
         "title": "Dashboard",

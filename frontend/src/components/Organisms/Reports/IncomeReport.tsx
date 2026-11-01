@@ -25,7 +25,6 @@ import {
     ChartPanel,
     exportToCsv,
     formatMonthLabel,
-    printReport,
     StatCardGrid,
     type IReportStatCard,
 } from './ReportPanels';
@@ -231,26 +230,66 @@ export default function IncomeReport({
 
     return (
         <Div className="mx-auto max-w-7xl space-y-6">
-            {/* Top Toolbar: Global button + Month/Year selectors + Export Actions */}
+            {/* Top Toolbar: Segmented Toggle (Monthly / Global) + Year/Month dropdowns with labels + Export PDF */}
             <Div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-                {/* Left: Global button and Month/Year dropdowns */}
-                <Div className="flex flex-wrap items-center gap-3">
-                    <Button
-                        id="income-scope-global"
-                        text={tReports('global')}
-                        size={EButtonSize.small}
-                        type={isGlobal ? EButtonType.primary : EButtonType.secondary}
-                        onClick={() => onScopeChange(isGlobal ? 'month' : 'all')}
-                        className={isGlobal ? 'font-semibold' : 'text-gray-700 border-gray-200'}
-                    />
+                {/* Left: Monthly vs Global segmented pill + Year & Month selectors */}
+                <Div className="flex flex-wrap items-center gap-4">
+                    <Div className="inline-flex rounded-xl bg-slate-200/70 p-1 dark:bg-gray-800">
+                        <button
+                            type="button"
+                            id="income-scope-monthly-btn"
+                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
+                                !isGlobal
+                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                            }`}
+                            onClick={() => onScopeChange('month')}
+                        >
+                            {tReports('monthly')}
+                        </button>
+                        <button
+                            type="button"
+                            id="income-scope-global-btn"
+                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
+                                isGlobal
+                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                            }`}
+                            onClick={() => onScopeChange('all')}
+                        >
+                            {tReports('globalAllTime')}
+                        </button>
+                    </Div>
 
-                    {!isGlobal ? (
-                        <Div className="flex flex-wrap items-center gap-2">
-                            <Div className="flex items-center gap-2">
-                                <Label variant={EVariantLabel.caption} color="text-gray-500" className="font-medium hidden sm:inline">
-                                    {tReports('monthSelector')} :
+                    {!isGlobal && (
+                        <Div className="flex flex-wrap items-center gap-3">
+                            <Div className="flex flex-col gap-1">
+                                <Label
+                                    variant={EVariantLabel.caption}
+                                    color="text-gray-600"
+                                    className="text-xs font-medium"
+                                >
+                                    {tReports('year')}
                                 </Label>
-                                <Div className="w-36">
+                                <Div className="w-24 sm:w-28">
+                                    <Dropdown
+                                        size={EInputSize.small}
+                                        options={yearOptions}
+                                        value={String(year)}
+                                        onChange={(val) => onYearChange(Number(val))}
+                                    />
+                                </Div>
+                            </Div>
+
+                            <Div className="flex flex-col gap-1">
+                                <Label
+                                    variant={EVariantLabel.caption}
+                                    color="text-gray-600"
+                                    className="text-xs font-medium"
+                                >
+                                    {tReports('month')}
+                                </Label>
+                                <Div className="w-32 sm:w-36">
                                     <Dropdown
                                         size={EInputSize.small}
                                         options={monthOptions}
@@ -259,53 +298,20 @@ export default function IncomeReport({
                                     />
                                 </Div>
                             </Div>
-
-                            <Div className="w-24">
-                                <Dropdown
-                                    size={EInputSize.small}
-                                    options={yearOptions}
-                                    value={String(year)}
-                                    onChange={(val) => onYearChange(Number(val))}
-                                />
-                            </Div>
                         </Div>
-                    ) : (
-                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="italic font-medium">
-                            {tReports('summaryGlobal')}
-                        </Label>
                     )}
                 </Div>
 
-                {/* Right: Export & Print Actions */}
+                {/* Right: Export PDF Action */}
                 <Div className="flex items-center gap-2">
                     <Button
                         id="export-income-pdf"
                         text={tReports('exportPdf')}
                         size={EButtonSize.small}
                         type={EButtonType.secondary}
-                        icon={{
-                            name: IconComponentsEnum.pdf,
-                            size: ESize.xs,
-                            color: 'text-primary-600',
-                        }}
-                        iconPosition="left"
                         onClick={handleExportPdf}
                         isLoading={isExporting}
                         disabled={isLoading}
-                    />
-
-                    <Button
-                        id="print-income-report"
-                        text={tReports('printReport')}
-                        size={EButtonSize.small}
-                        type={EButtonType.secondary}
-                        icon={{
-                            name: IconComponentsEnum.printer,
-                            size: ESize.xs,
-                            color: 'text-gray-600',
-                        }}
-                        iconPosition="left"
-                        onClick={printReport}
                     />
                 </Div>
             </Div>

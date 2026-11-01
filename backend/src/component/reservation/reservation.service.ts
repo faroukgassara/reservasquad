@@ -682,19 +682,21 @@ export class ReservationService {
           ? { professorId }
           : undefined;
 
+    const now = new Date();
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
     const baseWhere: Prisma.ReservationWhereInput = {
       deletedAt: null,
       status: EReservationStatus.CONFIRMED,
       ...professorFilter,
       ...(query.roomId ? { roomId: query.roomId } : {}),
-      ...(query.from || query.to
-        ? {
-            startAt: {
-              ...(query.from ? { gte: new Date(query.from) } : {}),
-              ...(query.to ? { lt: new Date(query.to) } : {}),
-            },
-          }
-        : {}),
+      startAt: {
+        ...(query.from ? { gte: new Date(query.from) } : {}),
+        ...(query.to
+          ? { lt: new Date(Math.min(new Date(query.to).getTime(), endOfDay.getTime())) }
+          : { lte: endOfDay }),
+      },
     };
 
     const [unpaid, paid] = await Promise.all([
@@ -718,54 +720,59 @@ export class ReservationService {
     };
   }
 
-  async getReservationTrend(months: number) {
+  async getReservationTrend(months?: number) {
     const now = new Date();
-    const count = Math.min(Math.max(Math.trunc(months) || 6, 1), 24);
-    const earliestStart = new Date(now.getFullYear(), now.getMonth() - (count - 1), 1);
-    const latestEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const where: Prisma.ReservationWhereInput = {
+      deletedAt: null,
+      status: EReservationStatus.CONFIRMED,
+      startAt: { lte: endOfDay },
+    };
+    if (months && months > 0) {
+      const earliestStart = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
+      where.startAt = { gte: earliestStart, lte: endOfDay };
+    }
+
+    const reservations = await this.prismaService.reservation.findMany({
+      where,
+      select: { startAt: true, price: true, isPaid: true },
+      orderBy: { startAt: 'asc' },
+    });
 
     const bucketMap = new Map<
       string,
       { year: number; month: number; count: number; revenue: number; paidRevenue: number }
     >();
-    for (let i = 0; i < count; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - (count - 1 - i), 1);
-      const y = d.getFullYear();
-      const m = d.getMonth() + 1;
-      const key = `${y}-${String(m).padStart(2, '0')}`;
-      bucketMap.set(key, { year: y, month: m, count: 0, revenue: 0, paidRevenue: 0 });
-    }
-
-    const reservations = await this.prismaService.reservation.findMany({
-      where: {
-        deletedAt: null,
-        status: EReservationStatus.CONFIRMED,
-        startAt: { gte: earliestStart, lt: latestEnd },
-      },
-      select: { startAt: true, price: true, isPaid: true },
-    });
 
     for (const r of reservations) {
       const d = new Date(r.startAt);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const bucket = bucketMap.get(key);
-      if (bucket) {
-        bucket.count += 1;
-        const priceNum = Number(r.price);
-        bucket.revenue += priceNum;
-        if (r.isPaid) {
-          bucket.paidRevenue += priceNum;
-        }
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const key = `${y}-${String(m).padStart(2, '0')}`;
+      let bucket = bucketMap.get(key);
+      if (!bucket) {
+        bucket = { year: y, month: m, count: 0, revenue: 0, paidRevenue: 0 };
+        bucketMap.set(key, bucket);
+      }
+      bucket.count += 1;
+      const priceNum = Number(r.price);
+      bucket.revenue += priceNum;
+      if (r.isPaid) {
+        bucket.paidRevenue += priceNum;
       }
     }
 
-    return Array.from(bucketMap.values()).map((b) => ({
-      year: b.year,
-      month: b.month,
-      count: b.count,
-      revenue: Math.round(b.revenue * 100) / 100,
-      paidRevenue: Math.round(b.paidRevenue * 100) / 100,
-    }));
+    return Array.from(bucketMap.values())
+      .sort((a, b) => a.year - b.year || a.month - b.month)
+      .map((b) => ({
+        year: b.year,
+        month: b.month,
+        count: b.count,
+        revenue: Math.round(b.revenue * 100) / 100,
+        paidRevenue: Math.round(b.paidRevenue * 100) / 100,
+      }));
   }
 
   async calendar(query: CalendarQueryDto) {
@@ -1240,9 +1247,12 @@ export class ReservationService {
         this.prismaService.reservation.findMany({
           where: {
             deletedAt: null,
-            ...(isGlobal ? {} : { startAt: { gte: startOfMonth, lt: startOfNextMonth } }),
+            ...(isGlobal
+              ? { startAt: { lte: endOfDay } }
+              : { startAt: { gte: startOfMonth, lt: startOfNextMonth, lte: endOfDay } }),
           },
           select: {
+            startAt: true,
             status: true,
             isPaid: true,
             price: true,
@@ -1263,6 +1273,7 @@ export class ReservationService {
             deletedAt: null,
             isPaid: true,
             status: EReservationStatus.CONFIRMED,
+            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),
@@ -1271,6 +1282,7 @@ export class ReservationService {
             deletedAt: null,
             isPaid: false,
             status: EReservationStatus.CONFIRMED,
+            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),
@@ -1278,6 +1290,7 @@ export class ReservationService {
           where: {
             deletedAt: null,
             status: EReservationStatus.CONFIRMED,
+            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),
@@ -1291,6 +1304,7 @@ export class ReservationService {
           where: {
             deletedAt: null,
             status: EReservationStatus.CONFIRMED,
+            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),
@@ -1379,11 +1393,42 @@ export class ReservationService {
       revenue: Math.round(value.revenue * 100) / 100,
     }));
 
+    const daysInMonth = new Date(year, targetMonth, 0).getDate();
+    const dailyBreakdown = Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1;
+      return {
+        day,
+        date: `${year}-${String(targetMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+        count: 0,
+        revenue: 0,
+        paidRevenue: 0,
+      };
+    });
+
+    if (!isGlobal) {
+      for (const r of monthReservations) {
+        if (r.status !== EReservationStatus.CONFIRMED || !r.startAt) continue;
+        const d = new Date(r.startAt);
+        const dayIdx = d.getDate() - 1;
+        if (dayIdx >= 0 && dayIdx < daysInMonth) {
+          const p = Number(r.price);
+          dailyBreakdown[dayIdx].count += 1;
+          dailyBreakdown[dayIdx].revenue += p;
+          if (r.isPaid) dailyBreakdown[dayIdx].paidRevenue += p;
+        }
+      }
+      for (const d of dailyBreakdown) {
+        d.revenue = Math.round(d.revenue * 100) / 100;
+        d.paidRevenue = Math.round(d.paidRevenue * 100) / 100;
+      }
+    }
+
     return {
       rooms,
       professors,
       todayReservations,
       month,
+      dailyBreakdown,
       topRooms,
       dailyTrend,
       totalPaid: Math.round(Number(paidAggregate._sum.price ?? 0) * 100) / 100,

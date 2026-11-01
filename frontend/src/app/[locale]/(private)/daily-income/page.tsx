@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import Button from '@/components/Primitives/Button/Button';
@@ -42,18 +42,20 @@ import {
     type DailyIncomeScope,
     isIncomeLineType,
 } from '@/lib/daily-income-api';
-import Tabs from '@/components/Primitives/Tabs/Tabs';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
 import {
     EBadgeSize,
     EBadgeType,
     EButtonSize,
     EButtonType,
+    EInputSize,
     ESize,
     EToastType,
     EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
+import ProgressBar from '@/components/Primitives/ProgressBar/ProgressBar';
+import { ChartPanel, formatMonthLabel } from '@/components/Organisms/Reports/ReportPanels';
 import type { ELabelColor } from '@/theme/labelColors';
 import { ITableAction, ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
 
@@ -77,7 +79,9 @@ function formatDate(value: string): string {
 
 export default function DailyIncomePage() {
     const t = useTranslations('admin.dailyIncome');
+    const tReports = useTranslations('reports');
     const tCommon = useTranslations('common');
+    const locale = useLocale();
     const router = useRouter();
     const { isAllowed } = useAuthorization();
     const isAdmin = isAllowed({ anyRoles: ['ADMIN'] });
@@ -224,29 +228,36 @@ export default function DailyIncomePage() {
         return map;
     }, [allLines]);
 
-    const yearOptions = useMemo(() => {
-        const current = now.getFullYear();
-        return Array.from({ length: 6 }, (_, i) => {
-            const y = current - 2 + i;
-            return { value: String(y), label: String(y) };
-        });
-    }, [now]);
-
-    const monthOptions = useMemo(() => {
-        const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
-        return keys.map((m) => ({
-            value: String(m),
-            label: t(`months.${m}` as 'months.1'),
-        }));
-    }, [t]);
-
-    const scopeOptions = useMemo(
+    const currentYear = now.getFullYear();
+    const yearOptions = useMemo(
         () => [
-            { value: 'month', label: t('scopeMonth') },
-            { value: 'all', label: t('scopeAll') },
-        ],
-        [t],
+            currentYear - 2,
+            currentYear - 1,
+            currentYear,
+            currentYear + 1,
+        ].map((y) => ({ value: String(y), label: String(y) })),
+        [currentYear],
     );
+
+    const monthOptions = useMemo(
+        () =>
+            Array.from({ length: 12 }, (_, i) => {
+                const m = i + 1;
+                const label = new Date(2000, i, 1).toLocaleDateString(
+                    locale === 'ar' ? 'ar-TN' : locale === 'en' ? 'en-US' : 'fr-FR',
+                    { month: 'long' },
+                );
+                return {
+                    value: String(m),
+                    label: label.charAt(0).toUpperCase() + label.slice(1),
+                };
+            }),
+        [locale],
+    );
+
+    const currentPeriodLabel = isGlobal
+        ? tReports('global')
+        : formatMonthLabel(year, month, locale);
 
     const lineFilterOptions = useMemo(
         () => [
@@ -581,6 +592,23 @@ export default function DailyIncomePage() {
         ? allSummaryCards.filter((card) => card.key !== 'previousMonthRest')
         : allSummaryCards;
 
+    const totalExpenses = (summary?.totalCharges ?? 0) + (summary?.totalInvestments ?? 0);
+    const totalIncome = summary?.totalIncome ?? 0;
+    const netBalance = summary?.netBalance ?? 0;
+
+    const expensePercent =
+        totalIncome > 0 ? Math.min(100, Math.round((totalExpenses / totalIncome) * 100)) : 0;
+    const savingsPercent =
+        totalIncome > 0
+            ? Math.min(100, Math.round(((summary?.totalSavings ?? 0) / totalIncome) * 100))
+            : 0;
+    const benefitsPercent =
+        totalIncome > 0
+            ? Math.min(100, Math.round(((summary?.totalBenefits ?? 0) / totalIncome) * 100))
+            : 0;
+    const netMarginPercent =
+        totalIncome > 0 ? Math.round((netBalance / totalIncome) * 100) : 0;
+
     const handleExportPdf = useCallback(async () => {
         setIsExporting(true);
         try {
@@ -592,12 +620,7 @@ export default function DailyIncomePage() {
                 summary,
                 labels: {
                     title: t('exportTitle'),
-                    period: isGlobal
-                        ? t('scopeAll')
-                        : t('exportPeriod', {
-                              month: t(`months.${month}` as 'months.1'),
-                              year,
-                          }),
+                    period: currentPeriodLabel,
                     totalIncome: t('totalIncome'),
                     totalCharges: t('totalCharges'),
                     totalInvestments: t('totalInvestments'),
@@ -712,50 +735,111 @@ export default function DailyIncomePage() {
                 subTitle={t('subtitle')}
                 mainSection={
                     <Div className="min-h-full space-y-6">
-                        <Div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                            <Div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
-                                <Tabs
-                                    variant="pills"
-                                    options={scopeOptions}
-                                    value={scope}
-                                    onChange={(value) => {
-                                        if (value === 'month' || value === 'all') setScope(value);
-                                    }}
-                                    className="w-fit"
-                                />
-                                {isGlobal ? null : (
-                                    <>
-                                        <Div className="w-full sm:w-36">
-                                            <Dropdown
-                                                label={t('year')}
-                                                options={yearOptions}
-                                                value={String(year)}
-                                                onChange={(value) => {
-                                                    if (typeof value === 'string') setYear(Number(value));
-                                                }}
-                                            />
+                        {/* Top Toolbar: Segmented Toggle (Monthly / Global) + Year/Month dropdowns with labels + Export PDF */}
+                        <Div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+                            {/* Left: Monthly vs Global segmented pill + Year & Month selectors */}
+                            <Div className="flex flex-wrap items-center gap-4">
+                                <Div className="inline-flex rounded-xl bg-slate-200/70 p-1 dark:bg-gray-800">
+                                    <button
+                                        type="button"
+                                        id="daily-income-scope-monthly-btn"
+                                        className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
+                                            !isGlobal
+                                                ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
+                                                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                                        }`}
+                                        onClick={() => setScope('month')}
+                                    >
+                                        {tReports('monthly')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        id="daily-income-scope-global-btn"
+                                        className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
+                                            isGlobal
+                                                ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
+                                                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                                        }`}
+                                        onClick={() => setScope('all')}
+                                    >
+                                        {tReports('globalAllTime')}
+                                    </button>
+                                </Div>
+
+                                {!isGlobal && (
+                                    <Div className="flex flex-wrap items-center gap-3">
+                                        <Div className="flex flex-col gap-1">
+                                            <Label
+                                                variant={EVariantLabel.caption}
+                                                color="text-gray-600"
+                                                className="text-xs font-medium"
+                                            >
+                                                {tReports('year')}
+                                            </Label>
+                                            <Div className="w-24 sm:w-28">
+                                                <Dropdown
+                                                    size={EInputSize.small}
+                                                    options={yearOptions}
+                                                    value={String(year)}
+                                                    onChange={(val) => {
+                                                        if (typeof val === 'string') setYear(Number(val));
+                                                    }}
+                                                />
+                                            </Div>
                                         </Div>
-                                        <Div className="w-full sm:w-44">
-                                            <Dropdown
-                                                label={t('month')}
-                                                options={monthOptions}
-                                                value={String(month)}
-                                                onChange={(value) => {
-                                                    if (typeof value === 'string') setMonth(Number(value));
-                                                }}
-                                            />
+
+                                        <Div className="flex flex-col gap-1">
+                                            <Label
+                                                variant={EVariantLabel.caption}
+                                                color="text-gray-600"
+                                                className="text-xs font-medium"
+                                            >
+                                                {tReports('month')}
+                                            </Label>
+                                            <Div className="w-32 sm:w-36">
+                                                <Dropdown
+                                                    size={EInputSize.small}
+                                                    options={monthOptions}
+                                                    value={String(month)}
+                                                    onChange={(val) => {
+                                                        if (typeof val === 'string') setMonth(Number(val));
+                                                    }}
+                                                />
+                                            </Div>
                                         </Div>
-                                    </>
+                                    </Div>
                                 )}
                             </Div>
-                            <Button
-                                id="daily-income-export-pdf"
-                                type={EButtonType.secondary}
-                                size={EButtonSize.medium}
-                                text={t('exportPdf')}
-                                isLoading={isExporting}
-                                onClick={handleExportPdf}
-                            />
+
+                            {/* Right: Export PDF Action */}
+                            <Div className="flex items-center gap-2">
+                                <Button
+                                    id="daily-income-export-pdf"
+                                    text={tReports('exportPdf')}
+                                    size={EButtonSize.small}
+                                    type={EButtonType.secondary}
+                                    onClick={handleExportPdf}
+                                    isLoading={isExporting}
+                                    disabled={summaryLoading || daysLoading || linesLoading}
+                                />
+                            </Div>
+                        </Div>
+
+                        {/* Selected Period Badge */}
+                        <Div className="flex items-center justify-between">
+                            <Div className="flex items-center gap-2">
+                                <Label variant={EVariantLabel.body} color="text-gray-800" className="font-semibold">
+                                    {isGlobal
+                                        ? tReports('summaryGlobal')
+                                        : tReports('summaryFor', { period: currentPeriodLabel })}
+                                </Label>
+                                <Badge
+                                    id="daily-income-net-margin-badge"
+                                    type={netMarginPercent >= 0 ? EBadgeType.success : EBadgeType.error}
+                                    text={`${netMarginPercent}% ${tReports('netMargin')}`}
+                                    size={EBadgeSize.medium}
+                                />
+                            </Div>
                         </Div>
 
                         <Div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -772,6 +856,61 @@ export default function DailyIncomePage() {
                                 </Div>
                             ))}
                         </Div>
+
+                        {/* Monthly Allocation Breakdown Panel */}
+                        <ChartPanel title={tReports('breakdownTitle')}>
+                            <Div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <Div className="space-y-1.5 rounded-xl border border-gray-100 bg-gray-50/70 p-3.5">
+                                    <Div className="flex items-center justify-between">
+                                        <Label variant={EVariantLabel.caption} color="text-gray-600" className="font-medium">
+                                            {tReports('totalExpenses')}
+                                        </Label>
+                                        <span className="text-xs font-bold text-warning-700">{expensePercent}%</span>
+                                    </Div>
+                                    <ProgressBar value={expensePercent} showPercent={false} className="h-1.5" />
+                                    <span className="text-xs text-gray-500">{formatMoney(totalExpenses)}</span>
+                                </Div>
+
+                                <Div className="space-y-1.5 rounded-xl border border-gray-100 bg-gray-50/70 p-3.5">
+                                    <Div className="flex items-center justify-between">
+                                        <Label variant={EVariantLabel.caption} color="text-gray-600" className="font-medium">
+                                            {t('totalSavings')} (20%)
+                                        </Label>
+                                        <span className="text-xs font-bold text-success-700">{savingsPercent}%</span>
+                                    </Div>
+                                    <ProgressBar value={savingsPercent} showPercent={false} className="h-1.5" />
+                                    <span className="text-xs text-gray-500">{formatMoney(summary?.totalSavings ?? 0)}</span>
+                                </Div>
+
+                                <Div className="space-y-1.5 rounded-xl border border-gray-100 bg-gray-50/70 p-3.5">
+                                    <Div className="flex items-center justify-between">
+                                        <Label variant={EVariantLabel.caption} color="text-gray-600" className="font-medium">
+                                            {t('totalBenefits')} (20%)
+                                        </Label>
+                                        <span className="text-xs font-bold text-accent-700">{benefitsPercent}%</span>
+                                    </Div>
+                                    <ProgressBar value={benefitsPercent} showPercent={false} className="h-1.5" />
+                                    <span className="text-xs text-gray-500">{formatMoney(summary?.totalBenefits ?? 0)}</span>
+                                </Div>
+
+                                <Div className="space-y-1.5 rounded-xl border border-gray-100 bg-gray-50/70 p-3.5">
+                                    <Div className="flex items-center justify-between">
+                                        <Label variant={EVariantLabel.caption} color="text-gray-600" className="font-medium">
+                                            {tReports('netMargin')}
+                                        </Label>
+                                        <span className={`text-xs font-bold ${netMarginPercent >= 0 ? 'text-primary-700' : 'text-danger-700'}`}>
+                                            {netMarginPercent}%
+                                        </span>
+                                    </Div>
+                                    <ProgressBar
+                                        value={Math.max(0, netMarginPercent)}
+                                        showPercent={false}
+                                        className="h-1.5"
+                                    />
+                                    <span className="text-xs text-gray-500">{formatMoney(netBalance)}</span>
+                                </Div>
+                            </Div>
+                        </ChartPanel>
 
                         <Div className="space-y-3">
                             <Div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -22,7 +22,6 @@ export const Routes = {
     },
     DailyIncome: {
         index: '/daily-income',
-        reports: '/daily-income/reports',
     },
     Pos: {
         index: '/caisse',

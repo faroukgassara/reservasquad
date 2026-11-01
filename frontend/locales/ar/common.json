@@ -251,7 +251,13 @@
         "breakdownTitle": "تفصيل مداخيل الشهر",
         "summaryFor": "ملخص شهر {period}",
         "global": "إجمالي (Global)",
-        "summaryGlobal": "الملخص الإجمالي (كل الفترات)"
+        "globalAllTime": "إجمالي (كل الفترات)",
+        "monthly": "شهري",
+        "year": "السنة",
+        "month": "الشهر",
+        "summaryGlobal": "الملخص الإجمالي (كل الفترات)",
+        "dailyChartTitle": "الإيرادات اليومية — {period}",
+        "dailyChartSubtitle": "التوزيع اليومي للإيرادات والمبالغ المحصلة"
     },
     "dashboard": {
         "title": "لوحة التحكم",

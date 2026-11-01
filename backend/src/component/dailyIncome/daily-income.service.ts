@@ -131,7 +131,7 @@ export class DailyIncomeService {
     return created;
   }
 
-  /** Each closed register session gets its own entry, alongside the day's manual entry. */
+  /** Each closed register session gets its own entry, dated on its closing day, alongside the day's manual entry. */
   async createForSession(
     tx: Prisma.TransactionClient,
     posSessionId: string,

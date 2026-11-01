@@ -96,6 +96,21 @@ function parseBoundDate(input?: string, bound?: 'start' | 'end'): Date | undefin
   return d;
 }
 
+/** 'YYYY-MM-DD' filter bound on the Tunisian calendar, the same day a session's daily income entry gets. */
+function toTunisDayKey(input?: string): string | undefined {
+  const trimmed = input?.trim();
+  if (!trimmed) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Tunis',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
 function formatMonthLabelFromKey(monthKey: string): string {
   const [yearStr, monthStr] = monthKey.split('-');
   const year = Number(yearStr);
@@ -157,10 +172,13 @@ export class ProductAnalyticsService {
       }
     }
 
-    // Every figure comes from closed Caisse sessions and is dated by the session's closing time.
+    // Every figure comes from closed Caisse sessions, dated on the Tunisian day they closed (like their daily income entry).
+    const closeDay = Prisma.sql`(ps."closedAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Africa/Tunis')`;
+    const startDay = toTunisDayKey(query.startDate);
+    const endDay = toTunisDayKey(query.endDate);
     const sessionWhereClauses: Prisma.Sql[] = [Prisma.sql`ps."status" = 'CLOSED'`];
-    if (startDate) sessionWhereClauses.push(Prisma.sql`ps."closedAt" >= ${startDate}`);
-    if (endDate) sessionWhereClauses.push(Prisma.sql`ps."closedAt" <= ${endDate}`);
+    if (startDay) sessionWhereClauses.push(Prisma.sql`${closeDay}::date >= ${startDay}::date`);
+    if (endDay) sessionWhereClauses.push(Prisma.sql`${closeDay}::date <= ${endDay}::date`);
 
     const lineWhereClauses: Prisma.Sql[] = [
       ...sessionWhereClauses,
@@ -183,7 +201,7 @@ export class ProductAnalyticsService {
           c."name" AS "categoryName",
           pol."quantity"::numeric AS "quantity",
           pol."total"::numeric AS "revenue",
-          ps."closedAt" AS "saleDate",
+          ${closeDay} AS "saleDate",
           ps."id" AS "sessionId",
           po."id" AS "orderId"
         FROM "PosOrderLine" pol
@@ -202,7 +220,8 @@ export class ProductAnalyticsService {
           ps."id" AS "sessionId",
           ps."number" AS "sessionNumber",
           ps."openedAt" AS "openedAt",
-          ps."closedAt" AS "saleDate",
+          ps."closedAt" AS "closedAt",
+          ${closeDay} AS "saleDate",
           (
             COALESCE((
               SELECT SUM(pp."amount")
@@ -282,11 +301,12 @@ export class ProductAnalyticsService {
         ${periodKey} AS "period",
         MIN("sessionNumber")::int AS "sessionNumber",
         MIN("openedAt") AS "openedAt",
-        MAX("saleDate") AS "closedAt",
+        MAX("closedAt") AS "closedAt",
+        TO_CHAR(MAX("saleDate"), 'YYYY-MM-DD') AS "closeDay",
         COALESCE(SUM("revenue"), 0)::numeric AS "totalRevenue"
       FROM session_revenue
       GROUP BY 1
-      ORDER BY MAX("saleDate") ASC
+      ORDER BY MAX("closedAt") ASC
     `;
 
     // Execute queries in parallel
@@ -328,6 +348,7 @@ export class ProductAnalyticsService {
           sessionNumber: number;
           openedAt: Date;
           closedAt: Date;
+          closeDay: string;
           totalRevenue: number | string | null;
         }>
       >(sessionTrendsQuery),
@@ -415,7 +436,7 @@ export class ProductAnalyticsService {
       ? sessionTrendRows.map((row) => ({
           ...trendItem(
             row.period,
-            `#${row.sessionNumber} · ${formatDayLabelFromKey(new Date(row.closedAt).toISOString().slice(0, 10))}`,
+            `#${row.sessionNumber} · ${formatDayLabelFromKey(row.closeDay)}`,
           ),
           sessionNumber: row.sessionNumber,
           openedAt: new Date(row.openedAt).toISOString(),

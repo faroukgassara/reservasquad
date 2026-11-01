@@ -159,7 +159,6 @@ export const NAV_MODULES: INavModule[] = [
                 href: Routes.DailyIncome.index,
                 exact: true,
             },
-            { id: 'income-reports', icon: IconComponentsEnum.layers, labelKey: 'reports', href: Routes.DailyIncome.reports },
         ],
     },
     {

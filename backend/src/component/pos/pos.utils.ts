@@ -22,6 +22,17 @@ export function round3(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
 
+/** Tunisian calendar day of an instant, as a UTC-midnight Date (the shape stored in @db.Date columns). */
+export function tunisDateOnly(value: Date): Date {
+  const day = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Tunis',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(value);
+  return new Date(`${day}T00:00:00.000Z`);
+}
+
 export function sumBy<T>(items: T[], pick: (item: T) => unknown): number {
   return round3(items.reduce((sum, item) => sum + Number(pick(item) ?? 0), 0));
 }

@@ -251,7 +251,13 @@
         "breakdownTitle": "Ventilation des recettes du mois",
         "summaryFor": "Bilan de {period}",
         "global": "Global",
-        "summaryGlobal": "Bilan Global (Toutes les recettes)"
+        "globalAllTime": "Global (all time)",
+        "monthly": "Mensuel",
+        "year": "Année",
+        "month": "Mois",
+        "summaryGlobal": "Bilan Global (Toutes les recettes)",
+        "dailyChartTitle": "Recettes journalières — {period}",
+        "dailyChartSubtitle": "Évolution quotidienne du chiffre d'affaires et des encaissements"
     },
     "dashboard": {
         "title": "Dashboard",

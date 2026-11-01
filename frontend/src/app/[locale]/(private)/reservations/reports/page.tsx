@@ -36,8 +36,8 @@ export default function ReservationReportsPage() {
     });
 
     const { data: trend, isLoading: trendLoading } = useQuery({
-        queryKey: ['reservation-trend', 12],
-        queryFn: () => fetchReservationTrend({ months: 12 }),
+        queryKey: ['reservation-trend'],
+        queryFn: () => fetchReservationTrend({}),
         enabled: isAdmin,
     });
 

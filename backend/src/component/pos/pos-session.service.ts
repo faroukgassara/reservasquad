@@ -6,7 +6,7 @@ import { PaginationData } from 'src/common/pagination/types';
 import { ClosePosSessionDto, OpenPosSessionDto, UpdatePosSettingsDto } from 'src/dto/pos/posSession.dto';
 import { AuditService } from '../audit/audit.service';
 import { DailyIncomeService } from '../dailyIncome/daily-income.service';
-import { POS_AUDIT, round3, sumBy } from './pos.utils';
+import { POS_AUDIT, round3, sumBy, tunisDateOnly } from './pos.utils';
 import { formatAuditMoney } from 'src/common/utils/audit-format.util';
 
 const POS_SETTINGS_ID = 'default';
@@ -243,13 +243,12 @@ export class PosSessionService {
         },
         include: sessionInclude,
       });
-      const opened = session.openedAt;
       const dailyIncome =
         shouldSyncDailyIncome && revenue > 0
           ? await this.dailyIncomeService.createForSession(
               tx,
               session.id,
-              new Date(Date.UTC(opened.getFullYear(), opened.getMonth(), opened.getDate())),
+              tunisDateOnly(session.closedAt ?? new Date()),
               revenue,
             )
           : null;

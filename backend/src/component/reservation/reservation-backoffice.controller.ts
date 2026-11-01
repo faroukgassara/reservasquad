@@ -155,7 +155,7 @@ export class ReservationBackofficeController {
   async trend(@Res() res: Response, @Query('months') months?: string) {
     try {
       const data = await this.reservationService.getReservationTrend(
-        months ? Number(months) : 6,
+        months ? Number(months) : undefined,
       );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {

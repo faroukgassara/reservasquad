@@ -272,15 +272,21 @@ export class ProfessorService {
   }
 
   async getRanking(query: ProfessorRankingQueryDto) {
+    const now = new Date();
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
     const startAt: Prisma.DateTimeFilter = {
       ...(query.from && { gte: new Date(query.from) }),
-      ...(query.to && { lt: new Date(query.to) }),
+      ...(query.to
+        ? { lt: new Date(Math.min(new Date(query.to).getTime(), endOfDay.getTime())) }
+        : { lte: endOfDay }),
     };
     const baseWhere: Prisma.ReservationWhereInput = {
       deletedAt: null,
       professorId: { not: null },
       professor: { deletedAt: null },
-      ...((query.from || query.to) && { startAt }),
+      startAt,
     };
 
     const [reservations, cancelledGroups, professors] = await Promise.all([

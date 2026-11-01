@@ -62,11 +62,12 @@ function formatDateDdMmYyyy(iso: string): string {
 function formatAmount(value: number | string): string {
     const amount = typeof value === 'number' ? value : Number(value);
     if (Number.isNaN(amount)) return String(value);
-    return new Intl.NumberFormat('fr-TN', {
+    const formatted = new Intl.NumberFormat('fr-TN', {
         style: 'currency',
         currency: 'TND',
         minimumFractionDigits: 2,
     }).format(amount);
+    return formatted.replace(/[\u202F\u00A0\u1680\u2000-\u200b\u202f\u205f\u3000]/g, ' ');
 }
 
 function lastTableY(doc: DocWithAutoTable, fallback: number): number {

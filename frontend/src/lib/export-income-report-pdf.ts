@@ -2,6 +2,12 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatMoney, type DailyIncomeSummary } from '@/lib/daily-income-api';
 
+function formatMoneyPdf(value: number | string): string {
+    const formatted = formatMoney(value);
+    // Replace narrow no-break space (\u202F) and other unicode spaces that jsPDF Helvetica misrenders as '/'
+    return formatted.replace(/[\u202F\u00A0\u1680\u2000-\u200b\u202f\u205f\u3000]/g, ' ');
+}
+
 export interface IncomeBreakdownRow {
     label: string;
     income: number;
@@ -129,21 +135,21 @@ function drawSummaryCards(
     const totalCharges = (summary?.totalCharges ?? 0) + (summary?.totalInvestments ?? 0);
 
     const items: { label: string; value: string; highlight?: boolean }[] = [
-        { label: labels.totalIncome, value: formatMoney(summary?.totalIncome ?? 0) },
-        { label: labels.totalCharges, value: formatMoney(totalCharges) },
-        { label: labels.netBalance, value: formatMoney(summary?.netBalance ?? 0), highlight: true },
-        { label: labels.totalSavings, value: formatMoney(summary?.totalSavings ?? 0) },
-        { label: labels.totalBenefits, value: formatMoney(summary?.totalBenefits ?? 0) },
+        { label: labels.totalIncome, value: formatMoneyPdf(summary?.totalIncome ?? 0) },
+        { label: labels.totalCharges, value: formatMoneyPdf(totalCharges) },
+        { label: labels.netBalance, value: formatMoneyPdf(summary?.netBalance ?? 0), highlight: true },
+        { label: labels.totalSavings, value: formatMoneyPdf(summary?.totalSavings ?? 0) },
+        { label: labels.totalBenefits, value: formatMoneyPdf(summary?.totalBenefits ?? 0) },
         {
             label: labels.totalSavingsForCharges,
-            value: formatMoney(summary?.totalSavingsForCharges ?? 0),
+            value: formatMoneyPdf(summary?.totalSavingsForCharges ?? 0),
         },
     ];
 
     if (!isGlobal && labels.previousMonthRest) {
         items.push({
             label: labels.previousMonthRest,
-            value: formatMoney(summary?.previousMonthRest ?? 0),
+            value: formatMoneyPdf(summary?.previousMonthRest ?? 0),
         });
     }
 
@@ -198,11 +204,11 @@ export function exportIncomeReportPdf({
     const bodyRows = breakdown.length > 0
         ? breakdown.map((row) => [
             row.label,
-            formatMoney(row.income),
-            formatMoney(row.expenses),
-            formatMoney(row.savings),
-            formatMoney(row.benefits),
-            formatMoney(row.netBalance),
+            formatMoneyPdf(row.income),
+            formatMoneyPdf(row.expenses),
+            formatMoneyPdf(row.savings),
+            formatMoneyPdf(row.benefits),
+            formatMoneyPdf(row.netBalance),
         ])
         : [[labels.empty, '—', '—', '—', '—', '—']];
 
@@ -222,11 +228,11 @@ export function exportIncomeReportPdf({
         ? [
             [
                 labels.totalRow,
-                formatMoney(totals.income),
-                formatMoney(totals.expenses),
-                formatMoney(totals.savings),
-                formatMoney(totals.benefits),
-                formatMoney(totals.netBalance),
+                formatMoneyPdf(totals.income),
+                formatMoneyPdf(totals.expenses),
+                formatMoneyPdf(totals.savings),
+                formatMoneyPdf(totals.benefits),
+                formatMoneyPdf(totals.netBalance),
             ],
         ]
         : undefined;

@@ -26,25 +26,24 @@ import {
     type ReservationMonthlyTrendPoint,
     type ReservationStatsScope,
 } from '@/lib/reservation-api';
-import { Routes } from '@/lib/routes';
+import type { MonthlySalesTrendItem } from '@/lib/analytics-api';
 import {
     ChartLoader,
     ChartPanel,
     EmptyChartState,
     exportToCsv,
     formatMonthLabel,
-    printReport,
     StatCardGrid,
     type IReportStatCard,
 } from './ReportPanels';
 
-const ReservationRevenueChart = dynamic(
-    () => import('@/components/Organisms/Dashboard/DashboardCharts').then((m) => m.ReservationRevenueChart),
+const ReservationDailyMonthChart = dynamic(
+    () => import('./ReservationDailyMonthChart'),
     { ssr: false, loading: () => <ChartLoader /> },
 );
 
-const ReservationCountChart = dynamic(
-    () => import('@/components/Organisms/Dashboard/DashboardCharts').then((m) => m.ReservationCountChart),
+const AnnualComparisonView = dynamic(
+    () => import('@/components/Organisms/Pos/AnnualComparisonView'),
     { ssr: false, loading: () => <ChartLoader /> },
 );
 
@@ -52,63 +51,73 @@ function TopRoomsList({
     rooms,
     emptyLabel,
     roomLabel,
-    monthLabel,
-    totalLabel,
+    periodLabel,
     shareLabel,
     searchTerm,
+    isGlobal = false,
 }: Readonly<{
     rooms: DashboardRoomBreakdown[];
     emptyLabel: string;
     roomLabel: string;
-    monthLabel: string;
-    totalLabel: string;
+    periodLabel: string;
     shareLabel: string;
     searchTerm: string;
+    isGlobal?: boolean;
 }>) {
-    const totalAllRoomsRevenue = useMemo(
-        () => rooms.reduce((acc, r) => acc + (r.totalRevenue || 0), 0) || 1,
-        [rooms],
+    const sortedRooms = useMemo(() => {
+        const copy = [...rooms];
+        return copy.sort((a, b) =>
+            isGlobal
+                ? b.totalRevenue - a.totalRevenue || a.roomName.localeCompare(b.roomName)
+                : b.monthRevenue - a.monthRevenue || a.roomName.localeCompare(b.roomName),
+        );
+    }, [rooms, isGlobal]);
+
+    const totalRelevantRevenue = useMemo(
+        () =>
+            sortedRooms.reduce(
+                (acc, r) => acc + (isGlobal ? r.totalRevenue : r.monthRevenue || 0),
+                0,
+            ) || 1,
+        [sortedRooms, isGlobal],
     );
 
     const filteredRooms = useMemo(() => {
-        if (!searchTerm.trim()) return rooms;
+        if (!searchTerm.trim()) return sortedRooms;
         const lower = searchTerm.toLowerCase();
-        return rooms.filter((r) => r.roomName.toLowerCase().includes(lower));
-    }, [rooms, searchTerm]);
+        return sortedRooms.filter((r) => r.roomName.toLowerCase().includes(lower));
+    }, [sortedRooms, searchTerm]);
 
     if (filteredRooms.length === 0) return <EmptyChartState label={emptyLabel} />;
 
     return (
-        <Div className="overflow-hidden rounded-xl border border-gray-100 bg-white">
-            <Div className="grid grid-cols-[minmax(0,1.2fr)_6.5rem_6.5rem_minmax(0,1fr)] items-center gap-x-4 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
+        <Div className="overflow-hidden rounded-xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+            <Div className="grid grid-cols-[minmax(0,1.2fr)_8rem_minmax(0,1fr)] items-center gap-x-4 border-b border-gray-100 bg-gray-50 px-4 py-2.5 dark:border-gray-800 dark:bg-gray-800/50">
                 <Label variant={EVariantLabel.caption} color="text-gray-500" className="font-medium">
                     {roomLabel}
                 </Label>
                 <Label variant={EVariantLabel.caption} color="text-gray-500" className="text-end font-medium">
-                    {monthLabel}
-                </Label>
-                <Label variant={EVariantLabel.caption} color="text-gray-500" className="text-end font-medium">
-                    {totalLabel}
+                    {periodLabel}
                 </Label>
                 <Label variant={EVariantLabel.caption} color="text-gray-500" className="hidden sm:block font-medium">
                     {shareLabel}
                 </Label>
             </Div>
-            <Div className="divide-y divide-gray-100">
+            <Div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {filteredRooms.map((room, index) => {
-                    const sharePercent = Math.min(
-                        100,
-                        Math.max(0, Math.round((room.totalRevenue / totalAllRoomsRevenue) * 100)),
-                    );
-                    const isTop = index === 0 && room.totalRevenue > 0;
+                    const revenueValue = isGlobal ? room.totalRevenue : room.monthRevenue;
+                    const sharePercent = totalRelevantRevenue > 0
+                        ? Math.min(100, Math.max(0, Math.round((revenueValue / totalRelevantRevenue) * 100)))
+                        : 0;
+                    const isTop = index === 0 && revenueValue > 0;
 
                     return (
                         <Div
                             key={room.roomId}
-                            className="grid grid-cols-[minmax(0,1.2fr)_6.5rem_6.5rem_minmax(0,1fr)] items-center gap-x-4 px-4 py-3 transition-colors hover:bg-gray-50/80"
+                            className="grid grid-cols-[minmax(0,1.2fr)_8rem_minmax(0,1fr)] items-center gap-x-4 px-4 py-3 transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40"
                         >
                             <Div className="flex items-center gap-2 truncate">
-                                <Label variant={EVariantLabel.bodySmall} color="text-gray-800" className="truncate font-medium">
+                                <Label variant={EVariantLabel.bodySmall} color="text-gray-800" className="truncate font-medium dark:text-gray-200">
                                     {room.roomName}
                                 </Label>
                                 {isTop && (
@@ -124,12 +133,9 @@ function TopRoomsList({
                             <Label
                                 variant={EVariantLabel.bodySmall}
                                 color="text-primary-700"
-                                className="text-end font-semibold tabular-nums"
+                                className="text-end font-semibold tabular-nums dark:text-primary-400"
                             >
-                                {formatMoney(room.monthRevenue)}
-                            </Label>
-                            <Label variant={EVariantLabel.caption} color="text-gray-600" className="text-end tabular-nums">
-                                {formatMoney(room.totalRevenue)}
+                                {formatMoney(revenueValue)}
                             </Label>
                             <Div className="hidden sm:block">
                                 <ProgressBar value={sharePercent} showPercent className="text-xs" />
@@ -207,6 +213,20 @@ export default function ReservationReport({
             })),
         [trend, locale],
     );
+
+    const annualTrendData: MonthlySalesTrendItem[] = useMemo(() => {
+        return (trend ?? []).map((point) => {
+            const monthStr = String(point.month).padStart(2, '0');
+            return {
+                month: `${point.year}-${monthStr}`,
+                label: `${point.year}-${monthStr}`,
+                totalRevenue: point.revenue,
+                unitsSold: point.count,
+                ordersCount: point.count,
+            };
+        });
+    }, [trend]);
+
     const hasTrend = (trend ?? []).some((point) => point.count > 0);
 
     // Insight metrics
@@ -214,9 +234,6 @@ export default function ReservationReport({
     const monthPaid = stats?.month.paidRevenue ?? 0;
     const collectionRate =
         monthRevenue > 0 ? Math.min(100, Math.round((monthPaid / monthRevenue) * 100)) : 100;
-    const confirmedCount = stats?.month.confirmed ?? 0;
-    const avgPerReservation =
-        confirmedCount > 0 ? Math.round(monthRevenue / confirmedCount) : 0;
 
     const cards: IReportStatCard[] = [
         {
@@ -243,53 +260,26 @@ export default function ReservationReport({
             label: isGlobal ? t('kpiTotalUnpaid') : t('kpiUnpaidMonth'),
             value: formatMoney(stats?.month.unpaidRevenue ?? 0),
         },
-        {
-            key: 'avgRevenue',
-            icon: IconComponentsEnum.home,
-            iconBg: 'bg-primary-50',
-            iconColor: 'text-primary-600',
-            label: tReports('avgRevenuePerReservation'),
-            value: formatMoney(avgPerReservation),
-        },
-        {
-            key: 'confirmed',
-            icon: IconComponentsEnum.userCheck,
-            iconBg: 'bg-primary-50',
-            iconColor: 'text-primary-600',
-            label: tReports('confirmedReservations'),
-            value: String(stats?.month.confirmed ?? 0),
-        },
-        isGlobal
-            ? {
-                  key: 'cancelled',
-                  icon: IconComponentsEnum.close,
-                  iconBg: 'bg-danger-50',
-                  iconColor: 'text-danger-600',
-                  label: tReports('cancelledReservations'),
-                  value: String(stats?.month.cancelled ?? 0),
-              }
-            : {
-                  key: 'totalRevenue',
-                  icon: IconComponentsEnum.layers,
-                  iconBg: 'bg-accent-50',
-                  iconColor: 'text-accent-600',
-                  label: t('kpiTotalRevenue'),
-                  value: formatMoney(stats?.totalRevenue ?? 0),
-              },
     ];
 
     const [isExporting, setIsExporting] = useState(false);
 
     const roomBreakdown = useMemo(() => {
         if (!stats?.topRooms?.length) return [];
-        const total = stats.topRooms.reduce((acc, r) => acc + (r.totalRevenue || 0), 0) || 1;
-        return stats.topRooms.map((r) => ({
-            name: r.roomName,
-            monthRevenue: r.monthRevenue,
-            totalRevenue: r.totalRevenue,
-            share: Math.min(100, Math.round(((r.totalRevenue || 0) / total) * 100)),
-        }));
-    }, [stats]);
+        const total = stats.topRooms.reduce(
+            (acc, r) => acc + (isGlobal ? (r.totalRevenue || 0) : (r.monthRevenue || 0)),
+            0,
+        ) || 1;
+        return stats.topRooms.map((r) => {
+            const rev = isGlobal ? r.totalRevenue : r.monthRevenue;
+            return {
+                name: r.roomName,
+                monthRevenue: r.monthRevenue,
+                totalRevenue: r.totalRevenue,
+                share: Math.min(100, Math.round(((rev || 0) / total) * 100)),
+            };
+        });
+    }, [stats, isGlobal]);
 
     const handleExportPdf = async () => {
         setIsExporting(true);
@@ -339,40 +329,68 @@ export default function ReservationReport({
         }
     };
 
-    const emptyState = (
-        <EmptyChartState
-            label={tCommon('empty')}
-            actionLabel={t('quickNewReservation')}
-            actionHref={Routes.Reservations.index}
-        />
-    );
-
     return (
         <Div className="mx-auto max-w-7xl space-y-6">
-            {/* Top Toolbar: Global button + Month/Year selectors + Export Actions */}
+            {/* Top Toolbar: Segmented Toggle (Monthly / Global) + Year/Month dropdowns with labels + Export PDF */}
             <Div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-                {/* Left: Global button and Month/Year dropdowns */}
-                <Div className="flex flex-wrap items-center gap-3">
-                    <Button
-                        id="reservations-scope-global"
-                        text={tReports('global')}
-                        size={EButtonSize.small}
-                        type={isGlobal ? EButtonType.primary : EButtonType.secondary}
-                        onClick={() => onScopeChange(isGlobal ? 'month' : 'all')}
-                        className={isGlobal ? 'font-semibold' : 'text-gray-700 border-gray-200'}
-                    />
+                {/* Left: Monthly vs Global segmented pill + Year & Month selectors */}
+                <Div className="flex flex-wrap items-center gap-4">
+                    <Div className="inline-flex rounded-xl bg-slate-200/70 p-1 dark:bg-gray-800">
+                        <button
+                            type="button"
+                            id="scope-monthly-btn"
+                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
+                                !isGlobal
+                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                            }`}
+                            onClick={() => onScopeChange('month')}
+                        >
+                            {tReports('monthly')}
+                        </button>
+                        <button
+                            type="button"
+                            id="scope-global-btn"
+                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
+                                isGlobal
+                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
+                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                            }`}
+                            onClick={() => onScopeChange('all')}
+                        >
+                            {tReports('globalAllTime')}
+                        </button>
+                    </Div>
 
-                    {!isGlobal ? (
-                        <Div className="flex flex-wrap items-center gap-2">
-                            <Div className="flex items-center gap-2">
+                    {!isGlobal && (
+                        <Div className="flex flex-wrap items-center gap-3">
+                            <Div className="flex flex-col gap-1">
                                 <Label
                                     variant={EVariantLabel.caption}
-                                    color="text-gray-500"
-                                    className="font-medium hidden sm:inline"
+                                    color="text-gray-600"
+                                    className="text-xs font-medium"
                                 >
-                                    {tReports('monthSelector')} :
+                                    {tReports('year')}
                                 </Label>
-                                <Div className="w-36">
+                                <Div className="w-24 sm:w-28">
+                                    <Dropdown
+                                        size={EInputSize.small}
+                                        options={yearOptions}
+                                        value={String(year)}
+                                        onChange={(val) => onYearChange(Number(val))}
+                                    />
+                                </Div>
+                            </Div>
+
+                            <Div className="flex flex-col gap-1">
+                                <Label
+                                    variant={EVariantLabel.caption}
+                                    color="text-gray-600"
+                                    className="text-xs font-medium"
+                                >
+                                    {tReports('month')}
+                                </Label>
+                                <Div className="w-32 sm:w-36">
                                     <Dropdown
                                         size={EInputSize.small}
                                         options={monthOptions}
@@ -381,56 +399,20 @@ export default function ReservationReport({
                                     />
                                 </Div>
                             </Div>
-
-                            <Div className="w-24">
-                                <Dropdown
-                                    size={EInputSize.small}
-                                    options={yearOptions}
-                                    value={String(year)}
-                                    onChange={(val) => onYearChange(Number(val))}
-                                />
-                            </Div>
                         </Div>
-                    ) : (
-                        <Label
-                            variant={EVariantLabel.caption}
-                            color="text-gray-500"
-                            className="italic font-medium"
-                        >
-                            {tReports('summaryGlobal')}
-                        </Label>
                     )}
                 </Div>
 
-                {/* Right: Export & Print Actions */}
+                {/* Right: Export PDF Action */}
                 <Div className="flex items-center gap-2">
                     <Button
                         id="export-reservations-pdf"
                         text={tReports('exportPdf')}
                         size={EButtonSize.small}
                         type={EButtonType.secondary}
-                        icon={{
-                            name: IconComponentsEnum.pdf,
-                            size: ESize.xs,
-                            color: 'text-primary-600',
-                        }}
-                        iconPosition="left"
                         onClick={handleExportPdf}
                         isLoading={isExporting}
                         disabled={isLoading || !hasTrend}
-                    />
-                    <Button
-                        id="print-reservations-report"
-                        text={tReports('printReport')}
-                        size={EButtonSize.small}
-                        type={EButtonType.secondary}
-                        icon={{
-                            name: IconComponentsEnum.printer,
-                            size: ESize.xs,
-                            color: 'text-gray-600',
-                        }}
-                        iconPosition="left"
-                        onClick={printReport}
                     />
                 </Div>
             </Div>
@@ -453,37 +435,24 @@ export default function ReservationReport({
             </Div>
 
             {/* KPI Cards */}
-            <StatCardGrid cards={cards} isLoading={isLoading} />
+            <StatCardGrid cards={cards} isLoading={isLoading} className="grid grid-cols-1 gap-3 sm:grid-cols-3" />
 
-            {/* Charts Row */}
-            <Div className="grid gap-4 lg:grid-cols-2">
-                <ChartPanel title={t('reservationTrendTitle')}>
-                    {hasTrend ? (
-                        <ReservationRevenueChart
-                            data={trendData}
-                            title={t('reservationTrendTitle')}
-                            periodLabel={t('chartPeriod')}
-                            revenueLabel={t('chartRevenue')}
-                            paidRevenueLabel={t('chartPaidRevenue')}
-                        />
-                    ) : (
-                        emptyState
-                    )}
-                </ChartPanel>
-
-                <ChartPanel title={t('trendTitle')}>
-                    {hasTrend ? (
-                        <ReservationCountChart
-                            data={trendData}
-                            title={t('trendTitle')}
-                            periodLabel={t('chartPeriod')}
-                            countLabel={t('chartReservations')}
-                        />
-                    ) : (
-                        emptyState
-                    )}
-                </ChartPanel>
-            </Div>
+            {/* Dynamic Chart Section: Daily Month Breakdown when Month selected, or Annual YoY Comparison when Global */}
+            {isGlobal ? (
+                <AnnualComparisonView
+                    data={annualTrendData}
+                    isLoading={isLoading}
+                    categoryName={tReports('reservationsTitle')}
+                    showMetricSelector={false}
+                />
+            ) : (
+                <ReservationDailyMonthChart
+                    year={year}
+                    month={month}
+                    days={stats?.dailyBreakdown}
+                    isLoading={isLoading}
+                />
+            )}
 
             {/* Room Leaderboard Table */}
             <ChartPanel
@@ -502,10 +471,10 @@ export default function ReservationReport({
                     rooms={stats?.topRooms ?? []}
                     emptyLabel={t('noRoomsConfigured')}
                     roomLabel={t('roomRevenueRoom')}
-                    monthLabel={t('roomRevenueMonth')}
-                    totalLabel={t('roomRevenueTotal')}
+                    periodLabel={isGlobal ? tReports('global') : currentPeriodLabel}
                     shareLabel={tReports('revenueShare')}
                     searchTerm={roomSearch}
+                    isGlobal={isGlobal}
                 />
             </ChartPanel>
         </Div>

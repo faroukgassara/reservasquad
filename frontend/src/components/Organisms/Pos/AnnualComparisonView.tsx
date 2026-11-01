@@ -33,6 +33,7 @@ interface AnnualComparisonViewProps {
     data: MonthlySalesTrendItem[];
     isLoading?: boolean;
     categoryName?: string;
+    showMetricSelector?: boolean;
 }
 
 
@@ -69,6 +70,7 @@ export default function AnnualComparisonView({
     data,
     isLoading = false,
     categoryName,
+    showMetricSelector = true,
 }: Readonly<AnnualComparisonViewProps>) {
     const t = useTranslations('pos.analytics');
     const locale = useLocale();
@@ -299,44 +301,46 @@ export default function AnnualComparisonView({
                     {/* Metric Selector & Chart Type Controls */}
                     <Div className="flex flex-wrap items-center gap-2.5">
                         {/* Metric segmented pill */}
-                        <Div className="inline-flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
-                            <button
-                                type="button"
-                                id="metric-revenue-btn"
-                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                                    metric === 'revenue'
-                                        ? 'bg-white text-primary-900 shadow-xs dark:bg-gray-700 dark:text-white'
-                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                                }`}
-                                onClick={() => setMetric('revenue')}
-                            >
-                                {t('metricRevenue')}
-                            </button>
-                            <button
-                                type="button"
-                                id="metric-units-btn"
-                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                                    metric === 'units'
-                                        ? 'bg-white text-primary-900 shadow-xs dark:bg-gray-700 dark:text-white'
-                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                                }`}
-                                onClick={() => setMetric('units')}
-                            >
-                                {t('metricUnits')}
-                            </button>
-                            <button
-                                type="button"
-                                id="metric-orders-btn"
-                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                                    metric === 'orders'
-                                        ? 'bg-white text-primary-900 shadow-xs dark:bg-gray-700 dark:text-white'
-                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                                }`}
-                                onClick={() => setMetric('orders')}
-                            >
-                                {t('metricOrders')}
-                            </button>
-                        </Div>
+                        {showMetricSelector && (
+                            <Div className="inline-flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+                                <button
+                                    type="button"
+                                    id="metric-revenue-btn"
+                                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                                        metric === 'revenue'
+                                            ? 'bg-white text-primary-900 shadow-xs dark:bg-gray-700 dark:text-white'
+                                            : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                                    }`}
+                                    onClick={() => setMetric('revenue')}
+                                >
+                                    {t('metricRevenue')}
+                                </button>
+                                <button
+                                    type="button"
+                                    id="metric-units-btn"
+                                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                                        metric === 'units'
+                                            ? 'bg-white text-primary-900 shadow-xs dark:bg-gray-700 dark:text-white'
+                                            : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                                    }`}
+                                    onClick={() => setMetric('units')}
+                                >
+                                    {t('metricUnits')}
+                                </button>
+                                <button
+                                    type="button"
+                                    id="metric-orders-btn"
+                                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                                        metric === 'orders'
+                                            ? 'bg-white text-primary-900 shadow-xs dark:bg-gray-700 dark:text-white'
+                                            : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                                    }`}
+                                    onClick={() => setMetric('orders')}
+                                >
+                                    {t('metricOrders')}
+                                </button>
+                            </Div>
+                        )}
 
                         {/* Chart style toggle (Lines vs Bars) */}
                         <Div className="inline-flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">

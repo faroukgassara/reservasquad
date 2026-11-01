@@ -5,9 +5,14 @@ import { CommonFunction } from '@/common/Function/Function';
 export async function GET(req: NextRequest) {
     try {
         const api = new Api(process.env.NEXT_PUBLIC_API_URL);
+        const { searchParams } = new URL(req.url);
+        const queryString = searchParams.toString();
         const authorization = req.headers.get('authorization') ?? undefined;
+        const path = queryString
+            ? `/backoffice/reservation/stats?${queryString}`
+            : '/backoffice/reservation/stats';
         const apiRes = await api.get(
-            '/backoffice/reservation/stats',
+            path,
             await CommonFunction.createHeaders({ customToken: authorization }),
         );
         return NextResponse.json(apiRes.data, { status: apiRes.status });

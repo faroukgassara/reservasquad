@@ -7,40 +7,36 @@ import { useLocale, useTranslations } from 'next-intl';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
 import Badge from '@/components/Primitives/Badge/Badge';
-import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
+import Tabs from '@/components/Primitives/Tabs/Tabs';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import { fetchProfessorRanking, type ProfessorRankingRow } from '@/lib/professor-api';
 import { formatMoney } from '@/lib/reservation-api';
 import { Routes } from '@/lib/routes';
 import { EBadgeSize, EBadgeType, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
+import type ITabOption from '@/interfaces/IPrimitives/ITabOption/ITabOption';
 import type {
     ITableColumn,
     ITableSortConfig,
     TTableSortDirection,
 } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
 
-const RANKING_PERIODS = ['month', 'quarter', 'year', 'all'] as const;
+const RANKING_PERIODS = ['month', 'all'] as const;
 type RankingPeriod = (typeof RANKING_PERIODS)[number];
 
 type RankedRow = ProfessorRankingRow & { name: string; rank: number };
 
 function periodRange(period: RankingPeriod): { from?: string; to?: string } {
-    const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    switch (period) {
-        case 'month':
-            return { from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), to: nextMonth.toISOString() };
-        case 'quarter':
-            return { from: new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString(), to: nextMonth.toISOString() };
-        case 'year':
-            return {
-                from: new Date(now.getFullYear(), 0, 1).toISOString(),
-                to: new Date(now.getFullYear() + 1, 0, 1).toISOString(),
-            };
-        default:
-            return {};
+    if (period === 'month') {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        return {
+            from: startOfMonth.toISOString(),
+            to: nextMonth.toISOString(),
+        };
     }
+    return {};
 }
 
 function topBy(rows: RankedRow[], key: 'revenue' | 'hours' | 'unpaid'): RankedRow | undefined {
@@ -78,7 +74,7 @@ const OrganismProfessorRanking = () => {
         [locale],
     );
 
-    const periodOptions = useMemo(
+    const periodOptions = useMemo<ITabOption[]>(
         () => RANKING_PERIODS.map((value) => ({ value, label: t(`periods.${value}`) })),
         [t],
     );
@@ -184,7 +180,11 @@ const OrganismProfessorRanking = () => {
                     render: (_: unknown, row: RankedRow) => (
                         <Badge
                             id={`ranking-unpaid-${row.professorId}`}
-                            text={row.unpaid > 0 ? formatMoney(row.unpaid) : t('allPaid')}
+                            text={
+                                row.unpaid > 0
+                                    ? formatMoney(row.unpaid)
+                                    : `${formatMoney(0)} · ${t('allPaid')}`
+                            }
                             type={row.unpaid > 0 ? EBadgeType.warning : EBadgeType.success}
                             size={EBadgeSize.small}
                         />
@@ -214,20 +214,20 @@ const OrganismProfessorRanking = () => {
 
     return (
         <Div className="flex flex-col gap-4">
-            <Div className="flex flex-wrap items-end justify-between gap-3">
+            <Div className="flex flex-wrap items-center justify-between gap-3">
                 <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
                     {t('hint')}
                 </Label>
-                <Dropdown
-                    label={t('period')}
+                <Tabs
+                    variant="pills"
                     options={periodOptions}
                     value={period}
                     onChange={(value) => {
-                        if (typeof value === 'string' && (RANKING_PERIODS as readonly string[]).includes(value)) {
+                        if ((RANKING_PERIODS as readonly string[]).includes(value)) {
                             setPeriod(value as RankingPeriod);
                         }
                     }}
-                    containerClassName="w-full sm:w-56"
+                    className="w-fit"
                 />
             </Div>
 

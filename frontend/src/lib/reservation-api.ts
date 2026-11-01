@@ -61,6 +61,14 @@ export interface ReservationMonthlyTrendPoint {
     paidRevenue: number;
 }
 
+export interface DashboardMonthDayPoint {
+    day: number;
+    date: string;
+    count: number;
+    revenue: number;
+    paidRevenue: number;
+}
+
 export interface DashboardStats {
     rooms: number;
     professors: number;
@@ -75,6 +83,7 @@ export interface DashboardStats {
         paidRevenue: number;
         unpaidRevenue: number;
     };
+    dailyBreakdown?: DashboardMonthDayPoint[];
     topRooms: DashboardRoomBreakdown[];
     dailyTrend: DashboardDailyTrendPoint[];
     totalPaid: number;

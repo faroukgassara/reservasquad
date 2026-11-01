@@ -3,6 +3,11 @@ import autoTable from 'jspdf-autotable';
 import { formatMoney } from '@/lib/daily-income-api';
 import type { DashboardStats } from '@/lib/reservation-api';
 
+function formatMoneyPdf(value: number | string): string {
+    const formatted = formatMoney(value);
+    return formatted.replace(/[\u202F\u00A0\u1680\u2000-\u200b\u202f\u205f\u3000]/g, ' ');
+}
+
 export interface ReservationTrendRow {
     label: string;
     count: number;
@@ -145,12 +150,12 @@ function drawSummaryCards(
     const rate = monthRevenue > 0 ? Math.round((monthPaid / monthRevenue) * 100) : 0;
 
     const items: { label: string; value: string; highlight?: boolean }[] = [
-        { label: isGlobal ? labels.totalRevenue : labels.revenueMonth, value: formatMoney(monthRevenue), highlight: true },
-        { label: `${isGlobal ? labels.totalPaid : labels.paidMonth} (${rate}%)`, value: formatMoney(monthPaid) },
-        { label: labels.unpaidMonth, value: formatMoney(stats?.month.unpaidRevenue ?? 0) },
-        { label: labels.avgPerReservation, value: formatMoney(avgPerReservation) },
-        { label: labels.totalRevenue, value: formatMoney(stats?.totalRevenue ?? 0) },
-        { label: labels.totalPaid, value: formatMoney(stats?.totalPaid ?? 0) },
+        { label: isGlobal ? labels.totalRevenue : labels.revenueMonth, value: formatMoneyPdf(monthRevenue), highlight: true },
+        { label: `${isGlobal ? labels.totalPaid : labels.paidMonth} (${rate}%)`, value: formatMoneyPdf(monthPaid) },
+        { label: labels.unpaidMonth, value: formatMoneyPdf(stats?.month.unpaidRevenue ?? 0) },
+        { label: labels.avgPerReservation, value: formatMoneyPdf(avgPerReservation) },
+        { label: labels.totalRevenue, value: formatMoneyPdf(stats?.totalRevenue ?? 0) },
+        { label: labels.totalPaid, value: formatMoneyPdf(stats?.totalPaid ?? 0) },
     ];
 
     items.forEach((item, index) => {
@@ -206,9 +211,9 @@ export function exportReservationReportPdf({
         ? trend.map((row) => [
             row.label,
             String(row.count),
-            formatMoney(row.revenue),
-            formatMoney(row.paidRevenue),
-            formatMoney(row.unpaidRevenue),
+            formatMoneyPdf(row.revenue),
+            formatMoneyPdf(row.paidRevenue),
+            formatMoneyPdf(row.unpaidRevenue),
         ])
         : [[labels.empty, '—', '—', '—', '—']];
 
@@ -227,9 +232,9 @@ export function exportReservationReportPdf({
             [
                 labels.totalRow,
                 String(totals.count),
-                formatMoney(totals.revenue),
-                formatMoney(totals.paidRevenue),
-                formatMoney(totals.unpaidRevenue),
+                formatMoneyPdf(totals.revenue),
+                formatMoneyPdf(totals.paidRevenue),
+                formatMoneyPdf(totals.unpaidRevenue),
             ],
         ]
         : undefined;
@@ -291,8 +296,8 @@ export function exportReservationReportPdf({
         const roomRows = rooms.map((r) => [
             r.name,
             `${r.share}%`,
-            formatMoney(r.monthRevenue),
-            formatMoney(r.totalRevenue),
+            formatMoneyPdf(r.monthRevenue),
+            formatMoneyPdf(r.totalRevenue),
         ]);
 
         autoTable(doc, {
