@@ -244,6 +244,11 @@ export class FetchPosProductsDto {
   @IsUUID()
   categoryId?: string;
 
+  @ApiPropertyOptional({ enum: EPosProductType })
+  @IsOptional()
+  @IsEnum(EPosProductType)
+  type?: EPosProductType;
+
   @ApiPropertyOptional({ enum: ['true', 'false'] })
   @IsOptional()
   @Transform(({ obj, key }) => {

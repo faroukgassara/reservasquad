@@ -171,6 +171,7 @@ export class PosCatalogService {
         type: 'STOCKABLE',
         stockQty: { lte: 0 },
       }),
+      ...(query.type && { type: query.type }),
       ...(query.missingCostOnly && { cost: { lte: 0 } }),
       ...(search && {
         OR: [

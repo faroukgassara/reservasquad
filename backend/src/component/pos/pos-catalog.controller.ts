@@ -38,6 +38,7 @@ import {
   UpdatePosCategoryDto,
   UpdatePosProductDto,
 } from 'src/dto/pos/posCatalog.dto';
+import { EPosProductType } from 'src/generated/prisma/client';
 import { PosCatalogService } from './pos-catalog.service';
 import { PosProductStatsService } from './pos-product-stats.service';
 import { validateBody } from './pos.utils';
@@ -194,11 +195,12 @@ export class PosCatalogController {
   async productsStatsAggregate(
     @Res() res: Response,
     @Query('categoryId') categoryId?: string,
+    @Query('type') type?: EPosProductType,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     try {
-      const data = await this.productStatsService.getCatalogStats({ startDate, endDate }, categoryId);
+      const data = await this.productStatsService.getCatalogStats({ startDate, endDate }, categoryId, type);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

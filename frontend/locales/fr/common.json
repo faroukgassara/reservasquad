@@ -959,6 +959,7 @@
       "noSupplier": "Sans fournisseur",
       "allCategories": "Toutes les catégories",
       "allProducts": "Tous les produits",
+      "allTypes": "Tous les types",
       "onlyAvailable": "Disponibles en caisse",
       "onlyHidden": "Masqués en caisse",
       "searchPlaceholder": "Rechercher par nom, référence ou code-barres",

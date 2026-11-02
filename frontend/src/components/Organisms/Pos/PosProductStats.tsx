@@ -18,6 +18,7 @@ import {
   fetchPosProductStats,
   formatPosDate,
   type PosProduct,
+  type PosProductType,
   type PosStatsRange,
 } from '@/lib/pos-api'
 import { EBadgeSize, EBadgeType, EButtonSize, EButtonType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum'
@@ -40,7 +41,8 @@ function InfoRow({ label, value }: Readonly<{ label: string; value: string }>) {
 export default function PosProductStats({
   product,
   categoryId,
-}: Readonly<{ product?: PosProduct; categoryId?: string }>) {
+  type,
+}: Readonly<{ product?: PosProduct; categoryId?: string; type?: PosProductType }>) {
   const t = useTranslations('pos.products')
   const tCommon = useTranslations('common')
   const [mode, setMode] = useState<StatsRangeMode>('all')
@@ -51,9 +53,9 @@ export default function PosProductStats({
   const range: PosStatsRange = mode === 'custom' ? appliedRange : {}
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['pos-product-stats', product?.id ?? 'all', categoryId ?? 'all', range.startDate, range.endDate],
+    queryKey: ['pos-product-stats', product?.id ?? 'all', categoryId ?? 'all', type ?? 'all', range.startDate, range.endDate],
     queryFn: () =>
-      product ? fetchPosProductStats(product.id, range) : fetchPosCatalogStats(range, categoryId),
+      product ? fetchPosProductStats(product.id, range) : fetchPosCatalogStats(range, categoryId, type),
   })
 
   const sales = data?.sales

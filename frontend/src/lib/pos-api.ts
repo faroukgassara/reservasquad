@@ -354,6 +354,7 @@ export const fetchPosProducts = (params: {
     perPage?: number;
     search?: string;
     categoryId?: string;
+    type?: PosProductType;
     availableInPos?: boolean;
     subscription?: boolean;
     lowStockOnly?: boolean;
@@ -434,9 +435,9 @@ export const fetchPosProductStockMovements = (id: string) =>
 export const fetchPosProductStats = (id: string, range: PosStatsRange) =>
     posGet<PosProductStats>(withQuery(`products/${id}/stats`, { ...range }), 'Failed to fetch product stats');
 
-export const fetchPosCatalogStats = (range: PosStatsRange, categoryId?: string) =>
+export const fetchPosCatalogStats = (range: PosStatsRange, categoryId?: string, type?: PosProductType) =>
     posGet<PosProductStats>(
-        withQuery('products/stats/aggregate', { categoryId, ...range }),
+        withQuery('products/stats/aggregate', { categoryId, type, ...range }),
         'Failed to fetch product stats',
     );
 

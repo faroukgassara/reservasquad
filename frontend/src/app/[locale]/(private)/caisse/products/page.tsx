@@ -30,6 +30,7 @@ import {
   fetchPosProductsInventory,
   toAmount,
   type PosProduct,
+  type PosProductType,
 } from '@/lib/pos-api'
 import {
   EBadgeSize,
@@ -49,6 +50,7 @@ type AvailabilityFilter =
   | 'out-of-stock'
   | 'missing-cost'
 type ProductsView = 'catalogue' | 'stats'
+type ProductTypeFilter = 'all' | PosProductType
 
 const ALL = 'all'
 const PER_PAGE = 30
@@ -153,6 +155,7 @@ export default function PosProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [categoryFilter, setCategoryFilter] = useState<string>(ALL)
+  const [typeFilter, setTypeFilter] = useState<ProductTypeFilter>(ALL)
   const [availability, setAvailability] = useState<AvailabilityFilter>(initialFilter)
   const [view, setView] = useState<ProductsView>('catalogue')
   const [selectedProductId, setSelectedProductId] = useState<string>(ALL)
@@ -183,6 +186,7 @@ export default function PosProductsPage() {
       page,
       debouncedSearch,
       categoryFilter,
+      typeFilter,
       availability,
     ],
     queryFn: () =>
@@ -191,6 +195,7 @@ export default function PosProductsPage() {
         perPage: PER_PAGE,
         search: debouncedSearch || undefined,
         categoryId: categoryFilter === ALL ? undefined : categoryFilter,
+        type: typeFilter === ALL ? undefined : typeFilter,
         availableInPos:
           availability === 'available'
             ? true
@@ -215,9 +220,11 @@ export default function PosProductsPage() {
   const buvetteCategoryId = categories.find(
     (category) => category.name.trim().toLowerCase() === BUVETTE_CATEGORY_NAME.toLowerCase(),
   )?.id
-  const statsProducts = buvetteCategoryId
-    ? inventoryProducts.filter((product) => product.categoryId === buvetteCategoryId)
-    : inventoryProducts
+  const statsProducts = (
+    buvetteCategoryId
+      ? inventoryProducts.filter((product) => product.categoryId === buvetteCategoryId)
+      : inventoryProducts
+  ).filter((product) => product.type === 'STOCKABLE')
   const isAggregate = selectedProductId === ALL
   const selectedProduct = statsProducts.find((product) => product.id === selectedProductId)
 
@@ -229,6 +236,12 @@ export default function PosProductsPage() {
   const categoryOptions = [
     { value: ALL, label: t('allCategories') },
     ...categories.map((c) => ({ value: c.id, label: c.name })),
+  ]
+
+  const typeOptions = [
+    { value: ALL, label: t('allTypes') },
+    { value: 'STOCKABLE', label: t('typeStockable') },
+    { value: 'CONSUMABLE', label: t('typeConsumable') },
   ]
 
   const availabilityOptions = [
@@ -363,6 +376,19 @@ export default function PosProductsPage() {
               className={availability !== 'all' ? 'border-primary-300 bg-primary-50/20' : ''}
               containerClassName="w-full lg:w-56"
             />
+            <Dropdown
+              leftIcon="filter"
+              options={typeOptions}
+              value={typeFilter}
+              onChange={(value) => {
+                if (value === 'all' || value === 'STOCKABLE' || value === 'CONSUMABLE') {
+                  setTypeFilter(value)
+                  setPage(1)
+                }
+              }}
+              className={typeFilter !== ALL ? 'border-primary-300 bg-primary-50/20' : ''}
+              containerClassName="w-full lg:w-56"
+            />
             <Div className="flex items-center justify-end gap-3 lg:ms-auto">
               <Label
                 variant={EVariantLabel.caption}
@@ -452,7 +478,7 @@ export default function PosProductsPage() {
                   <Spinner size={ESize.lg} color="text-primary-500" />
                 </Div>
               ) : isAggregate ? (
-                <PosProductStats categoryId={buvetteCategoryId} />
+                <PosProductStats categoryId={buvetteCategoryId} type="STOCKABLE" />
               ) : selectedProduct ? (
                 <PosProductStats product={selectedProduct} />
               ) : (

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Prisma } from 'src/generated/prisma/client';
+import { EPosProductType, Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PosCatalogService } from './pos-catalog.service';
 import { round3, toTunisDayKey } from './pos.utils';
@@ -212,11 +212,18 @@ export class PosProductStatsService {
     };
   }
 
-  /** Aggregate figures over every product of a category (or the whole catalogue when no category is given). */
-  async getCatalogStats(range: ProductStatsRange, categoryId?: string) {
-    const scope = categoryId
-      ? Prisma.sql`SELECT "id" FROM "PosProduct" WHERE "categoryId" = ${categoryId} AND "deletedAt" IS NULL`
-      : Prisma.sql`SELECT "id" FROM "PosProduct" WHERE "deletedAt" IS NULL`;
+  /** Aggregate figures over the products of a category (or the whole catalogue when no category is given), optionally narrowed to one product type. */
+  async getCatalogStats(range: ProductStatsRange, categoryId?: string, type?: EPosProductType) {
+    const scope = Prisma.sql`
+      SELECT "id" FROM "PosProduct"
+      WHERE ${Prisma.join(
+        [
+          Prisma.sql`"deletedAt" IS NULL`,
+          ...(categoryId ? [Prisma.sql`"categoryId" = ${categoryId}`] : []),
+          ...(type ? [Prisma.sql`"type" = ${type}`] : []),
+        ],
+        ' AND ',
+      )}`;
 
     const { granularity, sales, trend } = await this.loadSales(range, Prisma.sql`pol."productId" IN (${scope})`);
 
@@ -236,7 +243,11 @@ export class PosProductStatsService {
         JOIN "PosOrder" po ON po."id" = pol."orderId"
         WHERE pol."productId" IN (${scope}) AND po."status" IN ('PAID', 'REFUND')`),
       this.prismaService.posProduct.aggregate({
-        where: { deletedAt: null, ...(categoryId ? { categoryId } : {}) },
+        where: {
+          deletedAt: null,
+          ...(categoryId ? { categoryId } : {}),
+          ...(type ? { type } : {}),
+        },
         _sum: { stockQty: true },
       }),
     ]);

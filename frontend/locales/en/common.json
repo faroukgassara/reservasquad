@@ -959,6 +959,7 @@
       "noSupplier": "No supplier",
       "allCategories": "All categories",
       "allProducts": "All products",
+      "allTypes": "All types",
       "onlyAvailable": "Available in POS",
       "onlyHidden": "Hidden from POS",
       "searchPlaceholder": "Search by name, reference or barcode",
