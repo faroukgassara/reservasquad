@@ -11,6 +11,7 @@ import Button from '@/components/Primitives/Button/Button';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
 import OrganismProfessorRanking from '@/components/Organisms/OrganismProfessorRanking/OrganismProfessorRanking';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
+import ExportProfessorPhonesModal from '@/components/Modals/ExportProfessorPhonesModal/ExportProfessorPhonesModal';
 import ProfessorFormModal, {
     type ProfessorFormValues,
 } from '@/components/Modals/ProfessorFormModal/ProfessorFormModal';
@@ -45,6 +46,7 @@ type ProfessorsTab = 'list' | 'ranking';
 export default function ProfessorsAdminPage() {
     const t = useTranslations('admin.professors');
     const tCommon = useTranslations('common');
+    const tPhoneExport = useTranslations('phoneExport');
     const router = useRouter();
     const { isAllowed } = useAuthorization();
     const canManage = isAllowed({ anyRoles: ['ADMIN', 'USER'] });
@@ -55,6 +57,7 @@ export default function ProfessorsAdminPage() {
     const [tab, setTab] = useState<ProfessorsTab>('list');
     const queryClient = useQueryClient();
     const { openToast } = useToast();
+    const { openModal: openExportPhonesModal, modalPortal: exportPhonesModalPortal } = useModal();
     const { openModal, closeModal, modalPortal } = useModal({
         closeCallBack: () => setModalState(null),
     });
@@ -283,6 +286,7 @@ export default function ProfessorsAdminPage() {
     return (
         <>
             {modalPortal(renderModalContent())}
+            {exportPhonesModalPortal(<ExportProfessorPhonesModal initialSearch={searchValue} />)}
             <LayoutWrapper
                 title={t('title')}
                 subTitle={t('subtitle')}
@@ -345,22 +349,37 @@ export default function ProfessorsAdminPage() {
                                     totalRows={totalRows}
                                     onPageChange={setPage}
                                     primaryAction={
-                                        <Button
-                                            id="professors-add-btn"
-                                            type={EButtonType.primary}
-                                            size={EButtonSize.medium}
-                                            iconPosition="left"
-                                            icon={{
-                                                name: IconComponentsEnum.plus,
-                                                size: ESize.sm,
-                                                color: 'text-white',
-                                            }}
-                                            text={t('create')}
-                                            onClick={() => {
-                                                setModalState({ type: 'form', professor: null });
-                                                openModal();
-                                            }}
-                                        />
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                id="professors-export-phones-btn"
+                                                type={EButtonType.secondary}
+                                                size={EButtonSize.medium}
+                                                iconPosition="left"
+                                                icon={{
+                                                    name: IconComponentsEnum.filetext,
+                                                    size: ESize.sm,
+                                                    color: 'text-primary-600',
+                                                }}
+                                                text={tPhoneExport('buttonLabel')}
+                                                onClick={() => openExportPhonesModal()}
+                                            />
+                                            <Button
+                                                id="professors-add-btn"
+                                                type={EButtonType.primary}
+                                                size={EButtonSize.medium}
+                                                iconPosition="left"
+                                                icon={{
+                                                    name: IconComponentsEnum.plus,
+                                                    size: ESize.sm,
+                                                    color: 'text-white',
+                                                }}
+                                                text={t('create')}
+                                                onClick={() => {
+                                                    setModalState({ type: 'form', professor: null });
+                                                    openModal();
+                                                }}
+                                            />
+                                        </div>
                                     }
                                 />
                             </>

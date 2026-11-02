@@ -61,12 +61,51 @@ export interface PosProductInput {
 
 export const POS_TAX_RATES = [0, 7, 19] as const;
 
-export interface PosProductStats {
+export interface PosProductStockMovements {
     bought: number;
     sold: number;
     soldOrdersCount?: number;
     remaining: number;
     stock?: number;
+}
+
+export interface PosStatsRange {
+    startDate?: string;
+    endDate?: string;
+}
+
+/** `margin`/`marginPct` are null when no sale in the period had a known cost. */
+export interface PosProductSalesStats {
+    unitsSold: number;
+    revenue: number;
+    ordersCount: number;
+    margin: number | null;
+    marginPct: number | null;
+    costOfSales: number;
+    costCoveragePct: number | null;
+}
+
+export interface PosProductStats {
+    granularity: 'session' | 'month';
+    sales: PosProductSalesStats & { avgSellingPrice: number | null };
+    trend: { key: string; label: string; unitsSold: number; revenue: number; margin: number | null }[];
+    purchases: {
+        bought: number;
+        totalSpent: number;
+        avgPurchaseCost: number | null;
+        lastPurchaseCost: number | null;
+        lastPurchaseAt: string | null;
+    };
+    stock: { stock: number; sold: number; currentCost: number | null };
+}
+
+export interface PosProductListStats {
+    productId: string;
+    unitsSold: number;
+    revenue: number;
+    margin: number | null;
+    marginPct: number | null;
+    costCoveragePct: number | null;
 }
 
 export interface PosStockEntry {
@@ -319,6 +358,7 @@ export const fetchPosProducts = (params: {
     subscription?: boolean;
     lowStockOnly?: boolean;
     outOfStockOnly?: boolean;
+    missingCostOnly?: boolean;
 }) =>
     posGet<Paginated<PosProduct>>(
         withQuery('products/list', {
@@ -326,6 +366,7 @@ export const fetchPosProducts = (params: {
             subscription: params.subscription ? 'true' : undefined,
             lowStockOnly: params.lowStockOnly ? 'true' : undefined,
             outOfStockOnly: params.outOfStockOnly ? 'true' : undefined,
+            missingCostOnly: params.missingCostOnly ? 'true' : undefined,
         }),
         'Failed to fetch products',
     );
@@ -387,8 +428,23 @@ export const restorePosProduct = (id: string) =>
 export const hardDeletePosProduct = (id: string) =>
     posDelete(`products/${id}/hard`, 'Failed to permanently delete product');
 
-export const fetchPosProductStats = (id: string) =>
-    posGet<PosProductStats>(`products/${id}/stats`, 'Failed to fetch product stats');
+export const fetchPosProductStockMovements = (id: string) =>
+    posGet<PosProductStockMovements>(`products/${id}/stock-movements`, 'Failed to fetch product stock');
+
+export const fetchPosProductStats = (id: string, range: PosStatsRange) =>
+    posGet<PosProductStats>(withQuery(`products/${id}/stats`, { ...range }), 'Failed to fetch product stats');
+
+export const fetchPosCatalogStats = (range: PosStatsRange, categoryId?: string) =>
+    posGet<PosProductStats>(
+        withQuery('products/stats/aggregate', { categoryId, ...range }),
+        'Failed to fetch product stats',
+    );
+
+export const fetchPosProductsStats = (ids: string[], range: PosStatsRange) =>
+    posGet<PosProductListStats[]>(
+        withQuery('products/stats', { ids: ids.join(','), ...range }),
+        'Failed to fetch product stats',
+    );
 
 export const fetchPosStockEntries = (id: string) =>
     posGet<PosStockEntry[]>(`products/${id}/stock-entries`, 'Failed to fetch purchases');
@@ -397,6 +453,9 @@ export const createPosStockEntry = (
     id: string,
     body: { quantity: number; unitCost: number; supplier?: string; note?: string },
 ) => posPost<PosStockEntry>(`products/${id}/stock-entries`, body, 'Failed to add purchase');
+
+export const setPosProductStock = (id: string, stock: number) =>
+    posPost<PosProduct>(`products/${id}/stock`, { stock }, 'Failed to update stock');
 
 // Sessions
 

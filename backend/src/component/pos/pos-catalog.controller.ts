@@ -30,6 +30,7 @@ import { PaginationData, SortingDecoratorOptions } from 'src/common/pagination/t
 import { sendCaughtError } from 'src/common/utils/caught-error.util';
 import { IRequest } from 'src/interface/request/request.interface';
 import {
+  AdjustPosStockDto,
   CreatePosCategoryDto,
   CreatePosProductDto,
   CreatePosStockEntryDto,
@@ -38,6 +39,7 @@ import {
   UpdatePosProductDto,
 } from 'src/dto/pos/posCatalog.dto';
 import { PosCatalogService } from './pos-catalog.service';
+import { PosProductStatsService } from './pos-product-stats.service';
 import { validateBody } from './pos.utils';
 import { validateImgOnly, assertValidImageFile } from 'src/common/validators/file.validator';
 
@@ -58,7 +60,10 @@ const PRODUCT_SORTING_OPTIONS: SortingDecoratorOptions = {
   { status: HttpStatus.INTERNAL_SERVER_ERROR, description: 'INTERNAL_SERVER_ERROR' },
 )
 export class PosCatalogController {
-  constructor(private readonly catalogService: PosCatalogService) {}
+  constructor(
+    private readonly catalogService: PosCatalogService,
+    private readonly productStatsService: PosProductStatsService,
+  ) {}
 
   @Get('categories')
   @swagger.ApiOperation({ summary: 'List POS categories' })
@@ -166,6 +171,40 @@ export class PosCatalogController {
     }
   }
 
+  @Get('products/stats')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Units sold, revenue and margin for a list of products (ids=comma separated)' })
+  async productsStats(
+    @Res() res: Response,
+    @Query('ids') ids?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    try {
+      const data = await this.productStatsService.getProductsStats(ids, { startDate, endDate });
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('products/stats/aggregate')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Aggregate sales, margin, trend, purchases and stock of a category' })
+  async productsStatsAggregate(
+    @Res() res: Response,
+    @Query('categoryId') categoryId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    try {
+      const data = await this.productStatsService.getCatalogStats({ startDate, endDate }, categoryId);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
   @Get('products/low-stock')
   @swagger.ApiOperation({ summary: 'List low-stock products for alerts' })
   async getLowStockProducts(
@@ -247,10 +286,27 @@ export class PosCatalogController {
 
   @Get('products/:id/stats')
   @Roles({ roles: ['ADMIN'] })
-  @swagger.ApiOperation({ summary: 'Bought / sold / remaining quantities' })
-  async productStats(@Res() res: Response, @Param('id') id: string) {
+  @swagger.ApiOperation({ summary: 'Sales, margin (frozen sale costs), trend, purchases and stock of a product' })
+  async productStats(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
     try {
-      const data = await this.catalogService.getProductStats(id);
+      const data = await this.productStatsService.getProductStats(id, { startDate, endDate });
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('products/:id/stock-movements')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Bought / sold / remaining quantities' })
+  async stockMovements(@Res() res: Response, @Param('id') id: string) {
+    try {
+      const data = await this.catalogService.getStockMovements(id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
@@ -263,6 +319,25 @@ export class PosCatalogController {
   async listStockEntries(@Res() res: Response, @Param('id') id: string) {
     try {
       const data = await this.catalogService.listStockEntries(id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('products/:id/stock')
+  @Roles({ roles: ['ADMIN'] })
+  @swagger.ApiOperation({ summary: 'Manually set the stock quantity of a product' })
+  async setProductStock(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+    @Body() body: AdjustPosStockDto,
+  ) {
+    try {
+      const dto = await validateBody(AdjustPosStockDto, body, res);
+      if (!dto) return;
+      const data = await this.catalogService.setStock(id, dto, req.user?.id);
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);

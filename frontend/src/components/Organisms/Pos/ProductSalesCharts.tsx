@@ -75,7 +75,8 @@ function AnalyticsChartTooltip({
             ) : null}
             <Div className="space-y-1">
                 {payload.map((entry) => {
-                    const isRevenue = String(entry.dataKey) === 'totalRevenue';
+                    if (entry.value === null || entry.value === undefined) return null;
+                    const isRevenue = ['totalRevenue', 'margin'].includes(String(entry.dataKey));
                     const displayValue = isRevenue
                         ? formatMoney(Number(entry.value))
                         : `${entry.value} unités`;
@@ -261,11 +262,14 @@ export function SingleProductSalesChart({
     productName,
     revenueLabel,
     unitsLabel,
+    marginLabel,
 }: Readonly<{
-    data: MonthlySalesTrendItem[];
+    data: (MonthlySalesTrendItem & { margin?: number | null })[];
     productName: string;
     revenueLabel: string;
     unitsLabel: string;
+    /** Draws the margin line when set; points with an unknown margin are left out. */
+    marginLabel?: string;
 }>) {
     const chartColors = useChartColors();
 
@@ -324,6 +328,19 @@ export function SingleProductSalesChart({
                         strokeWidth={2}
                         dot={{ r: 3, fill: chartColors.lineUnits, strokeWidth: 0 }}
                     />
+                    {marginLabel ? (
+                        <Line
+                            yAxisId="revenue"
+                            type="monotone"
+                            dataKey="margin"
+                            name={marginLabel}
+                            stroke={chartColors.lineRevenue}
+                            strokeWidth={2}
+                            strokeDasharray="5 4"
+                            dot={{ r: 3, fill: chartColors.lineRevenue, strokeWidth: 0 }}
+                            connectNulls={false}
+                        />
+                    ) : null}
                 </ComposedChart>
             </ResponsiveContainer>
         </Div>

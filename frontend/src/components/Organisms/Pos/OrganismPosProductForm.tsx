@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
@@ -19,10 +19,11 @@ import { useToast } from '@/contexts/ToastContext'
 import { formatMoney } from '@/lib/daily-income-api'
 import {
   createPosStockEntry,
-  fetchPosProductStats,
+  fetchPosProductStockMovements,
   fetchPosStockEntries,
   formatPosDateTime,
   POS_TAX_RATES,
+  setPosProductStock,
   toAmount,
   type PosCategory,
   type PosProduct,
@@ -128,15 +129,18 @@ function ToggleRow({
   )
 }
 
-function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
+function PosProductPurchases({
+  product,
+  onCostUpdated,
+}: Readonly<{ product: PosProduct; onCostUpdated: (cost: number) => void }>) {
   const t = useTranslations('pos.products')
   const tCommon = useTranslations('common')
   const queryClient = useQueryClient()
   const { openToast } = useToast()
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['pos-product-stats', product.id],
-    queryFn: () => fetchPosProductStats(product.id),
+    queryKey: ['pos-product-stock-movements', product.id],
+    queryFn: () => fetchPosProductStockMovements(product.id),
   })
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['pos-stock-entries', product.id],
@@ -146,10 +150,13 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
   const addMutation = useMutation({
     mutationFn: (body: Parameters<typeof createPosStockEntry>[1]) =>
       createPosStockEntry(product.id, body),
-    onSuccess: () => {
+    onSuccess: (entry) => {
+      const unitCost = toAmount(entry.unitCost)
+      if (unitCost > 0) onCostUpdated(unitCost)
       void queryClient.invalidateQueries({
-        queryKey: ['pos-product-stats', product.id],
+        queryKey: ['pos-product-stock-movements', product.id],
       })
+      void queryClient.invalidateQueries({ queryKey: ['pos-product-stats', product.id] })
       void queryClient.invalidateQueries({
         queryKey: ['pos-stock-entries', product.id],
       })
@@ -181,10 +188,34 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
   })
 
   const currentStock = stats?.remaining ?? toAmount(product.stockQty)
+  const [stockValue, setStockValue] = useState(() => String(currentStock))
+
+  useEffect(() => {
+    if (stats) setStockValue(String(stats.remaining ?? toAmount(product.stockQty)))
+  }, [stats, product.stockQty])
+
+  const adjustStockMutation = useMutation({
+    mutationFn: (stock: number) => setPosProductStock(product.id, stock),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ['pos-product-stock-movements', product.id],
+      })
+      void queryClient.invalidateQueries({ queryKey: ['pos-product-stats', product.id] })
+      void queryClient.invalidateQueries({ queryKey: ['pos-products'] })
+      void queryClient.invalidateQueries({ queryKey: ['pos-products-available'] })
+      void queryClient.invalidateQueries({ queryKey: ['pos-products-inventory'] })
+      void queryClient.invalidateQueries({ queryKey: ['pos-product', product.id] })
+      openToast(tCommon('success'), t('stockUpdated'), {
+        type: EToastType.SUCCESS,
+      })
+    },
+    onError: (error: Error) =>
+      openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+  })
 
   return (
     <Div className="space-y-4">
-      <Div className="grid gap-3 sm:grid-cols-3">
+      <Div className="grid gap-3 sm:grid-cols-2">
         <StatCard
           icon={IconComponentsEnum.archive}
           iconBg="bg-success-50"
@@ -225,18 +256,35 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
             ) : undefined
           }
         />
-        <StatCard
-          icon={IconComponentsEnum.layers}
-          iconBg="bg-accent-50"
-          iconColor="text-accent-600"
-          label={t('bought')}
-          value={t('units', { count: stats?.bought ?? 0 })}
-          isLoading={statsLoading}
-        />
       </Div>
 
       <Div className="grid items-start gap-4 lg:grid-cols-5">
-        <FormSection title={t('addPurchase')} className="lg:col-span-2">
+        <Div className="space-y-4 lg:col-span-2">
+        {product.type === 'STOCKABLE' ? (
+          <FormSection title={t('adjustStock')}>
+            <Input
+              id="pos-stock-value"
+              label={t('stock')}
+              type={EInputType.number}
+              value={stockValue}
+              onChange={(e) => setStockValue(e.target.value)}
+              hintText={t('adjustStockHint')}
+              error={stockValue.trim() !== '' && !isValidAmount(stockValue)}
+            />
+            <Button
+              id="pos-stock-submit"
+              type={EButtonType.secondary}
+              size={EButtonSize.medium}
+              text={t('adjustStockAction')}
+              isLoading={adjustStockMutation.isPending}
+              spinnerColor="text-primary-500"
+              disabled={!isValidAmount(stockValue)}
+              onClick={() => adjustStockMutation.mutate(parseAmount(stockValue))}
+              className="w-full"
+            />
+          </FormSection>
+        ) : null}
+        <FormSection title={t('addPurchase')}>
           <Div className="grid grid-cols-2 gap-3">
             <form.Field
               name="quantity"
@@ -297,6 +345,7 @@ function PosProductPurchases({ product }: Readonly<{ product: PosProduct }>) {
             className="w-full"
           />
         </FormSection>
+        </Div>
 
         <FormSection title={t('purchaseHistory')} className="lg:col-span-3">
           {!isLoading && entries.length === 0 ? (
@@ -386,7 +435,11 @@ export default function OrganismPosProductForm({
   const tabOptions = [
     { value: 'general', label: t('tabGeneral') },
     { value: 'sale', label: t('tabSale') },
-    ...(product ? [{ value: 'purchase', label: t('tabPurchase') }] : []),
+    ...(product
+      ? [
+          { value: 'purchase', label: t('tabPurchase') },
+        ]
+      : []),
   ]
 
   const categoryOptions = [
@@ -545,7 +598,7 @@ export default function OrganismPosProductForm({
                     hintText={
                       state.meta.errors?.[0]
                         ? String(state.meta.errors[0])
-                        : undefined
+                        : t('costHint')
                     }
                     error={!!state.meta.errors?.length}
                   />
@@ -750,7 +803,12 @@ export default function OrganismPosProductForm({
           </form.Subscribe>
         </Div>
 
-        {product && tab === 'purchase' ? <PosProductPurchases product={product} /> : null}
+        {product && tab === 'purchase' ? (
+          <PosProductPurchases
+            product={product}
+            onCostUpdated={(cost) => form.setFieldValue('cost', String(cost))}
+          />
+        ) : null}
       </Div>
 
       <Div className="flex justify-end gap-3 border-t border-gray-100 p-5">

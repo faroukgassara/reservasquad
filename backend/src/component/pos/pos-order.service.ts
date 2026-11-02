@@ -184,7 +184,7 @@ export class PosOrderService {
         productIds.length > 0
           ? await tx.posProduct.findMany({
               where: { id: { in: productIds }, deletedAt: null, subscriptionDuration: null },
-              select: { id: true, name: true, type: true },
+              select: { id: true, name: true, type: true, cost: true },
             })
           : [];
       const productById = new Map(products.map((p) => [p.id, p]));
@@ -336,15 +336,18 @@ export class PosOrderService {
           };
         }
         const discountPct = line.discountPct ?? 0;
+        const product = productById.get(line.productId!)!;
+        const cost = Number(product.cost);
         return {
           productId: line.productId!,
           saleOrderId: null,
           subscriptionId: null,
           creditId: null,
           invoiceId: null,
-          productName: productById.get(line.productId!)!.name,
+          productName: product.name,
           quantity: line.quantity,
           unitPrice: line.unitPrice,
+          unitCost: cost > 0 ? cost : null,
           discountPct,
           total: lineTotal(line.quantity, line.unitPrice, discountPct),
         };
@@ -956,6 +959,7 @@ export class PosOrderService {
           productName: line.productName,
           quantity: -requested.quantity,
           unitPrice,
+          unitCost: line.unitCost,
           discountPct,
           total: lineTotal(-requested.quantity, unitPrice, discountPct),
           refundOfLineId: line.id,

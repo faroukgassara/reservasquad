@@ -231,3 +231,37 @@ export async function deleteCreditPayment(id: string): Promise<void> {
     const res = await api.delete(`/api/credits/payments/${id}`, {}, headers);
     if (res.status !== HttpStatus.SuccessOK) throw errorFrom(res.data, 'Failed to delete payment');
 }
+
+
+export async function fetchAllCreditClientsForExport(params: {
+    search?: string;
+    filter?: string;
+}): Promise<CreditClientListItem[]> {
+    const firstPage = await fetchCreditClients({
+        page: 1,
+        perPage: 100,
+        search: params.search,
+        filter: params.filter,
+    });
+    const all = [...(firstPage?.data ?? [])];
+    const lastPage = firstPage?.meta?.lastPage ?? 1;
+
+    if (lastPage > 1) {
+        const remainingPages = [];
+        for (let p = 2; p <= lastPage; p++) {
+            remainingPages.push(
+                fetchCreditClients({
+                    page: p,
+                    perPage: 100,
+                    search: params.search,
+                    filter: params.filter,
+                }),
+            );
+        }
+        const results = await Promise.all(remainingPages);
+        for (const res of results) {
+            all.push(...(res?.data ?? []));
+        }
+    }
+    return all;
+}

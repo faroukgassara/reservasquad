@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl'
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper'
 import PosExportInventoryModal from '@/components/Modals/PosExportInventoryModal/PosExportInventoryModal'
 import PosMenuQrModal from '@/components/Modals/PosMenuQrModal/PosMenuQrModal'
+import PosProductStats from '@/components/Organisms/Pos/PosProductStats'
 import PosThumbnail from '@/components/Organisms/Pos/PosThumbnail'
 import Badge from '@/components/Primitives/Badge/Badge'
 import Button from '@/components/Primitives/Button/Button'
@@ -18,6 +19,7 @@ import Icon from '@/components/Primitives/Icon/Icon'
 import Input from '@/components/Primitives/Input/Input'
 import Label from '@/components/Primitives/Label/Label'
 import Spinner from '@/components/Primitives/Spinner/Spinner'
+import Tabs from '@/components/Primitives/Tabs/Tabs'
 import { useModal } from '@/contexts/ModalContext'
 import { useAuthorization } from '@/hooks/useAuthorization'
 import { formatMoney } from '@/lib/daily-income-api'
@@ -25,6 +27,7 @@ import { Routes } from '@/lib/routes'
 import {
   fetchPosCategories,
   fetchPosProducts,
+  fetchPosProductsInventory,
   toAmount,
   type PosProduct,
 } from '@/lib/pos-api'
@@ -38,10 +41,18 @@ import {
   IconComponentsEnum,
 } from '@/Enum/Enum'
 
-type AvailabilityFilter = 'all' | 'available' | 'hidden' | 'low-stock' | 'out-of-stock'
+type AvailabilityFilter =
+  | 'all'
+  | 'available'
+  | 'hidden'
+  | 'low-stock'
+  | 'out-of-stock'
+  | 'missing-cost'
+type ProductsView = 'catalogue' | 'stats'
 
 const ALL = 'all'
 const PER_PAGE = 30
+const BUVETTE_CATEGORY_NAME = 'Buvette'
 
 function ProductCard({ product }: Readonly<{ product: PosProduct }>) {
   const t = useTranslations('pos.products')
@@ -130,7 +141,9 @@ export default function PosProductsPage() {
       ? 'low-stock'
       : urlFilter === 'out-of-stock'
         ? 'out-of-stock'
-        : 'all'
+        : urlFilter === 'missing-cost'
+          ? 'missing-cost'
+          : 'all'
   const { status: authStatus } = useSession()
   const { isAllowed } = useAuthorization()
   const isAdmin = isAllowed({ anyRoles: ['ADMIN'] })
@@ -141,6 +154,8 @@ export default function PosProductsPage() {
   const [page, setPage] = useState(1)
   const [categoryFilter, setCategoryFilter] = useState<string>(ALL)
   const [availability, setAvailability] = useState<AvailabilityFilter>(initialFilter)
+  const [view, setView] = useState<ProductsView>('catalogue')
+  const [selectedProductId, setSelectedProductId] = useState<string>(ALL)
 
   useEffect(() => {
     if (authStatus !== 'loading' && !isAdmin) {
@@ -184,11 +199,28 @@ export default function PosProductsPage() {
               : undefined,
         lowStockOnly: availability === 'low-stock' ? true : undefined,
         outOfStockOnly: availability === 'out-of-stock' ? true : undefined,
+        missingCostOnly: availability === 'missing-cost' ? true : undefined,
       }),
     enabled: isAdmin,
   })
 
   const products = data?.data ?? []
+
+  const { data: inventoryProducts = [], isLoading: inventoryLoading } = useQuery({
+    queryKey: ['pos-products-inventory'],
+    queryFn: () => fetchPosProductsInventory(),
+    enabled: isAdmin && view === 'stats',
+  })
+
+  const buvetteCategoryId = categories.find(
+    (category) => category.name.trim().toLowerCase() === BUVETTE_CATEGORY_NAME.toLowerCase(),
+  )?.id
+  const statsProducts = buvetteCategoryId
+    ? inventoryProducts.filter((product) => product.categoryId === buvetteCategoryId)
+    : inventoryProducts
+  const isAggregate = selectedProductId === ALL
+  const selectedProduct = statsProducts.find((product) => product.id === selectedProductId)
+
   const total = data?.meta?.total ?? 0
   const lastPage = data?.meta?.lastPage ?? 1
   const from = total === 0 ? 0 : (page - 1) * PER_PAGE + 1
@@ -205,6 +237,7 @@ export default function PosProductsPage() {
     { value: 'hidden', label: t('onlyHidden') },
     { value: 'low-stock', label: t('lowStockOnlyFilter') },
     { value: 'out-of-stock', label: t('outOfStockOnlyFilter') },
+    { value: 'missing-cost', label: t('missingCostOnlyFilter') },
   ]
 
   if (authStatus === 'loading' || !isAdmin) {
@@ -268,6 +301,21 @@ export default function PosProductsPage() {
         }
       mainSection={
         <Div className="space-y-4">
+          <Tabs
+            variant="pills"
+            options={[
+              { value: 'catalogue', label: t('viewCatalogue') },
+              { value: 'stats', label: t('tabStats') },
+            ]}
+            value={view}
+            onChange={(value) => {
+              if (value === 'catalogue' || value === 'stats') setView(value)
+            }}
+            className="w-full sm:w-auto"
+          />
+
+          {view === 'catalogue' ? (
+            <>
           <Div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <Input
               id="pos-products-search"
@@ -305,7 +353,8 @@ export default function PosProductsPage() {
                   value === 'available' ||
                   value === 'hidden' ||
                   value === 'low-stock' ||
-                  value === 'out-of-stock'
+                  value === 'out-of-stock' ||
+                  value === 'missing-cost'
                 ) {
                   setAvailability(value)
                   setPage(1)
@@ -375,6 +424,46 @@ export default function PosProductsPage() {
               <ProductCard key={product.id} product={product} />
             ))}
           </Div>
+            </>
+          ) : (
+            <Div className="space-y-4">
+              <Div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Dropdown
+                  leftIcon="filter"
+                  options={[
+                    { value: ALL, label: t('allProducts') },
+                    ...statsProducts.map((product) => ({
+                      value: product.id,
+                      label: product.name,
+                    })),
+                  ]}
+                  value={selectedProductId}
+                  onChange={(value) => {
+                    if (typeof value === 'string') setSelectedProductId(value)
+                  }}
+                  containerClassName="w-full sm:w-80"
+                />
+                <Label variant={EVariantLabel.caption} color="text-gray-500">
+                  {t('statsSelectHint')}
+                </Label>
+              </Div>
+              {inventoryLoading ? (
+                <Div className="flex justify-center py-16">
+                  <Spinner size={ESize.lg} color="text-primary-500" />
+                </Div>
+              ) : isAggregate ? (
+                <PosProductStats categoryId={buvetteCategoryId} />
+              ) : selectedProduct ? (
+                <PosProductStats product={selectedProduct} />
+              ) : (
+                <Div className="rounded-xl border border-dashed border-gray-200 py-16 text-center">
+                  <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                    {t('empty')}
+                  </Label>
+                </Div>
+              )}
+            </Div>
+          )}
         </Div>
       }
     />

@@ -293,11 +293,30 @@ export class FetchPosProductsDto {
   @IsBoolean()
   outOfStockOnly?: boolean;
 
+  @ApiPropertyOptional({ enum: ['true', 'false'], description: 'Only products without a known cost' })
+  @IsOptional()
+  @Transform(({ obj, key }) => {
+    const raw = (obj as Record<string, unknown>)[key];
+    if (raw === 'true' || raw === true) return true;
+    if (raw === 'false' || raw === false) return false;
+    return raw;
+  })
+  @IsBoolean()
+  missingCostOnly?: boolean;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(100)
   search?: string;
+}
+
+export class AdjustPosStockDto {
+  @ApiProperty({ example: 5, description: 'New stock quantity' })
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  stock: number;
 }
 
 export class CreatePosStockEntryDto {

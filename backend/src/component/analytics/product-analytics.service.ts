@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductAnalyticsQueryDto } from './dto/product-analytics-query.dto';
+import { toTunisDayKey } from '../pos/pos.utils';
 
 export interface ProductLeaderboardItem {
   rank: number;
@@ -94,21 +95,6 @@ function parseBoundDate(input?: string, bound?: 'start' | 'end'): Date | undefin
     }
   }
   return d;
-}
-
-/** 'YYYY-MM-DD' filter bound on the Tunisian calendar, the same day a session's daily income entry gets. */
-function toTunisDayKey(input?: string): string | undefined {
-  const trimmed = input?.trim();
-  if (!trimmed) return undefined;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-  const date = new Date(trimmed);
-  if (Number.isNaN(date.getTime())) return undefined;
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Africa/Tunis',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
 }
 
 function formatMonthLabelFromKey(monthKey: string): string {

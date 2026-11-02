@@ -6,6 +6,7 @@ import { EmailModule } from 'src/common/email/email.module';
 import { DailyIncomeModule } from '../dailyIncome/daily-income.module';
 import { PosCatalogController } from './pos-catalog.controller';
 import { PosCatalogService } from './pos-catalog.service';
+import { PosProductStatsService } from './pos-product-stats.service';
 import { PosSessionController } from './pos-session.controller';
 import { PosSessionService } from './pos-session.service';
 import { PosOrderController } from './pos-order.controller';
@@ -39,6 +40,7 @@ import { SubscriptionReminderCronService } from './subscription-reminder.cron';
   ],
   providers: [
     PosCatalogService,
+    PosProductStatsService,
     PosSessionService,
     PosOrderService,
     PosSaleOrderService,

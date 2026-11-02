@@ -208,3 +208,34 @@ export async function hardDeleteProfessor(id: string): Promise<void> {
     const res = await api.delete(`/api/professors/${id}/hard`, {}, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to permanently delete professor');
 }
+
+
+export async function fetchAllProfessorsForExport(params: {
+    search?: string;
+}): Promise<ProfessorRecord[]> {
+    const firstPage = await fetchProfessors({
+        page: 1,
+        perPage: 100,
+        search: params.search,
+    });
+    const all = [...(firstPage?.data ?? [])];
+    const lastPage = firstPage?.meta?.lastPage ?? 1;
+
+    if (lastPage > 1) {
+        const remainingPages = [];
+        for (let p = 2; p <= lastPage; p++) {
+            remainingPages.push(
+                fetchProfessors({
+                    page: p,
+                    perPage: 100,
+                    search: params.search,
+                }),
+            );
+        }
+        const results = await Promise.all(remainingPages);
+        for (const res of results) {
+            all.push(...(res?.data ?? []));
+        }
+    }
+    return all;
+}

@@ -22,15 +22,26 @@ export function round3(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
 
+const tunisDayFormat = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Africa/Tunis',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
 /** Tunisian calendar day of an instant, as a UTC-midnight Date (the shape stored in @db.Date columns). */
 export function tunisDateOnly(value: Date): Date {
-  const day = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Africa/Tunis',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(value);
-  return new Date(`${day}T00:00:00.000Z`);
+  return new Date(`${tunisDayFormat.format(value)}T00:00:00.000Z`);
+}
+
+/** 'YYYY-MM-DD' filter bound on the Tunisian calendar, the same day a session's daily income entry gets. */
+export function toTunisDayKey(input?: string): string | undefined {
+  const trimmed = input?.trim();
+  if (!trimmed) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return tunisDayFormat.format(date);
 }
 
 export function sumBy<T>(items: T[], pick: (item: T) => unknown): number {

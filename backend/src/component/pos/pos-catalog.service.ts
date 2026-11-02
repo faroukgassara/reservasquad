@@ -5,6 +5,7 @@ import { ProxyPrismaModel } from 'src/common/pagination/proxy';
 import { PaginationData } from 'src/common/pagination/types';
 import { FileUploadService } from 'src/common/common-services/file-upload.service';
 import {
+  AdjustPosStockDto,
   CreatePosCategoryDto,
   CreatePosProductDto,
   CreatePosStockEntryDto,
@@ -170,6 +171,7 @@ export class PosCatalogService {
         type: 'STOCKABLE',
         stockQty: { lte: 0 },
       }),
+      ...(query.missingCostOnly && { cost: { lte: 0 } }),
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -392,7 +394,14 @@ export class PosCatalogService {
     if (dto.imageUrl !== undefined) {
       data.imageUrl = await this.resolveImage(PRODUCT_IMAGES_TYPE, dto.imageUrl);
     }
-    const product = await this.prismaService.posProduct.update({ where: { id }, data });
+    const product = await this.prismaService.$transaction(async (tx) => {
+      const updated = await tx.posProduct.update({ where: { id }, data });
+      if (dto.cost !== undefined) {
+        const firstCost = await this.firstKnownCost(tx, id, dto.cost);
+        if (firstCost !== null) await this.fillUnknownUnitCosts(tx, id, firstCost);
+      }
+      return updated;
+    });
     await this.log(POS_AUDIT.product, product.id, 'UPDATE', `Produit caisse "${product.name}" modifié · Prix : ${formatAuditMoney(product.price)}`, actorId);
     return product;
   }
@@ -476,7 +485,8 @@ export class PosCatalogService {
     return removed;
   }
 
-  async getProductStats(id: string) {
+  /** All-time stock movements: quantities bought, sold (register, credit, sale orders) and in stock. */
+  async getStockMovements(id: string) {
     const product = await this.getProductById(id);
     const stock = round3(Number(product.stockQty));
 
@@ -549,10 +559,59 @@ export class PosCatalogService {
     });
   }
 
+  /**
+   * Sales recorded before any cost existed take the product's first purchase
+   * cost, so their margin stops being unknown. Sales made after that keep the
+   * cost snapshot taken at sale time (always the latest known cost).
+   */
+  private async firstKnownCost(
+    client: Prisma.TransactionClient,
+    productId: string,
+    fallbackCost?: number,
+  ): Promise<number | null> {
+    const firstPurchase = await client.posStockEntry.findFirst({
+      where: { productId, unitCost: { gt: 0 } },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      select: { unitCost: true },
+    });
+    if (firstPurchase) return round3(Number(firstPurchase.unitCost));
+    return fallbackCost !== undefined && fallbackCost > 0 ? round3(fallbackCost) : null;
+  }
+
+  private fillUnknownUnitCosts(client: Prisma.TransactionClient, productId: string, cost: number) {
+    return client.posOrderLine.updateMany({
+      where: { productId, unitCost: null },
+      data: { unitCost: cost },
+    });
+  }
+
+  /** Manual inventory correction: sets the stock aside from any purchase. */
+  async setStock(productId: string, dto: AdjustPosStockDto, actorId?: string) {
+    const product = await this.getProductById(productId);
+    const previous = round3(Number(product.stockQty));
+    const stock = round3(dto.stock);
+    if (stock === previous) return product;
+
+    await this.prismaService.posProduct.update({
+      where: { id: productId },
+      data: { stockQty: stock },
+    });
+    await this.log(
+      POS_AUDIT.product,
+      productId,
+      'UPDATE',
+      `Stock ajusté de ${previous} à ${stock} unité(s) pour "${product.name}"`,
+      actorId,
+    );
+    return this.getProductById(productId);
+  }
+
   async createStockEntry(productId: string, dto: CreatePosStockEntryDto, actorId?: string) {
     const product = await this.getProductById(productId);
-    const [entry] = await this.prismaService.$transaction([
-      this.prismaService.posStockEntry.create({
+    // A purchase price becomes the product's last known cost, used for future sales only.
+    const newCost = dto.unitCost !== undefined && dto.unitCost > 0 ? round3(dto.unitCost) : null;
+    const entry = await this.prismaService.$transaction(async (tx) => {
+      const created = await tx.posStockEntry.create({
         data: {
           productId,
           quantity: dto.quantity,
@@ -561,17 +620,23 @@ export class PosCatalogService {
           note: trimOrNull(dto.note),
           createdById: actorId || null,
         },
-      }),
-      this.prismaService.posProduct.update({
+      });
+      await tx.posProduct.update({
         where: { id: productId },
-        data: { stockQty: { increment: dto.quantity } },
-      }),
-    ]);
+        data: { stockQty: { increment: dto.quantity }, ...(newCost !== null && { cost: newCost }) },
+      });
+      const firstCost = await this.firstKnownCost(tx, productId, newCost ?? undefined);
+      if (firstCost !== null) await this.fillUnknownUnitCosts(tx, productId, firstCost);
+      return created;
+    });
+    const costChanged = newCost !== null && newCost !== round3(Number(product.cost));
     await this.log(
       POS_AUDIT.product,
       productId,
       'UPDATE',
-      `Ajout de ${dto.quantity} unité(s) au stock de "${product.name}"`,
+      `Ajout de ${dto.quantity} unité(s) au stock de "${product.name}"${
+        costChanged ? ` · Nouveau coût : ${formatAuditMoney(newCost)}` : ''
+      }`,
       actorId,
     );
     return entry;

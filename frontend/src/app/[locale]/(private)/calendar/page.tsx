@@ -923,6 +923,7 @@ export default function CalendarPage() {
                                                 leftIcon="filter"
                                                 options={professorOptions}
                                                 value={professorId}
+                                                searchable
                                                 onChange={(value) => {
                                                     if (typeof value === 'string') setProfessorId(value);
                                                 }}

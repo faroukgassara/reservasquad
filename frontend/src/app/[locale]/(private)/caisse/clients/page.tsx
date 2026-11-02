@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import CreditClientFormModal from '@/components/Modals/CreditClientFormModal/CreditClientFormModal';
+import ExportClientPhonesModal from '@/components/Modals/ExportClientPhonesModal/ExportClientPhonesModal';
 import {
     toClientInput,
     type CreditClientFormValues,
@@ -47,10 +48,12 @@ export default function PosClientsPage() {
     const t = useTranslations('pos.clients');
     const tCredits = useTranslations('admin.credits');
     const tCommon = useTranslations('common');
+    const tPhoneExport = useTranslations('phoneExport');
     const router = useRouter();
     const queryClient = useQueryClient();
     const { openToast } = useToast();
     const { openModal, closeModal, modalPortal } = useModal();
+    const { openModal: openExportPhonesModal, modalPortal: exportPhonesModalPortal } = useModal();
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filter, setFilter] = useState<ClientFilter>('all');
@@ -253,19 +256,33 @@ export default function PosClientsPage() {
             {modalPortal(
                 <CreditClientFormModal client={null} onSubmit={handleCreate} isLoading={createMutation.isPending} />,
             )}
+            {exportPhonesModalPortal(
+                <ExportClientPhonesModal initialSearch={debouncedSearch} />,
+            )}
             <LayoutWrapper
                 title={t('title')}
                 subTitle={t('subtitle')}
                 rightActions={
-                    <Button
-                        id="pos-client-add-btn"
-                        type={EButtonType.primary}
-                        size={EButtonSize.medium}
-                        iconPosition="left"
-                        icon={{ name: IconComponentsEnum.plus, size: ESize.sm, color: 'text-white' }}
-                        text={tCredits('createClient')}
-                        onClick={() => openModal()}
-                    />
+                    <Div className="flex items-center gap-2">
+                        <Button
+                            id="pos-clients-export-phones-btn"
+                            type={EButtonType.secondary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.filetext, size: ESize.sm, color: 'text-primary-600' }}
+                            text={tPhoneExport('buttonLabel')}
+                            onClick={() => openExportPhonesModal()}
+                        />
+                        <Button
+                            id="pos-client-add-btn"
+                            type={EButtonType.primary}
+                            size={EButtonSize.medium}
+                            iconPosition="left"
+                            icon={{ name: IconComponentsEnum.plus, size: ESize.sm, color: 'text-white' }}
+                            text={tCredits('createClient')}
+                            onClick={() => openModal()}
+                        />
+                    </Div>
                 }
                 mainSection={
                     <Div className="space-y-4">

@@ -647,6 +647,7 @@ export default function ReservationsAdminPage() {
                                 label={t('professor')}
                                 options={professorFilterOptions}
                                 value={professorFilter}
+                                searchable
                                 onChange={(value) => {
                                     if (typeof value === 'string') {
                                         setProfessorFilter(value);

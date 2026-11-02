@@ -487,6 +487,7 @@ export default function ReservationFormModal({
                                             <Dropdown
                                                 label={t('professor')}
                                                 required
+                                                searchable
                                                 options={professorOptions}
                                                 value={state.value}
                                                 onChange={(value) => {
