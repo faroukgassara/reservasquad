@@ -142,13 +142,7 @@ export class Api implements IApi {
         return { status: HttpStatus.Internal, data: "" }
       }
     } else {
-      let responseParsed = null;
-      try {
-        responseParsed = await response.json();
-      } catch (_) {
-        console.error(_)
-        responseParsed = await response.blob();
-      }
+      const responseParsed = await this._getData(response);
       return { status: response.status, data: responseParsed };
     }
   }
@@ -364,17 +358,21 @@ export class Api implements IApi {
   }
 
   async _getData(response: Response, isReturnBlob?: boolean) {
-    let responseParsed = null;
     if (isReturnBlob) {
-      responseParsed = await response.blob();
-    } else {
-      try {
-        responseParsed = await response.json();
-      } catch (_) {
-        console.error(_)
-        responseParsed = await response.blob();
-      }
+      return response.blob();
     }
-    return responseParsed
+    // A body can only be read once, so read it as text and parse it ourselves.
+    const text = await response.text();
+    if (!text) {
+      return null;
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      console.error(
+        `Non-JSON response (HTTP ${response.status}) from ${response.url}: ${text.slice(0, 200)}`,
+      );
+      return { message: `Unexpected non-JSON response from the server (HTTP ${response.status})` };
+    }
   }
 }
