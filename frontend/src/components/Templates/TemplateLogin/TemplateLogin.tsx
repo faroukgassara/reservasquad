@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { AnyFieldApi, AnyFormState } from '@tanstack/react-form';
@@ -16,7 +16,6 @@ import { Routes } from '@/lib/routes';
 
 const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
     const t = useTranslations();
-    const [rememberSession, setRememberSession] = useState(false);
 
     return (
         <div className="grid min-h-dvh bg-white transition-colors duration-200 laptop:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
@@ -109,7 +108,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                         </form.Field>
 
                         {/* Forgot password link aligned right */}
-                        <div className="mb-4 flex justify-end">
+                        <div className="mb-6 flex justify-end">
                             <Link
                                 href={Routes.ForgotPassword}
                                 className="text-xs font-medium text-gray-500 transition-colors hover:text-primary-600"
@@ -117,17 +116,6 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                                 {t('auth.forgotPasswordTitle')}
                             </Link>
                         </div>
-
-                        {/* Remember this session checkbox */}
-                        <label className="mb-6 flex cursor-pointer select-none items-center gap-2.5 text-xs text-gray-600">
-                            <input
-                                type="checkbox"
-                                checked={rememberSession}
-                                onChange={(e) => setRememberSession(e.target.checked)}
-                                className="size-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500/30"
-                            />
-                            <span>{t('auth.rememberSession')}</span>
-                        </label>
 
                         {/* Submit Button */}
                         <form.Subscribe selector={(state: AnyFormState) => [state.canSubmit, state.isSubmitting]}>
