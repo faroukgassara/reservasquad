@@ -9,6 +9,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import QueryProvider from './QueryProvider';
 import { ToastContainer } from 'react-toastify';
 import { ThemeProvider } from 'next-themes';
+import NextTopLoader from 'nextjs-toploader';
 import ToastProvider from '@/contexts/ToastContext';
 import AuthSessionListener from '@/components/providers/AuthSessionListener';
 import WithChildren from '@/types/WithChildren';
@@ -35,6 +36,14 @@ export default function RouteProviders({ children, session, locale, messages }: 
             >
                 <QueryProvider>
                     <SessionProvider session={session}>
+                        <NextTopLoader
+                            color="#253165"
+                            height={3}
+                            showSpinner={false}
+                            crawl
+                            speed={200}
+                            zIndex={13000}
+                        />
                         <AuthSessionListener />
                         <ToastProvider>
                             <ToastContainer style={{ zIndex: 12000 }} />
