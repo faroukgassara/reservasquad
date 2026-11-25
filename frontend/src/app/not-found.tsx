@@ -1,12 +1,12 @@
 'use client';
 
 import Error from 'next/error';
-import { Inter, Poppins } from 'next/font/google';
+import { Bricolage_Grotesque, Inter } from 'next/font/google';
 
-const poppins = Poppins({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-poppins',
+const display = Bricolage_Grotesque({
+  subsets: ['latin', 'latin-ext'],
+  axes: ['opsz', 'wdth'],
+  variable: '--font-display',
   display: 'swap',
 })
 
@@ -19,7 +19,7 @@ const inter = Inter({
 
 export default function NotFound() {
   return (
-    <html lang="en" className={`${poppins.variable} ${inter.variable}`}>
+    <html lang="en" className={`${display.variable} ${inter.variable}`}>
       <body className={`${inter.className} bg-gray-25 text-gray-900 antialiased`}>
         <Error statusCode={404} />
       </body>

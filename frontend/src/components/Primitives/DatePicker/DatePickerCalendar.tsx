@@ -28,11 +28,11 @@ const DatePickerCalendar = ({ value, min, max, onChange, onClose }: IDatePickerC
     const selectedDate = parseDateValue(value);
     const today = useMemo(() => new Date(), []);
     const [viewDate, setViewDate] = useState(() => selectedDate ?? today);
-
-    useEffect(() => {
-        const parsed = parseDateValue(value);
-        if (parsed) setViewDate(parsed);
-    }, [value]);
+    const [prevValue, setPrevValue] = useState(value);
+    if (prevValue !== value) {
+        setPrevValue(value);
+        if (selectedDate) setViewDate(selectedDate);
+    }
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {

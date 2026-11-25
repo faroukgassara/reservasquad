@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
@@ -189,10 +189,11 @@ function PosProductPurchases({
 
   const currentStock = stats?.remaining ?? toAmount(product.stockQty)
   const [stockValue, setStockValue] = useState(() => String(currentStock))
-
-  useEffect(() => {
+  const [prevStockSource, setPrevStockSource] = useState({ stats, stockQty: product.stockQty })
+  if (prevStockSource.stats !== stats || prevStockSource.stockQty !== product.stockQty) {
+    setPrevStockSource({ stats, stockQty: product.stockQty })
     if (stats) setStockValue(String(stats.remaining ?? toAmount(product.stockQty)))
-  }, [stats, product.stockQty])
+  }
 
   const adjustStockMutation = useMutation({
     mutationFn: (stock: number) => setPosProductStock(product.id, stock),

@@ -8,16 +8,12 @@ import Label from '@/components/Primitives/Label/Label';
 import Button from '@/components/Primitives/Button/Button';
 import Badge from '@/components/Primitives/Badge/Badge';
 import ProgressBar from '@/components/Primitives/ProgressBar/ProgressBar';
-import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import {
     EBadgeSize,
     EBadgeType,
     EButtonSize,
-    EButtonType,
-    EInputSize,
-    ESize,
-    EVariantLabel,
-    IconComponentsEnum,
+    EButtonType, EVariantLabel,
+    IconComponentsEnum
 } from '@/Enum/Enum';
 import {
     formatMoney,
@@ -30,12 +26,11 @@ import type { MonthlySalesTrendItem } from '@/lib/analytics-api';
 import {
     ChartLoader,
     ChartPanel,
-    EmptyChartState,
-    exportToCsv,
-    formatMonthLabel,
+    EmptyChartState, formatMonthLabel,
     StatCardGrid,
-    type IReportStatCard,
+    type IReportStatCard
 } from './ReportPanels';
+import ReportPeriodToolbar from './ReportPeriodToolbar';
 
 const ReservationDailyMonthChart = dynamic(
     () => import('./ReservationDailyMonthChart'),
@@ -330,81 +325,19 @@ export default function ReservationReport({
     };
 
     return (
-        <Div className="mx-auto max-w-7xl space-y-6">
+        <Div className="mx-auto space-y-6">
             {/* Top Toolbar: Segmented Toggle (Monthly / Global) + Year/Month dropdowns with labels + Export PDF */}
-            <Div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-                {/* Left: Monthly vs Global segmented pill + Year & Month selectors */}
-                <Div className="flex flex-wrap items-center gap-4">
-                    <Div className="inline-flex rounded-xl bg-slate-200/70 p-1 dark:bg-gray-800">
-                        <button
-                            type="button"
-                            id="scope-monthly-btn"
-                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
-                                !isGlobal
-                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
-                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                            }`}
-                            onClick={() => onScopeChange('month')}
-                        >
-                            {tReports('monthly')}
-                        </button>
-                        <button
-                            type="button"
-                            id="scope-global-btn"
-                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
-                                isGlobal
-                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
-                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                            }`}
-                            onClick={() => onScopeChange('all')}
-                        >
-                            {tReports('globalAllTime')}
-                        </button>
-                    </Div>
-
-                    {!isGlobal && (
-                        <Div className="flex flex-wrap items-center gap-3">
-                            <Div className="flex flex-col gap-1">
-                                <Label
-                                    variant={EVariantLabel.caption}
-                                    color="text-gray-600"
-                                    className="text-xs font-medium"
-                                >
-                                    {tReports('year')}
-                                </Label>
-                                <Div className="w-24 sm:w-28">
-                                    <Dropdown
-                                        size={EInputSize.small}
-                                        options={yearOptions}
-                                        value={String(year)}
-                                        onChange={(val) => onYearChange(Number(val))}
-                                    />
-                                </Div>
-                            </Div>
-
-                            <Div className="flex flex-col gap-1">
-                                <Label
-                                    variant={EVariantLabel.caption}
-                                    color="text-gray-600"
-                                    className="text-xs font-medium"
-                                >
-                                    {tReports('month')}
-                                </Label>
-                                <Div className="w-32 sm:w-36">
-                                    <Dropdown
-                                        size={EInputSize.small}
-                                        options={monthOptions}
-                                        value={String(month)}
-                                        onChange={(val) => onMonthChange(Number(val))}
-                                    />
-                                </Div>
-                            </Div>
-                        </Div>
-                    )}
-                </Div>
-
-                {/* Right: Export PDF Action */}
-                <Div className="flex items-center gap-2">
+            <ReportPeriodToolbar
+                scope={scope}
+                year={year}
+                month={month}
+                yearOptions={yearOptions}
+                monthOptions={monthOptions}
+                onScopeChange={onScopeChange}
+                onYearChange={onYearChange}
+                onMonthChange={onMonthChange}
+                scopeIdPrefix="reservation"
+                rightActions={
                     <Button
                         id="export-reservations-pdf"
                         text={tReports('exportPdf')}
@@ -414,8 +347,8 @@ export default function ReservationReport({
                         isLoading={isExporting}
                         disabled={isLoading || !hasTrend}
                     />
-                </Div>
-            </Div>
+                }
+            />
 
             {/* Selected Period Heading & Collection Rate Badge */}
             <Div className="flex items-center justify-between">
@@ -435,7 +368,7 @@ export default function ReservationReport({
             </Div>
 
             {/* KPI Cards */}
-            <StatCardGrid cards={cards} isLoading={isLoading} className="grid grid-cols-1 gap-3 sm:grid-cols-3" />
+            <StatCardGrid cards={cards} isLoading={isLoading} className="grid grid-cols-1 gap-3 sm:grid-cols-2 laptop:grid-cols-3" />
 
             {/* Dynamic Chart Section: Daily Month Breakdown when Month selected, or Annual YoY Comparison when Global */}
             {isGlobal ? (

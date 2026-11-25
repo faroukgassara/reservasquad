@@ -4,12 +4,14 @@ import { useTranslations } from 'next-intl';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import OrganismAppTopBar from '@/components/Organisms/AppTopBar/OrganismAppTopBar';
 import { Routes } from '@/lib/routes';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 
 export default function PortalLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    useLockBodyScroll();
     const t = useTranslations('portal');
 
     return (

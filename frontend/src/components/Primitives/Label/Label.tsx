@@ -41,7 +41,7 @@ const Label: React.FC<LabelProps> = ({
     const fontSizeKey = typography.variants[variant as keyof typeof typography.variants]
     const token = typography.fontSize[fontSizeKey as keyof typeof typography.fontSize]
 
-    // Charte Biblio Squad: display sizes (headings) use Poppins, body text uses Inter
+    // Charte Biblio Squad: display sizes (headings) use the display family, body text uses Inter
     const isHeading = typeof fontSizeKey === 'string' && fontSizeKey.startsWith('display-')
     const fontFamily = isHeading ? typography.fontFamily.heading : typography.fontFamily.sans
 
@@ -55,7 +55,7 @@ const Label: React.FC<LabelProps> = ({
         : { fontFamily }
 
     // Color stays outside twMerge: custom font-size classes would otherwise be read as a conflicting text color.
-    const sharedClassName = [color, twMerge('inline-block', className)].filter(Boolean).join(' ')
+    const sharedClassName = [color, twMerge('inline-block', isHeading && 'ds-heading', className)].filter(Boolean).join(' ')
 
     if (htmlFor) {
         return (

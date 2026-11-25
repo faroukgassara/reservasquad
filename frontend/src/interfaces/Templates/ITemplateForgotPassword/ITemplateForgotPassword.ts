@@ -1,5 +1,7 @@
+import type { AnyReactForm } from '@/types';
+
 interface ITemplateForgotPassword {
-    form: any;
+    form: AnyReactForm;
     showMaxAttemptsHint?: boolean;
 }
 

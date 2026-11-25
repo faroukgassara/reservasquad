@@ -2,7 +2,7 @@ interface IStateType {
     [key: string]: ICreateState
 }
 interface ICreateState {
-    value: string | string[] | { [key: string]: any } | Date | boolean
+    value: string | string[] | { [key: string]: unknown } | Date | boolean
     hintText: string
     isValid: boolean
     disabled: boolean

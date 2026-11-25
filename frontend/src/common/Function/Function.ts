@@ -51,8 +51,13 @@ class CommonFunction {
     return validationState
   }
 
-  public createState({ value = "", disabled = false, label = "", required = false }: any): ICreateState {
-    let state: any = {
+  public createState({
+    value = "",
+    disabled = false,
+    label = "",
+    required = false,
+  }: Partial<Pick<ICreateState, "value" | "disabled" | "label" | "required">>): ICreateState {
+    let state: ICreateState = {
       value: value,
       isValid: true,
       hintText: "",
@@ -68,11 +73,11 @@ class CommonFunction {
     return state
   }
 
-  public toLowerCaseKeys = (obj: Record<string, any>): Record<string, any> => {
+  public toLowerCaseKeys = <T,>(obj: Record<string, T>): Record<string, T> => {
     return Object.entries(obj).reduce((acc, [key, value]) => {
       acc[key.toLowerCase()] = value;
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, T>);
   };
 
   public scrollTopAndValidation(ref: React.RefObject<HTMLDivElement | null>) {
@@ -89,7 +94,7 @@ class CommonFunction {
     return expiresAt - currentTime < 60;
   };
 
-  public refreshAccessToken = async (token: any) => {
+  public refreshAccessToken = async <T extends { refreshToken?: string }>(token: T) => {
     const response = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: {
@@ -114,7 +119,10 @@ class CommonFunction {
     };
   }
 
-  public getValidAccessToken = async (session: any) => {
+  public getValidAccessToken = async (session: {
+    expires_at: number;
+    accessToken: { refreshToken?: string };
+  }) => {
     if (this.isTokenExpiringSoon(session.expires_at)) {
       try {
         const refreshedToken = await this.refreshAccessToken(session.accessToken);
@@ -128,7 +136,7 @@ class CommonFunction {
   };
 
 
-  public deepEqual = (obj1: any, obj2: any): boolean => {
+  public deepEqual = (obj1: unknown, obj2: unknown): boolean => {
     if (obj1 === obj2) return true;
 
     if (
@@ -146,7 +154,7 @@ class CommonFunction {
     if (keys1.length !== keys2.length) return false;
 
     for (const key of keys1) {
-      if (!keys2.includes(key) || !this.deepEqual(obj1[key], obj2[key])) {
+      if (!keys2.includes(key) || !this.deepEqual((obj1 as Record<string, unknown>)[key], (obj2 as Record<string, unknown>)[key])) {
         return false;
       }
     }

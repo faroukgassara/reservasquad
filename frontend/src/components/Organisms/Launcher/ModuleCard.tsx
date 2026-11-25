@@ -7,45 +7,46 @@ import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import type { ELabelColor } from '@/theme/labelColors';
+import type { ModuleTone } from '@/lib/navigation';
 
 export interface IModuleCardStat {
     label: string;
     value: string;
 }
 
-export type TModuleCardTone = 'primary' | 'accent' | 'success' | 'warning';
+type TModuleCardTone = ModuleTone;
 
+// Solid fills must keep white text at AA contrast; the dark theme inverts tone scales, hence the dark: shades.
 const TONES: Record<
     TModuleCardTone,
-    { header: string; hoverBorder: string; dot: string; soft: string; text: ELabelColor }
+    { tile: string; solid: string; arrowHover: string; watermark: ELabelColor }
 > = {
     primary: {
-        header: 'bg-gradient-to-br from-primary-700 via-primary-600 to-primary-400',
-        hoverBorder: 'hover:border-primary-300',
-        dot: 'bg-primary-500',
-        soft: 'bg-primary-50',
-        text: 'text-primary-600',
+        tile: 'border-primary-25 bg-primary-10',
+        solid: 'bg-primary-500',
+        arrowHover: 'group-hover:border-primary-500 group-hover:bg-primary-500',
+        watermark: 'text-primary-500',
     },
     accent: {
-        header: 'bg-gradient-to-br from-accent-700 via-accent-600 to-accent-400',
-        hoverBorder: 'hover:border-accent-300',
-        dot: 'bg-accent-500',
-        soft: 'bg-accent-50',
-        text: 'text-accent-600',
+        tile: 'border-accent-50 bg-accent-25/50',
+        solid: 'bg-accent-500 dark:bg-accent-300',
+        arrowHover:
+            'group-hover:border-accent-500 group-hover:bg-accent-500 dark:group-hover:border-accent-300 dark:group-hover:bg-accent-300',
+        watermark: 'text-accent-500',
     },
     success: {
-        header: 'bg-gradient-to-br from-success-700 via-success-600 to-success-400',
-        hoverBorder: 'hover:border-success-300',
-        dot: 'bg-success-500',
-        soft: 'bg-success-50',
-        text: 'text-success-700',
+        tile: 'border-success-100 bg-success-25',
+        solid: 'bg-success-700 dark:bg-success-300',
+        arrowHover:
+            'group-hover:border-success-700 group-hover:bg-success-700 dark:group-hover:border-success-300 dark:group-hover:bg-success-300',
+        watermark: 'text-success-700',
     },
     warning: {
-        header: 'bg-gradient-to-br from-warning-700 via-warning-600 to-warning-400',
-        hoverBorder: 'hover:border-warning-300',
-        dot: 'bg-warning-500',
-        soft: 'bg-warning-50',
-        text: 'text-warning-700',
+        tile: 'border-warning-100 bg-warning-25',
+        solid: 'bg-warning-800 dark:bg-warning-300',
+        arrowHover:
+            'group-hover:border-warning-800 group-hover:bg-warning-800 dark:group-hover:border-warning-300 dark:group-hover:bg-warning-300',
+        watermark: 'text-warning-800',
     },
 };
 
@@ -75,91 +76,112 @@ const ModuleCard = ({
     openLabel,
 }: IModuleCard) => {
     const toneClasses = TONES[tone];
+    const [headline, ...details] = stats;
 
     return (
         <Link
             id={`module-card-${id}`}
             href={href}
             className={twMerge(
-                'group flex h-full cursor-pointer flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl',
-                toneClasses.hoverBorder,
+                'group relative isolate flex h-full cursor-pointer flex-col gap-4 overflow-hidden rounded-3xl border p-6 transition-[translate,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:hover:translate-y-0',
+                toneClasses.tile,
             )}
         >
-            <Div className={twMerge('relative overflow-hidden px-5 pb-6 pt-5', toneClasses.header)}>
-                <Div aria-hidden="true" className="absolute -end-8 -top-10 size-32 rounded-full bg-white/10" />
-                <Div aria-hidden="true" className="absolute -bottom-12 end-10 size-24 rounded-full bg-white/10" />
-                <Div className="relative flex flex-col gap-4">
-                    <Div className="flex size-12 items-center justify-center rounded-2xl bg-white/20 ring-1 ring-white/30 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110">
-                        <Icon name={icon} size={ESize.md} color="text-white" />
-                    </Div>
-                    <Div className="flex flex-col gap-1">
-                        <Label variant={EVariantLabel.h5} color="text-white" className="cursor-pointer truncate">
-                            {title}
-                        </Label>
-                        <Label variant={EVariantLabel.caption} color="text-white" className="cursor-pointer line-clamp-2 opacity-85">
-                            {description}
-                        </Label>
-                    </Div>
+            <span aria-hidden className="pointer-events-none absolute -bottom-8 -end-8 -z-10 opacity-[0.07]">
+                <Icon name={icon} size="size-44" color={toneClasses.watermark} />
+            </span>
+
+            <Div className="flex items-start justify-between gap-3">
+                <Div className={twMerge('flex size-11 items-center justify-center rounded-2xl', toneClasses.solid)}>
+                    <Icon name={icon} size={ESize.md} color="text-white" />
+                </Div>
+                <Div
+                    className={twMerge(
+                        'flex size-10 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors duration-200',
+                        toneClasses.arrowHover,
+                    )}
+                >
+                    <Icon
+                        name={IconComponentsEnum.chevronRight}
+                        size={ESize.sm}
+                        color="text-gray-700"
+                        className="group-hover:text-white rtl:-scale-x-100"
+                    />
+                    <Label variant={EVariantLabel.caption} color="text-gray-700" className="sr-only">
+                        {openLabel}
+                    </Label>
                 </Div>
             </Div>
 
-            <Div className="flex flex-1 flex-col gap-4 p-5">
-                {isLoading ? (
-                    <Div className="flex flex-col gap-2.5">
-                        {[0, 1, 2].map((row) => (
-                            <Div key={row} className="h-5 animate-pulse rounded-md bg-gray-100" />
-                        ))}
-                    </Div>
-                ) : null}
+            <Div className="flex flex-col gap-1">
+                <Label variant={EVariantLabel.h5} color="text-gray-900" className="cursor-pointer font-bold! truncate">
+                    {title}
+                </Label>
+                <Label variant={EVariantLabel.bodySmall} color="text-gray-600" className="cursor-pointer line-clamp-2">
+                    {description}
+                </Label>
+            </Div>
 
-                {!isLoading && stats.length > 0 ? (
-                    <Div className="flex flex-col gap-2.5">
-                        {stats.map((stat) => (
-                            <Div key={stat.label} className="flex items-center justify-between gap-3">
-                                <Div className="flex min-w-0 items-center gap-2">
-                                    <span className={twMerge('size-1.5 shrink-0 rounded-full', toneClasses.dot)} />
-                                    <Label variant={EVariantLabel.bodySmall} color="text-gray-600" className="cursor-pointer truncate">
-                                        {stat.label}
-                                    </Label>
-                                </Div>
+            {isLoading ? (
+                <Div className="mt-auto flex flex-col gap-3">
+                    <Div className="h-9 w-24 animate-pulse rounded-lg bg-gray-200/60" />
+                    <Div className="h-5 animate-pulse rounded-md bg-gray-200/50" />
+                </Div>
+            ) : null}
+
+            {!isLoading && headline ? (
+                <dl className="mt-auto flex flex-col">
+                    <Div className="flex flex-col-reverse pb-3">
+                        <dt>
+                            <Label variant={EVariantLabel.bodySmall} color="text-gray-600" className="cursor-pointer">
+                                {headline.label}
+                            </Label>
+                        </dt>
+                        <dd>
+                            <Label
+                                variant={EVariantLabel.h3}
+                                color="text-gray-900"
+                                className="cursor-pointer font-bold! tabular-nums break-words"
+                            >
+                                {headline.value}
+                            </Label>
+                        </dd>
+                    </Div>
+                    {details.map((stat) => (
+                        <Div
+                            key={stat.label}
+                            className="flex items-baseline justify-between gap-3 border-t border-gray-900/10 py-2"
+                        >
+                            <dt className="min-w-0">
+                                <Label variant={EVariantLabel.bodySmall} color="text-gray-600" className="cursor-pointer">
+                                    {stat.label}
+                                </Label>
+                            </dt>
+                            <dd className="shrink-0">
                                 <Label
                                     variant={EVariantLabel.bodySmall}
                                     color="text-gray-900"
-                                    className="cursor-pointer shrink-0 font-bold tabular-nums"
+                                    className="cursor-pointer font-semibold! tabular-nums"
                                 >
                                     {stat.value}
                                 </Label>
-                            </Div>
-                        ))}
-                    </Div>
-                ) : null}
+                            </dd>
+                        </Div>
+                    ))}
+                </dl>
+            ) : null}
 
-                {shortcuts.length > 0 ? (
-                    <Div className="flex flex-wrap gap-2">
-                        {shortcuts.map((shortcut) => (
-                            <span key={shortcut} className={twMerge('rounded-full px-3 py-1', toneClasses.soft)}>
-                                <Label variant={EVariantLabel.caption} color={toneClasses.text} className="cursor-pointer font-medium">
-                                    {shortcut}
-                                </Label>
-                            </span>
-                        ))}
-                    </Div>
-                ) : null}
-
-                <Div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
-                    <Label variant={EVariantLabel.bodySmall} color={toneClasses.text} className="cursor-pointer font-semibold">
-                        {openLabel}
-                    </Label>
-                    <Div
-                        className={twMerge(
-                            'flex size-8 items-center justify-center rounded-full transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1',
-                            toneClasses.soft,
-                        )}
-                    >
-                        <Icon name={IconComponentsEnum.arrowRight} size={ESize.sm} color={toneClasses.text} className="rtl:-scale-x-100" />
-                    </Div>
+            {shortcuts.length > 0 ? (
+                <Div className="mt-auto flex flex-wrap gap-2">
+                    {shortcuts.map((shortcut) => (
+                        <span key={shortcut} className="rounded-full border border-gray-200 bg-white px-3 py-1.5">
+                            <Label variant={EVariantLabel.caption} color="text-gray-700" className="cursor-pointer font-medium">
+                                {shortcut}
+                            </Label>
+                        </span>
+                    ))}
                 </Div>
-            </Div>
+            ) : null}
         </Link>
     );
 };

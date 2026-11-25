@@ -44,7 +44,6 @@ import {
     EBadgeType,
     EButtonSize,
     EButtonType,
-    EInputSize,
     EInputType,
     ESize,
     EToastType,
@@ -181,6 +180,11 @@ export default function PosNewsletterDetailPage() {
         form.setFieldValue('ctaUrl', newsletter.ctaUrl || '');
         form.setFieldValue('category', newsletter.category);
         form.setFieldValue('audience', newsletter.audience);
+    }, [newsletter, form]);
+
+    const [syncedNewsletter, setSyncedNewsletter] = useState<typeof newsletter>();
+    if (newsletter && newsletter.status === 'DRAFT' && newsletter !== syncedNewsletter) {
+        setSyncedNewsletter(newsletter);
         setSelectedAudience(newsletter.audience);
 
         if (newsletter.audience === 'SPECIFIC_RECIPIENTS') {
@@ -220,7 +224,7 @@ export default function PosNewsletterDetailPage() {
             }
             setSelectedRecipients(initialRecipients);
         }
-    }, [newsletter, form]);
+    }
 
     const createMutation = useMutation({
         mutationFn: (data: CreateNewsletterInput) => createNewsletter(data),

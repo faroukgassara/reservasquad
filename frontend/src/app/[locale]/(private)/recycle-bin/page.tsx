@@ -141,10 +141,6 @@ export default function RecycleBinPage() {
         if (!isAdmin) router.replace(Routes.Today);
     }, [isAdmin, router]);
 
-    useEffect(() => {
-        setPage(1);
-    }, [tab]);
-
     // Queries
     const reservationsQuery = useQuery({
         queryKey: ['recycle-bin-reservations', page],
@@ -247,7 +243,7 @@ export default function RecycleBinPage() {
     });
 
     // Helper to build mutations
-    const createItemMutations = (
+    const useItemMutations = (
         entityKey: string,
         relatedKeys: string[],
         restoreFn: (id: string) => Promise<unknown>,
@@ -287,7 +283,7 @@ export default function RecycleBinPage() {
     };
 
     const { restoreMutation: restoreReservationMutation, hardMutation: hardReservationMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-reservations',
             ['reservations', 'calendar'],
             restoreReservation,
@@ -296,7 +292,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreProfessorMutation, hardMutation: hardProfessorMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-professors',
             ['professors', 'professors-options'],
             restoreProfessor,
@@ -304,7 +300,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreRoomMutation, hardMutation: hardRoomMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-rooms',
             ['rooms', 'rooms-options'],
             restoreRoom,
@@ -312,7 +308,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreClientMutation, hardMutation: hardClientMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-clients',
             ['credit-clients', 'credit-client', 'clients-options'],
             restoreCreditClient,
@@ -320,7 +316,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreProductMutation, hardMutation: hardProductMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-products',
             ['pos-products', 'pos-catalog'],
             restorePosProduct,
@@ -328,7 +324,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreInvoiceMutation, hardMutation: hardInvoiceMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-invoices',
             ['pos-invoices'],
             restoreInvoice,
@@ -336,7 +332,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreQuoteMutation, hardMutation: hardQuoteMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-quotes',
             ['pos-sale-orders'],
             restoreSaleOrder,
@@ -344,7 +340,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreSubscriptionMutation, hardMutation: hardSubscriptionMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-subscriptions',
             ['pos-subscriptions'],
             restoreSubscription,
@@ -352,7 +348,7 @@ export default function RecycleBinPage() {
         );
 
     const { restoreMutation: restoreNewsletterMutation, hardMutation: hardNewsletterMutation } =
-        createItemMutations(
+        useItemMutations(
             'recycle-bin-newsletters',
             ['newsletters'],
             restoreNewsletter,
@@ -1042,6 +1038,7 @@ export default function RecycleBinPage() {
                             value={tab}
                             onChange={(value) => {
                                 setTab(value as BinTab);
+                                setPage(1);
                             }}
                             variant="pills"
                         />

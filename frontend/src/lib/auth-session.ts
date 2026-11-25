@@ -28,7 +28,9 @@ export async function refreshSessionOrSignOut(): Promise<boolean> {
     return true;
 }
 
-export function hasAuthorizationHeader(headers: Record<string, unknown> | undefined): boolean {
+export function hasAuthorizationHeader(
+    headers: { Authorization?: unknown; authorization?: unknown } | undefined,
+): boolean {
     if (!headers) {
         return false;
     }

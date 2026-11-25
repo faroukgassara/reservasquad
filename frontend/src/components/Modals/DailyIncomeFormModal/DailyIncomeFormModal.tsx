@@ -20,6 +20,7 @@ import {
     formatMoney,
     toDateInputValue,
     type DailyIncomeRecord,
+    type DailyIncomeSettings,
 } from '@/lib/daily-income-api';
 
 export interface DailyIncomeFormValues {
@@ -34,6 +35,7 @@ interface DailyIncomeFormModalProps {
     linesTotalsByDate?: Record<string, { charges: number; investments: number }>;
     onSubmit: (values: DailyIncomeFormValues) => Promise<void>;
     isLoading?: boolean;
+    settings?: DailyIncomeSettings | null;
 }
 
 function AutoField({ label, value }: Readonly<{ label: string; value: string }>) {
@@ -59,11 +61,17 @@ export default function DailyIncomeFormModal({
     linesTotalsByDate = {},
     onSubmit,
     isLoading = false,
+    settings,
 }: Readonly<DailyIncomeFormModalProps>) {
     const t = useTranslations('admin.dailyIncome');
     const tCommon = useTranslations('common');
     const { closeModal } = useCurrentModal();
     const isEdit = mode === 'edit';
+
+    const chargesPct = settings?.chargesPercentage ?? 50;
+    const savingsPct = settings?.savingsPercentage ?? 20;
+    const benefitsPct = settings?.benefitsPercentage ?? 20;
+    const savingsForChargesPct = settings?.savingsForChargesPercentage ?? 10;
 
     const form = useForm({
         defaultValues: {
@@ -85,7 +93,12 @@ export default function DailyIncomeFormModal({
     return (
         <Modal
             title={isEdit ? t('editDay') : t('createDay')}
-            subTitle={t('dayFormHint')}
+            subTitle={t('dayFormHint', {
+                chargesPercent: chargesPct,
+                savingsPercent: savingsPct,
+                benefitsPercent: benefitsPct,
+                savingsForChargesPercent: savingsForChargesPct,
+            })}
             canClose
             canCloseOnClickOutisde
             isDrawer
@@ -160,10 +173,10 @@ export default function DailyIncomeFormModal({
                         {([date, totalIncome]) => {
                             const income = Number(totalIncome);
                             const hasIncome = Boolean(totalIncome) && !Number.isNaN(income);
-                            const savingsShare = hasIncome ? Math.round(income * 0.2) : null;
-                            const benefitsShare = hasIncome ? Math.round(income * 0.2) : null;
+                            const savingsShare = hasIncome ? Math.round(income * (savingsPct / 100)) : null;
+                            const benefitsShare = hasIncome ? Math.round(income * (benefitsPct / 100)) : null;
                             const savingsForChargesShare = hasIncome
-                                ? Math.round(income * 0.1)
+                                ? Math.round(income * (savingsForChargesPct / 100))
                                 : null;
                             const fromEntry =
                                 entry && toDateInputValue(entry.date) === date
@@ -190,7 +203,7 @@ export default function DailyIncomeFormModal({
                                     </Label>
                                     <Div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                         <AutoField
-                                            label={t('savings')}
+                                            label={t('savingsWithPercent', { percent: savingsPct })}
                                             value={
                                                 savingsShare === null
                                                     ? '—'
@@ -198,7 +211,7 @@ export default function DailyIncomeFormModal({
                                             }
                                         />
                                         <AutoField
-                                            label={t('benefits')}
+                                            label={t('benefitsWithPercent', { percent: benefitsPct })}
                                             value={
                                                 benefitsShare === null
                                                     ? '—'
@@ -206,7 +219,7 @@ export default function DailyIncomeFormModal({
                                             }
                                         />
                                         <AutoField
-                                            label={t('savingsForCharges')}
+                                            label={t('savingsForChargesWithPercent', { percent: savingsForChargesPct })}
                                             value={
                                                 savingsForChargesShare === null
                                                     ? '—'
@@ -214,7 +227,7 @@ export default function DailyIncomeFormModal({
                                             }
                                         />
                                         <AutoField
-                                            label={t('chargesInvestment')}
+                                            label={t('chargesInvestmentWithPercent', { percent: chargesPct })}
                                             value={formatMoney(chargesInvestment)}
                                         />
                                         <AutoField

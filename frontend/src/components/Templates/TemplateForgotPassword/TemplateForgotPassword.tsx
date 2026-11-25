@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import type { AnyFieldApi, AnyFormState } from '@tanstack/react-form';
 import Input from '@/components/Primitives/Input/Input';
 import Button from '@/components/Primitives/Button/Button';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
@@ -65,7 +66,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
                     }}
                 >
                     <form.Field name="email">
-                        {({ state, handleChange }: any) => (
+                        {({ state, handleChange }: AnyFieldApi) => (
                             <Input
                                 containerClassName="mb-3"
                                 label={t('auth.email')}
@@ -90,12 +91,12 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
                     </div>
 
                     <form.Subscribe
-                        selector={(state: any) => [
+                        selector={(state: AnyFormState) => [
                             state.canSubmit,
                             state.isSubmitting,
                         ]}
                     >
-                        {([canSubmit, isSubmitting]: [boolean, boolean]) => (
+                        {([canSubmit, isSubmitting]: boolean[]) => (
                             <Button
                                 id="forgot-password-submit-btn"
                                 htmlType="submit"

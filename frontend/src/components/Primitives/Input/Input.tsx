@@ -12,10 +12,6 @@ function resolveInputStatus(error?: boolean, status?: EInputStatus): EInputStatu
     return status ?? EInputStatus.default;
 }
 
-function hasInputValue(value: IInput['value']): boolean {
-    return value !== undefined && value !== null && String(value).length > 0;
-}
-
 function getHorizontalPadding(
     size: EInputSize,
     hasLeftIcon: boolean,
@@ -37,13 +33,11 @@ function getFieldWrapperClassName({
     status,
     size,
     disabled,
-    hasValue,
     className,
 }: {
     status: EInputStatus;
     size: EInputSize;
     disabled?: boolean;
-    hasValue: boolean;
     className?: string;
 }): string {
     const sizeConfig = INPUT_SIZES[size];
@@ -53,8 +47,7 @@ function getFieldWrapperClassName({
         sizeConfig.field,
         INPUT_STATUS_FIELD[status],
         'has-[:autofill]:border-gray-300 has-[:autofill]:bg-gray-50 has-[:autofill]:transition-none',
-        hasValue && !disabled && 'border-gray-300 bg-gray-50',
-        disabled && 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60 hover:border-gray-200',
+        disabled && 'cursor-not-allowed border-gray-100 bg-gray-25 opacity-70 hover:border-gray-100',
         className,
     );
 }
@@ -113,7 +106,6 @@ const Input = forwardRef<HTMLInputElement, IInput>(
 
         const resolvedStatus = resolveInputStatus(error, status);
         const sizeConfig = INPUT_SIZES[size];
-        const filled = hasInputValue(value);
         const showPasswordToggle = isPassword && !rightIcon;
         const hasRightSlot = Boolean(rightIcon || showPasswordToggle);
         const iconColor = INPUT_STATUS_ICON_COLOR[resolvedStatus];
@@ -123,7 +115,6 @@ const Input = forwardRef<HTMLInputElement, IInput>(
             status: resolvedStatus,
             size,
             disabled,
-            hasValue: filled,
             className,
         });
 

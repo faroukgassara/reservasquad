@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useTheme } from 'next-themes';
 import { useTranslations } from 'next-intl';
 import Icon from '@/components/Primitives/Icon/Icon';
@@ -11,14 +11,17 @@ interface IThemeToggle {
     className?: string;
 }
 
+// The theme is only known on the client, so render the light state until hydration finishes.
+const subscribeNoop = () => () => {};
+
 const ThemeToggle = ({ className }: IThemeToggle = {}) => {
     const { resolvedTheme, setTheme } = useTheme();
     const t = useTranslations('common');
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const mounted = useSyncExternalStore(
+        subscribeNoop,
+        () => true,
+        () => false,
+    );
 
     const isDark = mounted && resolvedTheme === 'dark';
 

@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 type TEyeDropperResult = { sRGBHex: string }
 type TEyeDropper = { open: () => Promise<TEyeDropperResult> }
 type TEyeDropperConstructor = new () => TEyeDropper
 
-export const useEyeDropper = () => {
-    const [isSupported, setIsSupported] = useState(false)
+const subscribeNoop = () => () => {}
 
-    useEffect(() => {
-        setIsSupported(typeof window !== 'undefined' && 'EyeDropper' in window)
-    }, [])
+export const useEyeDropper = () => {
+    // Server snapshot stays false so the first client render matches the server HTML.
+    const isSupported = useSyncExternalStore(
+        subscribeNoop,
+        () => 'EyeDropper' in window,
+        () => false,
+    )
 
     const openDropper = useCallback(async () => {
         if (!isSupported || typeof window === 'undefined') return null

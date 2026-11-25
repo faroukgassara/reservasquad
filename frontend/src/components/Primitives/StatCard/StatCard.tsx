@@ -28,10 +28,10 @@ const StatCard = ({
 }: IStatCard) => {
     return (
         <Div
-            className={`rounded-2xl border border-gray-200/80 bg-white p-4 shadow-2xs transition-all duration-200 hover:border-primary-300 hover:shadow-md ${className}`}
+            className={`rounded-2xl border border-gray-200 bg-white p-4 ${className}`}
         >
             <Div className="flex items-center gap-3.5">
-                <Div className={`flex size-11 shrink-0 items-center justify-center rounded-xl shadow-xs ${iconBg}`}>
+                <Div className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
                     <Icon name={icon} size={ESize.sm} color={iconColor} />
                 </Div>
                 <Div className="min-w-0 flex flex-1 flex-col">
@@ -41,7 +41,7 @@ const StatCard = ({
                     {isLoading ? (
                         <Div className="mt-1.5 h-6 w-24 animate-pulse rounded-lg bg-gray-100" />
                     ) : (
-                        <span className="mt-0.5 block truncate text-xl font-bold text-gray-900 tabular-nums sm:text-2xl">
+                        <span title={value} className="mt-0.5 block truncate text-xl font-semibold text-gray-900 tabular-nums sm:text-2xl">
                             {value}
                         </span>
                     )}

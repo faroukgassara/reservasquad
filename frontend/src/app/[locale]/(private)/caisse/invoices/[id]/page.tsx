@@ -149,12 +149,13 @@ export default function PosInvoicePage() {
         enabled: isAdmin,
     });
 
-    useEffect(() => {
-        if (!invoice) return;
+    const [syncedInvoice, setSyncedInvoice] = useState<InvoiceDetail>();
+    if (invoice && invoice !== syncedInvoice) {
+        setSyncedInvoice(invoice);
         setForm(formFromInvoice(invoice));
         setDirty(false);
         setShowErrors(false);
-    }, [invoice]);
+    }
 
     const status = invoice?.status ?? 'DRAFT';
     const editable = isNew || status === 'DRAFT';

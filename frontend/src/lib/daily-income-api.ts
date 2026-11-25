@@ -34,11 +34,20 @@ export interface DailyIncomeRecord {
     chargesInvestment?: number;
 }
 
+export interface ChargeCategory {
+    id: string;
+    name: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export interface IncomeLineRecord {
     id: string;
     date: string;
     type: IncomeLineType;
-    label: string;
+    description: string | null;
+    categoryId: string | null;
+    category?: Pick<ChargeCategory, 'id' | 'name'> | null;
     amount: number | string;
     createdAt: string;
     updatedAt: string;
@@ -67,6 +76,7 @@ export interface DailyIncomeSummary {
     totalFarouk: number;
     totalMajdi: number;
     totalSavingsForCharges: number;
+    totalEcofactureExpenses?: number;
     netBalance: number;
     previousMonthRest: number;
 }
@@ -179,11 +189,12 @@ export async function deleteDailyIncome(id: string): Promise<void> {
 }
 
 export async function fetchIncomeLines(
-    params: DailyIncomePeriod & { type?: IncomeLineType },
+    params: DailyIncomePeriod & { type?: IncomeLineType; categoryId?: string },
 ): Promise<IncomeLinesMonthList> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const sp = periodSearchParams(params);
     if (params.type) sp.set('type', params.type);
+    if (params.categoryId) sp.set('categoryId', params.categoryId);
     const res = await api.get(`/api/daily-income/lines?${sp.toString()}`, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch income lines');
     return unwrapData<IncomeLinesMonthList>(res.data as { data?: IncomeLinesMonthList });
@@ -192,7 +203,8 @@ export async function fetchIncomeLines(
 export async function createIncomeLine(body: {
     date: string;
     type: IncomeLineType;
-    label: string;
+    description?: string | null;
+    categoryId?: string | null;
     amount: number;
 }): Promise<IncomeLineRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
@@ -205,7 +217,13 @@ export async function createIncomeLine(body: {
 
 export async function updateIncomeLine(
     id: string,
-    body: Partial<{ date: string; type: IncomeLineType; label: string; amount: number }>,
+    body: Partial<{
+        date: string;
+        type: IncomeLineType;
+        description: string | null;
+        categoryId: string | null;
+        amount: number;
+    }>,
 ): Promise<IncomeLineRecord> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.post(`/api/daily-income/lines/${id}`, body, headers);
@@ -213,8 +231,76 @@ export async function updateIncomeLine(
     return unwrapData<IncomeLineRecord>(res.data as { data?: IncomeLineRecord });
 }
 
+export async function fetchChargeCategories(): Promise<ChargeCategory[]> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.get('/api/daily-income/charge-categories', headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch charge categories');
+    return unwrapData<ChargeCategory[]>(res.data as { data?: ChargeCategory[] });
+}
+
+export async function createChargeCategory(body: { name: string }): Promise<ChargeCategory> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post('/api/daily-income/charge-categories', body, headers);
+    if (res.status !== HttpStatus.SuccessCreated && res.status !== HttpStatus.SuccessOK) {
+        throw new Error('Failed to create charge category');
+    }
+    return unwrapData<ChargeCategory>(res.data as { data?: ChargeCategory });
+}
+
+export async function updateChargeCategory(
+    id: string,
+    body: { name: string },
+): Promise<ChargeCategory> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post(`/api/daily-income/charge-categories/${id}`, body, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to update charge category');
+    return unwrapData<ChargeCategory>(res.data as { data?: ChargeCategory });
+}
+
+export async function deleteChargeCategory(id: string): Promise<void> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.delete(`/api/daily-income/charge-categories/${id}`, {}, headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to delete charge category');
+}
+
 export async function deleteIncomeLine(id: string): Promise<void> {
     const headers = await CommonFunction.createHeaders({ withToken: true });
     const res = await api.delete(`/api/daily-income/lines/${id}`, {}, headers);
     if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to delete income line');
+}
+
+
+export interface DailyIncomeSettings {
+    chargesPercentage: number;
+    savingsPercentage: number;
+    benefitsPercentage: number;
+    savingsForChargesPercentage: number;
+    updatedAt?: string;
+}
+
+export interface UpdateDailyIncomeSettingsInput {
+    chargesPercentage: number;
+    savingsPercentage: number;
+    benefitsPercentage: number;
+    savingsForChargesPercentage: number;
+}
+
+export async function fetchDailyIncomeSettings(): Promise<DailyIncomeSettings> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.get('/api/daily-income/settings', headers);
+    if (res.status !== HttpStatus.SuccessOK) throw new Error('Failed to fetch daily income settings');
+    return unwrapData<DailyIncomeSettings>(res.data as { data?: DailyIncomeSettings });
+}
+
+export async function updateDailyIncomeSettings(
+    body: UpdateDailyIncomeSettingsInput,
+): Promise<DailyIncomeSettings> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.put('/api/daily-income/settings', body, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const bodyRes = res.data as { message?: string | string[]; error?: string } | undefined;
+        const msg = Array.isArray(bodyRes?.message) ? bodyRes.message[0] : bodyRes?.message;
+        throw new Error(msg || bodyRes?.error || 'Failed to update daily income settings');
+    }
+    return unwrapData<DailyIncomeSettings>(res.data as { data?: DailyIncomeSettings });
 }

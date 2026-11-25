@@ -67,6 +67,7 @@ export default function ProfessorsAdminPage() {
     }, [canManage, router]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- URL is only readable after hydration
         if (new URLSearchParams(window.location.search).get('tab') === 'ranking') setTab('ranking');
     }, []);
 
@@ -305,7 +306,7 @@ export default function ProfessorsAdminPage() {
                             <OrganismProfessorRanking />
                         ) : (
                             <>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 laptop:grid-cols-3">
                                     <StatCard
                                         icon={IconComponentsEnum.users}
                                         iconBg="bg-primary-50"

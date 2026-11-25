@@ -29,7 +29,6 @@ import {
     IconComponentsEnum,
 } from '@/Enum/Enum';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
-import type { ELabelColor } from '@/theme/labelColors';
 
 function formatTime(iso: string): string {
     return new Date(iso).toLocaleTimeString(undefined, {
@@ -252,7 +251,7 @@ export default function TodayPage() {
                                         {t('noRooms')}
                                     </Label>
                                 ) : (
-                                    <Div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                    <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                                         {data.rooms.map((room) => (
                                             <RoomStatusCard key={room.roomId} room={room} t={t} />
                                         ))}
@@ -287,7 +286,7 @@ export default function TodayPage() {
                                                             color="text-gray-500"
                                                             className="block"
                                                         >
-                                                            {new Date(slot.availableAt).getTime() <= Date.now() + 1000
+                                                            {new Date(slot.availableAt).getTime() <= dataUpdatedAt + 1000
                                                                 ? t('availableNow')
                                                                 : t('availableAt', {
                                                                       time: formatTime(slot.availableAt),
@@ -333,7 +332,11 @@ export default function TodayPage() {
                                                             </Label>
                                                             <Badge
                                                                 id={`today-unpaid-timing-${row.id}`}
-                                                                text={t(`timing.${row.timing}`)}
+                                                                text={
+                                                                    row.timing === 'STARTING'
+                                                                        ? t('timing.STARTING', { time: formatTime(row.startAt) })
+                                                                        : t(`timing.${row.timing}`)
+                                                                }
                                                                 type={timingBadgeType(row.timing)}
                                                                 size={EBadgeSize.small}
                                                             />
@@ -353,7 +356,7 @@ export default function TodayPage() {
                                                             {formatRange(row.startAt, row.endAt)}
                                                         </Label>
                                                     </Div>
-                                                    <Div className="flex items-center gap-3">
+                                                    <Div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
                                                         <span className="font-bold text-gray-900 tabular-nums">
                                                             {formatMoney(row.price)}
                                                         </span>

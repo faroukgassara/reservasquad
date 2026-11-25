@@ -3,6 +3,9 @@ import { Routes } from './routes';
 
 export type ModuleId = 'reservations' | 'caisse' | 'recettes' | 'admin';
 
+/** Theme colour that identifies a module on the launcher card and in the module switcher. */
+export type ModuleTone = 'primary' | 'accent' | 'success' | 'warning';
+
 type StaffRole = 'ADMIN' | 'USER';
 
 type SidebarLabelKey =
@@ -11,13 +14,16 @@ type SidebarLabelKey =
     | 'reservations'
     | 'rooms'
     | 'professors'
+    | 'management'
     | 'reports'
     | 'caisseHome'
     | 'sessions'
     | 'subscriptions'
     | 'billing'
+    | 'clientsSales'
     | 'clients'
     | 'products'
+    | 'articles'
     | 'categories'
     | 'analytics'
     | 'newsletters'
@@ -36,11 +42,14 @@ export interface INavModuleItem {
     roles?: StaffRole[];
     exact?: boolean;
     alsoActive?: string[];
+    /** Nested items rendered in a dropdown under this link. */
+    children?: INavModuleItem[];
 }
 
 export interface INavModule {
     id: ModuleId;
     icon: IconComponentsEnum;
+    tone: ModuleTone;
     homeHref: string;
     roles: StaffRole[];
     pathPrefixes: string[];
@@ -54,7 +63,8 @@ export const NAV_MODULES: INavModule[] = [
     {
         id: 'reservations',
         icon: IconComponentsEnum.calendar,
-        homeHref: Routes.Today,
+        tone: 'primary',
+        homeHref: Routes.Calendar,
         roles: STAFF,
         pathPrefixes: [Routes.Today, Routes.Calendar, Routes.Reservations.index, Routes.Rooms.index, Routes.Professors.index],
         items: [
@@ -67,8 +77,16 @@ export const NAV_MODULES: INavModule[] = [
                 href: Routes.Reservations.index,
                 exact: true,
             },
-            { id: 'rooms', icon: IconComponentsEnum.home, labelKey: 'rooms', href: Routes.Rooms.index },
-            { id: 'professors', icon: IconComponentsEnum.users, labelKey: 'professors', href: Routes.Professors.index },
+            {
+                id: 'management',
+                icon: IconComponentsEnum.users,
+                labelKey: 'management',
+                href: Routes.Rooms.index,
+                children: [
+                    { id: 'rooms', icon: IconComponentsEnum.home, labelKey: 'rooms', href: Routes.Rooms.index },
+                    { id: 'professors', icon: IconComponentsEnum.user, labelKey: 'professors', href: Routes.Professors.index },
+                ],
+            },
             {
                 id: 'reservation-reports',
                 icon: IconComponentsEnum.layers,
@@ -81,6 +99,7 @@ export const NAV_MODULES: INavModule[] = [
     {
         id: 'caisse',
         icon: IconComponentsEnum.shoppingCart,
+        tone: 'accent',
         homeHref: Routes.Pos.index,
         roles: STAFF,
         pathPrefixes: [Routes.Pos.index],
@@ -94,47 +113,65 @@ export const NAV_MODULES: INavModule[] = [
                 roles: ADMIN_ONLY,
             },
             {
-                id: 'subscriptions',
-                icon: IconComponentsEnum.userCheck,
-                labelKey: 'subscriptions',
-                href: Routes.Pos.subscriptions,
-                roles: ADMIN_ONLY,
-            },
-            {
-                id: 'billing',
+                id: 'clients-sales',
                 icon: IconComponentsEnum.filetext,
-                labelKey: 'billing',
+                labelKey: 'clientsSales',
                 href: Routes.Pos.sales,
                 roles: ADMIN_ONLY,
-                alsoActive: [Routes.Pos.invoices],
+                children: [
+                    {
+                        id: 'subscriptions',
+                        icon: IconComponentsEnum.userCheck,
+                        labelKey: 'subscriptions',
+                        href: Routes.Pos.subscriptions,
+                        roles: ADMIN_ONLY,
+                    },
+                    {
+                        id: 'billing',
+                        icon: IconComponentsEnum.filetext,
+                        labelKey: 'billing',
+                        href: Routes.Pos.sales,
+                        roles: ADMIN_ONLY,
+                        alsoActive: [Routes.Pos.invoices],
+                    },
+                    {
+                        id: 'analytics',
+                        icon: IconComponentsEnum.layers,
+                        labelKey: 'analytics',
+                        href: Routes.Pos.analytics,
+                        roles: ADMIN_ONLY,
+                    },
+                    {
+                        id: 'clients',
+                        icon: IconComponentsEnum.users,
+                        labelKey: 'clients',
+                        href: Routes.Pos.clients,
+                        roles: ADMIN_ONLY,
+                    },
+                ],
             },
             {
-                id: 'clients',
-                icon: IconComponentsEnum.users,
-                labelKey: 'clients',
-                href: Routes.Pos.clients,
-                roles: ADMIN_ONLY,
-            },
-            {
-                id: 'products',
+                id: 'articles',
                 icon: IconComponentsEnum.layer,
-                labelKey: 'products',
+                labelKey: 'articles',
                 href: Routes.Pos.products,
                 roles: ADMIN_ONLY,
-            },
-            {
-                id: 'categories',
-                icon: IconComponentsEnum.squaresFour,
-                labelKey: 'categories',
-                href: Routes.Pos.categories,
-                roles: ADMIN_ONLY,
-            },
-            {
-                id: 'analytics',
-                icon: IconComponentsEnum.layers,
-                labelKey: 'analytics',
-                href: Routes.Pos.analytics,
-                roles: ADMIN_ONLY,
+                children: [
+                    {
+                        id: 'products',
+                        icon: IconComponentsEnum.layer,
+                        labelKey: 'products',
+                        href: Routes.Pos.products,
+                        roles: ADMIN_ONLY,
+                    },
+                    {
+                        id: 'categories',
+                        icon: IconComponentsEnum.squaresFour,
+                        labelKey: 'categories',
+                        href: Routes.Pos.categories,
+                        roles: ADMIN_ONLY,
+                    },
+                ],
             },
             {
                 id: 'newsletters',
@@ -147,7 +184,8 @@ export const NAV_MODULES: INavModule[] = [
     },
     {
         id: 'recettes',
-        icon: IconComponentsEnum.squaresFour,
+        icon: IconComponentsEnum.wallet,
+        tone: 'success',
         homeHref: Routes.DailyIncome.index,
         roles: ADMIN_ONLY,
         pathPrefixes: [Routes.DailyIncome.index],
@@ -164,6 +202,7 @@ export const NAV_MODULES: INavModule[] = [
     {
         id: 'admin',
         icon: IconComponentsEnum.settings,
+        tone: 'warning',
         homeHref: Routes.Users.index,
         roles: ADMIN_ONLY,
         pathPrefixes: [Routes.Users.index, Routes.AuditLog.index, Routes.RecycleBin.index, Routes.Settings.index],
@@ -190,5 +229,12 @@ export function modulesForRole(role?: string | null): INavModule[] {
 }
 
 export function moduleItemsForRole(module: INavModule, role?: string | null): INavModuleItem[] {
-    return module.items.filter((item) => hasRole(item.roles, role));
+    return module.items
+        .filter((item) => hasRole(item.roles, role))
+        .map((item) =>
+            item.children
+                ? { ...item, children: item.children.filter((child) => hasRole(child.roles, role)) }
+                : item,
+        )
+        .filter((item) => !item.children || item.children.length > 0);
 }

@@ -1,6 +1,8 @@
 import { Routes } from '@/lib/routes';
 import { Api } from '@/common/StandardApi/api';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import type { Session, User } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 
 const api = new Api(process.env.NEXT_PUBLIC_API_URL);
 
@@ -51,7 +53,7 @@ export const authOptions = {
         signIn: Routes.Login
     },
     events: {
-        async signOut({ token }: any) {
+        async signOut({ token }: { token: JWT }) {
             const refreshToken = token?.refreshToken;
             if (!refreshToken) return;
 
@@ -70,7 +72,7 @@ export const authOptions = {
         },
     },
     callbacks: {
-        async jwt({ token, user }: any) {
+        async jwt({ token, user }: { token: JWT; user?: User }) {
             if (user) {
                 const {
                     access_token,
@@ -94,15 +96,15 @@ export const authOptions = {
                 };
             }
 
-            if (Date.now() / 1000 < token.expiresAt) {
+            if (token.expiresAt !== undefined && Date.now() / 1000 < token.expiresAt) {
                 return token;
             }
 
             return refreshAccessToken(token);
         },
-        async session({ session, token }: any) {
+        async session({ session, token }: { session: Session; token: JWT }) {
             if (token) {
-                session.user = token.user;
+                session.user = token.user as Session['user'];
                 session.accessToken = token.accessToken;
                 session.error = token.error;
             }
@@ -111,7 +113,7 @@ export const authOptions = {
     },
 };
 
-async function refreshAccessToken(token: any) {
+async function refreshAccessToken(token: JWT) {
     try {
         const apiRes = await api.post(
             '/auth/refresh-token',

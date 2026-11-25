@@ -40,6 +40,9 @@ const LIGHT_CHART_COLORS = {
     barPrimary: colors.primary[300],
     barPrimaryStrong: colors.primary[400],
     lineAccent: colors.accent[500],
+    income: colors.success[600],
+    expenses: colors.warning[500],
+    netBalance: colors.primary[500],
 };
 
 const DARK_CHART_COLORS = {
@@ -49,6 +52,9 @@ const DARK_CHART_COLORS = {
     barPrimary: 'oklch(0.5222 0.0821 273.5)',
     barPrimaryStrong: 'oklch(0.6011 0.0691 274)',
     lineAccent: 'oklch(0.6156 0.2193 27.4)',
+    income: 'oklch(0.7521 0.1505 155)',
+    expenses: 'oklch(0.7464 0.1707 61.8)',
+    netBalance: 'oklch(0.6675 0.0742 274.5)',
 };
 
 function useChartColors() {
@@ -371,14 +377,14 @@ export function IncomeBreakdownChart({
                         <Bar
                             dataKey="income"
                             name={incomeLabel}
-                            fill="#10b981"
+                            fill={chartColors.income}
                             radius={[4, 4, 0, 0]}
                             maxBarSize={28}
                         />
                         <Bar
                             dataKey="expenses"
                             name={expensesLabel}
-                            fill="#f59e0b"
+                            fill={chartColors.expenses}
                             radius={[4, 4, 0, 0]}
                             maxBarSize={28}
                         />
@@ -386,9 +392,9 @@ export function IncomeBreakdownChart({
                             type="monotone"
                             dataKey="netBalance"
                             name={netBalanceLabel}
-                            stroke="#3b82f6"
+                            stroke={chartColors.netBalance}
                             strokeWidth={2.5}
-                            dot={{ r: 3.5, fill: '#3b82f6', strokeWidth: 0 }}
+                            dot={{ r: 3.5, fill: chartColors.netBalance, strokeWidth: 0 }}
                         />
                     </ComposedChart>
                 </ResponsiveContainer>

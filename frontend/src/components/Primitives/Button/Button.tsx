@@ -76,12 +76,15 @@ const Button = memo(function Button({
     );
   }
 
+  const isDisabled = disabled || isLoading;
+
   return (
     <button
       type={htmlType}
       className={buttonClassName}
-      disabled={disabled}
-      onClick={onClick}
+      disabled={isDisabled}
+      aria-busy={isLoading || undefined}
+      onClick={isDisabled ? undefined : onClick}
       id={id}
       aria-label={ariaLabel}
       aria-expanded={ariaExpanded}

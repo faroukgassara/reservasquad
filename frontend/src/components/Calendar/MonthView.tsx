@@ -88,13 +88,13 @@ export default function MonthView<T extends CalendarEventBase = CalendarEventBas
 
     return (
         <Div>
-            <Div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50 sm:sticky sm:top-[4.5rem] sm:z-10 lg:top-[4.75rem]">
+            <Div className="grid grid-cols-7 border-b border-gray-100 bg-gray-25 sm:sticky sm:top-[4.5rem] sm:z-10 lg:top-[4.75rem]">
                 {headers.map((label) => (
                     <Div key={label} className="px-2 py-2.5 text-center">
                         <Label
                             variant={EVariantLabel.caption}
-                            color="text-gray-500"
-                            className="uppercase tracking-wide"
+                            color="text-gray-600"
+                            className="font-semibold capitalize"
                         >
                             {label}
                         </Label>
@@ -107,6 +107,8 @@ export default function MonthView<T extends CalendarEventBase = CalendarEventBas
                         !monthStart || !nextMonth || (day >= monthStart && day < nextMonth);
                     const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
                     const isToday = isSameDay(day, today);
+                    const isPast = !isToday && day < today;
+                    const dayNumberColor = !inMonth ? 'text-gray-300' : isPast ? 'text-gray-400' : 'text-gray-700';
                     const dayManageable =
                         typeof canManage === 'function' ? canManage(day) : Boolean(canManage);
                     const dayKey = day.toDateString();
@@ -131,9 +133,11 @@ export default function MonthView<T extends CalendarEventBase = CalendarEventBas
                             } ${
                                 isDragOver
                                     ? 'bg-primary-25/80 ring-2 ring-inset ring-primary-400'
-                                    : inMonth
-                                      ? 'bg-white hover:bg-primary-25/60'
-                                      : 'bg-gray-25/70'
+                                    : !inMonth
+                                      ? 'bg-gray-25/70'
+                                      : isPast
+                                        ? 'bg-gray-25'
+                                        : 'bg-white hover:bg-primary-25/60'
                             }`}
                             onClick={onCellClick ? () => onCellClick(day) : undefined}
                         >
@@ -154,13 +158,7 @@ export default function MonthView<T extends CalendarEventBase = CalendarEventBas
                                     >
                                         <Label
                                             variant={EVariantLabel.caption}
-                                            color={
-                                                isToday
-                                                    ? 'text-white'
-                                                    : inMonth
-                                                      ? 'text-gray-700'
-                                                      : 'text-gray-300'
-                                            }
+                                            color={isToday ? 'text-white' : dayNumberColor}
                                             className="font-semibold"
                                         >
                                             {day.getDate()}
@@ -179,7 +177,7 @@ export default function MonthView<T extends CalendarEventBase = CalendarEventBas
                                 ) : (
                                     <Label
                                         variant={EVariantLabel.caption}
-                                        color={inMonth ? 'text-gray-700' : 'text-gray-300'}
+                                        color={dayNumberColor}
                                         className="font-semibold"
                                     >
                                         {day.getDate()}

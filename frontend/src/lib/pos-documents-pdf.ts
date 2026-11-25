@@ -4,7 +4,6 @@ import QRCode from 'qrcode';
 import {
     COMPANY,
     formatPosDate,
-    formatPosDateTime,
     formatSaleNumber,
     formatSubscriptionNumber,
     personName,

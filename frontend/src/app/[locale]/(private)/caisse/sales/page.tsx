@@ -104,6 +104,7 @@ export default function PosSalesPage() {
                     value: 'total',
                     label: t('total'),
                     mobile: 'primary',
+                    numeric: true,
                     render: (_: unknown, row: SaleOrder) => {
                         const due = toAmount(row.total) - toAmount(row.amountPaid);
                         return (

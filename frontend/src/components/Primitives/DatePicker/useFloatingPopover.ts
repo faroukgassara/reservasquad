@@ -2,12 +2,14 @@
 
 import {
     useCallback,
-    useEffect,
     useLayoutEffect,
     useRef,
     useState,
+    useSyncExternalStore,
     type CSSProperties,
 } from 'react';
+
+const subscribeNoop = () => () => {};
 
 const VIEWPORT_PADDING = 8;
 const POPOVER_GAP = 4;
@@ -21,12 +23,17 @@ export interface IFloatingPopoverPosition {
 export function useFloatingPopover(isOpen: boolean) {
     const triggerRef = useRef<HTMLButtonElement>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
-    const [mounted, setMounted] = useState(false);
+    const mounted = useSyncExternalStore(
+        subscribeNoop,
+        () => true,
+        () => false,
+    );
     const [position, setPosition] = useState<IFloatingPopoverPosition | null>(null);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+    if (prevIsOpen !== isOpen) {
+        setPrevIsOpen(isOpen);
+        if (!isOpen) setPosition(null);
+    }
 
     const updatePosition = useCallback(() => {
         const trigger = triggerRef.current;
@@ -63,10 +70,7 @@ export function useFloatingPopover(isOpen: boolean) {
     }, []);
 
     useLayoutEffect(() => {
-        if (!isOpen) {
-            setPosition(null);
-            return;
-        }
+        if (!isOpen) return;
 
         const frame = requestAnimationFrame(() => {
             updatePosition();

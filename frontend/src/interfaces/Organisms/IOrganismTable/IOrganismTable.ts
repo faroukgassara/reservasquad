@@ -36,11 +36,13 @@ export type TMobileColumnLayout = 'primary' | 'secondary' | 'hidden';
 export interface IHeaderElement<TRow = unknown> {
     value: string;
     label: string;
-    render?: (value: any, row: TRow) => ReactNode;
+    render?: (value: unknown, row: TRow) => ReactNode;
     sortable?: boolean;
     width?: string;
     cellClassName?: string;
     headerClassName?: string;
+    /** Amounts and counts: right-aligned (end-aligned in RTL) so figures line up across rows. */
+    numeric?: boolean;
     /** Mobile (< md) card layout: 'primary' shows in the card header, 'secondary' goes inside the collapsible details, 'hidden' is omitted. Default: first column is primary, the rest secondary. */
     mobile?: TMobileColumnLayout;
 }
@@ -52,11 +54,12 @@ export interface ITableColumn<TRow = unknown> {
 export interface ITableColumnFlat<TRow = unknown> {
     key: string;
     label: string;
-    render?: (value: any, row: TRow) => ReactNode;
+    render?: (value: unknown, row: TRow) => ReactNode;
     sortable?: boolean;
     width?: string;
     cellClassName?: string;
     headerClassName?: string;
+    numeric?: boolean;
     /** Mobile (< md) card layout: 'primary' shows in the card header, 'secondary' goes inside the collapsible details, 'hidden' is omitted. Default: first column is primary, the rest secondary. */
     mobile?: TMobileColumnLayout;
 }
@@ -64,7 +67,7 @@ export interface ITableColumnFlat<TRow = unknown> {
 export interface ITableColumnHeader<TRow = unknown> {
     keyCol: string;
     label: string;
-    render?: (value: any, row: TRow) => ReactNode;
+    render?: (value: unknown, row: TRow) => ReactNode;
     sortable?: boolean;
     width?: string;
     cellClassName?: string;
@@ -140,6 +143,8 @@ export interface ITable<TRow = unknown> {
     onFilterRow?: (row: TRow, tags: string[]) => boolean;
     onAddTag?: (tag: string) => void;
     clearSearchOnAddTag?: boolean;
+    /** Extra classes for a data row / mobile card (e.g. cancelled reservations). */
+    getRowClassName?: (row: TRow, index: number) => string | undefined;
     /** Allow collapsing secondary columns into a details section on mobile cards (default true). */
     mobileCollapsible?: boolean;
     /** Start mobile secondary details expanded (default false). */

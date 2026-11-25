@@ -107,6 +107,7 @@ enum IconComponentsEnum {
     arrowRight = 'arrowRight',
     search = 'search',
     shoppingCart = 'shoppingCart',
+    wallet = 'wallet',
     star = 'star',
     scissors = 'scissors',
     penNib = 'penNib',

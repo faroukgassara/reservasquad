@@ -32,15 +32,17 @@ interface ReservationDailyMonthChartProps {
 const LIGHT_THEME_COLORS = {
     grid: colors.gray[100],
     tick: colors.gray[500],
-    revenueBar: '#4F46E5', // indigo-600
-    paidLine: '#10B981', // emerald-500
+    revenueBar: colors.primary[300],
+    paidLine: colors.success[600],
+    dotStroke: colors.white,
 };
 
 const DARK_THEME_COLORS = {
     grid: 'oklch(0.3389 0.0301 270.4)',
     tick: 'oklch(0.6486 0.0275 268.6)',
-    revenueBar: '#6366F1', // indigo-500
-    paidLine: '#34D399', // emerald-400
+    revenueBar: 'oklch(0.5222 0.0821 273.5)',
+    paidLine: 'oklch(0.7521 0.1505 155)',
+    dotStroke: 'oklch(0.2955 0.0262 270.55)',
 };
 
 export default function ReservationDailyMonthChart({
@@ -100,15 +102,11 @@ export default function ReservationDailyMonthChart({
         });
     }, [days, daysInMonth, year, month, fullDateFormatter]);
 
-    const { totalRevenue, totalPaid, totalCount, peakDay } = useMemo(() => {
-        let rev = 0;
-        let paid = 0;
+    const { totalCount, peakDay } = useMemo(() => {
         let count = 0;
         let peak = { day: 1, revenue: 0 };
 
         for (const d of chartData) {
-            rev += d.revenue;
-            paid += d.paidRevenue;
             count += d.count;
             if (d.revenue > peak.revenue) {
                 peak = { day: d.day, revenue: d.revenue };
@@ -116,8 +114,6 @@ export default function ReservationDailyMonthChart({
         }
 
         return {
-            totalRevenue: Math.round(rev * 100) / 100,
-            totalPaid: Math.round(paid * 100) / 100,
             totalCount: count,
             peakDay: peak,
         };
@@ -163,7 +159,7 @@ export default function ReservationDailyMonthChart({
                                 {tDashboard('chartPaidRevenue')}
                             </span>
                         </Div>
-                        <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                        <span className="font-bold tabular-nums text-success-700">
                             {formatMoney(dataPoint.paidRevenue)}
                         </span>
                     </Div>
@@ -171,12 +167,12 @@ export default function ReservationDailyMonthChart({
                     {dataPoint.unpaidRevenue > 0 && (
                         <Div className="flex items-center justify-between gap-4">
                             <Div className="flex items-center gap-1.5">
-                                <span className="size-2.5 shrink-0 rounded-full bg-amber-500" />
+                                <span className="size-2.5 shrink-0 rounded-full bg-warning-500" />
                                 <span className="font-medium text-gray-700 dark:text-gray-300">
                                     {tDashboard('kpiUnpaidMonth')}
                                 </span>
                             </Div>
-                            <span className="font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                            <span className="font-bold tabular-nums text-warning-700">
                                 {formatMoney(dataPoint.unpaidRevenue)}
                             </span>
                         </Div>
@@ -303,7 +299,7 @@ export default function ReservationDailyMonthChart({
                                 r: 2.5,
                                 fill: chartColors.paidLine,
                                 strokeWidth: 1,
-                                stroke: isDark ? '#1F2937' : '#FFFFFF',
+                                stroke: chartColors.dotStroke,
                             }}
                             activeDot={{ r: 5, fill: chartColors.paidLine }}
                         />

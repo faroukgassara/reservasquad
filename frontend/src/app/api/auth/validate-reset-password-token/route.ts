@@ -16,9 +16,9 @@ export async function POST(req: Request) {
         );
 
         return NextResponse.json(apiRes.data, { status: apiRes.status });
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json(
-            { error: 'Internal server error', details: error?.message || error },
+            { error: 'Internal server error', details: (error instanceof Error ? error.message : undefined) || error },
             { status: 500 }
         );
     }

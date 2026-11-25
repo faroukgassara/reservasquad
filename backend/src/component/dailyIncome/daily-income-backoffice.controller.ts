@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
   Req,
   Res,
@@ -23,8 +24,13 @@ import {
   CreateIncomeLineDto,
   UpdateIncomeLineDto,
 } from 'src/dto/dailyIncome/createIncomeLine.dto';
+import {
+  CreateChargeCategoryDto,
+  UpdateChargeCategoryDto,
+} from 'src/dto/dailyIncome/chargeCategory.dto';
 import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
 import { SetPreviousMonthRestDto } from 'src/dto/dailyIncome/setPreviousMonthRest.dto';
+import { UpdateDailyIncomeSettingsDto } from 'src/dto/dailyIncome/dailyIncomeSettings.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { sendCaughtError } from 'src/common/utils/caught-error.util';
@@ -63,6 +69,44 @@ export class DailyIncomeBackofficeController {
       return null;
     }
     return dto;
+  }
+
+  @Get('settings')
+  @swagger.ApiOperation({ summary: 'Get daily income settings (distribution percentages)' })
+  async getSettings(@Res() res: Response) {
+    try {
+      const data = await this.dailyIncomeService.getSettings();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Put('settings')
+  @swagger.ApiOperation({ summary: 'Update daily income settings' })
+  async updateSettings(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: UpdateDailyIncomeSettingsDto,
+  ) {
+    try {
+      const dto = await this.validateDto(UpdateDailyIncomeSettingsDto, body, res);
+      if (!dto) return;
+      const data = await this.dailyIncomeService.updateSettings(dto, req.user?.id);
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('settings')
+  @swagger.ApiOperation({ summary: 'Update daily income settings via POST' })
+  async updateSettingsPost(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: UpdateDailyIncomeSettingsDto,
+  ) {
+    return this.updateSettings(res, req, body);
   }
 
   @Get('list')
@@ -184,6 +228,77 @@ export class DailyIncomeBackofficeController {
         req.user?.id,
       );
       return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data: line });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Get('charge-categories')
+  @swagger.ApiOperation({ summary: 'List charge categories' })
+  async listChargeCategories(@Res() res: Response) {
+    try {
+      const data = await this.dailyIncomeService.listChargeCategories();
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('charge-categories')
+  @swagger.ApiOperation({ summary: 'Create a charge category' })
+  async createChargeCategory(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: CreateChargeCategoryDto,
+  ) {
+    try {
+      const dto = await this.validateDto(CreateChargeCategoryDto, body, res);
+      if (!dto) return;
+      const data = await this.dailyIncomeService.createChargeCategory(
+        dto,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.CREATED).json({ statusCode: HttpStatus.CREATED, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('charge-categories/:id')
+  @swagger.ApiOperation({ summary: 'Update a charge category' })
+  async updateChargeCategory(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+    @Body() body: UpdateChargeCategoryDto,
+  ) {
+    try {
+      const dto = await this.validateDto(UpdateChargeCategoryDto, body, res);
+      if (!dto) return;
+      const data = await this.dailyIncomeService.updateChargeCategory(
+        id,
+        dto,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Delete('charge-categories/:id')
+  @swagger.ApiOperation({ summary: 'Delete a charge category' })
+  async removeChargeCategory(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Param('id') id: string,
+  ) {
+    try {
+      const data = await this.dailyIncomeService.deleteChargeCategory(
+        id,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
     } catch (error: unknown) {
       return sendCaughtError(res, error);
     }

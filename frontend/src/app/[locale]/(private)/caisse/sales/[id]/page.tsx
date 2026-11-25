@@ -120,12 +120,13 @@ export default function PosSaleOrderPage() {
         enabled: isAdmin,
     });
 
-    useEffect(() => {
-        if (!order) return;
+    const [syncedOrder, setSyncedOrder] = useState<SaleOrderDetail>();
+    if (order && order !== syncedOrder) {
+        setSyncedOrder(order);
         setForm(formFromOrder(order));
         setDirty(false);
         setShowErrors(false);
-    }, [order]);
+    }
 
     const status = order?.status ?? 'DRAFT';
     const editable = isNew || status === 'DRAFT' || status === 'SENT';

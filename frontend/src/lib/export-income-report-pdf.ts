@@ -63,10 +63,6 @@ const HEADER_HEIGHT = 32;
 
 type DocWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } };
 
-function lastTableY(doc: DocWithAutoTable, fallback: number): number {
-    return doc.lastAutoTable?.finalY ?? fallback;
-}
-
 function drawPageFooter(doc: jsPDF, pageNumber: number, totalPages: number): void {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();

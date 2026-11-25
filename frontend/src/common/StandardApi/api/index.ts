@@ -1,4 +1,4 @@
-import { ApiResponse } from "../types";
+import { ApiResponse, RequestHeaders } from "../types";
 import { IRefreshApiResponse } from "@/interfaces";
 import { IApi } from "../interfaces/IApi";
 import { HttpStatus } from "../interfaces/EHttpStatus";
@@ -24,11 +24,11 @@ export class Api implements IApi {
     this.put = this.put.bind(this);
   }
 
-  private isFormData(body: any): boolean {
+  private isFormData(body: unknown): body is FormData {
     return typeof FormData !== 'undefined' && body instanceof FormData;
   }
 
-  private async rebuildAuthHeaders(headers: Record<string, unknown>) {
+  private async rebuildAuthHeaders(headers: RequestHeaders) {
     const isContentTypeFormData =
       headers["Content-Type"] === undefined ||
       (typeof headers["Content-Type"] === 'string' &&
@@ -42,8 +42,8 @@ export class Api implements IApi {
 
   private async handleUnauthorizedResponse(
     response: Response,
-    headers: Record<string, unknown>,
-    retry: (newHeaders: Record<string, unknown> | Awaited<ReturnType<typeof CommonFunction.createHeaders>>) => Promise<ApiResponse>,
+    headers: RequestHeaders,
+    retry: (newHeaders: RequestHeaders) => Promise<ApiResponse>,
     options: AuthRetryOptions = {},
   ): Promise<ApiResponse | null> {
     if (
@@ -71,8 +71,8 @@ export class Api implements IApi {
   private async standardApi(
     method: Method,
     endPoint: string,
-    body: any,
-    headers: any,
+    body: unknown,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
@@ -81,12 +81,12 @@ export class Api implements IApi {
 
     const response = await fetch(this.apiURL + endPoint, {
       method,
-      headers: headers,
+      headers: headers as HeadersInit,
       body: bodyToSend,
     });
 
     if (refrechCallback) {
-      return this.processResponse(response, (header: any) =>
+      return this.processResponse(response, (header: RequestHeaders) =>
         this.standardApi(method, endPoint, body, header, refrechCallback, options),
         refrechCallback,
         headers
@@ -112,9 +112,9 @@ export class Api implements IApi {
 
   private async processResponse(
     response: Response,
-    callback: (headers: any) => Promise<ApiResponse>,
+    callback: (headers: RequestHeaders) => Promise<ApiResponse>,
     refreshCallback: () => Promise<IRefreshApiResponse>,
-    headers: any
+    headers: RequestHeaders
   ): Promise<ApiResponse> {
     if (response.status === HttpStatus.Unauthorized) {
       try {
@@ -149,14 +149,14 @@ export class Api implements IApi {
 
   async get(
     endPoint: string,
-    headers: any,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     signal?: AbortSignal,
     options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Get,
-      headers,
+      headers: headers as HeadersInit,
       signal
     });
     if (refrechCallback) {
@@ -182,13 +182,13 @@ export class Api implements IApi {
 
   async getBlob(
     endPoint: string,
-    headers: any,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     signal?: AbortSignal
   ) {
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Get,
-      headers,
+      headers: headers as HeadersInit,
       signal
     });
 
@@ -208,12 +208,12 @@ export class Api implements IApi {
 
   async getNotJson(
     endPoint: string,
-    headers: any,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
   ): Promise<ApiResponse> {
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Get,
-      headers,
+      headers: headers as HeadersInit,
     });
     if (refrechCallback) {
       return this.processResponse(response, (header) => this.get(endPoint, header, refrechCallback), refrechCallback, headers);
@@ -235,8 +235,8 @@ export class Api implements IApi {
 
   async post(
     endPoint: string,
-    body: any,
-    headers: any,
+    body: unknown,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     isReturnBlob = false,
     signal?: AbortSignal,
@@ -246,7 +246,7 @@ export class Api implements IApi {
 
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Post,
-      headers,
+      headers: headers as HeadersInit,
       body: isBodyFormData ? body : JSON.stringify(body),
       signal
     });
@@ -275,15 +275,15 @@ export class Api implements IApi {
 
   async postNotJson(
     endPoint: string,
-    body: any,
-    headers: any,
+    body: BodyInit | null,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
   ): Promise<ApiResponse> {
     headers = headers || await CommonFunction.createHeaders({ withToken: true })
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Post,
       body,
-      headers,
+      headers: headers as HeadersInit,
     });
     if (refrechCallback) {
       return this.processResponse(response, (header) => this.post(endPoint, body, header, refrechCallback), refrechCallback, headers)
@@ -305,15 +305,15 @@ export class Api implements IApi {
 
   async delete(
     endPoint: string,
-    body: any,
-    headers: any,
+    body: unknown,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
     headers = headers || await CommonFunction.createHeaders({ withToken: true })
     const response = await fetch(this.apiURL + endPoint, {
       method: Method.Delete,
-      headers,
+      headers: headers as HeadersInit,
       body: JSON.stringify(body)
     });
     if (refrechCallback) {
@@ -339,8 +339,8 @@ export class Api implements IApi {
 
   async put(
     endPoint: string,
-    body: any,
-    headers: any,
+    body: unknown,
+    headers: RequestHeaders,
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {
@@ -349,8 +349,8 @@ export class Api implements IApi {
 
   async patch(
     endPoint: string,
-    body: any,
-    headers: any = {},
+    body: unknown,
+    headers: RequestHeaders = {},
     refrechCallback?: () => Promise<IRefreshApiResponse>,
     options: AuthRetryOptions = {},
   ): Promise<ApiResponse> {

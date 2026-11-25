@@ -85,7 +85,7 @@ export default function PosDashboardPage() {
         queryFn: () => fetchSubscriptions({ state: 'expiring', page: 1, perPage: 10 }),
     });
 
-    const { data: lowStockData, isLoading: lowStockLoading } = useQuery({
+    const { data: lowStockData } = useQuery({
         queryKey: ['pos-products-low-stock'],
         queryFn: () => fetchPosLowStockProducts(6),
     });
@@ -93,9 +93,12 @@ export default function PosDashboardPage() {
     const openMutation = useMutation({
         mutationFn: (openingCash: number) =>
             openPosSession(posSettings?.allowCashierOverride ? { openingCash } : {}),
-        onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: ['pos-session-current'] });
+        onSuccess: (session) => {
+            // Seed the cache before navigating so /caisse/register does not briefly see
+            // a null session and bounce back to the dashboard.
+            queryClient.setQueryData(['pos-session-current'], session);
             void queryClient.invalidateQueries({ queryKey: ['pos-sessions'] });
+            void queryClient.invalidateQueries({ queryKey: ['pos-session-last-closed'] });
             closeModal();
             router.push(Routes.Pos.register);
         },
@@ -113,7 +116,7 @@ export default function PosDashboardPage() {
                 { type: EToastType.SUCCESS },
             );
         },
-        onError: (err: any) => {
+        onError: (err: Error & { response?: { data?: { message?: string } } }) => {
             const msg = err?.response?.data?.message || err?.message || t('dashboard.remindError');
             openToast(tCommon('error'), msg, { type: EToastType.ERROR });
         },
@@ -149,7 +152,7 @@ export default function PosDashboardPage() {
                     <Div className="space-y-6">
                         <Div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
                             <Div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                                <Div className="flex items-start gap-4">
+                                <Div className="flex min-w-0 items-start gap-4">
                                     <Div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary-50">
                                         <Icon
                                             name={IconComponentsEnum.shoppingCart}
@@ -157,8 +160,8 @@ export default function PosDashboardPage() {
                                             color="text-primary-600"
                                         />
                                     </Div>
-                                    <Div className="flex flex-col gap-1.5">
-                                        <Div className="flex items-center gap-3">
+                                    <Div className="flex min-w-0 flex-col gap-1.5">
+                                        <Div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                                             <Label variant={EVariantLabel.h4} color="text-gray-900">
                                                 {t('dashboard.shop')}
                                             </Label>
@@ -171,9 +174,9 @@ export default function PosDashboardPage() {
                                                 />
                                             )}
                                         </Div>
-                                        <Div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-gray-500">
+                                        <Div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-1.5 text-gray-500">
                                             {current ? (
-                                                <Div className="flex items-center gap-1.5">
+                                                <Div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                                                     <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
                                                         {t('dashboard.openedBy')} :
                                                     </Label>
@@ -183,7 +186,7 @@ export default function PosDashboardPage() {
                                                 </Div>
                                             ) : null}
                                             {lastClosed?.closedAt ? (
-                                                <Div className="flex items-center gap-1.5">
+                                                <Div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                                                     <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
                                                         {t('dashboard.lastClosingDate')} :
                                                     </Label>
@@ -193,7 +196,7 @@ export default function PosDashboardPage() {
                                                 </Div>
                                             ) : null}
                                             {lastClosed ? (
-                                                <Div className="flex items-center gap-1.5">
+                                                <Div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                                                     <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
                                                         {t('dashboard.lastClosingBalance')} :
                                                     </Label>
@@ -220,7 +223,7 @@ export default function PosDashboardPage() {
                             </Div>
                         </Div>
 
-                        <Div className="grid gap-6 lg:grid-cols-2">
+                        <Div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                             {/* 1. Low-Stock Alert Card */}
                             <Div className="rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col">
                                 <Div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">

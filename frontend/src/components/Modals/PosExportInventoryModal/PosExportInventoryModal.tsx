@@ -17,7 +17,6 @@ import {
     fetchPosCategories,
     fetchPosProductsInventory,
     type PosCategory,
-    type PosProduct,
 } from '@/lib/pos-api';
 import {
     EButtonSize,

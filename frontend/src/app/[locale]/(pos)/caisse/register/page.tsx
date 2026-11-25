@@ -319,14 +319,16 @@ function PosRegister({ session }: Readonly<{ session: PosSession }>) {
 
 export default function PosRegisterPage() {
     const router = useRouter();
-    const { data: session, isLoading } = useQuery({
+    const { data: session, isLoading, isFetching } = useQuery({
         queryKey: ['pos-session-current'],
         queryFn: fetchCurrentPosSession,
     });
 
     useEffect(() => {
-        if (!isLoading && !session) router.replace(Routes.Pos.index);
-    }, [isLoading, session, router]);
+        // Wait out in-flight refetches (e.g. right after opening a session) before bouncing home.
+        if (isLoading || isFetching) return;
+        if (!session) router.replace(Routes.Pos.index);
+    }, [isLoading, isFetching, session, router]);
 
     if (!session) {
         return (

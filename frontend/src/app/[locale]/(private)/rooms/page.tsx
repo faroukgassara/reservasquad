@@ -240,7 +240,7 @@ export default function RoomsAdminPage() {
                 subTitle={t('subtitle')}
                 mainSection={
                     <div className="flex min-h-full flex-col gap-4">
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 laptop:grid-cols-3">
                             <StatCard
                                 icon={IconComponentsEnum.home}
                                 iconBg="bg-primary-50"

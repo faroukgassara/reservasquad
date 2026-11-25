@@ -94,7 +94,8 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.redirect(localizedHomeUrl(req, locale, role));
   }
 
-  return (authMiddleware as any)(req);
+  // withAuth's type requires a fetch event; it is only forwarded to our wrapped middleware, which ignores it.
+  return (authMiddleware as unknown as (request: NextRequest) => ReturnType<typeof authMiddleware>)(req);
 }
 
 export const config = {

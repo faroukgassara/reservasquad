@@ -4,7 +4,7 @@ import type { DragEvent, ReactNode } from 'react';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
 import { EVariantLabel } from '@/Enum/Enum';
-import { formatDayLabel, formatDayMonth, formatWeekdayShort, isSameDay } from '@/lib/date-utils';
+import { formatDayLabel, formatMonthShort, formatWeekdayShort, isSameDay } from '@/lib/date-utils';
 import { AddDayButton, EmptySlot, SkeletonSlot } from './CalendarSlots';
 import EventCard, { type CalendarEventBase } from './EventCard';
 import type { CalendarColorBy } from '@/lib/calendar-event-colors';
@@ -73,6 +73,7 @@ export default function WeekView<T extends CalendarEventBase = CalendarEventBase
             {days.map((day) => {
                 const dayEvents = eventsByDay.get(day.toDateString()) ?? [];
                 const isToday = isSameDay(day, today);
+                const isPast = !isToday && day < today;
                 const dayManageable =
                     typeof canManage === 'function' ? canManage(day) : Boolean(canManage);
                 const dayKey = day.toDateString();
@@ -94,31 +95,36 @@ export default function WeekView<T extends CalendarEventBase = CalendarEventBase
                         onDrop={onDayDrop ? (e) => onDayDrop(day, e) : undefined}
                         className={`group flex flex-col outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400 ${
                             onCellClick && dayManageable ? 'cursor-pointer' : ''
-                        } ${isDragOver ? 'bg-primary-25/80 ring-2 ring-inset ring-primary-400' : ''}`}
+                        } ${isDragOver ? 'bg-primary-25/80 ring-2 ring-inset ring-primary-400' : isPast ? 'bg-gray-25' : ''}`}
                         onClick={onCellClick ? () => onCellClick(day) : undefined}
                     >
-                        <Div
-                            className={`flex items-center justify-between border-b px-3 py-2.5 ${
-                                isToday
-                                    ? 'border-b-2 border-b-accent-400 bg-accent-50/60'
-                                    : 'border-gray-100 bg-gray-25'
-                            }`}
-                        >
-                            <Div>
-                                <Label
-                                    variant={EVariantLabel.caption}
-                                    color={isToday ? 'text-accent-700' : 'text-gray-500'}
-                                    className="block uppercase tracking-wide"
+                        <Div className="flex items-center justify-between border-b border-gray-100 px-3 py-2.5">
+                            <Div className="flex items-center gap-2">
+                                <Div
+                                    className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-1 ${
+                                        isToday ? 'bg-accent-500' : ''
+                                    }`}
                                 >
-                                    {formatWeekdayShort(day, locale)}
-                                </Label>
-                                <Label
-                                    variant={EVariantLabel.bodySmall}
-                                    color={isToday ? 'text-accent-700' : 'text-gray-700'}
-                                    className="block font-semibold"
-                                >
-                                    {formatDayMonth(day, locale)}
-                                </Label>
+                                    <Label
+                                        variant={EVariantLabel.h5}
+                                        color={isToday ? 'text-white' : isPast ? 'text-gray-400' : 'text-gray-900'}
+                                        className="tabular-nums"
+                                    >
+                                        {day.getDate()}
+                                    </Label>
+                                </Div>
+                                <Div className="flex flex-col">
+                                    <Label
+                                        variant={EVariantLabel.caption}
+                                        color={isToday ? 'text-accent-700' : isPast ? 'text-gray-400' : 'text-gray-700'}
+                                        className="block font-semibold capitalize"
+                                    >
+                                        {formatWeekdayShort(day, locale)}
+                                    </Label>
+                                    <Label variant={EVariantLabel.caption} color="text-gray-400" className="block">
+                                        {formatMonthShort(day, locale)}
+                                    </Label>
+                                </Div>
                             </Div>
                             {dayManageable && onAddDay ? (
                                 <AddDayButton

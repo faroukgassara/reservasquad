@@ -7,7 +7,6 @@ import {
     Bar,
     BarChart,
     CartesianGrid,
-    Legend,
     Line,
     LineChart,
     ResponsiveContainer,
@@ -38,25 +37,22 @@ interface AnnualComparisonViewProps {
 
 
 
+// Mid-lightness shades so lines stay visible on both the light and dark chart surfaces.
+const LATEST_YEAR_STYLE = { color: colors.accent[500], bg: 'bg-accent-500', text: 'text-accent-600' };
+const PREVIOUS_YEAR_STYLE = { color: colors.primary[300], bg: 'bg-primary-300', text: 'text-primary-500' };
 const PALETTE = [
-    { color: '#64748B', bg: 'bg-slate-500', text: 'text-slate-600 dark:text-slate-400' },
-    { color: '#2563EB', bg: 'bg-blue-600', text: 'text-blue-600 dark:text-blue-400' },
-    { color: '#059669', bg: 'bg-emerald-600', text: 'text-emerald-600 dark:text-emerald-400' },
-    { color: '#D97706', bg: 'bg-amber-600', text: 'text-amber-600 dark:text-amber-400' },
-    { color: '#7C3AED', bg: 'bg-purple-600', text: 'text-purple-600 dark:text-purple-400' },
-    { color: '#E11D48', bg: 'bg-rose-600', text: 'text-rose-600 dark:text-rose-400' },
+    { color: colors.gray[400], bg: 'bg-gray-400', text: 'text-gray-600' },
+    { color: colors.success[600], bg: 'bg-success-600', text: 'text-success-700' },
+    { color: colors.warning[500], bg: 'bg-warning-500', text: 'text-warning-700' },
+    { color: colors.primary[200], bg: 'bg-primary-200', text: 'text-primary-600' },
 ];
 
 function getYearStyle(index: number, total: number) {
-    if (total <= 1) {
-        return { color: '#E11D48', bg: 'bg-rose-600', text: 'text-rose-600 dark:text-rose-400' };
-    }
-    // If multiple years, assign from palette with latest year having prominent rose
-    if (index === total - 1) {
-        return { color: '#E11D48', bg: 'bg-rose-600', text: 'text-rose-600 dark:text-rose-400' };
+    if (total <= 1 || index === total - 1) {
+        return LATEST_YEAR_STYLE;
     }
     if (index === total - 2) {
-        return { color: '#2563EB', bg: 'bg-blue-600', text: 'text-blue-600 dark:text-blue-400' };
+        return PREVIOUS_YEAR_STYLE;
     }
     const idx = index % PALETTE.length;
     return PALETTE[idx];
@@ -293,7 +289,7 @@ export default function AnnualComparisonView({
                                 />
                             )}
                         </Div>
-                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="mt-0.5">
+                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="mt-0.5 block">
                             {t('annualComparisonSubtitle')} ({years.join(' · ')})
                         </Label>
                     </Div>
@@ -413,8 +409,8 @@ export default function AnnualComparisonView({
                             <span
                                 className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-bold ${
                                     summaryStats.yoyTotalPct >= 0
-                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                        : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                        ? 'bg-success-50 text-success-700'
+                                        : 'bg-danger-50 text-danger-600'
                                 }`}
                             >
                                 {summaryStats.yoyTotalPct >= 0 ? '↑' : '↓'}{' '}
@@ -483,7 +479,7 @@ export default function AnnualComparisonView({
                     >
                         {summaryStats.highestGrowth ? summaryStats.highestGrowth.name : '—'}
                     </Label>
-                    <Label variant={EVariantLabel.caption} color="text-success-600" className="mt-1 block font-semibold dark:text-emerald-400">
+                    <Label variant={EVariantLabel.caption} color="text-success-600" className="mt-1 block font-semibold">
                         {summaryStats.highestGrowth
                             ? `+${round1(summaryStats.highestGrowth.pct)}% vs ${prevYear}`
                             : 'Comparatif indisponible'}
@@ -494,11 +490,11 @@ export default function AnnualComparisonView({
             {/* 3. Top Trend Chart: 12 Calendar Months with distinct Colored Series per Year */}
             <Div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-2xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
                 <Div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                    <Div>
-                        <Label variant={EVariantLabel.h5} color="text-gray-900" className="font-semibold dark:text-gray-100">
+                    <Div className="flex flex-col gap-0.5">
+                        <Label variant={EVariantLabel.h5} color="text-gray-900" className="block font-semibold dark:text-gray-100">
                             Comparaison mensuelle ({years.join(' vs ')})
                         </Label>
-                        <Label variant={EVariantLabel.caption} color="text-gray-400">
+                        <Label variant={EVariantLabel.caption} color="text-gray-400" className="block">
                             Évolution du {metric === 'revenue' ? "chiffre d'affaires" : metric === 'units' ? 'volume' : 'nombre de commandes'} de Janvier à Décembre
                         </Label>
                     </Div>
@@ -616,11 +612,11 @@ export default function AnnualComparisonView({
             {/* 4. Data View: Table or Monthly Cards Grid */}
             {viewMode === 'table' ? (
                 <Div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xs dark:border-gray-800 dark:bg-gray-900">
-                    <Div className="border-b border-gray-100 p-5 dark:border-gray-800">
-                        <Label variant={EVariantLabel.h5} color="text-gray-900" className="font-semibold dark:text-gray-100">
+                    <Div className="flex flex-col gap-0.5 border-b border-gray-100 p-5 dark:border-gray-800">
+                        <Label variant={EVariantLabel.h5} color="text-gray-900" className="block font-semibold dark:text-gray-100">
                             Tableau comparatif mensuel
                         </Label>
-                        <Label variant={EVariantLabel.caption} color="text-gray-500">
+                        <Label variant={EVariantLabel.caption} color="text-gray-500" className="block">
                             {prevYear
                                 ? `Comparaison détaillée et croissance annuelle (${latestYear} vs ${prevYear})`
                                 : `Détail par mois pour l'année ${latestYear}`}
@@ -687,7 +683,7 @@ export default function AnnualComparisonView({
                                                 <Div className="flex items-center gap-2">
                                                     <span>{mName}</span>
                                                     {isBestMonth && (
-                                                        <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-2xs font-bold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
+                                                        <span className="rounded-md bg-warning-50 px-1.5 py-0.5 text-2xs font-bold text-warning-700">
                                                             ★ {t('recordBadge')}
                                                         </span>
                                                     )}
@@ -718,9 +714,9 @@ export default function AnnualComparisonView({
                                                         <span
                                                             className={`inline-flex items-center gap-0.5 rounded-full px-2.5 py-0.5 text-xs font-bold ${
                                                                 growthPct > 0
-                                                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                                                    ? 'bg-success-50 text-success-700'
                                                                     : growthPct < 0
-                                                                      ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                                                      ? 'bg-danger-50 text-danger-600'
                                                                       : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                                                             }`}
                                                         >
@@ -767,8 +763,8 @@ export default function AnnualComparisonView({
                                                 <span
                                                     className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-extrabold ${
                                                         summaryStats.yoyTotalPct >= 0
-                                                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200'
-                                                            : 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200'
+                                                            ? 'bg-success-100 text-success-800'
+                                                            : 'bg-danger-100 text-danger-700'
                                                     }`}
                                                 >
                                                     {summaryStats.yoyTotalPct >= 0 ? '↑ +' : '↓ '}
@@ -815,9 +811,9 @@ export default function AnnualComparisonView({
                                         <span
                                             className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-2xs font-bold ${
                                                 growthPct > 0
-                                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                                    ? 'bg-success-50 text-success-700'
                                                     : growthPct < 0
-                                                      ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                                                      ? 'bg-danger-50 text-danger-600'
                                                       : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                                             }`}
                                         >

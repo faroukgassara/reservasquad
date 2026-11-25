@@ -16,12 +16,12 @@ export const useAuthorization = () => {
 
     const isAllowed = (policy: IAccessPolicy): boolean => canAccess(context, policy);
 
-    const withAuthorization = <T extends (...args: any[]) => any>(
+    const withAuthorization = <TArgs extends unknown[], TResult>(
         policy: IAccessPolicy,
-        action: T,
+        action: (...args: TArgs) => TResult,
         onUnauthorized?: () => void,
     ) => {
-        return (...args: Parameters<T>) => {
+        return (...args: TArgs) => {
             if (!isAllowed(policy)) {
                 onUnauthorized?.();
                 return;

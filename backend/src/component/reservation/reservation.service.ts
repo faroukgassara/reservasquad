@@ -728,7 +728,6 @@ export class ReservationService {
     const where: Prisma.ReservationWhereInput = {
       deletedAt: null,
       status: EReservationStatus.CONFIRMED,
-      startAt: { lte: endOfDay },
     };
     if (months && months > 0) {
       const earliestStart = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
@@ -1248,8 +1247,8 @@ export class ReservationService {
           where: {
             deletedAt: null,
             ...(isGlobal
-              ? { startAt: { lte: endOfDay } }
-              : { startAt: { gte: startOfMonth, lt: startOfNextMonth, lte: endOfDay } }),
+              ? {}
+              : { startAt: { gte: startOfMonth, lt: startOfNextMonth } }),
           },
           select: {
             startAt: true,
@@ -1273,7 +1272,6 @@ export class ReservationService {
             deletedAt: null,
             isPaid: true,
             status: EReservationStatus.CONFIRMED,
-            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),
@@ -1282,7 +1280,6 @@ export class ReservationService {
             deletedAt: null,
             isPaid: false,
             status: EReservationStatus.CONFIRMED,
-            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),
@@ -1290,7 +1287,6 @@ export class ReservationService {
           where: {
             deletedAt: null,
             status: EReservationStatus.CONFIRMED,
-            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),
@@ -1304,7 +1300,6 @@ export class ReservationService {
           where: {
             deletedAt: null,
             status: EReservationStatus.CONFIRMED,
-            startAt: { lte: endOfDay },
           },
           _sum: { price: true },
         }),

@@ -2,9 +2,9 @@ import { EBadgeSize, EBadgeType, EButtonSize, EButtonType, EInputSize, EInputSta
 import { ELabelColor } from "@/theme/labelColors";
 
 export const TYPE_VARIANT_CLASSES: Record<EButtonType, string> = {
-    [EButtonType.primary]: 'bg-accent-500 text-white cursor-pointer hover:bg-accent-600 focus:bg-accent-500 focus:border-3 focus:border-accent-200 active:bg-accent-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed',
-    [EButtonType.secondary]: 'bg-white text-primary-500 cursor-pointer border-2 border-primary-500 hover:bg-primary-50 focus:bg-white focus:border-3 focus:border-primary-200 active:bg-primary-100 disabled:bg-white disabled:text-gray-400 disabled:border-2 disabled:border-gray-200 disabled:cursor-not-allowed',
-    [EButtonType.tertiary]: 'text-primary-500 cursor-pointer hover:bg-primary-50 focus:bg-white focus:border-3 focus:border-primary-200 active:bg-primary-100 disabled:bg-white  disabled:text-gray-400 disabled:cursor-not-allowed',
+    [EButtonType.primary]: 'bg-primary-500 text-white font-semibold cursor-pointer shadow-xs hover:bg-primary-600 active:bg-primary-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed',
+    [EButtonType.secondary]: 'bg-white text-gray-900 font-semibold cursor-pointer border border-gray-200 shadow-xs hover:border-gray-300 hover:bg-gray-25 active:bg-gray-50 disabled:bg-white disabled:text-gray-400 disabled:border-gray-100 disabled:shadow-none disabled:cursor-not-allowed',
+    [EButtonType.tertiary]: 'text-primary-500 font-medium cursor-pointer hover:bg-gray-50 active:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed',
 };
 
 // Below `sm` (phones) small/medium controls get a 44px minimum touch target; desktop sizes are unchanged.
@@ -28,9 +28,9 @@ export const INPUT_SIZES: Record<EInputSize, { field: string; text: string; icon
 };
 
 export const INPUT_STATUS_FIELD: Record<EInputStatus, string> = {
-    [EInputStatus.default]: 'border-gray-300 focus-within:border-2 hover:border-2',
-    [EInputStatus.success]: 'border-success-500 focus-within:border-2 hover:border-2',
-    [EInputStatus.error]: 'border-danger-500 focus-within:border-2 hover:border-2',
+    [EInputStatus.default]: 'border-gray-200 bg-white hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-3 focus-within:ring-primary-100',
+    [EInputStatus.success]: 'border-success-500 bg-white focus-within:ring-3 focus-within:ring-success-100',
+    [EInputStatus.error]: 'border-danger-500 bg-white focus-within:ring-3 focus-within:ring-danger-100',
 };
 
 export const INPUT_STATUS_HINT_COLOR: Record<EInputStatus, ELabelColor> = {
@@ -61,13 +61,13 @@ export const ICON_ONLY_SIZES_BADGE: Record<EBadgeSize, string> = {
 
 export const TYPE_VARIANT_CLASSES_BADGE: Record<EBadgeType, string> = {
     [EBadgeType.primary]: 'bg-accent-500 text-white',
-    [EBadgeType.success]: 'bg-success-100 text-success-900 border border-success-200',
-    [EBadgeType.warning]: 'bg-warning-100 text-warning-900 border border-warning-200',
+    [EBadgeType.success]: 'bg-success-100 text-success-800',
+    [EBadgeType.warning]: 'bg-warning-100 text-warning-800',
     [EBadgeType.error]: 'bg-danger-500 text-white',
-    [EBadgeType.revprimary]: 'bg-primary-50 text-primary-500 border border-primary-500',
-    [EBadgeType.revsuccess]: 'bg-success-50 text-success-700 border border-success-500',
-    [EBadgeType.revwarning]: 'bg-warning-50 text-warning-700 border border-warning-500',
-    [EBadgeType.reverror]: 'bg-danger-50 text-danger-500 border border-danger-500',
+    [EBadgeType.revprimary]: 'bg-primary-25 text-primary-600',
+    [EBadgeType.revsuccess]: 'bg-success-50 text-success-700',
+    [EBadgeType.revwarning]: 'bg-warning-50 text-warning-700',
+    [EBadgeType.reverror]: 'bg-danger-50 text-danger-600',
 };
 
 export const DISMISSIBLE_ICON_COLOR: Record<EBadgeType, ELabelColor> = {

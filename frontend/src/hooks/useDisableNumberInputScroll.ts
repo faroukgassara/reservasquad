@@ -6,7 +6,7 @@ export const useDisableNumberInputScroll = () => {
 
     useEffect(() => {
 
-        const handleWheel = (e: any) => {
+        const handleWheel = (e: Event) => {
             e.preventDefault();
         };
 

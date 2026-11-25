@@ -10,8 +10,9 @@ export default function QueryProvider({ children }: Readonly<{ children: React.R
                 defaultOptions: {
                     queries: {
                         staleTime: 30 * 1000,
-                        retry: (failureCount, error: any) => {
-                            if (error?.status >= 400 && error?.status < 500) {
+                        retry: (failureCount, error) => {
+                            const status = (error as { status?: number } | null)?.status;
+                            if (status !== undefined && status >= 400 && status < 500) {
                                 return false;
                             }
                             return failureCount < 2;

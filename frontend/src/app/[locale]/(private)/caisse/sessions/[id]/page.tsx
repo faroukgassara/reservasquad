@@ -284,9 +284,7 @@ export default function PosSessionDetailPage() {
                                                 valueColor={
                                                     !isClosed || difference === 0
                                                         ? 'text-gray-900'
-                                                        : difference < 0
-                                                          ? 'text-danger-600'
-                                                          : 'text-success-700'
+                                                        : 'text-danger-600'
                                                 }
                                             />
                                         </Div>

@@ -231,12 +231,38 @@ model MonthlyCarryover {
   @@unique([year, month])
 }
 
+model DailyIncomeSettings {
+  id                          String   @id @default("default")
+  chargesPercentage           Decimal  @default(50) @db.Decimal(5, 2)
+  savingsPercentage           Decimal  @default(20) @db.Decimal(5, 2)
+  benefitsPercentage          Decimal  @default(20) @db.Decimal(5, 2)
+  savingsForChargesPercentage Decimal  @default(10) @db.Decimal(5, 2)
+  updatedAt                   DateTime @default(now()) @updatedAt
+  updatedById                 String?
+}
+
+model ChargeCategory {
+  id   String @id @default(uuid())
+  name String
+
+  lines IncomeLine[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([deletedAt])
+  @@index([name])
+}
+
 model IncomeLine {
-  id     String          @id @default(uuid())
-  date   DateTime        @db.Date
-  type   EIncomeLineType
-  label  String
-  amount Decimal         @db.Decimal(10, 2)
+  id          String           @id @default(uuid())
+  date        DateTime         @db.Date
+  type        EIncomeLineType
+  description String?
+  amount      Decimal          @db.Decimal(10, 2)
+  categoryId  String?
+  category    ChargeCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -244,6 +270,7 @@ model IncomeLine {
 
   @@index([date])
   @@index([type])
+  @@index([categoryId])
   @@index([deletedAt])
 }
 

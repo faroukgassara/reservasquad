@@ -71,17 +71,27 @@ function isTableCell(node: React.ReactNode): boolean {
     return React.isValidElement(node) && (node.type as { displayName?: string })?.displayName === 'TableCell';
 }
 
+const NUMERIC_CELL_CLASS = 'justify-end text-end';
+
 function renderCellContent<TRow>(
     col: ITableColumnFlat<TRow>,
     rawValue: unknown,
     row: TRow,
 ): React.ReactNode {
+    const alignClass = col.numeric ? NUMERIC_CELL_CLASS : undefined;
+
     if (!col.render) {
-        return <TableCell mainText={rawValue != null ? String(rawValue) : undefined} />;
+        return <TableCell mainText={rawValue != null ? String(rawValue) : undefined} cellClassName={alignClass} />;
     }
 
     const rendered = col.render(rawValue, row);
-    return isTableCell(rendered) ? rendered : <TableCell rightChildren={rendered} />;
+    if (!isTableCell(rendered)) {
+        return <TableCell rightChildren={rendered} cellClassName={alignClass} />;
+    }
+    if (!alignClass) return rendered;
+
+    const cell = rendered as React.ReactElement<ITableCell>;
+    return React.cloneElement(cell, { cellClassName: twMerge(alignClass, cell.props.cellClassName) });
 }
 
 function getRowKey<TRow>(row: TRow, index: number): string {
@@ -99,6 +109,7 @@ interface ITableColumnHeaderProps {
     onSort: (key: string) => void;
     width?: string;
     headerClassName?: string;
+    numeric?: boolean;
     mobile?: TMobileColumnLayout;
 }
 
@@ -122,13 +133,14 @@ const TableColumnHeader = ({
     onSort,
     width,
     headerClassName,
+    numeric,
 }: ITableColumnHeaderProps) => {
     const isSorted = Boolean(currentSortDirection);
 
     const labelNode = (
         <Label
             color={isSorted ? 'text-primary-700' : 'text-gray-500'}
-            className="uppercase"
+            className={twMerge(isSorted && 'font-semibold!')}
             variant={EVariantLabel.overline}
         >
             {label}
@@ -141,7 +153,8 @@ const TableColumnHeader = ({
             style={width ? { width } : undefined}
             aria-sort={sortable ? getAriaSort(currentSortDirection) : undefined}
             className={twMerge(
-                'sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-start',
+                'sticky top-0 z-10 border-b border-gray-100 bg-gray-25 px-4 py-3 text-start',
+                numeric && 'text-end',
                 headerClassName,
             )}
         >
@@ -151,6 +164,7 @@ const TableColumnHeader = ({
                     onClick={() => onSort(keyCol)}
                     className={twMerge(
                         'group inline-flex max-w-full items-center gap-1 rounded-md py-0.5 transition-colors',
+                        numeric && 'flex-row-reverse',
                         'hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40',
                     )}
                 >
@@ -195,7 +209,7 @@ const TableRow = <TRow,>({
         onClick={() => onClickRow?.(row, rowIndex)}
         className={twMerge(
             'border-b border-gray-100 transition-colors last:border-b-0',
-            onClickRow ? 'cursor-pointer hover:bg-primary-50/50' : 'hover:bg-gray-50',
+            onClickRow ? 'cursor-pointer hover:bg-primary-10' : 'hover:bg-gray-25',
             className,
         )}
     >
@@ -435,7 +449,7 @@ const TableSearchBar = ({
                 />
 
                 {primaryAction && (
-                    <div className="w-full shrink-0 sm:w-auto [&_button]:w-full sm:[&_button]:w-auto">
+                    <div className="w-full shrink-0 sm:w-auto [&>div]:flex-wrap [&_button]:w-full sm:[&_button]:w-auto">
                         {primaryAction}
                     </div>
                 )}
@@ -621,6 +635,7 @@ const MobileTableRow = <TRow,>({
     columns,
     actions,
     onClickRow,
+    className,
     collapsible = true,
     defaultExpanded = false,
 }: {
@@ -629,6 +644,7 @@ const MobileTableRow = <TRow,>({
     columns: ITableColumnFlat<TRow>[];
     actions?: ITable<TRow>['actions'];
     onClickRow?: (row: TRow, index: number) => void;
+    className?: string;
     /** Collapse secondary columns behind a "Show details" toggle (default true). */
     collapsible?: boolean;
     /** Start the details section expanded (default false). */
@@ -698,7 +714,7 @@ const MobileTableRow = <TRow,>({
     };
 
     const renderLabel = (label: string) => (
-        <Label variant={EVariantLabel.overline} color="text-gray-500" className="uppercase">
+        <Label variant={EVariantLabel.overline} color="text-gray-500">
             {label}
         </Label>
     );
@@ -742,7 +758,7 @@ const MobileTableRow = <TRow,>({
     const canCollapse = collapsible && secondaryColumns.length > 2;
 
     return (
-        <div className="border-b border-gray-100 last:border-b-0">
+        <div className={twMerge('border-b border-gray-100 last:border-b-0', className)}>
             <div className="flex w-full items-start gap-3 px-4 py-4">
                 {onClickRow ? (
                     <button
@@ -851,6 +867,7 @@ const OrganismTable = <TRow,>({
     onFilterRow,
     onAddTag,
     clearSearchOnAddTag,
+    getRowClassName,
     mobileCollapsible = true,
     mobileDefaultExpanded = false,
 }: ITable<TRow>) => {
@@ -878,6 +895,7 @@ const OrganismTable = <TRow,>({
                         render: headerElement.render,
                         cellClassName: headerElement.cellClassName,
                         headerClassName: headerElement.headerClassName,
+                        numeric: headerElement.numeric,
                         mobile: headerElement.mobile,
                     };
                 }
@@ -1007,7 +1025,7 @@ const OrganismTable = <TRow,>({
                                     {actions && (
                                         <th
                                             scope="col"
-                                            className="sticky top-0 z-10 w-14 border-b border-gray-200 bg-gray-50 px-3 py-2.5 text-end"
+                                            className="sticky top-0 z-10 w-14 border-b border-gray-100 bg-gray-25 px-3 py-3 text-end"
                                         >
                                             <span className="sr-only">{tCommon('actions')}</span>
                                         </th>
@@ -1024,6 +1042,7 @@ const OrganismTable = <TRow,>({
                                             rowIndex={index}
                                             columns={flatColumns}
                                             onClickRow={onClickRow}
+                                            className={getRowClassName?.(row, index)}
                                             actionSlot={
                                                 actions ? (
                                                     <TableActionMenu
@@ -1051,7 +1070,7 @@ const OrganismTable = <TRow,>({
                                             <td
                                                 key={`footer-${col.key}`}
                                                 style={col.width ? { width: col.width } : undefined}
-                                                className={twMerge('px-4 py-3 align-middle', col.cellClassName)}
+                                                className={twMerge('px-4 py-3 align-middle', col.numeric && 'text-end', col.cellClassName)}
                                             >
                                                 {footerRow[col.key] ?? null}
                                             </td>
@@ -1073,6 +1092,7 @@ const OrganismTable = <TRow,>({
                                     columns={flatColumns}
                                     actions={actions}
                                     onClickRow={onClickRow}
+                                    className={getRowClassName?.(row, index)}
                                     collapsible={mobileCollapsible}
                                     defaultExpanded={mobileDefaultExpanded}
                                 />

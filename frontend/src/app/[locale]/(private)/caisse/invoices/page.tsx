@@ -138,6 +138,7 @@ export default function PosInvoicesPage() {
                 headerElement: {
                     value: 'untaxed',
                     label: t('untaxed'),
+                    numeric: true,
                     render: (_: unknown, row: Invoice) => (
                         <OrganismTable.Cell mainText={formatMoney(toAmount(row.untaxed))} />
                     ),
@@ -148,6 +149,7 @@ export default function PosInvoicesPage() {
                     value: 'total',
                     label: t('total'),
                     mobile: 'primary',
+                    numeric: true,
                     render: (_: unknown, row: Invoice) => (
                         <OrganismTable.Cell mainText={formatMoney(toAmount(row.total))} />
                     ),

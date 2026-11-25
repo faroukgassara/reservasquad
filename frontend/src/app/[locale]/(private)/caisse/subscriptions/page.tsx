@@ -50,15 +50,19 @@ export default function PosSubscriptionsPage() {
         isAdmin && requestedTab === 'analytics' ? 'analytics' : 'list',
     );
 
+    const [clearTabParam, setClearTabParam] = useState(false);
+    if (!isAdmin && activeTab === 'analytics') {
+        setActiveTab('list');
+        setClearTabParam(true);
+    }
+
     useEffect(() => {
-        if (!isAdmin && activeTab === 'analytics') {
-            setActiveTab('list');
-            const params = new URLSearchParams(searchParams.toString());
-            params.delete('tab');
-            const qs = params.toString();
-            router.replace(qs ? `?${qs}` : window.location.pathname, { scroll: false });
-        }
-    }, [isAdmin, activeTab, router, searchParams]);
+        if (!clearTabParam || !searchParams.has('tab')) return;
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete('tab');
+        const qs = params.toString();
+        router.replace(qs ? `?${qs}` : window.location.pathname, { scroll: false });
+    }, [clearTabParam, router, searchParams]);
 
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState('');
@@ -68,6 +72,7 @@ export default function PosSubscriptionsPage() {
     const handleTabChange = (val: string) => {
         const nextTab = val as SubscriptionsTab;
         setActiveTab(nextTab);
+        setClearTabParam(false);
         const params = new URLSearchParams(searchParams.toString());
         if (nextTab === 'list') {
             params.delete('tab');

@@ -231,7 +231,7 @@ const OrganismProfessorRanking = () => {
                 />
             </Div>
 
-            <Div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2 laptop:grid-cols-3">
                 {cards.map((card) => (
                     <StatCard
                         key={card.id}

@@ -11,3 +11,6 @@ export { default as MonthView } from './MonthView';
 export type { MonthViewProps } from './MonthView';
 
 export { AddDayButton, EmptySlot, SkeletonSlot } from './CalendarSlots';
+
+export { default as SlotPicker } from './SlotPicker';
+export type { SlotPickerProps } from './SlotPicker';

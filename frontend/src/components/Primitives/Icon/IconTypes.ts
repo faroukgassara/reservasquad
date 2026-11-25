@@ -1,3 +1,4 @@
+import type { FC, SVGProps } from "react";
 import Settings from "@/assets/icons/settings.svg";
 import Loader from "@/assets/icons/loader.svg";
 import Eye from "@/assets/icons/eye.svg";
@@ -34,6 +35,7 @@ import Dot from "@/assets/icons/dot.svg";
 import ArrowRight from "@/assets/icons/arrow-right.svg";
 import Search from "@/assets/icons/search.svg";
 import ShoppingCart from "@/assets/icons/shopping-cart.svg";
+import Wallet from "@/assets/icons/wallet.svg";
 import Star from "@/assets/icons/star.svg";
 import Scissors from "@/assets/icons/scissors.svg";
 import PenNib from "@/assets/icons/pen-nib.svg";
@@ -71,7 +73,7 @@ import FlagAr from "@/assets/icons/flag-ar.svg";
 import Sun from "@/assets/icons/sun.svg";
 import Moon from "@/assets/icons/moon.svg";
 
-export const iconComponents: Record<string, any> = {
+export const iconComponents: Record<string, FC<SVGProps<SVGSVGElement>>> = {
     settings: Settings,
     loader: Loader,
     eye: Eye,
@@ -109,6 +111,7 @@ export const iconComponents: Record<string, any> = {
     arrowRight: ArrowRight,
     search: Search,
     shoppingCart: ShoppingCart,
+    wallet: Wallet,
     star: Star,
     scissors: Scissors,
     penNib: PenNib,

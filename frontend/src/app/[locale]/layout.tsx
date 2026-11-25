@@ -5,14 +5,14 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth';
 import { getMessages } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import type { Metadata } from 'next';
-import { Inter, Poppins } from 'next/font/google';
+import { Bricolage_Grotesque, Cairo, IBM_Plex_Sans_Arabic, Inter } from 'next/font/google';
 import '@/app/globals.css';
 import RouteProviders from '@/components/providers/RouteProviders';
 
-const poppins = Poppins({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-poppins',
+const display = Bricolage_Grotesque({
+  subsets: ['latin', 'latin-ext'],
+  axes: ['opsz', 'wdth'],
+  variable: '--font-display',
   display: 'swap',
 });
 
@@ -21,6 +21,24 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
+});
+
+// Bricolage Grotesque and Inter have no Arabic glyphs; globals.css swaps to these under lang="ar".
+// Not preloaded so fr/en pages don't download them.
+const cairo = Cairo({
+  weight: ['600', '700'],
+  subsets: ['arabic'],
+  variable: '--font-cairo',
+  display: 'swap',
+  preload: false,
+});
+
+const plexArabic = IBM_Plex_Sans_Arabic({
+  weight: ['400', '500', '600'],
+  subsets: ['arabic'],
+  variable: '--font-plex-arabic',
+  display: 'swap',
+  preload: false,
 });
 
 const titlesByLocale: Record<string, string> = {
@@ -62,8 +80,8 @@ export default async function LocaleLayout({
   const session = await getServerSession(authOptions);
 
   return (
-    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className={`${poppins.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className={`${inter.className} bg-gray-25 text-gray-900 antialiased`}>
+    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} className={`${display.variable} ${inter.variable} ${cairo.variable} ${plexArabic.variable}`} suppressHydrationWarning>
+      <body className="bg-gray-25 text-gray-900 antialiased">
         <RouteProviders session={session} locale={locale} messages={messages}>
           {children}
         </RouteProviders>

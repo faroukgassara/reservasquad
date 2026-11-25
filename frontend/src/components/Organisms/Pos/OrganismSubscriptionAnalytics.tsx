@@ -29,7 +29,6 @@ import { useAuthorization } from '@/hooks/useAuthorization';
 import {
     fetchPosProducts,
     fetchSubscriptionAnalytics,
-    type SubscriptionTrendItem,
 } from '@/lib/pos-api';
 import { formatMoney } from '@/lib/daily-income-api';
 import { Routes } from '@/lib/routes';

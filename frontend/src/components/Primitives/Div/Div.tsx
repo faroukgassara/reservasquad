@@ -11,9 +11,9 @@ const Div = ({ onClickSelf, ...rest }: Props) => {
     const myRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
-        const handleClick = (event: any) => {
+        const handleClick = (event: globalThis.MouseEvent) => {
             if (myRef.current && event.target === myRef.current) {
-                onClickSelf?.(event)
+                onClickSelf?.(event as unknown as MouseEvent<HTMLDivElement, MouseEvent>)
             }
         }
 

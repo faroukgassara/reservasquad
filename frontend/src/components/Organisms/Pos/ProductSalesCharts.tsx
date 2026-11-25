@@ -15,8 +15,7 @@ import {
 } from 'recharts';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
-import Button from '@/components/Primitives/Button/Button';
-import { EButtonSize, EButtonType, EVariantLabel } from '@/Enum/Enum';
+import { EVariantLabel } from '@/Enum/Enum';
 import { formatMoney } from '@/lib/daily-income-api';
 import colors from '@/theme/colors';
 import type { MonthlySalesTrendItem } from '@/lib/analytics-api';

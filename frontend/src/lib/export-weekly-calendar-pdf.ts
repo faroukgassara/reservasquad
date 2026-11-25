@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { ReservationRecord } from '@/lib/reservation-api';
 import type { RoomRecord } from '@/lib/room-api';
-import { addDays, startOfDay, startOfWeek } from '@/lib/date-utils';
+import { addDays, startOfWeek } from '@/lib/date-utils';
 
 export interface WeeklyCalendarPdfLabels {
     title: string;

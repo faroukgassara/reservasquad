@@ -15,11 +15,20 @@ import {
   CreateIncomeLineDto,
   UpdateIncomeLineDto,
 } from 'src/dto/dailyIncome/createIncomeLine.dto';
+import {
+  CreateChargeCategoryDto,
+  UpdateChargeCategoryDto,
+} from 'src/dto/dailyIncome/chargeCategory.dto';
 import { FetchIncomeLinesDto } from 'src/dto/dailyIncome/fetchIncomeLines.dto';
 import { SetPreviousMonthRestDto } from 'src/dto/dailyIncome/setPreviousMonthRest.dto';
+import { UpdateDailyIncomeSettingsDto } from 'src/dto/dailyIncome/dailyIncomeSettings.dto';
 import { EIncomeLineType, Prisma } from 'src/generated/prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { formatAuditDate, formatAuditMoney } from 'src/common/utils/audit-format.util';
+
+const incomeLineInclude = {
+  category: { select: { id: true, name: true } },
+} as const;
 
 function incomeLineTypeLabel(type: EIncomeLineType): string {
   switch (type) {
@@ -36,6 +45,21 @@ function incomeLineTypeLabel(type: EIncomeLineType): string {
     default:
       return type;
   }
+}
+
+function incomeLineDisplayLabel(line: {
+  type: EIncomeLineType;
+  description: string | null;
+  category?: { name: string } | null;
+}): string {
+  if (line.type === EIncomeLineType.CHARGE) {
+    const categoryName = line.category?.name?.trim();
+    if (categoryName && line.description?.trim()) {
+      return `${categoryName} — ${line.description.trim()}`;
+    }
+    return categoryName || line.description?.trim() || '—';
+  }
+  return line.description?.trim() || '—';
 }
 
 @Injectable()
@@ -61,11 +85,92 @@ export class DailyIncomeService {
     return Math.round(totalIncome * rate).toFixed(2);
   }
 
-  private calcShares(totalIncome: number) {
+  async getSettings() {
+    let settings = await this.prismaService.dailyIncomeSettings.findUnique({
+      where: { id: 'default' },
+    });
+    if (!settings) {
+      settings = await this.prismaService.dailyIncomeSettings.create({
+        data: { id: 'default' },
+      });
+    }
     return {
-      savings: this.calcPercent(totalIncome, 0.2),
-      benefits: this.calcPercent(totalIncome, 0.2),
-      savingsForCharges: this.calcPercent(totalIncome, 0.1),
+      chargesPercentage: Number(settings.chargesPercentage),
+      savingsPercentage: Number(settings.savingsPercentage),
+      benefitsPercentage: Number(settings.benefitsPercentage),
+      savingsForChargesPercentage: Number(settings.savingsForChargesPercentage),
+      updatedAt: settings.updatedAt,
+    };
+  }
+
+  async updateSettings(dto: UpdateDailyIncomeSettingsDto, actorId?: string) {
+    const total =
+      Number(dto.chargesPercentage) +
+      Number(dto.savingsPercentage) +
+      Number(dto.benefitsPercentage) +
+      Number(dto.savingsForChargesPercentage);
+
+    if (Math.abs(total - 100) > 0.01) {
+      throw new BadRequestException('The sum of all percentages must equal 100%');
+    }
+
+    const updated = await this.prismaService.dailyIncomeSettings.upsert({
+      where: { id: 'default' },
+      update: {
+        chargesPercentage: dto.chargesPercentage,
+        savingsPercentage: dto.savingsPercentage,
+        benefitsPercentage: dto.benefitsPercentage,
+        savingsForChargesPercentage: dto.savingsForChargesPercentage,
+        updatedById: actorId || null,
+      },
+      create: {
+        id: 'default',
+        chargesPercentage: dto.chargesPercentage,
+        savingsPercentage: dto.savingsPercentage,
+        benefitsPercentage: dto.benefitsPercentage,
+        savingsForChargesPercentage: dto.savingsForChargesPercentage,
+        updatedById: actorId || null,
+      },
+    });
+
+    await this.auditService.log({
+      entityType: 'DAILY_INCOME',
+      entityId: 'settings',
+      action: 'UPDATE',
+      userId: actorId,
+      summary: `Mise à jour des pourcentages des revenus journaliers (Charges: ${dto.chargesPercentage}%, Épargne: ${dto.savingsPercentage}%, Bénéfices: ${dto.benefitsPercentage}%, Écofacture: ${dto.savingsForChargesPercentage}%)`,
+      metadata: {
+        chargesPercentage: dto.chargesPercentage,
+        savingsPercentage: dto.savingsPercentage,
+        benefitsPercentage: dto.benefitsPercentage,
+        savingsForChargesPercentage: dto.savingsForChargesPercentage,
+      },
+    });
+
+    return {
+      chargesPercentage: Number(updated.chargesPercentage),
+      savingsPercentage: Number(updated.savingsPercentage),
+      benefitsPercentage: Number(updated.benefitsPercentage),
+      savingsForChargesPercentage: Number(updated.savingsForChargesPercentage),
+      updatedAt: updated.updatedAt,
+    };
+  }
+
+  private calcShares(
+    totalIncome: number,
+    settings?: {
+      savingsPercentage?: number;
+      benefitsPercentage?: number;
+      savingsForChargesPercentage?: number;
+    },
+  ) {
+    const savingsRate = (settings?.savingsPercentage ?? 20) / 100;
+    const benefitsRate = (settings?.benefitsPercentage ?? 20) / 100;
+    const savingsForChargesRate = (settings?.savingsForChargesPercentage ?? 10) / 100;
+    return {
+      savings: this.calcPercent(totalIncome, savingsRate),
+      benefits: this.calcPercent(totalIncome, benefitsRate),
+      savingsForCharges: this.calcPercent(totalIncome, savingsForChargesRate),
     };
   }
 
@@ -98,8 +203,9 @@ export class DailyIncomeService {
       throw new ConflictException('A daily income entry already exists for this date');
     }
 
+    const settings = await this.getSettings();
     const totalIncome = Number(dto.totalIncome);
-    const shares = this.calcShares(totalIncome);
+    const shares = this.calcShares(totalIncome, settings);
     const created = await this.prismaService.dailyIncome.create({
       data: {
         date,
@@ -138,12 +244,13 @@ export class DailyIncomeService {
     value: Date,
     amount: number,
   ) {
+    const settings = await this.getSettings();
     const totalIncome = Math.round(amount * 100) / 100;
     return tx.dailyIncome.create({
       data: {
         date: this.toDateOnly(value),
         totalIncome: totalIncome.toFixed(2),
-        ...this.calcShares(totalIncome),
+        ...this.calcShares(totalIncome, settings),
         posSessionId,
       },
     });
@@ -169,9 +276,10 @@ export class DailyIncomeService {
       }
     }
 
+    const settings = await this.getSettings();
     const totalIncome =
       dto.totalIncome !== undefined ? Number(dto.totalIncome) : Number(existing.totalIncome);
-    const shares = this.calcShares(totalIncome);
+    const shares = this.calcShares(totalIncome, settings);
 
     const updated = await this.prismaService.dailyIncome.update({
       where: { id },
@@ -242,7 +350,7 @@ export class DailyIncomeService {
 
     const days = await this.prismaService.dailyIncome.findMany({
       where: { deletedAt: null, date: dateFilter },
-      orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       include: { posSession: { select: { number: true } } },
     });
 
@@ -341,6 +449,7 @@ export class DailyIncomeService {
       totalMajdi: Math.round(totalMajdi * 100) / 100,
       totalSavingsForCharges:
         Math.round((totalSavingsForCharges - totalEcofactureExpenses) * 100) / 100,
+      totalEcofactureExpenses: Math.round(totalEcofactureExpenses * 100) / 100,
       netBalance,
       previousMonthRest: carryover ? Number(carryover.amount) : 0,
     };
@@ -501,19 +610,153 @@ export class DailyIncomeService {
     });
   }
 
+  private normalizeOptionalText(value?: string | null): string | null {
+    if (value === undefined || value === null) return null;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private async assertChargeCategory(categoryId: string) {
+    const category = await this.prismaService.chargeCategory.findFirst({
+      where: { id: categoryId, deletedAt: null },
+    });
+    if (!category) throw new NotFoundException('Charge category not found');
+    return category;
+  }
+
+  private async resolveIncomeLineCategory(params: {
+    type: EIncomeLineType;
+    categoryId?: string | null;
+  }): Promise<string | null> {
+    if (params.type !== EIncomeLineType.CHARGE) {
+      return null;
+    }
+    if (!params.categoryId) {
+      throw new BadRequestException('categoryId is required for CHARGE lines');
+    }
+    await this.assertChargeCategory(params.categoryId);
+    return params.categoryId;
+  }
+
+  async listChargeCategories() {
+    return this.prismaService.chargeCategory.findMany({
+      where: { deletedAt: null },
+      orderBy: [{ name: 'asc' }],
+    });
+  }
+
+  async createChargeCategory(dto: CreateChargeCategoryDto, actorId?: string) {
+    const name = dto.name.trim();
+    if (!name) throw new BadRequestException('Name is required');
+
+    const existing = await this.prismaService.chargeCategory.findFirst({
+      where: {
+        deletedAt: null,
+        name: { equals: name, mode: 'insensitive' },
+      },
+    });
+    if (existing) throw new ConflictException('A charge category with this name already exists');
+
+    const created = await this.prismaService.chargeCategory.create({
+      data: { name },
+    });
+
+    await this.auditService.log({
+      entityType: 'CHARGE_CATEGORY',
+      entityId: created.id,
+      action: 'CREATE',
+      userId: actorId,
+      summary: `Catégorie de charge créée : "${created.name}"`,
+      metadata: { name: created.name },
+    });
+
+    return created;
+  }
+
+  async updateChargeCategory(
+    id: string,
+    dto: UpdateChargeCategoryDto,
+    actorId?: string,
+  ) {
+    const current = await this.prismaService.chargeCategory.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!current) throw new NotFoundException('Charge category not found');
+
+    const name = dto.name?.trim();
+    if (!name) throw new BadRequestException('Name is required');
+
+    const duplicate = await this.prismaService.chargeCategory.findFirst({
+      where: {
+        deletedAt: null,
+        id: { not: id },
+        name: { equals: name, mode: 'insensitive' },
+      },
+    });
+    if (duplicate) throw new ConflictException('A charge category with this name already exists');
+
+    const updated = await this.prismaService.chargeCategory.update({
+      where: { id },
+      data: { name },
+    });
+
+    await this.auditService.log({
+      entityType: 'CHARGE_CATEGORY',
+      entityId: updated.id,
+      action: 'UPDATE',
+      userId: actorId,
+      summary: `Catégorie de charge modifiée : "${current.name}" → "${updated.name}"`,
+      metadata: { previousName: current.name, name: updated.name },
+    });
+
+    return updated;
+  }
+
+  async deleteChargeCategory(id: string, actorId?: string) {
+    const current = await this.prismaService.chargeCategory.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!current) throw new NotFoundException('Charge category not found');
+
+    const deleted = await this.prismaService.chargeCategory.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    await this.auditService.log({
+      entityType: 'CHARGE_CATEGORY',
+      entityId: deleted.id,
+      action: 'DELETE',
+      userId: actorId,
+      summary: `Catégorie de charge supprimée : "${deleted.name}"`,
+      metadata: { name: deleted.name },
+    });
+
+    return deleted;
+  }
+
   async createIncomeLine(dto: CreateIncomeLineDto, actorId?: string) {
     const date = this.toDateOnly(dto.date);
+    const categoryId = await this.resolveIncomeLineCategory({
+      type: dto.type,
+      categoryId: dto.categoryId,
+    });
+    const description = this.normalizeOptionalText(dto.description);
+
     const created = await this.prismaService.incomeLine.create({
       data: {
         date,
         type: dto.type,
-        label: dto.label.trim(),
+        description,
+        categoryId,
         amount: Number(dto.amount).toFixed(2),
       },
+      include: incomeLineInclude,
     });
 
     const typeLabel = incomeLineTypeLabel(created.type);
-    const summary = `Ligne de revenu créée [${typeLabel}] : "${created.label}" · Montant : ${formatAuditMoney(created.amount)} · Date : ${formatAuditDate(created.date)}`;
+    const display = incomeLineDisplayLabel(created);
+    const summary = `Ligne de revenu créée [${typeLabel}] : "${display}" · Montant : ${formatAuditMoney(created.amount)} · Date : ${formatAuditDate(created.date)}`;
 
     await this.auditService.log({
       entityType: 'INCOME_LINE',
@@ -523,7 +766,9 @@ export class DailyIncomeService {
       summary,
       metadata: {
         type: created.type,
-        label: created.label,
+        description: created.description,
+        categoryId: created.categoryId,
+        categoryName: created.category?.name ?? null,
         amount: Number(created.amount),
         date: created.date,
       },
@@ -537,19 +782,35 @@ export class DailyIncomeService {
     dto: UpdateIncomeLineDto,
     actorId?: string,
   ) {
-    await this.getIncomeLineById(id);
+    const current = await this.getIncomeLineById(id);
+    const nextType = dto.type ?? current.type;
+    const nextCategoryId =
+      dto.categoryId !== undefined
+        ? dto.categoryId
+        : current.categoryId;
+
+    const categoryId = await this.resolveIncomeLineCategory({
+      type: nextType,
+      categoryId: nextCategoryId,
+    });
+
     const updated = await this.prismaService.incomeLine.update({
       where: { id },
       data: {
         ...(dto.date !== undefined && { date: this.toDateOnly(dto.date) }),
         ...(dto.type !== undefined && { type: dto.type }),
-        ...(dto.label !== undefined && { label: dto.label.trim() }),
+        ...(dto.description !== undefined && {
+          description: this.normalizeOptionalText(dto.description),
+        }),
+        categoryId,
         ...(dto.amount !== undefined && { amount: Number(dto.amount).toFixed(2) }),
       },
+      include: incomeLineInclude,
     });
 
     const typeLabel = incomeLineTypeLabel(updated.type);
-    const summary = `Ligne de revenu modifiée [${typeLabel}] : "${updated.label}" · Montant : ${formatAuditMoney(updated.amount)} · Date : ${formatAuditDate(updated.date)}`;
+    const display = incomeLineDisplayLabel(updated);
+    const summary = `Ligne de revenu modifiée [${typeLabel}] : "${display}" · Montant : ${formatAuditMoney(updated.amount)} · Date : ${formatAuditDate(updated.date)}`;
 
     await this.auditService.log({
       entityType: 'INCOME_LINE',
@@ -559,7 +820,9 @@ export class DailyIncomeService {
       summary,
       metadata: {
         type: updated.type,
-        label: updated.label,
+        description: updated.description,
+        categoryId: updated.categoryId,
+        categoryName: updated.category?.name ?? null,
         amount: Number(updated.amount),
         date: updated.date,
       },
@@ -571,20 +834,23 @@ export class DailyIncomeService {
   async getIncomeLineById(id: string) {
     const row = await this.prismaService.incomeLine.findFirst({
       where: { id, deletedAt: null },
+      include: incomeLineInclude,
     });
     if (!row) throw new NotFoundException('Income line not found');
     return row;
   }
 
   async deleteIncomeLine(id: string, actorId?: string) {
-    await this.getIncomeLineById(id);
+    const current = await this.getIncomeLineById(id);
     const deleted = await this.prismaService.incomeLine.update({
       where: { id },
       data: { deletedAt: new Date() },
+      include: incomeLineInclude,
     });
 
     const typeLabel = incomeLineTypeLabel(deleted.type);
-    const summary = `Ligne de revenu supprimée [${typeLabel}] : "${deleted.label}" · Montant : ${formatAuditMoney(deleted.amount)} · Date : ${formatAuditDate(deleted.date)}`;
+    const display = incomeLineDisplayLabel(current);
+    const summary = `Ligne de revenu supprimée [${typeLabel}] : "${display}" · Montant : ${formatAuditMoney(deleted.amount)} · Date : ${formatAuditDate(deleted.date)}`;
 
     await this.auditService.log({
       entityType: 'INCOME_LINE',
@@ -594,7 +860,9 @@ export class DailyIncomeService {
       summary,
       metadata: {
         type: deleted.type,
-        label: deleted.label,
+        description: deleted.description,
+        categoryId: deleted.categoryId,
+        categoryName: current.category?.name ?? null,
         amount: Number(deleted.amount),
         date: deleted.date,
       },
@@ -610,8 +878,10 @@ export class DailyIncomeService {
         deletedAt: null,
         date: dateFilter,
         ...(query.type ? { type: query.type } : {}),
+        ...(query.categoryId ? { categoryId: query.categoryId } : {}),
       },
-      orderBy: [{ date: 'asc' }, { createdAt: 'asc' }],
+      include: incomeLineInclude,
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
     });
     return { year, month, data };
   }

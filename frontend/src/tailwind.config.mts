@@ -25,6 +25,7 @@ const config: Config = {
     extend: {
       colors: cssVarPalette(colors) as typeof colors,
       spacing,
+      fontFamily: typography.fontFamily,
       fontSize: typography.fontSize,
       borderRadius: ui.radius,
       screens: ui.breakPoints,

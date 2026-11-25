@@ -1,19 +1,22 @@
 /**
- * Charte graphique Biblio Squad : Poppins pour les titres, Inter pour les textes.
- * Hiérarchie : H1 Poppins Bold · H2 Poppins SemiBold · H3 Poppins Medium ·
+ * Charte graphique Biblio Squad : Bricolage Grotesque pour les titres (style signalétique
+ * de bibliothèque), Inter pour les textes et les chiffres (chiffres tabulaires).
+ * Hiérarchie : H1 Bold · H2 SemiBold · H3 Medium ·
  * lead Inter Medium · corps Inter Regular · caption Inter Medium.
  * Substitution bureautique : Arial / Calibri.
+ * Arabe : Cairo pour les titres, IBM Plex Sans Arabic pour les textes.
  */
 const typography = {
+  // Resolved in globals.css so the Arabic locale can swap families.
   fontFamily: {
-    sans: 'var(--font-inter), Inter, Calibri, Helvetica, Arial, -apple-system, sans-serif',
-    heading: 'var(--font-poppins), Poppins, Arial, Helvetica, sans-serif',
+    sans: 'var(--ds-font-sans)',
+    heading: 'var(--ds-font-heading)',
   },
 
   fontSize: {
-    'display-xxl': ['3.75rem', { lineHeight: '1.15', fontWeight: '700' }], // 60px — H1 Poppins Bold
-    'display-xl': ['3rem', { lineHeight: '1.2', fontWeight: '600' }], // 48px — H2 Poppins SemiBold
-    'display-lg': ['2.25rem', { lineHeight: '1.25', fontWeight: '500' }], // 36px — H3 Poppins Medium
+    'display-xxl': ['3.75rem', { lineHeight: '1.1', fontWeight: '700' }], // 60px — H1 Bold
+    'display-xl': ['3rem', { lineHeight: '1.15', fontWeight: '600' }], // 48px — H2 SemiBold
+    'display-lg': ['2.25rem', { lineHeight: '1.2', fontWeight: '600' }], // 36px — H3 SemiBold
     'display-md': ['1.875rem', { lineHeight: '1.3', fontWeight: '600' }], // 30px
     'display-sm': ['1.5rem', { lineHeight: '1.35', fontWeight: '600' }], // 24px
     'display-xs': ['1.25rem', { lineHeight: '1.4', fontWeight: '600' }], // 20px

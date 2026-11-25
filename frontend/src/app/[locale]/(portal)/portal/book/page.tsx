@@ -340,15 +340,21 @@ export default function PortalBookPage() {
 
                     <Div className="mt-3 flex flex-wrap items-center gap-3 border-t border-gray-100 pt-3">
                         <Div className="inline-flex items-center gap-1.5">
-                            <Div className="size-2.5 rounded-full bg-primary-500" />
+                            <Div className="size-3 rounded-sm bg-primary-500" />
                             <Label variant={EVariantLabel.caption} color="text-gray-600">
                                 {t('legendMine')}
                             </Label>
                         </Div>
                         <Div className="inline-flex items-center gap-1.5">
-                            <Div className="size-2.5 rounded-full border border-dashed border-gray-400 bg-gray-100" />
+                            <Div className="ds-hatch size-3 rounded-sm border border-gray-300" />
                             <Label variant={EVariantLabel.caption} color="text-gray-600">
                                 {t('legendBusy')}
+                            </Label>
+                        </Div>
+                        <Div className="inline-flex items-center gap-1.5">
+                            <Div className="size-3 rounded-sm border border-gray-200 bg-gray-25" />
+                            <Label variant={EVariantLabel.caption} color="text-gray-600">
+                                {t('legendPast')}
                             </Label>
                         </Div>
                         <Label variant={EVariantLabel.caption} color="text-gray-400" className="ms-auto hidden sm:block">
@@ -379,7 +385,7 @@ export default function PortalBookPage() {
                                         <Label
                                             variant={EVariantLabel.caption}
                                             color="text-gray-500"
-                                            className="uppercase tracking-wide"
+                                            className="font-semibold capitalize"
                                         >
                                             {formatWeekdayShort(range.days[0], locale)}
                                         </Label>
@@ -439,16 +445,16 @@ export default function PortalBookPage() {
                                     setView('day');
                                 }}
                                 renderEventChip={(event) => (
-                                    <Div className="flex items-center gap-1.5 rounded px-1 py-0.5">
-                                        <Div
-                                            className={twMerge(
-                                                'size-1.5 shrink-0 rounded-full',
-                                                event.mine ? 'bg-primary-500' : 'bg-gray-300',
-                                            )}
-                                        />
+                                    <Div
+                                        className={twMerge(
+                                            'flex items-center gap-1.5 rounded px-1 py-0.5',
+                                            !event.mine && 'ds-hatch',
+                                        )}
+                                    >
+                                        {event.mine ? <Div className="size-1.5 shrink-0 rounded-full bg-primary-500" /> : null}
                                         <Label
                                             variant={EVariantLabel.caption}
-                                            color={event.mine ? 'text-gray-800' : 'text-gray-400'}
+                                            color={event.mine ? 'text-gray-800' : 'text-gray-500'}
                                             className="block truncate"
                                         >
                                             {`${formatTime(event.startAt, locale)} ${event.roomName}`}

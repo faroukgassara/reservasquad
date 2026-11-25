@@ -78,13 +78,13 @@ function readStoredCart(sessionId: string): PosCartState {
 }
 
 export function PosCartProvider({ sessionId, children }: Readonly<{ sessionId: string; children: ReactNode }>) {
-    const [state, setState] = useState<PosCartState>(EMPTY_CART);
-    const [loadedFor, setLoadedFor] = useState<string | null>(null);
+    const [state, setState] = useState<PosCartState>(() => readStoredCart(sessionId));
+    const [loadedFor, setLoadedFor] = useState(sessionId);
 
-    useEffect(() => {
-        setState(readStoredCart(sessionId));
+    if (loadedFor !== sessionId) {
         setLoadedFor(sessionId);
-    }, [sessionId]);
+        setState(readStoredCart(sessionId));
+    }
 
     useEffect(() => {
         if (loadedFor !== sessionId) return;

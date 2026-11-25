@@ -87,11 +87,6 @@ export default function PosNewslettersPage() {
         },
     });
 
-    if (sessionStatus === 'loading' || !isAdmin) {
-        return null;
-    }
-
-
     const deleteMutation = useMutation({
         mutationFn: (id: string) => deleteNewsletter(id),
         onSuccess: () => {
@@ -247,6 +242,10 @@ export default function PosNewslettersPage() {
         { value: 'SENT', label: t('status_SENT') },
         { value: 'FAILED', label: t('status_FAILED') },
     ];
+
+    if (sessionStatus === 'loading' || !isAdmin) {
+        return null;
+    }
 
     return (
         <>

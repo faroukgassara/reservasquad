@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -28,7 +28,6 @@ import { usePosPdfLabels } from '@/hooks/usePosPdfLabels';
 import { fetchCreditClient } from '@/lib/credit-api';
 import { formatMoney } from '@/lib/daily-income-api';
 import {
-    activateSubscription,
     cancelSubscription,
     createSubscription,
     deleteSubscription,
@@ -155,10 +154,11 @@ export default function PosSubscriptionPage() {
         enabled: !!presetClientId,
     });
 
-    useEffect(() => {
-        if (!presetClient) return;
+    const [syncedPresetClient, setSyncedPresetClient] = useState<typeof presetClient>();
+    if (presetClient && presetClient !== syncedPresetClient) {
+        setSyncedPresetClient(presetClient);
         setForm((current) => (current && !current.client ? { ...current, client: presetClient } : current));
-    }, [presetClient]);
+    }
 
     const { data: products } = useQuery({
         queryKey: ['pos-products', 'subscriptions'],
@@ -166,12 +166,13 @@ export default function PosSubscriptionPage() {
     });
     const productList = useMemo(() => products?.data ?? [], [products]);
 
-    useEffect(() => {
-        if (!subscription) return;
+    const [syncedSubscription, setSyncedSubscription] = useState<SubscriptionDetail>();
+    if (subscription && subscription !== syncedSubscription) {
+        setSyncedSubscription(subscription);
         setForm(formFromSubscription(subscription));
         setDirty(false);
         setShowErrors(false);
-    }, [subscription]);
+    }
 
     const status = subscription?.status ?? 'ACTIVE';
     const displayStatus = subscription ? subscriptionDisplayStatus(subscription) : 'ACTIVE';

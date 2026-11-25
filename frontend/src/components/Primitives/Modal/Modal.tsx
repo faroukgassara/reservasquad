@@ -49,7 +49,7 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
     return (
       <motion.div
         className={twMerge(
-          "fixed inset-0 z-9999 flex items-center justify-center bg-black/40",
+          "fixed inset-0 z-9999 flex items-center justify-center bg-black/45 backdrop-blur-[2px]",
           isDrawer && "items-stretch justify-end"
         )}
         onClick={canCloseOnClickOutisde ? closeModal : undefined}
@@ -59,10 +59,10 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
       >
         <motion.div
           className={twMerge(
-            'flex flex-col bg-white shadow-md',
+            'flex flex-col bg-white shadow-xl',
             isDrawer
-              ? 'h-dvh max-h-dvh w-full rounded-none sm:w-105'
-              : 'h-auto max-h-[min(90dvh,720px)] w-[min(92vw,520px)] rounded-lg',
+              ? 'h-dvh max-h-dvh w-full rounded-none sm:w-140'
+              : 'h-auto max-h-[min(90dvh,720px)] w-[min(92vw,520px)] rounded-3xl',
             className,
           )}
           ref={ref}
@@ -76,7 +76,7 @@ const Modal = forwardRef<HTMLDivElement, WithChildren<IModal>>(
           {canClose && (
             <div
               className={twMerge(
-                'z-modal flex shrink-0 items-center gap-3 rounded-t-lg px-4 sm:px-6',
+                'z-modal flex shrink-0 items-center gap-3 rounded-t-3xl px-4 sm:px-6',
                 isDrawer ? 'border-b border-gray-100 py-4' : 'items-start pt-4 sm:pt-6',
               )}
             >

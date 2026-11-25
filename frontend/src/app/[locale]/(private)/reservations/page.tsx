@@ -470,7 +470,7 @@ export default function ReservationsAdminPage() {
                             type={
                                 row.status === 'CONFIRMED'
                                     ? EBadgeType.success
-                                    : EBadgeType.error
+                                    : EBadgeType.reverror
                             }
                             size={EBadgeSize.small}
                         />
@@ -740,6 +740,11 @@ export default function ReservationsAdminPage() {
                             page={page}
                             totalRows={totalRows}
                             onPageChange={setPage}
+                            getRowClassName={(row) =>
+                                row.status === 'CANCELLED'
+                                    ? 'bg-danger-25 hover:bg-danger-50 shadow-[inset_3px_0_0_0_var(--ds-danger-500)] opacity-80'
+                                    : undefined
+                            }
                             primaryAction={
                                 canManage ? (
                                     <Div className="flex flex-wrap items-center gap-2">

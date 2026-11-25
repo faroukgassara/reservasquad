@@ -270,7 +270,7 @@ export default function PosProductsPage() {
         title={t('title')}
         subTitle={t('subtitle')}
         rightActions={
-          <Div className="flex items-center gap-2">
+          <Div className="flex w-full flex-wrap items-center gap-2">
             <Button
               id="pos-products-menu-qr-btn"
               type={EButtonType.secondary}
@@ -445,7 +445,7 @@ export default function PosProductsPage() {
             </Div>
           ) : null}
 
-          <Div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

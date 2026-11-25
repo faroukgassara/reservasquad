@@ -7,8 +7,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { EIncomeLineType } from 'src/generated/prisma/client';
 
@@ -22,10 +24,20 @@ export class CreateIncomeLineDto {
   @IsEnum(EIncomeLineType)
   type: EIncomeLineType;
 
-  @ApiProperty({ example: 'Eau' })
+  @ApiPropertyOptional({ example: 'Facture août' })
+  @IsOptional()
   @IsString()
   @MinLength(1)
-  label: string;
+  description?: string;
+
+  @ApiPropertyOptional({
+    example: 'uuid',
+    description: 'Required when type is CHARGE',
+  })
+  @ValidateIf((o: CreateIncomeLineDto) => o.type === EIncomeLineType.CHARGE)
+  @IsUUID()
+  @IsNotEmpty()
+  categoryId?: string;
 
   @ApiProperty({ example: 20 })
   @Type(() => Number)
@@ -45,11 +57,20 @@ export class UpdateIncomeLineDto {
   @IsEnum(EIncomeLineType)
   type?: EIncomeLineType;
 
-  @ApiPropertyOptional({ example: 'Eau' })
+  @ApiPropertyOptional({ example: 'Facture août', nullable: true })
   @IsOptional()
   @IsString()
-  @MinLength(1)
-  label?: string;
+  description?: string | null;
+
+  @ApiPropertyOptional({
+    example: 'uuid',
+    nullable: true,
+    description: 'Required when the resulting type is CHARGE',
+  })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @IsUUID()
+  categoryId?: string | null;
 
   @ApiPropertyOptional({ example: 20 })
   @IsOptional()

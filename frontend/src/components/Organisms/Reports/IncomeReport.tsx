@@ -3,31 +3,27 @@
 import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useLocale, useTranslations } from 'next-intl';
+import { useQuery } from '@tanstack/react-query';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
 import Button from '@/components/Primitives/Button/Button';
 import Badge from '@/components/Primitives/Badge/Badge';
 import ProgressBar from '@/components/Primitives/ProgressBar/ProgressBar';
-import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import {
     EBadgeSize,
     EBadgeType,
     EButtonSize,
-    EButtonType,
-    EInputSize,
-    ESize,
-    EVariantLabel,
-    IconComponentsEnum,
+    EButtonType, EVariantLabel,
+    IconComponentsEnum
 } from '@/Enum/Enum';
-import { formatMoney, type DailyIncomeScope, type DailyIncomeSummary } from '@/lib/daily-income-api';
+import { formatMoney, fetchDailyIncomeSettings, type DailyIncomeScope, type DailyIncomeSummary } from '@/lib/daily-income-api';
 import {
     ChartLoader,
-    ChartPanel,
-    exportToCsv,
-    formatMonthLabel,
+    ChartPanel, formatMonthLabel,
     StatCardGrid,
-    type IReportStatCard,
+    type IReportStatCard
 } from './ReportPanels';
+import ReportPeriodToolbar from './ReportPeriodToolbar';
 
 const IncomeTrendChart = dynamic(
     () => import('@/components/Organisms/Dashboard/DashboardCharts').then((m) => m.IncomeTrendChart),
@@ -66,6 +62,14 @@ export default function IncomeReport({
     const tReports = useTranslations('reports');
     const tIncome = useTranslations('admin.dailyIncome');
     const locale = useLocale();
+
+    const { data: settings } = useQuery({
+        queryKey: ['daily-income-settings'],
+        queryFn: fetchDailyIncomeSettings,
+    });
+    const savingsPct = settings?.savingsPercentage ?? 20;
+    const benefitsPct = settings?.benefitsPercentage ?? 20;
+    const savingsForChargesPct = settings?.savingsForChargesPercentage ?? 10;
 
     const isGlobal = scope === 'all';
 
@@ -137,7 +141,7 @@ export default function IncomeReport({
             icon: IconComponentsEnum.checkCircle,
             iconBg: 'bg-success-50',
             iconColor: 'text-success-700',
-            label: `${tIncome('totalSavings')} (20%)`,
+            label: `${tIncome('totalSavings')} (${savingsPct}%)`,
             value: formatMoney(summary?.totalSavings ?? 0),
         },
         {
@@ -145,7 +149,7 @@ export default function IncomeReport({
             icon: IconComponentsEnum.gift,
             iconBg: 'bg-accent-50',
             iconColor: 'text-accent-600',
-            label: `${tIncome('totalBenefits')} (20%)`,
+            label: `${tIncome('totalBenefits')} (${benefitsPct}%)`,
             value: formatMoney(summary?.totalBenefits ?? 0),
         },
         {
@@ -153,7 +157,7 @@ export default function IncomeReport({
             icon: IconComponentsEnum.archive,
             iconBg: 'bg-gray-100',
             iconColor: 'text-gray-600',
-            label: `${tIncome('totalSavingsForCharges')} (10%)`,
+            label: `${tIncome('totalSavingsForCharges')} (${savingsForChargesPct}%)`,
             value: formatMoney(summary?.totalSavingsForCharges ?? 0),
         },
         {
@@ -229,81 +233,19 @@ export default function IncomeReport({
         : formatMonthLabel(year, month, locale);
 
     return (
-        <Div className="mx-auto max-w-7xl space-y-6">
+        <Div className="mx-auto space-y-6">
             {/* Top Toolbar: Segmented Toggle (Monthly / Global) + Year/Month dropdowns with labels + Export PDF */}
-            <Div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-                {/* Left: Monthly vs Global segmented pill + Year & Month selectors */}
-                <Div className="flex flex-wrap items-center gap-4">
-                    <Div className="inline-flex rounded-xl bg-slate-200/70 p-1 dark:bg-gray-800">
-                        <button
-                            type="button"
-                            id="income-scope-monthly-btn"
-                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
-                                !isGlobal
-                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
-                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                            }`}
-                            onClick={() => onScopeChange('month')}
-                        >
-                            {tReports('monthly')}
-                        </button>
-                        <button
-                            type="button"
-                            id="income-scope-global-btn"
-                            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all sm:text-sm ${
-                                isGlobal
-                                    ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
-                                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                            }`}
-                            onClick={() => onScopeChange('all')}
-                        >
-                            {tReports('globalAllTime')}
-                        </button>
-                    </Div>
-
-                    {!isGlobal && (
-                        <Div className="flex flex-wrap items-center gap-3">
-                            <Div className="flex flex-col gap-1">
-                                <Label
-                                    variant={EVariantLabel.caption}
-                                    color="text-gray-600"
-                                    className="text-xs font-medium"
-                                >
-                                    {tReports('year')}
-                                </Label>
-                                <Div className="w-24 sm:w-28">
-                                    <Dropdown
-                                        size={EInputSize.small}
-                                        options={yearOptions}
-                                        value={String(year)}
-                                        onChange={(val) => onYearChange(Number(val))}
-                                    />
-                                </Div>
-                            </Div>
-
-                            <Div className="flex flex-col gap-1">
-                                <Label
-                                    variant={EVariantLabel.caption}
-                                    color="text-gray-600"
-                                    className="text-xs font-medium"
-                                >
-                                    {tReports('month')}
-                                </Label>
-                                <Div className="w-32 sm:w-36">
-                                    <Dropdown
-                                        size={EInputSize.small}
-                                        options={monthOptions}
-                                        value={String(month)}
-                                        onChange={(val) => onMonthChange(Number(val))}
-                                    />
-                                </Div>
-                            </Div>
-                        </Div>
-                    )}
-                </Div>
-
-                {/* Right: Export PDF Action */}
-                <Div className="flex items-center gap-2">
+            <ReportPeriodToolbar
+                scope={scope}
+                year={year}
+                month={month}
+                yearOptions={yearOptions}
+                monthOptions={monthOptions}
+                onScopeChange={onScopeChange}
+                onYearChange={onYearChange}
+                onMonthChange={onMonthChange}
+                scopeIdPrefix="income"
+                rightActions={
                     <Button
                         id="export-income-pdf"
                         text={tReports('exportPdf')}
@@ -313,8 +255,8 @@ export default function IncomeReport({
                         isLoading={isExporting}
                         disabled={isLoading}
                     />
-                </Div>
-            </Div>
+                }
+            />
 
             {/* Selected Period Badge */}
             <Div className="flex items-center justify-between">
@@ -357,7 +299,7 @@ export default function IncomeReport({
                     <Div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 space-y-1.5">
                         <Div className="flex items-center justify-between">
                             <Label variant={EVariantLabel.caption} color="text-gray-600" className="font-medium">
-                                {tIncome('totalSavings')} (20%)
+                                {tIncome('totalSavings')} ({savingsPct}%)
                             </Label>
                             <span className="text-xs font-bold text-success-700">{savingsPercent}%</span>
                         </Div>
@@ -368,7 +310,7 @@ export default function IncomeReport({
                     <Div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3.5 space-y-1.5">
                         <Div className="flex items-center justify-between">
                             <Label variant={EVariantLabel.caption} color="text-gray-600" className="font-medium">
-                                {tIncome('totalBenefits')} (20%)
+                                {tIncome('totalBenefits')} ({benefitsPct}%)
                             </Label>
                             <span className="text-xs font-bold text-accent-700">{benefitsPercent}%</span>
                         </Div>

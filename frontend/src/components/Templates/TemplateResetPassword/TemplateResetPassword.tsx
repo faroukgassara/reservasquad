@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import type { AnyFieldApi, AnyFormState } from '@tanstack/react-form';
 import Input from '@/components/Primitives/Input/Input';
 import Button from '@/components/Primitives/Button/Button';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
@@ -58,6 +59,8 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
         );
     }
 
+    if (!form) return null;
+
     return (
         <div className="relative flex min-h-dvh flex-col items-center justify-center bg-gray-25 p-4 transition-colors duration-200 sm:p-6">
             {/* Top Controls: LanguageSwitcher & ThemeToggle directly above Card, aligned to right edge */}
@@ -100,7 +103,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                     }}
                 >
                     <form.Field name="newPassword">
-                        {({ state, handleChange }: any) => (
+                        {({ state, handleChange }: AnyFieldApi) => (
                             <Input
                                 containerClassName="mb-4"
                                 label={t('auth.newPassword')}
@@ -118,7 +121,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                     </form.Field>
 
                     <form.Field name="confirmPassword">
-                        {({ state, handleChange }: any) => (
+                        {({ state, handleChange }: AnyFieldApi) => (
                             <Input
                                 containerClassName="mb-2"
                                 label={t('auth.confirmPassword')}
@@ -145,19 +148,19 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                     </div>
 
                     <form.Subscribe
-                        selector={(state: any) => [
+                        selector={(state: AnyFormState) => [
                             state.canSubmit,
                             state.isSubmitting,
                         ]}
                     >
-                        {([canSubmit, isSubmitting]: [boolean, boolean]) => (
+                        {([canSubmit, isSubmitting]: boolean[]) => (
                             <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
                                 <Button
                                     id="reset-password-cancel-btn"
                                     className="h-11 w-full justify-center rounded-xl font-medium sm:w-1/2"
                                     type={EButtonType.secondary}
                                     size={EButtonSize.medium}
-                                    onClick={(e: any) => {
+                                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                                         e.preventDefault();
                                         onCancel?.();
                                     }}

@@ -208,6 +208,7 @@ export default function PosClientsPage() {
                 headerElement: {
                     value: 'totalCredit',
                     label: t('totalCredit'),
+                    numeric: true,
                     render: (_: unknown, row: CreditClientListItem) => (
                         <OrganismTable.Cell
                             mainText={formatMoney(row.totalCredit)}
@@ -224,6 +225,7 @@ export default function PosClientsPage() {
                 headerElement: {
                     value: 'totalPaid',
                     label: t('totalPaid'),
+                    numeric: true,
                     render: (_: unknown, row: CreditClientListItem) => (
                         <OrganismTable.Cell mainText={formatMoney(row.totalPaid)} />
                     ),
@@ -234,6 +236,7 @@ export default function PosClientsPage() {
                     value: 'remaining',
                     label: t('balance'),
                     mobile: 'secondary',
+                    numeric: true,
                     render: (_: unknown, row: CreditClientListItem) => (
                         <Badge
                             id={`pos-client-remaining-${row.id}`}

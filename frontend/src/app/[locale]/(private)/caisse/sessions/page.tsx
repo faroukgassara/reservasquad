@@ -90,6 +90,7 @@ export default function PosSessionsPage() {
                 headerElement: {
                     value: 'orders',
                     label: t('session.orders'),
+                    numeric: true,
                     render: (_: unknown, row: PosSession) => (
                         <OrganismTable.Cell mainText={String(row._count?.orders ?? 0)} />
                     ),
@@ -99,6 +100,7 @@ export default function PosSessionsPage() {
                 headerElement: {
                     value: 'cashPayments',
                     label: t('session.cashPayments'),
+                    numeric: true,
                     render: (_: unknown, row: PosSession) => (
                         <OrganismTable.Cell mainText={formatMoney(getSessionCashPayments(row))} />
                     ),
@@ -115,7 +117,7 @@ export default function PosSessionsPage() {
                                 <Badge
                                     id={`pos-session-status-${row.id}`}
                                     text={row.status === 'OPEN' ? t('session.statusOpen') : t('session.statusClosed')}
-                                    type={row.status === 'OPEN' ? EBadgeType.success : EBadgeType.reverror}
+                                    type={row.status === 'OPEN' ? EBadgeType.success : EBadgeType.revprimary}
                                     size={EBadgeSize.small}
                                 />
                             }
@@ -150,7 +152,7 @@ export default function PosSessionsPage() {
                 }
                 mainSection={
                     <div className="flex min-h-full flex-col gap-4">
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 laptop:grid-cols-3">
                             <StatCard
                                 icon={IconComponentsEnum.layers}
                                 iconBg="bg-primary-50"

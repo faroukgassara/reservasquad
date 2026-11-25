@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { twMerge } from 'tailwind-merge';
-import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
 import PosNumpad, { type PosNumpadKey } from '@/components/Organisms/Pos/PosNumpad';
 import { cartLineTotal, usePosCart, type PosCartLine } from '@/contexts/PosCartContext';
-import { EButtonSize, EButtonType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
+import { EButtonType, ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { formatMoney } from '@/lib/daily-income-api';
 import { round3 } from '@/lib/pos-api';
 import {
@@ -47,18 +46,23 @@ export default function OrganismPosOrderPanel({
     const t = useTranslations('pos.register');
     const cart = usePosCart();
     const [mode, setMode] = useState<NumpadMode>('quantity');
-    const [buffer, setBuffer] = useState('');
-    const [fresh, setFresh] = useState(true);
     const listRef = useRef<HTMLDivElement>(null);
 
     const selectedLine = cart.lines.find((l) => l.id === cart.selectedLineId) ?? null;
+    const lineBuffer = (line: PosCartLine | null, numpadMode: NumpadMode) =>
+        line ? String(line[MODE_FIELD[numpadMode]]) : '';
 
-    useEffect(() => {
-        setBuffer(selectedLine ? String(selectedLine[MODE_FIELD[mode]]) : '');
+    const [buffer, setBuffer] = useState(() => lineBuffer(selectedLine, mode));
+    const [fresh, setFresh] = useState(true);
+
+    // Only reset when the selection or mode changes, not on every value edit.
+    const resetKey = `${cart.selectedLineId}|${mode}`;
+    const [prevResetKey, setPrevResetKey] = useState(resetKey);
+    if (prevResetKey !== resetKey) {
+        setPrevResetKey(resetKey);
+        setBuffer(lineBuffer(selectedLine, mode));
         setFresh(true);
-        // Only reset when the selection or mode changes, not on every value edit.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cart.selectedLineId, mode]);
+    }
 
     useEffect(() => {
         const selected = listRef.current?.querySelector('[data-selected="true"]');

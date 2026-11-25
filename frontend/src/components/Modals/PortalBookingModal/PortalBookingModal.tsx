@@ -12,10 +12,11 @@ import Label from '@/components/Primitives/Label/Label';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import TimePickerField from '@/components/Primitives/DatePicker/TimePickerField';
+import { SlotPicker } from '@/components/Calendar';
 import { useCurrentModal } from '@/contexts/ModalContext';
 import { EButtonSize, EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
 import { formatMoney } from '@/lib/daily-income-api';
-import { fetchPortalAvailability, toDateInput, toIsoDateTime } from '@/lib/portal-api';
+import { fetchPortalAvailability, fetchPortalSchedule, toDateInput, toIsoDateTime } from '@/lib/portal-api';
 
 const TITLE_MAX = 120;
 const NOTES_MAX = 500;
@@ -56,6 +57,7 @@ export default function PortalBookingModal({
     const [endTime, setEndTime] = useState(defaultEnd);
     const [title, setTitle] = useState('');
     const [notes, setNotes] = useState('');
+    const [openedAt] = useState(() => Date.now());
 
     const startAt = date && startTime ? toIsoDateTime(date, startTime) : '';
     const endAt = date && endTime ? toIsoDateTime(date, endTime) : '';
@@ -63,7 +65,7 @@ export default function PortalBookingModal({
     let slotError: string | null = null;
     if (!startAt || !endAt) slotError = t('pickSlot');
     else if (new Date(endAt) <= new Date(startAt)) slotError = t('endAfterStart');
-    else if (new Date(startAt).getTime() < Date.now()) slotError = t('inPast');
+    else if (new Date(startAt).getTime() < openedAt) slotError = t('inPast');
 
     // Confirms the room is free and returns this professor's own price for the slot.
     const availability = useQuery({
@@ -72,6 +74,15 @@ export default function PortalBookingModal({
         enabled: !slotError,
     });
     const quote = availability.data?.rooms.find((room) => room.id === roomId);
+
+    const dayFrom = date ? new Date(`${date}T00:00:00`).toISOString() : '';
+    const dayTo = date ? new Date(`${date}T23:59:59.999`).toISOString() : '';
+    const daySchedule = useQuery({
+        queryKey: ['portal-schedule', dayFrom, dayTo],
+        queryFn: () => fetchPortalSchedule(dayFrom, dayTo),
+        enabled: Boolean(date),
+    });
+    const roomBusy = daySchedule.data?.rooms.find((room) => room.id === roomId)?.busy ?? [];
 
     const renderStatus = () => {
         if (slotError) {
@@ -136,6 +147,26 @@ export default function PortalBookingModal({
                     min={toDateInput(new Date())}
                     onChange={setDate}
                 />
+                {date && !daySchedule.isError ? (
+                    <SlotPicker
+                        date={date}
+                        busy={roomBusy}
+                        startTime={startTime}
+                        endTime={endTime}
+                        isLoading={daySchedule.isLoading}
+                        labels={{
+                            title: t('slotsTitle'),
+                            hint: t('slotsHint'),
+                            free: t('slotFree'),
+                            busy: t('legendBusy'),
+                            past: t('slotPast'),
+                        }}
+                        onChange={(start, end) => {
+                            setStartTime(start);
+                            setEndTime(end);
+                        }}
+                    />
+                ) : null}
                 <Div className="grid grid-cols-2 gap-3">
                     <Div className="flex flex-col gap-1.5">
                         <Label variant={EVariantLabel.bodySmall} color="text-gray-700">

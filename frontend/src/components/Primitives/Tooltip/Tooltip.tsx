@@ -22,7 +22,11 @@ import type { ITooltip } from '@/interfaces/IPrimitives/ITooltip/ITooltip';
 const Tooltip = ({ content, children, placement = 'right', disabled = false, className }: ITooltip) => {
     const [open, setOpen] = useState(false);
 
-    const { refs, floatingStyles, context } = useFloating({
+    const {
+        refs: { setReference, setFloating },
+        floatingStyles,
+        context,
+    } = useFloating({
         open: open && !disabled,
         onOpenChange: setOpen,
         placement,
@@ -41,13 +45,13 @@ const Tooltip = ({ content, children, placement = 'right', disabled = false, cla
 
     return (
         <>
-            <div ref={refs.setReference} className={className} {...getReferenceProps()}>
+            <div ref={setReference} className={className} {...getReferenceProps()}>
                 {children}
             </div>
             {open ? (
                 <FloatingPortal>
                     <div
-                        ref={refs.setFloating}
+                        ref={setFloating}
                         style={{ ...floatingStyles, zIndex: zIndex.tooltip }}
                         className="pointer-events-none rounded-lg bg-gray-900 px-2.5 py-1.5 shadow-lg"
                         {...getFloatingProps()}

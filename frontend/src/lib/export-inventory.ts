@@ -43,7 +43,6 @@ const GRAY_400: [number, number, number] = [156, 163, 175];
 const WHITE: [number, number, number] = [255, 255, 255];
 
 const PAGE_W = 210;
-const PAGE_H = 297;
 const MARGIN_X = 10;
 const FOOTER_Y = 290;
 

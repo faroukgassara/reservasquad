@@ -1,3 +1,4 @@
+import type { MouseEventHandler } from "react";
 import { EButtonSize, EButtonType, ESize } from "@/Enum/Enum";
 import { IIcon } from "@/interfaces/IPrimitives/IIcon/IIcon";
 
@@ -10,7 +11,7 @@ export default interface IButton {
   htmlType?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
   isLoading?: boolean;
-  onClick?: any,
+  onClick?: MouseEventHandler<HTMLButtonElement>,
   className?: string,
   id: string
   spinnerColor?: string;

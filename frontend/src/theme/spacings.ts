@@ -30,6 +30,11 @@ const spacings = {
   56: '14rem',   // 224px
   60: '15rem',   // 240px
   64: '16rem',   // 256px
+
+  // Layout widths (used by drawers / side panels)
+  105: '26.25rem', // 420px
+  120: '30rem',    // 480px
+  140: '35rem',    // 560px — drawer width
 } as const
 
 export default spacings

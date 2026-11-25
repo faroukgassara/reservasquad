@@ -70,6 +70,10 @@ export function formatWeekdayShort(date: Date, locale: string): string {
     return date.toLocaleDateString(locale, { weekday: 'short' });
 }
 
+export function formatMonthShort(date: Date, locale: string): string {
+    return date.toLocaleDateString(locale, { month: 'short' });
+}
+
 export function formatDayMonth(date: Date, locale: string): string {
     return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
 }

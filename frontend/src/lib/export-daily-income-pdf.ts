@@ -25,6 +25,8 @@ export interface DailyIncomePdfLabels {
     savingsForCharges: string;
     type: string;
     label: string;
+    category?: string;
+    description?: string;
     amount: string;
     charge: string;
     investment: string;
@@ -283,24 +285,32 @@ export function exportDailyIncomePdf(params: {
                     FAROUK: labels.farouk,
                     MAJDI: labels.majdi,
                 }[line.type],
-                line.label,
+                line.type === 'CHARGE' ? line.category?.name || '—' : '—',
+                line.description?.trim() || '—',
                 formatAmount(line.amount),
             ])
-            : [[labels.empty, '—', '—', '—']];
+            : [[labels.empty, '—', '—', '—', '—']];
 
     autoTable(doc, {
         startY: cursorY,
-        head: [[labels.date, labels.type, labels.label, labels.amount]],
+        head: [[
+            labels.date,
+            labels.type,
+            labels.category ?? labels.label,
+            labels.description ?? labels.label,
+            labels.amount,
+        ]],
         body: lineBody,
         theme: 'plain',
         styles: TABLE_BODY_STYLES,
         headStyles: TABLE_HEAD_STYLES,
         alternateRowStyles: { fillColor: [249, 250, 251] },
         columnStyles: {
-            0: { cellWidth: 28 },
-            1: { cellWidth: 32, halign: 'center' },
-            2: { cellWidth: 'auto' },
-            3: { halign: 'right', cellWidth: 32 },
+            0: { cellWidth: 26 },
+            1: { cellWidth: 28, halign: 'center' },
+            2: { cellWidth: 36 },
+            3: { cellWidth: 'auto' },
+            4: { halign: 'right', cellWidth: 30 },
         },
         margin: { left: MARGIN, right: MARGIN, bottom: 16 },
         didParseCell: (data) => {

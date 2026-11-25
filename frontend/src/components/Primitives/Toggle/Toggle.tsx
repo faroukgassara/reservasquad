@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { EToggleSize } from '@/Enum/Enum';
 import { IToggle } from '@/interfaces/IPrimitives/IToggle/IToggle';
 
@@ -14,10 +14,11 @@ const Toggle = ({
   className = '',
 }: IToggle) => {
   const [isChecked, setIsChecked] = useState(checked);
-
-  useEffect(() => {
+  const [prevChecked, setPrevChecked] = useState(checked);
+  if (prevChecked !== checked) {
+    setPrevChecked(checked);
     setIsChecked(checked);
-  }, [checked]);
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;

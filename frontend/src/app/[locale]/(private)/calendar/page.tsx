@@ -1,15 +1,13 @@
 'use client';
 
 import {
-    memo,
     useCallback,
     useEffect,
     useMemo,
     useRef,
     useState,
     type DragEvent,
-    type KeyboardEvent,
-    type MouseEvent,
+    type KeyboardEvent
 } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
@@ -18,8 +16,6 @@ import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
 import Button from '@/components/Primitives/Button/Button';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
-import Badge from '@/components/Primitives/Badge/Badge';
-import Icon from '@/components/Primitives/Icon/Icon';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
 import ReservationFormModal, { type ReservationFormValues } from '@/components/Modals/ReservationFormModal/ReservationFormModal';
@@ -27,18 +23,14 @@ import FindFreeRoomModal from '@/components/Modals/FindFreeRoomModal/FindFreeRoo
 import {
     createReservation,
     createReservationSeries,
-    fetchCalendar,
-    formatMoney,
-    resolveReservationFormPrice,
+    fetchCalendar, resolveReservationFormPrice,
     updateReservation,
-    type ReservationRecord,
+    type ReservationRecord
 } from '@/lib/reservation-api';
 import { mapReservationConflictMessage } from '@/lib/reservation-conflicts';
 import {
-    buildColorLegend,
-    getEventAccent,
-    moveReservationToDay,
-    type CalendarColorBy,
+    buildColorLegend, moveReservationToDay,
+    type CalendarColorBy
 } from '@/lib/calendar-event-colors';
 import { fetchRooms } from '@/lib/room-api';
 import { fetchProfessors } from '@/lib/professor-api';
@@ -48,15 +40,11 @@ import {
     endOfDay,
     formatDayLabel,
     formatDayMonth,
-    formatMonthLabel,
-    formatTime,
-    formatWeekdayShort,
-    isSameDay,
-    monthNames,
-    startOfDay,
+    formatMonthLabel, formatWeekdayShort,
+    isSameDay, startOfDay,
     startOfMonth,
     startOfWeek,
-    toIsoDateKey,
+    toIsoDateKey
 } from '@/lib/date-utils';
 import {
     AddDayButton,
@@ -71,14 +59,12 @@ import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
 import {
-    EBadgeSize,
-    EBadgeType,
     EButtonSize,
     EButtonType,
     ESize,
     EToastType,
     EVariantLabel,
-    IconComponentsEnum,
+    IconComponentsEnum
 } from '@/Enum/Enum';
 
 type CalendarView = 'day' | 'week' | 'month';
@@ -105,21 +91,6 @@ function toLocalDateTimeInput(date: Date, hours: number, minutes = 0): string {
     d.setHours(hours, minutes, 0, 0);
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function parseDateParam(raw: string | null): Date | null {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw ?? '');
-    if (!match) return null;
-    const parsed = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-    return Number.isNaN(parsed.getTime()) ? null : startOfDay(parsed);
-}
-
-function parseViewParam(raw: string | null): CalendarView {
-    return raw === 'day' || raw === 'week' || raw === 'month' ? raw : 'week';
-}
-
-function parseColorParam(raw: string | null): CalendarColorBy {
-    return raw === 'room' || raw === 'professor' ? raw : 'payment';
 }
 
 // Prefill "now-friendly" defaults: next full hour when booking for today (8h–20h), otherwise 9h.
@@ -169,49 +140,20 @@ export default function CalendarPage() {
     const [isDatePickerOpen, setDatePickerOpen] = useState(false);
     const [dragOverKey, setDragOverKey] = useState<string | null>(null);
     const [navDirection, setNavDirection] = useState<'prev' | 'next' | 'none'>('none');
-    const [pendingFocusKey, setPendingFocusKey] = useState<string | null>(null);
+    // Wrapped in an object so re-targeting the same day still re-runs the focus effect.
+    const [pendingFocus, setPendingFocus] = useState<{ key: string } | null>(null);
     const [today, setToday] = useState(() => startOfDay(new Date()));
     const dragEventRef = useRef<ReservationRecord | null>(null);
     const suppressClickRef = useRef(false);
-    const urlSyncedRef = useRef(false);
     const { openModal, closeModal, modalPortal } = useModal({
         closeCallBack: () => setModalState(null),
     });
 
-    // Deep-linkable calendar state (?view=&date=&room=&professor=&color=) — read once after hydration,
-    // then kept in sync so refresh/share/back preserves the exact calendar view.
+    // Drop legacy calendar query params (?view=&date=&room=&professor=&color=) so filters stay in component state only.
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const dateParam = parseDateParam(params.get('date'));
-        const viewParam = parseViewParam(params.get('view'));
-        const roomParam = params.get('room');
-        const professorParam = params.get('professor');
-        setView(viewParam);
-        if (dateParam) setAnchor(dateParam);
-        if (roomParam) setRoomId(roomParam);
-        if (professorParam) setProfessorId(professorParam);
-        setColorBy(parseColorParam(params.get('color')));
-        urlSyncedRef.current = true;
+        if (!window.location.search) return;
+        window.history.replaceState(null, '', window.location.pathname);
     }, []);
-
-    useEffect(() => {
-        if (!urlSyncedRef.current) return;
-        const params = new URLSearchParams(window.location.search);
-        params.set('view', view);
-        params.set('date', toIsoDateKey(anchor));
-        if (roomId) params.set('room', roomId);
-        else params.delete('room');
-        if (professorId) params.set('professor', professorId);
-        else params.delete('professor');
-        if (colorBy !== 'payment') params.set('color', colorBy);
-        else params.delete('color');
-        const query = params.toString();
-        window.history.replaceState(
-            null,
-            '',
-            `${window.location.pathname}${query ? `?${query}` : ''}`,
-        );
-    }, [view, anchor, roomId, professorId, colorBy]);
 
     // Keep the "today" highlight accurate when the app stays open across midnight.
     useEffect(() => {
@@ -225,13 +167,12 @@ export default function CalendarPage() {
     // After keyboard navigation, move DOM focus to the day cell of the new anchor
     // (roving tabindex: only the anchor cell is in the tab order).
     useEffect(() => {
-        if (!pendingFocusKey) return;
+        if (!pendingFocus) return;
         const cell = document.querySelector<HTMLElement>(
-            `[data-cal-day="${CSS.escape(pendingFocusKey)}"]`,
+            `[data-cal-day="${CSS.escape(pendingFocus.key)}"]`,
         );
         cell?.focus();
-        setPendingFocusKey(null);
-    }, [pendingFocusKey]);
+    }, [pendingFocus]);
 
     const range = useMemo(() => {
         if (view === 'day') {
@@ -628,22 +569,22 @@ export default function CalendarPage() {
             e.preventDefault();
             setNavDirection('prev');
             setAnchor((d) => addDays(d, -step));
-            setPendingFocusKey(addDays(anchor, -step).toDateString());
+            setPendingFocus({ key: addDays(anchor, -step).toDateString() });
         } else if (key === 'ArrowRight') {
             e.preventDefault();
             setNavDirection('next');
             setAnchor((d) => addDays(d, step));
-            setPendingFocusKey(addDays(anchor, step).toDateString());
+            setPendingFocus({ key: addDays(anchor, step).toDateString() });
         } else if (view === 'month' && key === 'ArrowDown') {
             e.preventDefault();
             setNavDirection('next');
             setAnchor((d) => addDays(d, 7));
-            setPendingFocusKey(addDays(anchor, 7).toDateString());
+            setPendingFocus({ key: addDays(anchor, 7).toDateString() });
         } else if (view === 'month' && key === 'ArrowUp') {
             e.preventDefault();
             setNavDirection('prev');
             setAnchor((d) => addDays(d, -7));
-            setPendingFocusKey(addDays(anchor, -7).toDateString());
+            setPendingFocus({ key: addDays(anchor, -7).toDateString() });
         } else if (key === 't' || key === 'T') {
             e.preventDefault();
             goToday();
@@ -814,7 +755,7 @@ export default function CalendarPage() {
                 title={t('title')}
                 subTitle={t('subtitle')}
                 mainSection={
-                    <Div className="mx-auto max-w-7xl space-y-4" onKeyDown={handleShortcutsKeyDown}>
+                    <Div className="mx-auto space-y-6" onKeyDown={handleShortcutsKeyDown}>
                         <Div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
                             <Div className="flex flex-col gap-3">
                                 <Div className="flex flex-wrap items-center justify-between gap-3">
@@ -1033,7 +974,7 @@ export default function CalendarPage() {
                                             <Label
                                                 variant={EVariantLabel.caption}
                                                 color="text-gray-500"
-                                                className="uppercase tracking-wide"
+                                                className="font-semibold capitalize"
                                             >
                                                 {formatWeekdayShort(range.days[0], locale)}
                                             </Label>

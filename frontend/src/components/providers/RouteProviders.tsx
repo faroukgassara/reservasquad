@@ -1,5 +1,7 @@
 'use client';
 
+import type { ComponentProps } from 'react';
+import type { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import { ModalsProvider } from '@/contexts/ModalsContext';
 import { routing } from '@/i18n/routing';
@@ -16,9 +18,9 @@ import 'react-toastify/dist/ReactToastify.css';
 const themeScriptProps = typeof window === 'undefined' ? undefined : ({ type: 'application/json', suppressHydrationWarning: true } as const);
 
 interface RouteProvidersProps extends WithChildren {
-    session?: any;
+    session?: Session | null;
     locale: (typeof routing.locales)[number];
-    messages: any;
+    messages: ComponentProps<typeof NextIntlClientProvider>['messages'];
 }
 
 export default function RouteProviders({ children, session, locale, messages }: Readonly<RouteProvidersProps>) {

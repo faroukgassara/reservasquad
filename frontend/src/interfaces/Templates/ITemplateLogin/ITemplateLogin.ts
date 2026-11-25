@@ -1,5 +1,7 @@
+import type { AnyReactForm } from '@/types';
+
 interface ITemplateLogin {
-    form: any;
+    form: AnyReactForm;
     hintText?: string;
 }
 

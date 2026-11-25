@@ -103,8 +103,6 @@ export default function OrganismPosPaymentScreen({
     const needsClient = payments.some((l) => l.method === 'CLIENT_ACCOUNT' && l.amount > 0) && !cart.client;
     const nonCashTooHigh = nonCash > total + 0.0005;
     const paymentReady = paid + 0.0005 >= total && !nonCashTooHigh && !needsClient;
-    const canValidate = paymentReady && !isSubmitting;
-
     const selectLine = (line: PaymentLine) => {
         if (line.isRest) return;
         setSelectedId(line.id);

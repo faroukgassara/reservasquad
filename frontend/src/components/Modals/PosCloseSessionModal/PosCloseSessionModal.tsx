@@ -50,7 +50,7 @@ const STEPPER_BUTTON =
 
 function differenceColor(value: number): ELabelColor {
     if (value === 0) return 'text-success-700';
-    return value > 0 ? 'text-primary-600' : 'text-danger-600';
+    return 'text-danger-600';
 }
 
 function StepBadge({ step, className }: Readonly<{ step: number; className: string }>) {
@@ -174,12 +174,9 @@ export default function PosCloseSessionModal({
         if (difference === null) return null;
         let boxClassName = 'border-success-200 bg-success-50';
         let status = t('differencePerfect');
-        if (difference > 0) {
-            boxClassName = 'border-primary-200 bg-primary-50';
-            status = t('differenceSurplus');
-        } else if (difference < 0) {
+        if (difference !== 0) {
             boxClassName = 'border-danger-200 bg-danger-50';
-            status = t('differenceDeficit');
+            status = difference > 0 ? t('differenceSurplus') : t('differenceDeficit');
         }
         const color = differenceColor(difference);
         return (

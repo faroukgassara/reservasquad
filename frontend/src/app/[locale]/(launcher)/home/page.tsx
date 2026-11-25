@@ -7,19 +7,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from '@/i18n/navigation';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
-import ModuleCard, { IModuleCardStat, TModuleCardTone } from '@/components/Organisms/Launcher/ModuleCard';
+import ModuleCard, { IModuleCardStat } from '@/components/Organisms/Launcher/ModuleCard';
 import { EVariantLabel } from '@/Enum/Enum';
 import { ModuleId, moduleItemsForRole, modulesForRole } from '@/lib/navigation';
 import { fetchTodaySnapshot } from '@/lib/reservation-api';
 import { fetchCurrentPosSession, fetchPosLowStockProducts } from '@/lib/pos-api';
 import { fetchDailyIncomeSummary, formatMoney } from '@/lib/daily-income-api';
-
-const MODULE_TONES: Record<ModuleId, TModuleCardTone> = {
-    reservations: 'primary',
-    caisse: 'accent',
-    recettes: 'success',
-    admin: 'warning',
-};
 
 export default function LauncherPage() {
     const t = useTranslations('launcher');
@@ -111,35 +104,29 @@ export default function LauncherPage() {
     }).format(now);
 
     return (
-        <Div className="flex flex-col gap-6 sm:gap-8">
-            <Div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-800 via-primary-700 to-primary-500 px-6 py-7 shadow-lg sm:px-8 sm:py-9">
-                <Div aria-hidden="true" className="absolute -end-16 -top-20 size-64 rounded-full bg-accent-500/25 blur-2xl" />
-                <Div aria-hidden="true" className="absolute -bottom-24 end-1/3 size-56 rounded-full bg-white/10 blur-2xl" />
-                <Div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <Div className="flex flex-col gap-1.5">
-                        <Label variant={EVariantLabel.h3} color="text-white">
-                            {firstName ? t('greeting', { name: firstName }) : t('greetingFallback')}
-                        </Label>
-                        <Label variant={EVariantLabel.body} color="text-white" className="opacity-80">
-                            {t('subtitle')}
-                        </Label>
-                    </Div>
-                    <span className="inline-flex w-fit items-center rounded-full bg-white/15 px-4 py-1.5 ring-1 ring-white/25 backdrop-blur-sm">
-                        <Label variant={EVariantLabel.bodySmall} color="text-white" className="font-medium first-letter:uppercase">
-                            {todayLabel}
-                        </Label>
-                    </span>
+        <Div className="flex flex-col gap-6 laptop:h-full">
+            <Div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+                <Div className="flex flex-col gap-1">
+                    <Label variant={EVariantLabel.h3} color="text-gray-900" className="font-bold! break-words">
+                        {firstName ? t('greeting', { name: firstName }) : t('greetingFallback')}
+                    </Label>
+                    <Label variant={EVariantLabel.body} color="text-gray-500">
+                        {t('subtitle')}
+                    </Label>
                 </Div>
+                <Label variant={EVariantLabel.bodySmall} color="text-gray-500" className="shrink-0 font-medium first-letter:uppercase">
+                    {todayLabel}
+                </Label>
             </Div>
 
-            <Div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 laptop:grid-cols-4">
+            <Div className="grid grid-cols-1 gap-4 sm:grid-cols-2 laptop:max-h-128 laptop:min-h-0 laptop:flex-1 laptop:grid-cols-4 laptop:gap-5">
                 {modules.map((module) => (
                     <ModuleCard
                         key={module.id}
                         id={module.id}
                         href={module.homeHref}
                         icon={module.icon}
-                        tone={MODULE_TONES[module.id]}
+                        tone={module.tone}
                         title={tSidebar(`modules.${module.id}`)}
                         description={t(`descriptions.${module.id}`)}
                         stats={cardContent[module.id].stats}

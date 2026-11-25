@@ -15,9 +15,9 @@
   --ds-black: oklch(0.2644 0.0178 266.29);
 
   --ds-gray-25: oklch(0.9789 0.0029 264.54);
-  --ds-gray-50: oklch(0.9371 0.0042 271.37);
-  --ds-gray-100: oklch(0.8880 0.0059 264.53);
-  --ds-gray-200: oklch(0.8236 0.0086 271.31);
+  --ds-gray-50: oklch(0.9580 0.0050 268.00);
+  --ds-gray-100: oklch(0.9280 0.0070 268.00);
+  --ds-gray-200: oklch(0.8850 0.0090 270.00);
   --ds-gray-300: oklch(0.7442 0.0106 267.33);
   --ds-gray-400: oklch(0.6504 0.0138 271.20);
   --ds-gray-500: oklch(0.4280 0.0225 268.77);
@@ -215,6 +215,52 @@ html,
 body {
   height: 100%;
   overflow-x: clip;
+}
+
+:root {
+  --ds-font-sans: var(--font-inter), Inter, Calibri, Helvetica, Arial, -apple-system, sans-serif;
+  --ds-font-heading: var(--font-display), 'Bricolage Grotesque', Arial, Helvetica, sans-serif;
+}
+
+/* Both families ship a matching Latin, so mixed Arabic/Latin lines stay in one voice. */
+:root[lang='ar'] {
+  --ds-font-sans: var(--font-plex-arabic), Tahoma, Arial, sans-serif;
+  --ds-font-heading: var(--font-cairo), var(--font-plex-arabic), Tahoma, Arial, sans-serif;
+}
+
+body {
+  font-family: var(--ds-font-sans);
+}
+
+/* Headings are set like library signage: slightly narrow and tight. Arabic must
+   stay at 0 tracking because letter-spacing breaks cursive joining. */
+.ds-heading {
+  letter-spacing: -0.02em;
+  font-stretch: 92%;
+}
+
+[dir='rtl'] .ds-heading {
+  letter-spacing: 0;
+}
+
+/* Active-page marker in the top bar: a bookmark ribbon hanging from the bar's top edge. */
+.ds-bookmark {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+
+/* Taken time in calendars: diagonal stripes read as "unavailable" without relying on colour alone. */
+.ds-hatch {
+  background-color: var(--ds-gray-25);
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--ds-gray-100) 0 1px,
+    transparent 1px 7px
+  );
+}
+
+/* Figures in tables are compared across rows, so they must share one width. */
+table {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------------------------------------------------------------------------

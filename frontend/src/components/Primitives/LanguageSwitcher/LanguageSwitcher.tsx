@@ -1,7 +1,7 @@
 'use client';
 
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
@@ -11,6 +11,8 @@ import { twMerge } from 'tailwind-merge';
 import Icon from '../Icon/Icon';
 
 type LocaleCode = (typeof routing.locales)[number];
+
+const subscribeNoop = () => () => {};
 
 interface LanguageOption {
     code: LocaleCode;
@@ -49,6 +51,10 @@ interface ILanguageSwitcher {
     menuPlacement?: 'top' | 'bottom';
     /** Icon-only circular trigger for collapsed sidebar. */
     compact?: boolean;
+    /** Flag-only round trigger for compact headers. */
+    flag?: boolean;
+    /** Renders the options inline (no dropdown) — for use inside an open menu. */
+    inline?: boolean;
     className?: string;
 }
 
@@ -62,38 +68,46 @@ interface MenuPosition {
 export default function LanguageSwitcher({
     menuPlacement = 'bottom',
     compact = false,
+    flag = false,
+    inline = false,
     className,
 }: Readonly<ILanguageSwitcher> = {}) {
     const locale = useLocale();
     const t = useTranslations('common');
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
-    const [mounted, setMounted] = useState(false);
+    const mounted = useSyncExternalStore(
+        subscribeNoop,
+        () => true,
+        () => false,
+    );
     const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (prevOpen !== open) {
+        setPrevOpen(open);
+        if (!open) setMenuPosition(null);
+    }
     const containerRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+    const iconOnly = compact || flag;
 
     const currentLanguage = LANGUAGES.find((lang) => lang.code === locale) ?? LANGUAGES[0];
 
     const closeDropdown = useCallback(() => setOpen(false), []);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const updateMenuPosition = useCallback(() => {
         const trigger = triggerRef.current;
         if (!trigger) return;
 
         const rect = trigger.getBoundingClientRect();
-        const menuWidth = Math.max(compact ? 200 : rect.width, 220);
+        const menuWidth = Math.max(iconOnly ? 200 : rect.width, 220);
         const gap = 8;
         const viewportPadding = 8;
 
-        let left = compact ? rect.right + gap : rect.left;
+        let left = iconOnly ? rect.right + gap : rect.left;
         if (left + menuWidth > window.innerWidth - viewportPadding) {
-            left = compact
+            left = iconOnly
                 ? Math.max(viewportPadding, rect.left - menuWidth - gap)
                 : Math.max(viewportPadding, window.innerWidth - menuWidth - viewportPadding);
         }
@@ -109,13 +123,10 @@ export default function LanguageSwitcher({
             left,
             width: menuWidth,
         });
-    }, [compact, menuPlacement]);
+    }, [iconOnly, menuPlacement]);
 
     useLayoutEffect(() => {
-        if (!open) {
-            setMenuPosition(null);
-            return;
-        }
+        if (!open) return;
 
         updateMenuPosition();
         window.addEventListener('resize', updateMenuPosition);
@@ -159,6 +170,39 @@ export default function LanguageSwitcher({
             setOpen(true);
         }
     };
+
+    if (inline) {
+        return (
+            <div
+                role="group"
+                aria-label={t('selectLanguage')}
+                className={twMerge('flex items-center gap-1', className)}
+            >
+                {LANGUAGES.map((language) => {
+                    const isActive = language.code === locale;
+                    return (
+                        <Link
+                            key={language.code}
+                            id={`language-option-${language.code}`}
+                            href={pathname}
+                            locale={language.code}
+                            aria-current={isActive ? 'true' : undefined}
+                            title={language.name}
+                            className={twMerge(
+                                'flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-semibold transition-colors',
+                                isActive
+                                    ? 'border-primary-200 bg-primary-50 text-primary-700'
+                                    : 'border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                            )}
+                        >
+                            <FlagIcon code={language.code} className="h-3.5 w-5" />
+                            {language.shortCode}
+                        </Link>
+                    );
+                })}
+            </div>
+        );
+    }
 
     const menu = open && mounted && menuPosition
         ? createPortal(
@@ -220,8 +264,8 @@ export default function LanguageSwitcher({
             ref={containerRef}
             className={twMerge(
                 'relative text-start',
-                compact ? 'inline-flex' : 'inline-block max-w-full',
-                className ?? (compact ? undefined : 'w-full'),
+                iconOnly ? 'inline-flex' : 'inline-block max-w-full',
+                className ?? (iconOnly ? undefined : 'w-full'),
             )}
         >
             <button
@@ -241,17 +285,26 @@ export default function LanguageSwitcher({
                             'focus:outline-none focus:ring-2 focus:ring-primary-300/40 focus:ring-offset-0',
                             open && 'border-primary-500 bg-primary-700',
                         )
-                        : twMerge(
-                            'inline-flex h-9 items-center justify-between gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 shadow-xs transition-all duration-200',
-                            className?.includes('w-auto') ? 'w-auto' : 'w-full',
-                            'hover:border-primary-200 hover:bg-gray-50 hover:shadow-sm',
-                            'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:ring-offset-1',
-                            open && 'border-primary-300 bg-gray-50 shadow-sm',
-                        ),
+                        : flag
+                          ? twMerge(
+                                'flex size-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-xs transition-all duration-200',
+                                'hover:border-primary-200 hover:bg-gray-50',
+                                'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:ring-offset-0',
+                                open && 'border-primary-300 bg-gray-50',
+                            )
+                          : twMerge(
+                                'inline-flex h-9 items-center justify-between gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-700 shadow-xs transition-all duration-200',
+                                className?.includes('w-auto') ? 'w-auto' : 'w-full',
+                                'hover:border-primary-200 hover:bg-gray-50 hover:shadow-sm',
+                                'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:ring-offset-1',
+                                open && 'border-primary-300 bg-gray-50 shadow-sm',
+                            ),
                 )}
             >
                 {compact ? (
                     <FlagIcon code={currentLanguage.code} className="h-3.5 w-5" />
+                ) : flag ? (
+                    <FlagIcon code={currentLanguage.code} />
                 ) : (
                     <>
                         <span className="flex min-w-0 items-center gap-2">
