@@ -414,6 +414,7 @@ const DropdownOptionItem = ({
     <button
         type="button"
         onClick={onSelect}
+        data-selected={isSelected || undefined}
         className={twMerge(
             'flex w-full items-center justify-between gap-2 px-3 py-2 text-start text-sm text-gray-900',
             'cursor-pointer transition-colors hover:bg-primary-50',
@@ -446,7 +447,7 @@ const DropdownOptionsList = ({
     return (
         <>
             {visibleOptions.map((option) => {
-                const isSelected = isMultiple && selectedValues.includes(option.value);
+                const isSelected = selectedValues.includes(option.value);
                 return (
                     <DropdownOptionItem
                         key={option.value}
@@ -540,6 +541,13 @@ const Dropdown = ({
 
     const handleClose = useCallback(() => setSearch(''), []);
 
+    const scrollToSelected = useCallback((list: HTMLDivElement | null) => {
+        const selected = list?.querySelector<HTMLElement>('[data-selected="true"]');
+        if (!list || !selected) return;
+        const offset = selected.offsetTop - list.offsetTop;
+        list.scrollTop = offset - list.clientHeight / 2 + selected.offsetHeight / 2;
+    }, []);
+
     const handleSingleSelect = useCallback((val: string | number) => {
         onChange?.(val);
     }, [onChange]);
@@ -618,7 +626,7 @@ const Dropdown = ({
                         </div>
                     )}
 
-                    <div className="max-h-48 overflow-y-auto py-1">
+                    <div ref={scrollToSelected} className="max-h-48 overflow-y-auto py-1">
                         {visibleOptions.length > 0 ? (
                             <DropdownOptionsList
                                 options={visibleOptions}

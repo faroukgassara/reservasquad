@@ -42,18 +42,6 @@ export default function ReportPeriodToolbar({
                 <Div className="inline-flex h-9 items-center rounded-xl bg-slate-200/70 p-0.5 dark:bg-gray-800">
                     <button
                         type="button"
-                        id={`${scopeIdPrefix}-scope-monthly-btn`}
-                        className={`inline-flex h-8 items-center justify-center rounded-lg px-3.5 text-xs font-semibold transition-all sm:text-sm ${
-                            !isGlobal
-                                ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
-                                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-                        }`}
-                        onClick={() => onScopeChange('month')}
-                    >
-                        {tReports('monthly')}
-                    </button>
-                    <button
-                        type="button"
                         id={`${scopeIdPrefix}-scope-global-btn`}
                         className={`inline-flex h-8 items-center justify-center rounded-lg px-3.5 text-xs font-semibold transition-all sm:text-sm ${
                             isGlobal
@@ -63,6 +51,18 @@ export default function ReportPeriodToolbar({
                         onClick={() => onScopeChange('all')}
                     >
                         {tReports('globalAllTime')}
+                    </button>
+                    <button
+                        type="button"
+                        id={`${scopeIdPrefix}-scope-monthly-btn`}
+                        className={`inline-flex h-8 items-center justify-center rounded-lg px-3.5 text-xs font-semibold transition-all sm:text-sm ${
+                            !isGlobal
+                                ? 'bg-white text-primary-950 shadow-xs dark:bg-gray-700 dark:text-white'
+                                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                        }`}
+                        onClick={() => onScopeChange('month')}
+                    >
+                        {tReports('monthly')}
                     </button>
                 </Div>
 

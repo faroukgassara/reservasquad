@@ -3,6 +3,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { AnimatePresence, motion } from 'framer-motion';
+import { twMerge } from 'tailwind-merge';
 import LayoutWrapper from '@/components/Layouts/LayoutWrapper';
 import OrganismTable from '@/components/Organisms/OrganismTable/OrganismTable';
 import Button from '@/components/Primitives/Button/Button';
@@ -11,6 +13,8 @@ import Checkbox from '@/components/Primitives/Checkbox/Checkbox';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField';
 import Div from '@/components/Primitives/Div/Div';
+import Icon from '@/components/Primitives/Icon/Icon';
+import Label from '@/components/Primitives/Label/Label';
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
 import ReservationFormModal, { type ReservationFormValues } from '@/components/Modals/ReservationFormModal/ReservationFormModal';
 import FindFreeRoomModal from '@/components/Modals/FindFreeRoomModal/FindFreeRoomModal';
@@ -20,6 +24,7 @@ import { useAuthorization } from '@/hooks/useAuthorization';
 import UnpaidStatCard from '@/components/Primitives/UnpaidStatCard/UnpaidStatCard';
 import {
     bulkMarkReservationsPaid,
+    bulkDeleteReservations,
     cancelReservation,
     createReservation,
     createReservationSeries,
@@ -43,6 +48,7 @@ import {
     EButtonType,
     ESize,
     EToastType,
+    EVariantLabel,
     IconComponentsEnum,
 } from '@/Enum/Enum';
 import { ITableAction, ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
@@ -59,6 +65,7 @@ type ModalState =
     | { type: 'delete'; reservation: ReservationRecord }
     | { type: 'cancel'; reservation: ReservationRecord }
     | { type: 'bulk-paid' }
+    | { type: 'bulk-delete' }
     | { type: 'delete-series'; reservation: ReservationRecord }
     | null;
 
@@ -94,6 +101,7 @@ export default function ReservationsAdminPage() {
     const [toDate, setToDate] = useState('');
     const [modalState, setModalState] = useState<ModalState>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [selectedPaidIds, setSelectedPaidIds] = useState<string[]>([]);
     const queryClient = useQueryClient();
     const { openToast } = useToast();
     const { openModal, closeModal, modalPortal } = useModal({
@@ -275,6 +283,23 @@ export default function ReservationsAdminPage() {
                 type: EToastType.SUCCESS,
             });
             setSelectedIds([]);
+            setSelectedPaidIds([]);
+            setModalState(null);
+            closeModal();
+        },
+        onError: (error: Error) => openToast(tCommon('error'), error.message, { type: EToastType.ERROR }),
+    });
+
+    const bulkDeleteMutation = useMutation({
+        mutationFn: bulkDeleteReservations,
+        onSuccess: (result) => {
+            invalidateReservations();
+            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+            openToast(tCommon('success'), t('bulkDeleteSuccess', { count: result.deleted }), {
+                type: EToastType.SUCCESS,
+            });
+            setSelectedIds([]);
+            setSelectedPaidIds([]);
             setModalState(null);
             closeModal();
         },
@@ -314,10 +339,16 @@ export default function ReservationsAdminPage() {
         });
     }, [unpaidSelectableIds]);
 
-    const toggleSelectRow = useCallback((id: string) => {
-        setSelectedIds((prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-        );
+    const unpaidSelectedIds = useMemo(
+        () => selectedIds.filter((id) => !selectedPaidIds.includes(id)),
+        [selectedIds, selectedPaidIds],
+    );
+
+    const toggleSelectRow = useCallback((row: ReservationRecord) => {
+        const toggle = (prev: string[]) =>
+            prev.includes(row.id) ? prev.filter((item) => item !== row.id) : [...prev, row.id];
+        setSelectedIds(toggle);
+        if (row.isPaid) setSelectedPaidIds(toggle);
     }, []);
 
     const handleFormSubmit = useCallback(
@@ -372,17 +403,16 @@ export default function ReservationsAdminPage() {
                             label: '',
                             width: '48px',
                             mobile: 'primary',
-                            render: (_: unknown, row: ReservationRecord) =>
-                                row.isPaid ? (
-                                    <Div className="size-5" />
-                                ) : (
+                            render: (_: unknown, row: ReservationRecord) => (
+                                <Div onClick={(e) => e.stopPropagation()} className="inline-flex">
                                     <Checkbox
                                         id={`reservation-select-${row.id}`}
                                         checked={selectedIds.includes(row.id)}
-                                        onChange={() => toggleSelectRow(row.id)}
+                                        onChange={() => toggleSelectRow(row)}
                                         label=""
                                     />
-                                ),
+                                </Div>
+                            ),
                         },
                     } satisfies ITableColumn<ReservationRecord>,
                 ]
@@ -520,11 +550,26 @@ export default function ReservationsAdminPage() {
             return (
                 <ConfirmationModal
                     title={t('bulkPaid')}
-                    description={t('bulkPaidConfirm', { count: selectedIds.length })}
+                    description={t('bulkPaidConfirm', { count: unpaidSelectedIds.length })}
                     submitBtnText={t('bulkPaid')}
                     cancelBtnText={tCommon('cancel')}
-                    onSubmit={() => bulkPaidMutation.mutate(selectedIds)}
+                    onSubmit={() => bulkPaidMutation.mutate(unpaidSelectedIds)}
                     isLoading={bulkPaidMutation.isPending}
+                />
+            );
+        }
+        if (modalState?.type === 'bulk-delete') {
+            return (
+                <ConfirmationModal
+                    title={t('bulkDelete')}
+                    description={t('bulkDeleteConfirm', { count: selectedIds.length })}
+                    submitBtnText={tCommon('delete')}
+                    cancelBtnText={tCommon('cancel')}
+                    onSubmit={() => bulkDeleteMutation.mutate(selectedIds)}
+                    isLoading={bulkDeleteMutation.isPending}
+                    icon={IconComponentsEnum.trash}
+                    iconBgColor="bg-danger-100"
+                    iconColor="text-danger-600"
                 />
             );
         }
@@ -630,7 +675,7 @@ export default function ReservationsAdminPage() {
                 title={t('title')}
                 subTitle={t('subtitle')}
                 mainSection={
-                    <Div className="min-h-full space-y-4">
+                    <Div className={twMerge('min-h-full space-y-4', selectedIds.length > 0 && 'pb-28 sm:pb-20')}>
                         <Div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                             <Dropdown
                                 label={t('room')}
@@ -740,26 +785,17 @@ export default function ReservationsAdminPage() {
                             page={page}
                             totalRows={totalRows}
                             onPageChange={setPage}
+                            onClickRow={canManage ? (row) => toggleSelectRow(row) : undefined}
                             getRowClassName={(row) =>
                                 row.status === 'CANCELLED'
                                     ? 'bg-danger-25 hover:bg-danger-50 shadow-[inset_3px_0_0_0_var(--ds-danger-500)] opacity-80'
-                                    : undefined
+                                    : selectedIds.includes(row.id)
+                                      ? 'bg-primary-10'
+                                      : undefined
                             }
                             primaryAction={
                                 canManage ? (
                                     <Div className="flex flex-wrap items-center gap-2">
-                                        {selectedIds.length > 0 ? (
-                                            <Button
-                                                id="reservations-bulk-paid-btn"
-                                                type={EButtonType.secondary}
-                                                size={EButtonSize.medium}
-                                                text={t('bulkPaidSelected', { count: selectedIds.length })}
-                                                onClick={() => {
-                                                    setModalState({ type: 'bulk-paid' });
-                                                    openModal();
-                                                }}
-                                            />
-                                        ) : null}
                                         {unpaidSelectableIds.length > 0 ? (
                                             <Button
                                                 id="reservations-select-unpaid-btn"
@@ -806,6 +842,70 @@ export default function ReservationsAdminPage() {
                     </Div>
                 }
             />
+            <AnimatePresence>
+                {canManage && selectedIds.length > 0 ? (
+                    <motion.div
+                        key="reservations-selection-bar"
+                        initial={{ opacity: 0, y: 24 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 24 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-3 sm:bottom-6"
+                    >
+                        <Div className="pointer-events-auto flex w-full max-w-md flex-wrap items-center gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl sm:w-auto sm:max-w-none sm:flex-nowrap">
+                            <Label
+                                variant={EVariantLabel.bodySmall}
+                                color="text-gray-900"
+                                className="flex-1 whitespace-nowrap ps-2 font-semibold sm:flex-none sm:pe-2"
+                            >
+                                {t('selectedCount', { count: selectedIds.length })}
+                            </Label>
+                            <Div
+                                className={twMerge(
+                                    'order-last grid w-full gap-2 sm:order-none sm:flex sm:w-auto',
+                                    unpaidSelectedIds.length > 0 ? 'grid-cols-2' : 'grid-cols-1',
+                                )}
+                            >
+                                {unpaidSelectedIds.length > 0 ? (
+                                    <Button
+                                        id="reservations-bulk-paid-btn"
+                                        type={EButtonType.secondary}
+                                        size={EButtonSize.medium}
+                                        text={t('bulkPaidSelected', { count: unpaidSelectedIds.length })}
+                                        onClick={() => {
+                                            setModalState({ type: 'bulk-paid' });
+                                            openModal();
+                                        }}
+                                    />
+                                ) : null}
+                                <Button
+                                    id="reservations-bulk-delete-btn"
+                                    type={EButtonType.secondary}
+                                    size={EButtonSize.medium}
+                                    iconPosition="left"
+                                    icon={{ name: IconComponentsEnum.trash, size: ESize.sm, color: 'text-danger-600' }}
+                                    text={tCommon('delete')}
+                                    onClick={() => {
+                                        setModalState({ type: 'bulk-delete' });
+                                        openModal();
+                                    }}
+                                    className="border-danger-200! text-danger-600! hover:bg-danger-25!"
+                                />
+                            </Div>
+                            <Icon
+                                name={IconComponentsEnum.close}
+                                size={ESize.md}
+                                color="text-gray-500"
+                                className="cursor-pointer rounded-lg p-1.5 box-content hover:bg-gray-100 hover:text-gray-800"
+                                handleClick={() => {
+                                    setSelectedIds([]);
+                                    setSelectedPaidIds([]);
+                                }}
+                            />
+                        </Div>
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
         </>
     );
 }

@@ -22,6 +22,7 @@ import { FetchReservationsDto } from 'src/dto/reservation/fetchReservations.dto'
 import { CalendarQueryDto } from 'src/dto/reservation/calendarQuery.dto';
 import { UnpaidSummaryQueryDto } from 'src/dto/reservation/unpaidSummaryQuery.dto';
 import { BulkMarkPaidDto } from 'src/dto/reservation/bulkMarkPaid.dto';
+import { BulkDeleteReservationsDto } from 'src/dto/reservation/bulkDeleteReservations.dto';
 import { CreateReservationSeriesDto } from 'src/dto/reservation/createReservationSeries.dto';
 import { AvailabilityQueryDto } from 'src/dto/reservation/availabilityQuery.dto';
 import {
@@ -325,6 +326,37 @@ export class ReservationBackofficeController {
         });
       }
       const data = await this.reservationService.bulkMarkPaid(
+        dto.ids,
+        req.user?.id,
+      );
+      return res.status(HttpStatus.OK).json({ statusCode: HttpStatus.OK, data });
+    } catch (error: unknown) {
+      return sendCaughtError(res, error);
+    }
+  }
+
+  @Post('bulk-delete')
+  @Roles({ roles: ['ADMIN', 'USER'] })
+  @swagger.ApiOperation({ summary: 'Soft-delete multiple reservations' })
+  async bulkDelete(
+    @Res() res: Response,
+    @Req() req: IRequest,
+    @Body() body: BulkDeleteReservationsDto,
+  ) {
+    try {
+      const dto = plainToInstance(BulkDeleteReservationsDto, body);
+      const errors = await validate(dto);
+      if (errors.length > 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Validation failed',
+          errors: errors.map((err) => ({
+            field: err.property,
+            errors: Object.values(err.constraints || {}),
+          })),
+        });
+      }
+      const data = await this.reservationService.bulkDeleteReservations(
         dto.ids,
         req.user?.id,
       );

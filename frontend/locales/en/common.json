@@ -408,6 +408,7 @@
                 "DELETE": "Delete",
                 "CANCEL": "Cancel",
                 "BULK_PAID": "Bulk paid",
+                "BULK_DELETE": "Bulk delete",
         "SERIES_CREATE": "Series create",
         "RESTORE": "Restore",
         "HARD_DELETE": "Permanent delete"
@@ -541,6 +542,10 @@
             "bulkPaidSelected": "Mark paid ({count})",
             "bulkPaidConfirm": "Mark {count} selected reservation(s) as paid?",
             "bulkPaidSuccess": "{count} reservation(s) marked as paid",
+            "bulkDelete": "Delete reservations",
+            "selectedCount": "{count} selected",
+            "bulkDeleteConfirm": "Move {count} reservation(s) to the trash? You can restore them from the trash.",
+            "bulkDeleteSuccess": "{count} reservation(s) moved to the trash",
             "selectUnpaidPage": "Select unpaid on page",
             "deselectUnpaid": "Deselect unpaid",
             "recurring": "Recurring reservation",

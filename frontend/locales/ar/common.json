@@ -408,6 +408,7 @@
                 "DELETE": "حذف",
                 "CANCEL": "إلغاء",
                 "BULK_PAID": "دفع جماعي",
+                "BULK_DELETE": "حذف جماعي",
         "SERIES_CREATE": "إنشاء سلسلة",
         "RESTORE": "استعادة",
         "HARD_DELETE": "حذف نهائي"
@@ -541,6 +542,10 @@
             "bulkPaidSelected": "تعيين كمدفوع ({count})",
             "bulkPaidConfirm": "تعيين {count} حجز(ات) محددة كمدفوعة؟",
             "bulkPaidSuccess": "تم تعيين {count} حجز(ات) كمدفوعة",
+            "bulkDelete": "حذف الحجوزات",
+            "selectedCount": "تم تحديد {count}",
+            "bulkDeleteConfirm": "نقل {count} حجز(ات) إلى سلة المحذوفات؟ يمكنك استعادتها من السلة.",
+            "bulkDeleteSuccess": "تم نقل {count} حجز(ات) إلى سلة المحذوفات",
             "selectUnpaidPage": "تحديد غير المدفوعة",
             "deselectUnpaid": "إلغاء تحديد غير المدفوعة",
             "recurring": "حجز متكرر",

@@ -691,12 +691,13 @@ export class ReservationService {
       status: EReservationStatus.CONFIRMED,
       ...professorFilter,
       ...(query.roomId ? { roomId: query.roomId } : {}),
-      startAt: {
-        ...(query.from ? { gte: new Date(query.from) } : {}),
-        ...(query.to
-          ? { lt: new Date(Math.min(new Date(query.to).getTime(), endOfDay.getTime())) }
-          : { lte: endOfDay }),
-      },
+      startAt:
+        query.from || query.to
+          ? {
+              ...(query.from ? { gte: new Date(query.from) } : {}),
+              ...(query.to ? { lt: new Date(query.to) } : {}),
+            }
+          : { lte: endOfDay },
     };
 
     const [unpaid, paid] = await Promise.all([
@@ -850,6 +851,64 @@ export class ReservationService {
     });
 
     return deleted;
+  }
+
+  async bulkDeleteReservations(ids: string[], actorId?: string) {
+    const uniqueIds = Array.from(new Set(ids));
+    const targeted = await this.prismaService.reservation.findMany({
+      where: { id: { in: uniqueIds }, deletedAt: null },
+      include: reservationInclude,
+    });
+
+    if (targeted.length === 0) {
+      return { deleted: 0 };
+    }
+
+    const result = await this.prismaService.reservation.updateMany({
+      where: { id: { in: targeted.map((r) => r.id) }, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    const totalAmount = targeted.reduce((sum, r) => sum + Number(r.price), 0);
+
+    let summary = '';
+    if (targeted.length === 1) {
+      const single = targeted[0];
+      summary = `Réservation déplacée dans la corbeille : ${formatProfessorName(single.professor)} · ${formatReservationLabel(single)} · Montant : ${formatAuditMoney(single.price)}`;
+    } else {
+      const itemsDetail = targeted
+        .map(
+          (r) =>
+            `${formatProfessorName(r.professor)} (${r.room.name}, ${formatAuditDate(r.startAt)} : ${formatAuditMoney(r.price)})`,
+        )
+        .join(' ; ');
+      const truncatedDetail =
+        itemsDetail.length > 250 ? itemsDetail.slice(0, 247) + '...' : itemsDetail;
+      summary = `Suppression groupée de ${targeted.length} réservation(s) déplacées dans la corbeille (Total : ${formatAuditMoney(totalAmount)}) : ${truncatedDetail}`;
+    }
+
+    await this.auditService.log({
+      entityType: 'RESERVATION',
+      entityId: targeted[0].id,
+      action: 'BULK_DELETE',
+      userId: actorId,
+      summary,
+      metadata: {
+        count: result.count,
+        totalAmount,
+        ids: targeted.map((r) => r.id),
+        reservations: targeted.map((r) => ({
+          id: r.id,
+          professor: formatProfessorName(r.professor),
+          room: r.room.name,
+          startAt: r.startAt,
+          endAt: r.endAt,
+          price: Number(r.price),
+        })),
+      },
+    });
+
+    return { deleted: result.count };
   }
 
   async getDeletedReservationById(id: string) {

@@ -45,6 +45,7 @@ export default function ChargeCategoriesManageModal({
     const [search, setSearch] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState('');
+    const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
     const { data: categories = [], isLoading } = useQuery({
         queryKey: ['charge-categories'],
@@ -89,7 +90,11 @@ export default function ChargeCategoriesManageModal({
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => deleteChargeCategory(id),
-        onSuccess: () => {
+        onSuccess: (_, id) => {
+            setConfirmingDeleteId(null);
+            queryClient.setQueryData<ChargeCategory[]>(['charge-categories'], (current) =>
+                current?.filter((category) => category.id !== id),
+            );
             invalidate();
             openToast(tCommon('success'), t('categoryDeleted'), { type: EToastType.SUCCESS });
         },
@@ -98,6 +103,7 @@ export default function ChargeCategoriesManageModal({
     });
 
     const startEdit = (category: ChargeCategory) => {
+        setConfirmingDeleteId(null);
         setEditingId(category.id);
         setEditingName(category.name);
     };
@@ -188,83 +194,117 @@ export default function ChargeCategoriesManageModal({
                     <ul className="flex flex-col gap-2">
                         {filteredCategories.map((category) => {
                             const isEditing = editingId === category.id;
-                            return (
-                                <li
-                                    key={category.id}
-                                    className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-25 px-3 py-2"
-                                >
-                                    {isEditing ? (
+                            if (confirmingDeleteId === category.id) {
+                                return (
+                                    <li
+                                        key={category.id}
+                                        className="flex flex-col gap-2.5 rounded-xl border border-danger-200 bg-danger-25 px-3 py-2.5"
+                                    >
+                                        <Div className="flex items-start gap-2">
+                                            <Icon
+                                                name={IconComponentsEnum.trash}
+                                                size={ESize.sm}
+                                                color="text-danger-600"
+                                                className="mt-0.5 shrink-0"
+                                            />
+                                            <Label variant={EVariantLabel.bodySmall} color="text-danger-700" className="font-medium">
+                                                {t('deleteCategoryConfirm', { name: category.name })}
+                                            </Label>
+                                        </Div>
+                                        <Div className="flex justify-end gap-2">
+                                            <Button
+                                                id={`charge-category-delete-cancel-${category.id}`}
+                                                type={EButtonType.tertiary}
+                                                size={EButtonSize.small}
+                                                text={tCommon('cancel')}
+                                                disabled={deleteMutation.isPending}
+                                                onClick={() => setConfirmingDeleteId(null)}
+                                            />
+                                            <Button
+                                                id={`charge-category-delete-confirm-${category.id}`}
+                                                type={EButtonType.primary}
+                                                size={EButtonSize.small}
+                                                text={tCommon('delete')}
+                                                isLoading={deleteMutation.isPending}
+                                                onClick={() => deleteMutation.mutate(category.id)}
+                                                className="bg-danger-600! hover:bg-danger-700!"
+                                            />
+                                        </Div>
+                                    </li>
+                                );
+                            }
+                            if (isEditing) {
+                                return (
+                                    <li
+                                        key={category.id}
+                                        className="flex flex-col gap-2.5 rounded-xl border border-primary-100 bg-gray-25 px-3 py-2.5"
+                                    >
                                         <Input
                                             id={`charge-category-edit-${category.id}`}
                                             value={editingName}
                                             onChange={(e) => setEditingName(e.target.value)}
                                             disabled={busy}
-                                            className="flex-1"
                                         />
-                                    ) : (
-                                        <Label
-                                            variant={EVariantLabel.bodySmall}
-                                            color="text-gray-900"
-                                            className="min-w-0 flex-1 truncate font-medium"
-                                        >
-                                            {category.name}
-                                        </Label>
-                                    )}
+                                        <Div className="flex justify-end gap-2">
+                                            <Button
+                                                id={`charge-category-cancel-${category.id}`}
+                                                type={EButtonType.tertiary}
+                                                size={EButtonSize.small}
+                                                text={tCommon('cancel')}
+                                                disabled={busy}
+                                                onClick={() => {
+                                                    setEditingId(null);
+                                                    setEditingName('');
+                                                }}
+                                            />
+                                            <Button
+                                                id={`charge-category-save-${category.id}`}
+                                                type={EButtonType.primary}
+                                                size={EButtonSize.small}
+                                                text={tCommon('save')}
+                                                isLoading={updateMutation.isPending}
+                                                disabled={!editingName.trim()}
+                                                onClick={() =>
+                                                    updateMutation.mutate({
+                                                        id: category.id,
+                                                        name: editingName.trim(),
+                                                    })
+                                                }
+                                            />
+                                        </Div>
+                                    </li>
+                                );
+                            }
+                            return (
+                                <li
+                                    key={category.id}
+                                    className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-25 px-3 py-2"
+                                >
+                                    <Label
+                                        variant={EVariantLabel.bodySmall}
+                                        color="text-gray-900"
+                                        className="min-w-0 flex-1 truncate font-medium"
+                                    >
+                                        {category.name}
+                                    </Label>
                                     <Div className="flex shrink-0 items-center gap-1">
-                                        {isEditing ? (
-                                            <>
-                                                <Button
-                                                    id={`charge-category-save-${category.id}`}
-                                                    type={EButtonType.primary}
-                                                    size={EButtonSize.small}
-                                                    text={tCommon('save')}
-                                                    isLoading={updateMutation.isPending}
-                                                    disabled={!editingName.trim()}
-                                                    onClick={() =>
-                                                        updateMutation.mutate({
-                                                            id: category.id,
-                                                            name: editingName.trim(),
-                                                        })
-                                                    }
-                                                />
-                                                <Button
-                                                    id={`charge-category-cancel-${category.id}`}
-                                                    type={EButtonType.tertiary}
-                                                    size={EButtonSize.small}
-                                                    text={tCommon('cancel')}
-                                                    disabled={busy}
-                                                    onClick={() => {
-                                                        setEditingId(null);
-                                                        setEditingName('');
-                                                    }}
-                                                />
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Icon
-                                                    name={IconComponentsEnum.edit}
-                                                    size={ESize.sm}
-                                                    color="text-gray-600"
-                                                    handleClick={() => startEdit(category)}
-                                                    className="cursor-pointer"
-                                                />
-                                                <Icon
-                                                    name={IconComponentsEnum.trash}
-                                                    size={ESize.sm}
-                                                    color="text-danger-600"
-                                                    handleClick={() => {
-                                                        if (
-                                                            window.confirm(t('deleteCategoryConfirm', {
-                                                                name: category.name,
-                                                            }))
-                                                        ) {
-                                                            deleteMutation.mutate(category.id);
-                                                        }
-                                                    }}
-                                                    className="cursor-pointer"
-                                                />
-                                            </>
-                                        )}
+                                        <Icon
+                                            name={IconComponentsEnum.edit}
+                                            size={ESize.sm}
+                                            color="text-gray-600"
+                                            handleClick={() => startEdit(category)}
+                                            className="cursor-pointer"
+                                        />
+                                        <Icon
+                                            name={IconComponentsEnum.trash}
+                                            size={ESize.sm}
+                                            color="text-danger-600"
+                                            handleClick={() => {
+                                                setEditingId(null);
+                                                setConfirmingDeleteId(category.id);
+                                            }}
+                                            className="cursor-pointer"
+                                        />
                                     </Div>
                                 </li>
                             );

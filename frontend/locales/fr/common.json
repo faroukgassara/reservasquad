@@ -408,6 +408,7 @@
         "DELETE": "Suppression",
         "CANCEL": "Annulation",
         "BULK_PAID": "Paiement groupé",
+        "BULK_DELETE": "Suppression groupée",
         "SERIES_CREATE": "Série créée",
         "RESTORE": "Restauration",
         "HARD_DELETE": "Suppression définitive"
@@ -541,6 +542,10 @@
       "bulkPaidSelected": "Marquer payé ({count})",
       "bulkPaidConfirm": "Marquer {count} réservation(s) sélectionnée(s) comme payée(s) ?",
       "bulkPaidSuccess": "{count} réservation(s) marquée(s) comme payée(s)",
+      "bulkDelete": "Supprimer les réservations",
+      "selectedCount": "{count, plural, one {# sélectionnée} other {# sélectionnées}}",
+      "bulkDeleteConfirm": "Déplacer {count} réservation(s) dans la corbeille ? Vous pourrez les restaurer depuis la corbeille.",
+      "bulkDeleteSuccess": "{count} réservation(s) déplacée(s) dans la corbeille",
       "selectUnpaidPage": "Sélectionner les non payées",
       "deselectUnpaid": "Désélectionner les non payées",
       "recurring": "Réservation récurrente",

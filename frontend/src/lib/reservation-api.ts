@@ -557,6 +557,19 @@ export async function bulkMarkReservationsPaid(ids: string[]): Promise<{ updated
     return unwrapData<{ updated: number }>(res.data as { data?: { updated: number } });
 }
 
+export async function bulkDeleteReservations(ids: string[]): Promise<{ deleted: number }> {
+    const headers = await CommonFunction.createHeaders({ withToken: true });
+    const res = await api.post('/api/reservations/bulk-delete', { ids }, headers);
+    if (res.status !== HttpStatus.SuccessOK) {
+        const message =
+            (res.data as { error?: string; message?: string })?.error ||
+            (res.data as { message?: string })?.message ||
+            'Failed to delete reservations';
+        throw new Error(message);
+    }
+    return unwrapData<{ deleted: number }>(res.data as { data?: { deleted: number } });
+}
+
 export async function createReservationSeries(body: {
     title?: string;
     roomId: string;

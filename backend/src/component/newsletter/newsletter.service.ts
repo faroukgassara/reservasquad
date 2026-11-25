@@ -4,7 +4,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import * as sanitizeHtml from 'sanitize-html';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'node:crypto';
 import { IEnv } from 'src/common/env/env';
@@ -24,6 +23,7 @@ import { AuditService } from '../audit/audit.service';
 import { CreateNewsletterDto } from 'src/dto/newsletter/createNewsletter.dto';
 import { UpdateNewsletterDto } from 'src/dto/newsletter/updateNewsletter.dto';
 import { FetchNewslettersDto } from 'src/dto/newsletter/fetchNewsletters.dto';
+import sanitizeHtml = require('sanitize-html');
 
 const BATCH_SIZE = 20;
 const BATCH_DELAY_MS = 1000;
@@ -123,18 +123,9 @@ const NEWSLETTER_ALLOWED_STYLES: Record<string, RegExp[]> = {
 export function sanitizeNewsletterBody(body: string): string {
   if (!body) return '';
 
-  const sanitizeFn: typeof sanitizeHtml =
-    typeof sanitizeHtml === 'function'
-      ? sanitizeHtml
-      : (sanitizeHtml as any)?.default;
+  const defaultNonBoolean = sanitizeHtml.defaults?.nonBooleanAttributes ?? [];
 
-  const defaultNonBoolean =
-    (sanitizeFn as any)?.defaults?.nonBooleanAttributes ||
-    (sanitizeHtml as any)?.defaults?.nonBooleanAttributes ||
-    (sanitizeHtml as any)?.default?.defaults?.nonBooleanAttributes ||
-    [];
-
-  return sanitizeFn(body, {
+  return sanitizeHtml(body, {
     allowedTags: [
       'h1',
       'h2',

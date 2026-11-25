@@ -89,7 +89,7 @@ export default function DailyIncomePage() {
     const now = new Date();
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth() + 1);
-    const [scope, setScope] = useState<DailyIncomeScope>('month');
+    const [scope, setScope] = useState<DailyIncomeScope>('all');
     const isGlobal = scope === 'all';
     const [activeTab, setActiveTab] = useState<'income' | 'lines' | 'stats'>('income');
     const [lineFilter, setLineFilter] = useState<LineFilter>('all');

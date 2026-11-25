@@ -37,7 +37,7 @@ export default function RouteProviders({ children, session, locale, messages }: 
                     <SessionProvider session={session}>
                         <AuthSessionListener />
                         <ToastProvider>
-                            <ToastContainer />
+                            <ToastContainer style={{ zIndex: 12000 }} />
                             <ModalsProvider>
                                 {children}
                             </ModalsProvider>

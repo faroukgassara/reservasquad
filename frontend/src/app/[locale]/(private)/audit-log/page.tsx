@@ -30,6 +30,7 @@ function actionLabel(
         'DELETE',
         'CANCEL',
         'BULK_PAID',
+        'BULK_DELETE',
         'SERIES_CREATE',
         'RESTORE',
         'HARD_DELETE',
