@@ -32,6 +32,7 @@ import {
     IconComponentsEnum,
 } from '@/Enum/Enum';
 import { ITableColumn } from '@/interfaces/Organisms/IOrganismTable/IOrganismTable';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 
 function formatDate(value: string): string {
@@ -306,7 +307,7 @@ export default function ProfessorDetailPage() {
         )}
         <LayoutWrapper
             title={t('detailTitle')}
-            subTitle={professorLoading ? '…' : subtitle}
+            subTitle={professorLoading ? <Skeleton className="mt-1 h-4 w-48" /> : subtitle}
             leftActions={backButton}
             rightActions={portalAction}
             mainSection={

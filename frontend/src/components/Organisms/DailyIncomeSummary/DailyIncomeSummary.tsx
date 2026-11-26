@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import { formatMoney, type DailyIncomeSummary as IDailyIncomeSummary } from '@/lib/daily-income-api';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 
@@ -47,13 +48,17 @@ function EnvelopeCard({
                 <Label variant={EVariantLabel.caption} color="text-gray-500">
                     {t('available')}
                 </Label>
-                <Label
-                    variant={EVariantLabel.h5}
-                    color={isOverspent ? 'text-danger-600' : 'text-gray-900'}
-                    className="font-bold! tabular-nums"
-                >
-                    {isLoading ? '—' : formatMoney(envelope.available)}
-                </Label>
+                {isLoading ? (
+                    <Skeleton className="mt-1 h-6 w-24" />
+                ) : (
+                    <Label
+                        variant={EVariantLabel.h5}
+                        color={isOverspent ? 'text-danger-600' : 'text-gray-900'}
+                        className="font-bold! tabular-nums"
+                    >
+                        {formatMoney(envelope.available)}
+                    </Label>
+                )}
             </Div>
 
             <Div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
@@ -68,9 +73,13 @@ function EnvelopeCard({
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('allocated')}
                     </Label>
-                    <Label variant={EVariantLabel.caption} color="text-gray-900" className="font-medium tabular-nums">
-                        {isLoading ? '—' : formatMoney(envelope.allocated)}
-                    </Label>
+                    {isLoading ? (
+                        <Skeleton className="h-3.5 w-16" />
+                    ) : (
+                        <Label variant={EVariantLabel.caption} color="text-gray-900" className="font-medium tabular-nums">
+                            {formatMoney(envelope.allocated)}
+                        </Label>
+                    )}
                 </Div>
                 {envelope.outflows.length === 0 ? (
                     <Label variant={EVariantLabel.caption} color="text-gray-400">
@@ -82,13 +91,17 @@ function EnvelopeCard({
                             <Label variant={EVariantLabel.caption} color="text-gray-500">
                                 {outflow.label}
                             </Label>
-                            <Label
-                                variant={EVariantLabel.caption}
-                                color={outflow.amount > 0 ? 'text-danger-600' : 'text-gray-400'}
-                                className="font-medium tabular-nums"
-                            >
-                                {isLoading ? '—' : `−${formatMoney(outflow.amount)}`}
-                            </Label>
+                            {isLoading ? (
+                                <Skeleton className="h-3.5 w-14" />
+                            ) : (
+                                <Label
+                                    variant={EVariantLabel.caption}
+                                    color={outflow.amount > 0 ? 'text-danger-600' : 'text-gray-400'}
+                                    className="font-medium tabular-nums"
+                                >
+                                    {`−${formatMoney(outflow.amount)}`}
+                                </Label>
+                            )}
                         </Div>
                     ))
                 )}
@@ -169,17 +182,25 @@ export default function DailyIncomeSummary({
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('totalIncome')}
                     </Label>
-                    <Label variant={EVariantLabel.h3} color="text-gray-900" className="font-bold! tabular-nums">
-                        {isLoading ? '—' : formatMoney(totalIncome)}
-                    </Label>
+                    {isLoading ? (
+                        <Skeleton className="mt-1 h-8 w-36" />
+                    ) : (
+                        <Label variant={EVariantLabel.h3} color="text-gray-900" className="font-bold! tabular-nums">
+                            {formatMoney(totalIncome)}
+                        </Label>
+                    )}
                     {showPreviousMonthRest ? (
                         <Div className="flex items-center gap-1.5">
                             <Label variant={EVariantLabel.caption} color="text-gray-500">
                                 {t('previousMonthRest')} :
                             </Label>
-                            <Label variant={EVariantLabel.caption} color="text-gray-900" className="font-medium tabular-nums">
-                                {isLoading ? '—' : formatMoney(summary?.previousMonthRest ?? 0)}
-                            </Label>
+                            {isLoading ? (
+                                <Skeleton className="h-3.5 w-16" />
+                            ) : (
+                                <Label variant={EVariantLabel.caption} color="text-gray-900" className="font-medium tabular-nums">
+                                    {formatMoney(summary?.previousMonthRest ?? 0)}
+                                </Label>
+                            )}
                             <Icon
                                 name={IconComponentsEnum.edit}
                                 size={ESize.xs}
@@ -226,13 +247,17 @@ export default function DailyIncomeSummary({
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('netBalance')}
                     </Label>
-                    <Label
-                        variant={EVariantLabel.h3}
-                        color={netBalance < 0 ? 'text-danger-600' : 'text-success-700'}
-                        className="font-bold! tabular-nums"
-                    >
-                        {isLoading ? '—' : formatMoney(netBalance)}
-                    </Label>
+                    {isLoading ? (
+                        <Skeleton className="mt-1 h-8 w-32" />
+                    ) : (
+                        <Label
+                            variant={EVariantLabel.h3}
+                            color={netBalance < 0 ? 'text-danger-600' : 'text-success-700'}
+                            className="font-bold! tabular-nums"
+                        >
+                            {formatMoney(netBalance)}
+                        </Label>
+                    )}
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('summary.netBalanceHint')}
                     </Label>

@@ -48,11 +48,8 @@ export default function NewsletterUnsubscribePage() {
                 {/* Card Container */}
                 <Div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
                     {isLoading ? (
-                        <Div className="flex min-h-48 flex-col items-center justify-center gap-3 py-10">
+                        <Div className="flex min-h-48 items-center justify-center py-10" aria-busy>
                             <Spinner size={ESize.lg} color="text-primary-500" />
-                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                {t('loading')}
-                            </Label>
                         </Div>
                     ) : error || !data ? (
                         <Div className="space-y-4 text-center">

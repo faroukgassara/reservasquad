@@ -17,6 +17,7 @@ import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import Tabs from '@/components/Primitives/Tabs/Tabs';
 import Toggle from '@/components/Primitives/Toggle/Toggle';
@@ -512,7 +513,7 @@ export default function PosClientPage() {
             {modalPortal(renderModalContent())}
             <LayoutWrapper
                 title={tClients('title')}
-                subTitle={clientName || '…'}
+                subTitle={clientName || <Skeleton className="mt-1 h-4 w-40" />}
                 leftActions={backButton}
                 rightActions={headerActions}
                 mainSection={

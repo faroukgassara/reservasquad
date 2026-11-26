@@ -158,7 +158,7 @@ export default function PosSessionsPage() {
                                 iconBg="bg-primary-50"
                                 iconColor="text-primary-600"
                                 label={t('sessions.totalSessions')}
-                                value={isLoading ? '—' : String(stats.totalCount)}
+                                value={String(stats.totalCount)}
                                 isLoading={isLoading}
                             />
                             <StatCard
@@ -166,7 +166,7 @@ export default function PosSessionsPage() {
                                 iconBg="bg-success-50"
                                 iconColor="text-success-600"
                                 label={t('sessions.openSessions')}
-                                value={isLoading ? '—' : String(stats.openCount)}
+                                value={String(stats.openCount)}
                                 isLoading={isLoading}
                             />
                             <StatCard
@@ -174,7 +174,7 @@ export default function PosSessionsPage() {
                                 iconBg="bg-accent-50"
                                 iconColor="text-accent-600"
                                 label={t('sessions.cashCollected')}
-                                value={isLoading ? '—' : formatMoney(stats.totalCash)}
+                                value={formatMoney(stats.totalCash)}
                                 isLoading={isLoading}
                             />
                         </div>

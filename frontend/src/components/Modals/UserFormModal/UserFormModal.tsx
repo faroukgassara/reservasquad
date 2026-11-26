@@ -275,26 +275,18 @@ const UserFormModal = ({
                         className="flex-1"
                     />
                     <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting]}>
-                        {([canSubmit, isSubmitting]) => {
-                            let submitLabel = tCommon('create');
-                            if (isSubmitting || isLoading) {
-                                submitLabel = tCommon('loading');
-                            } else if (isEdit) {
-                                submitLabel = tCommon('save');
-                            }
-
-                            return (
-                                <Button
-                                    id="user-form-submit"
-                                    type={EButtonType.primary}
-                                    size={EButtonSize.medium}
-                                    text={submitLabel}
-                                    disabled={!canSubmit || isSubmitting || isLoading}
-                                    onClick={() => form.handleSubmit()}
-                                    className="flex-1"
-                                />
-                            );
-                        }}
+                        {([canSubmit, isSubmitting]) => (
+                            <Button
+                                id="user-form-submit"
+                                type={EButtonType.primary}
+                                size={EButtonSize.medium}
+                                text={isEdit ? tCommon('save') : tCommon('create')}
+                                disabled={!canSubmit || isSubmitting || isLoading}
+                                isLoading={isSubmitting || isLoading}
+                                onClick={() => form.handleSubmit()}
+                                className="flex-1"
+                            />
+                        )}
                     </form.Subscribe>
                 </DrawerActions>
             </DrawerForm>

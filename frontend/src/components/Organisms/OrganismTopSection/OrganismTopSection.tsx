@@ -11,18 +11,26 @@ const OrganismTopSection = (props: IOrganismTopSection) => {
             <Div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
                 {props?.leftActions}
                 <Div className="flex min-w-0 flex-1 flex-col">
-                    <Label variant={EVariantLabel.h5} color="text-primary-500" className="truncate">
-                        {props?.title}
-                    </Label>
-                    {props?.subTitle && (
-                        <Label
-                            variant={EVariantLabel.bodySmall}
-                            color="text-gray-500"
-                            className="line-clamp-2 sm:line-clamp-1"
-                        >
-                            {props?.subTitle}
+                    {typeof props?.title === 'string' || props?.title == null ? (
+                        <Label variant={EVariantLabel.h5} color="text-primary-500" className="truncate">
+                            {props?.title}
                         </Label>
+                    ) : (
+                        props.title
                     )}
+                    {props?.subTitle ? (
+                        typeof props.subTitle === 'string' ? (
+                            <Label
+                                variant={EVariantLabel.bodySmall}
+                                color="text-gray-500"
+                                className="line-clamp-2 sm:line-clamp-1"
+                            >
+                                {props.subTitle}
+                            </Label>
+                        ) : (
+                            props.subTitle
+                        )
+                    ) : null}
                 </Div>
             </Div>
 

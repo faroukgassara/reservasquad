@@ -18,6 +18,7 @@ import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Dropdown from '@/components/Primitives/Dropdown/Dropdown';
 import Label from '@/components/Primitives/Label/Label';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import { useModal } from '@/contexts/ModalContext';
 import { formatMoney } from '@/lib/daily-income-api';
@@ -205,7 +206,9 @@ export default function PosSessionDetailPage() {
             {salesDetailsPortal(session ? <PosSalesDetailsModal session={session} /> : null)}
             <LayoutWrapper
                 title={t('sessions.title')}
-                subTitle={session ? t('sessions.detailTitle', { number: session.number }) : '…'}
+                subTitle={
+                    session ? t('sessions.detailTitle', { number: session.number }) : <Skeleton className="mt-1 h-4 w-40" />
+                }
                 leftActions={backButton}
                 mainSection={
                     summaryLoading || !summary || !session ? (

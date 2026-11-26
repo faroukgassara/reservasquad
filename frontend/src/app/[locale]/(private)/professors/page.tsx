@@ -312,7 +312,7 @@ export default function ProfessorsAdminPage() {
                                         iconBg="bg-primary-50"
                                         iconColor="text-primary-600"
                                         label={t('totalProfessors')}
-                                        value={isLoading ? '—' : String(stats.count)}
+                                        value={String(stats.count)}
                                         isLoading={isLoading}
                                     />
                                     <StatCard
@@ -320,7 +320,7 @@ export default function ProfessorsAdminPage() {
                                         iconBg="bg-accent-50"
                                         iconColor="text-accent-600"
                                         label={t('withSpecialty')}
-                                        value={isLoading ? '—' : String(stats.withSpecialty)}
+                                        value={String(stats.withSpecialty)}
                                         isLoading={isLoading}
                                     />
                                     <StatCard
@@ -328,7 +328,7 @@ export default function ProfessorsAdminPage() {
                                         iconBg="bg-warning-50"
                                         iconColor="text-warning-600"
                                         label={t('withCustomRate')}
-                                        value={isLoading ? '—' : String(stats.withSpecialPrice)}
+                                        value={String(stats.withSpecialPrice)}
                                         isLoading={isLoading}
                                     />
                                 </div>

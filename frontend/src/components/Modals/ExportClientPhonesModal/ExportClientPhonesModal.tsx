@@ -155,11 +155,8 @@ export default function ExportClientPhonesModal({
                 {/* Summary / Preview Box */}
                 <Div className="rounded-2xl border border-primary-100 bg-primary-50/40 p-4">
                     {isLoading ? (
-                        <Div className="flex items-center justify-center gap-2 py-3 text-primary-700">
+                        <Div className="flex items-center justify-center py-3" aria-busy>
                             <Spinner size={ESize.sm} color="text-primary-600" />
-                            <Label variant={EVariantLabel.bodySmall} color="text-primary-700">
-                                {t('loading')}
-                            </Label>
                         </Div>
                     ) : (
                         <Div className="space-y-1.5">

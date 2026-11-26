@@ -239,7 +239,8 @@ const OrganismProfessorRanking = () => {
                         iconBg={card.iconBg}
                         iconColor={card.iconColor}
                         label={card.label}
-                        value={isLoading ? '—' : card.value}
+                        value={card.value}
+                        isLoading={isLoading}
                         action={
                             !isLoading && card.amount ? (
                                 <Label variant={EVariantLabel.bodySmall} color="text-gray-700" className="font-semibold tabular-nums">

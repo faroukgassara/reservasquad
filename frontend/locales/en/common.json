@@ -1906,7 +1906,6 @@
     "fileName": "card"
   },
   "newsletterUnsubscribe": {
-    "loading": "Verifying...",
     "errorTitle": "Invalid or expired link",
     "errorDesc": "This unsubscribe link was not found or has already been used.",
     "backToHome": "Back to home",
@@ -2042,7 +2041,6 @@
     "scannedCount": "{count, plural, one {# number scanned} other {# numbers scanned}}",
     "noNumbers": "No valid phone numbers found for the current filters.",
     "exportSuccess": "Phone numbers exported successfully.",
-    "exportError": "Failed to export phone numbers.",
-    "loading": "Loading phone numbers..."
+    "exportError": "Failed to export phone numbers."
     }
 }

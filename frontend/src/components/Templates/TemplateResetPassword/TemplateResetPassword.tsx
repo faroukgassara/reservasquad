@@ -186,11 +186,7 @@ const TemplateResetPassword: React.FC<ITemplateResetPassword> = ({
                                     isLoading={
                                         isSubmitting || isValidatingToken
                                     }
-                                    text={
-                                        isSubmitting || isValidatingToken
-                                            ? t('common.loading')
-                                            : t('common.save')
-                                    }
+                                    text={t('common.save')}
                                     onClick={() => form?.handleSubmit()}
                                 />
                             </div>

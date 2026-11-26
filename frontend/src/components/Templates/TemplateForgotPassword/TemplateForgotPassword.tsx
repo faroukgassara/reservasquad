@@ -111,11 +111,7 @@ const TemplateForgotPassword: React.FC<ITemplateForgotPassword> = ({
                                 className="h-11 w-full justify-center rounded-xl font-medium rtl:[&_svg]:-scale-x-100"
                                 disabled={!canSubmit}
                                 isLoading={isSubmitting}
-                                text={
-                                    isSubmitting
-                                        ? t('common.loading')
-                                        : t('auth.send')
-                                }
+                                text={t('auth.send')}
                                 onClick={() => form.handleSubmit()}
                             />
                         )}

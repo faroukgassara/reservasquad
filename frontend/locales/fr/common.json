@@ -1906,7 +1906,6 @@
     "fileName": "carte"
   },
   "newsletterUnsubscribe": {
-    "loading": "Vérification en cours...",
     "errorTitle": "Lien invalide ou expiré",
     "errorDesc": "Ce lien de désinscription est introuvable ou a déjà été utilisé.",
     "backToHome": "Retour à l'accueil",
@@ -2042,7 +2041,6 @@
     "scannedCount": "{count, plural, one {# numéro analysé} other {# numéros analysés}}",
     "noNumbers": "Aucun numéro de téléphone valide trouvé pour ces filtres.",
     "exportSuccess": "Numéros de téléphone exportés avec succès.",
-    "exportError": "Échec de l'exportation des numéros.",
-    "loading": "Chargement des numéros..."
+    "exportError": "Échec de l'exportation des numéros."
   }
 }

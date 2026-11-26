@@ -159,9 +159,7 @@ export default function PosSubscriptionReminderModal({
                         text={
                             alreadyReminded
                                 ? t('subscriptionReminderModal.alreadyRemindedBtn')
-                                : submitting || isLoading
-                                  ? tCommon('loading')
-                                  : t('subscriptionReminderModal.sendReminderBtn')
+                                : t('subscriptionReminderModal.sendReminderBtn')
                         }
                         disabled={!hasEmail || alreadyReminded || submitting || isLoading}
                         isLoading={submitting || isLoading}

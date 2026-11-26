@@ -223,7 +223,7 @@ export default function PosExportInventoryModal({
                                 id="pos-export-inventory-pdf-btn"
                                 type={EButtonType.primary}
                                 size={EButtonSize.medium}
-                                text={isExportingPdf ? tCommon('loading') : t('downloadPdf')}
+                                text={t('downloadPdf')}
                                 isLoading={isExportingPdf}
                                 disabled={isLoading || products.length === 0}
                                 onClick={handleExportPdf}
@@ -254,7 +254,7 @@ export default function PosExportInventoryModal({
                                 id="pos-export-inventory-csv-btn"
                                 type={EButtonType.secondary}
                                 size={EButtonSize.medium}
-                                text={isExportingCsv ? tCommon('loading') : t('downloadCsv')}
+                                text={t('downloadCsv')}
                                 isLoading={isExportingCsv}
                                 disabled={isLoading || products.length === 0}
                                 onClick={handleExportCsv}

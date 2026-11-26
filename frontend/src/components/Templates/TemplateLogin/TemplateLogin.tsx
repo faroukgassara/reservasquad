@@ -128,7 +128,7 @@ const TemplateLogin: React.FC<ITemplateLogin> = ({ form }) => {
                                     className="h-11 w-full justify-center rounded-xl"
                                     disabled={!canSubmit}
                                     isLoading={isSubmitting}
-                                    text={isSubmitting ? t('common.loading') : t('auth.signIn')}
+                                    text={t('auth.signIn')}
                                     onClick={() => form.handleSubmit()}
                                 />
                             )}

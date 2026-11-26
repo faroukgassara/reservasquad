@@ -17,7 +17,8 @@ import {
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
 import Badge from '@/components/Primitives/Badge/Badge';
-import { EBadgeSize, EBadgeType, EVariantLabel } from '@/Enum/Enum';
+import Spinner from '@/components/Primitives/Spinner/Spinner';
+import { EBadgeSize, EBadgeType, ESize, EVariantLabel } from '@/Enum/Enum';
 import { formatMoney, type DashboardMonthDayPoint } from '@/lib/reservation-api';
 import colors from '@/theme/colors';
 import { formatMonthLabel } from './ReportPanels';
@@ -193,7 +194,9 @@ export default function ReservationDailyMonthChart({
 
     if (isLoading) {
         return (
-            <Div className="h-80 w-full animate-pulse rounded-2xl border border-gray-100 bg-white p-6 shadow-xs dark:border-gray-800 dark:bg-gray-900" />
+            <Div className="flex h-80 w-full items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                <Spinner color="text-primary-500" size={ESize.lg} />
+            </Div>
         );
     }
 

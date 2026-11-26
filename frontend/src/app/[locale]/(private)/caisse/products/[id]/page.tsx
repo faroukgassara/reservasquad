@@ -10,6 +10,7 @@ import OrganismPosProductForm, { type PosProductFormValues } from '@/components/
 import ConfirmationModal from '@/components/Modals/ConfirmationModal/ConfirmationModal';
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -158,7 +159,7 @@ export default function PosProductPage() {
                 ) : null,
             )}
             <LayoutWrapper
-                title={isNew ? t('create') : (product?.name ?? '…')}
+                title={isNew ? t('create') : (product?.name ?? <Skeleton className="h-6 w-48" />)}
                 subTitle={t('subtitle')}
                 leftActions={backButton}
                 rightActions={deleteButton}

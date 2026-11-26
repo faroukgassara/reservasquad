@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import type { ELabelColor } from '@/theme/labelColors';
 import type { ModuleTone } from '@/lib/navigation';
@@ -124,8 +125,8 @@ const ModuleCard = ({
 
             {isLoading ? (
                 <Div className="mt-auto flex flex-col gap-3">
-                    <Div className="h-9 w-24 animate-pulse rounded-lg bg-gray-200/60" />
-                    <Div className="h-5 animate-pulse rounded-md bg-gray-200/50" />
+                    <Skeleton className="h-9 w-24 bg-gray-200/60" />
+                    <Skeleton className="h-5 w-full bg-gray-200/50" />
                 </Div>
             ) : null}
 

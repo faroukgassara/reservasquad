@@ -19,9 +19,10 @@ import {
 import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Label from '@/components/Primitives/Label/Label';
+import Spinner from '@/components/Primitives/Spinner/Spinner';
 import { formatMoney, type IncomeLineRecord } from '@/lib/daily-income-api';
 import colors from '@/theme/colors';
-import { EButtonSize, EButtonType, EVariantLabel } from '@/Enum/Enum';
+import { EButtonSize, EButtonType, ESize, EVariantLabel } from '@/Enum/Enum';
 
 interface ICategoryRow {
     key: string;
@@ -459,7 +460,11 @@ export default function ChargesBreakdown({
                 </Label>
             </Div>
 
-            {isLoading ? <Div className="m-5 h-64 animate-pulse rounded-xl bg-gray-50" /> : null}
+            {isLoading ? (
+                <Div className="flex h-64 items-center justify-center">
+                    <Spinner color="text-primary-500" size={ESize.lg} />
+                </Div>
+            ) : null}
 
             {!isLoading && !hasData ? (
                 <Div className="px-5 py-10 text-center">

@@ -10,6 +10,7 @@ import Button from '@/components/Primitives/Button/Button';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
+import Spinner from '@/components/Primitives/Spinner/Spinner';
 import PosOpenSessionModal from '@/components/Modals/PosOpenSessionModal/PosOpenSessionModal';
 import PosSubscriptionReminderModal from '@/components/Modals/PosSubscriptionReminderModal/PosSubscriptionReminderModal';
 import PosThumbnail from '@/components/Organisms/Pos/PosThumbnail';
@@ -425,10 +426,14 @@ export default function PosDashboardPage() {
                                         })}
                                     </Div>
                                 ) : (
-                                    <Div className="px-5 py-6 flex-1">
-                                        <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
-                                            {expiringLoading ? '…' : t('dashboard.noExpiring')}
-                                        </Label>
+                                    <Div className="flex flex-1 items-center justify-center px-5 py-6">
+                                        {expiringLoading ? (
+                                            <Spinner color="text-primary-500" size={ESize.md} />
+                                        ) : (
+                                            <Label variant={EVariantLabel.bodySmall} color="text-gray-500">
+                                                {t('dashboard.noExpiring')}
+                                            </Label>
+                                        )}
                                     </Div>
                                 )}
                             </Div>

@@ -3,6 +3,8 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
+import Spinner from '@/components/Primitives/Spinner/Spinner';
+import { ESize } from '@/Enum/Enum';
 import { Routes } from '@/lib/routes';
 
 interface ProtectedRouteProps {
@@ -24,8 +26,8 @@ export default function ProtectedRoute({ children }: Readonly<ProtectedRouteProp
 
     if (status === 'loading') {
         return (
-            <div className="flex min-h-dvh items-center justify-center">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            <div className="flex min-h-dvh items-center justify-center" aria-busy>
+                <Spinner color="text-primary-500" size={ESize.lg} />
             </div>
         );
     }

@@ -563,9 +563,7 @@ export default function OrganismPosPaymentScreen({
                                     />
                                 </svg>
                             ) : null}
-                            <span className="tracking-wide">
-                                {isLoading ? 'Validation...' : t('validate')}
-                            </span>
+                            <span className="tracking-wide">{t('validate')}</span>
                         </button>
                     ) : (
                         <button
@@ -627,7 +625,7 @@ export default function OrganismPosPaymentScreen({
                                 />
                             </svg>
                         ) : null}
-                        <span>{isLoading ? 'Validation...' : `${t('validate')} (${formatMoney(paid)})`}</span>
+                        <span>{`${t('validate')} (${formatMoney(paid)})`}</span>
                     </button>
                 ) : (
                     <Button

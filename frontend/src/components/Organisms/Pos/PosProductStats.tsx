@@ -9,6 +9,7 @@ import DatePickerField from '@/components/Primitives/DatePicker/DatePickerField'
 import Div from '@/components/Primitives/Div/Div'
 import Icon from '@/components/Primitives/Icon/Icon'
 import Label from '@/components/Primitives/Label/Label'
+import Spinner from '@/components/Primitives/Spinner/Spinner'
 import StatCard from '@/components/Primitives/StatCard/StatCard'
 import Tabs from '@/components/Primitives/Tabs/Tabs'
 import { SingleProductSalesChart } from '@/components/Organisms/Pos/ProductSalesCharts'
@@ -224,7 +225,9 @@ export default function PosProductStats({
             {data?.granularity === 'session' ? t('statsTrendSessions') : t('statsTrendMonths')}
           </Label>
           {isLoading ? (
-            <Div aria-hidden="true" className="h-56 animate-pulse rounded-xl bg-gray-100" />
+            <Div className="flex h-56 items-center justify-center" aria-busy>
+              <Spinner color="text-primary-500" size={ESize.lg} />
+            </Div>
           ) : (
             <SingleProductSalesChart
               data={trendData}

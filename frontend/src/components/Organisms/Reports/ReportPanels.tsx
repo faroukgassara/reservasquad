@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
+import Spinner from '@/components/Primitives/Spinner/Spinner';
 import StatCard from '@/components/Primitives/StatCard/StatCard';
 import { Link } from '@/i18n/navigation';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
@@ -60,7 +61,11 @@ export function printReport() {
 }
 
 export function ChartLoader() {
-    return <Div aria-hidden="true" className="h-56 w-full animate-pulse rounded-xl bg-gray-100" />;
+    return (
+        <Div className="flex h-56 w-full items-center justify-center" aria-busy>
+            <Spinner color="text-primary-500" size={ESize.lg} />
+        </Div>
+    );
 }
 
 export function ChartPanel({

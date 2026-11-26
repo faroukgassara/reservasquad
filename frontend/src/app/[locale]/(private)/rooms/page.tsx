@@ -246,7 +246,7 @@ export default function RoomsAdminPage() {
                                 iconBg="bg-primary-50"
                                 iconColor="text-primary-600"
                                 label={t('totalRooms')}
-                                value={isLoading ? '—' : String(stats.count)}
+                                value={String(stats.count)}
                                 isLoading={isLoading}
                             />
                             <StatCard
@@ -254,7 +254,7 @@ export default function RoomsAdminPage() {
                                 iconBg="bg-accent-50"
                                 iconColor="text-accent-600"
                                 label={t('totalCapacity')}
-                                value={isLoading ? '—' : String(stats.totalCapacity)}
+                                value={String(stats.totalCapacity)}
                                 isLoading={isLoading}
                             />
                             <StatCard
@@ -262,7 +262,7 @@ export default function RoomsAdminPage() {
                                 iconBg="bg-success-50"
                                 iconColor="text-success-600"
                                 label={t('averageRate')}
-                                value={isLoading ? '—' : formatPrice(stats.avgPrice)}
+                                value={formatPrice(stats.avgPrice)}
                                 isLoading={isLoading}
                             />
                         </div>

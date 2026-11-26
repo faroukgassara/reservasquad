@@ -18,6 +18,7 @@ import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Input from '@/components/Primitives/Input/Input';
 import Label from '@/components/Primitives/Label/Label';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import Spinner from '@/components/Primitives/Spinner/Spinner';
 import BrandLogo from '@/components/Primitives/BrandLogo/BrandLogo';
 import NewsletterBodyEditor from '@/components/Newsletter/NewsletterBodyEditor';
@@ -714,7 +715,7 @@ export default function PosNewsletterDetailPage() {
                                                     {state.value === 'SPECIFIC_RECIPIENTS'
                                                         ? t('audienceCountLive', { count: selectedRecipients.length })
                                                         : isAudienceCountLoading
-                                                          ? '…'
+                                                          ? <Skeleton className="h-3.5 w-20 align-middle" />
                                                           : t('audienceCountLive', { count: audienceCountData?.count ?? 0 })}
                                                 </Label>
                                             </Div>

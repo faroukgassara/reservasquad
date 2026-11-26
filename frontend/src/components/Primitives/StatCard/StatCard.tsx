@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Div from '@/components/Primitives/Div/Div';
 import Icon from '@/components/Primitives/Icon/Icon';
 import Label from '@/components/Primitives/Label/Label';
+import Skeleton from '@/components/Primitives/Skeleton/Skeleton';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import type { ELabelColor } from '@/theme/labelColors';
 
@@ -39,7 +40,7 @@ const StatCard = ({
                         {label}
                     </Label>
                     {isLoading ? (
-                        <Div className="mt-1.5 h-6 w-24 animate-pulse rounded-lg bg-gray-100" />
+                        <Skeleton className="mt-1.5 h-6 w-24" />
                     ) : (
                         <span title={value} className="mt-0.5 block truncate text-xl font-semibold text-gray-900 tabular-nums sm:text-2xl">
                             {value}
