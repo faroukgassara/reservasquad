@@ -13,6 +13,7 @@ import RoomFormModal, { type RoomFormValues } from '@/components/Modals/RoomForm
 import { useModal } from '@/contexts/ModalContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuthorization } from '@/hooks/useAuthorization';
+import { formatMoney } from '@/lib/money';
 import { Routes } from '@/lib/routes';
 import {
     createRoom,
@@ -35,16 +36,6 @@ type ModalState =
     | { type: 'form'; room: RoomRecord | null }
     | { type: 'delete'; room: RoomRecord }
     | null;
-
-function formatPrice(value: number | string): string {
-    const amount = typeof value === 'number' ? value : Number(value);
-    if (Number.isNaN(amount)) return String(value);
-    return new Intl.NumberFormat('fr-TN', {
-        style: 'currency',
-        currency: 'TND',
-        minimumFractionDigits: 2,
-    }).format(amount);
-}
 
 export default function RoomsAdminPage() {
     const t = useTranslations('admin.rooms');
@@ -169,7 +160,7 @@ export default function RoomsAdminPage() {
                     label: t('pricePerHour'),
                     mobile: 'secondary',
                     render: (_: unknown, row: RoomRecord) => (
-                        <OrganismTable.Cell mainText={formatPrice(row.pricePerHour)} />
+                        <OrganismTable.Cell mainText={formatMoney(row.pricePerHour)} />
                     ),
                 },
             },
@@ -262,7 +253,7 @@ export default function RoomsAdminPage() {
                                 iconBg="bg-success-50"
                                 iconColor="text-success-600"
                                 label={t('averageRate')}
-                                value={formatPrice(stats.avgPrice)}
+                                value={formatMoney(stats.avgPrice)}
                                 isLoading={isLoading}
                             />
                         </div>

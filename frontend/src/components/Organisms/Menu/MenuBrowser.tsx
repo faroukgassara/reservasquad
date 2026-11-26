@@ -12,6 +12,7 @@ import LanguageSwitcher from '@/components/Primitives/LanguageSwitcher/LanguageS
 import ThemeToggle from '@/components/Primitives/ThemeToggle/ThemeToggle';
 import { ESize, EVariantLabel, IconComponentsEnum } from '@/Enum/Enum';
 import { getMediaUrl } from '@/lib/media-url';
+import { formatMoney } from '@/lib/money';
 import type { ELabelColor } from '@/theme/labelColors';
 
 export interface MenuItem {
@@ -73,9 +74,6 @@ const TONES: ITone[] = [
     },
 ];
 
-const formatPrice = (value: number) =>
-    new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
-
 /** Case- and accent-insensitive, so "cafe" finds "Café". */
 const normalize = (value: string) =>
     value
@@ -125,7 +123,7 @@ function ProductCard({ product, tone }: Readonly<{ product: MenuItem; tone: ITon
                 {product.name}
             </Label>
             <Label variant={EVariantLabel.body} color={tone.text} className="shrink-0 pe-1.5 font-bold! whitespace-nowrap tabular-nums">
-                {formatPrice(product.price)}
+                {formatMoney(product.price)}
             </Label>
         </li>
     );

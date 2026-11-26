@@ -120,15 +120,7 @@ export async function fetchUnpaidSummary(
     return unwrapData<PaymentSummary>(res.data as { data?: PaymentSummary });
 }
 
-export function formatMoney(value: number | string): string {
-    const amount = typeof value === 'number' ? value : Number(value);
-    if (Number.isNaN(amount)) return String(value);
-    return new Intl.NumberFormat('fr-TN', {
-        style: 'currency',
-        currency: 'TND',
-        minimumFractionDigits: 2,
-    }).format(amount);
-}
+export { formatMoney } from '@/lib/money';
 
 export function calculateRoomReservationPrice(
     pricePerHour: number | string | undefined,

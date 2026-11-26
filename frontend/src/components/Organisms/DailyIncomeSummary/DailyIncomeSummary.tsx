@@ -178,7 +178,7 @@ export default function DailyIncomeSummary({
     return (
         <Div className="flex flex-col gap-3">
             <Div className="flex flex-col gap-5 rounded-2xl border border-gray-200 bg-white p-5 lg:flex-row lg:items-center lg:gap-8">
-                <Div className="flex min-w-0 flex-col gap-1 lg:w-64 lg:shrink-0">
+                <Div className="flex min-w-0 flex-col gap-1 lg:min-w-64 lg:shrink-0">
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('totalIncome')}
                     </Label>
@@ -243,7 +243,7 @@ export default function DailyIncomeSummary({
                     </Div>
                 </Div>
 
-                <Div className="flex min-w-0 flex-col gap-1 border-t border-gray-100 pt-4 lg:w-56 lg:shrink-0 lg:border-s lg:border-t-0 lg:ps-8 lg:pt-0">
+                <Div className="flex min-w-0 flex-col gap-1 border-t border-gray-100 pt-4 lg:min-w-56 lg:shrink-0 lg:border-s lg:border-t-0 lg:ps-8 lg:pt-0">
                     <Label variant={EVariantLabel.caption} color="text-gray-500">
                         {t('netBalance')}
                     </Label>

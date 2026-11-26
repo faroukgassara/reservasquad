@@ -88,16 +88,7 @@ function unwrapData<T>(raw: { data?: T } | T): T {
     return raw as T;
 }
 
-export function formatMoney(value: number | string): string {
-    const amount = typeof value === 'number' ? value : Number(value);
-    if (Number.isNaN(amount)) return String(value);
-    return new Intl.NumberFormat('fr-TN', {
-        style: 'currency',
-        currency: 'TND',
-        minimumFractionDigits: 3,
-        maximumFractionDigits: 3,
-    }).format(amount);
-}
+export { formatMoney } from '@/lib/money';
 
 export function toDateInputValue(isoOrDate: string): string {
     if (!isoOrDate) return '';
